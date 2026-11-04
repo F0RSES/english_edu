@@ -14,6 +14,8 @@
 - `pubspec.yaml` — dev-only, без Flutter SDK.
 - `analysis_options.yaml` — very_good_analysis + strict-* и кастомные правила.
 - `docs/ARCHITECTURE.md` — карта контрактов домена.
+- `.clinerules/30-workflow.md` — DoD уточнён: tooling прогоняется на хосте, отчёт обязан содержать вывод.
+- `meta` в `dependencies` — аннотации `@immutable` на 5 value objects, рантайм-кода нет.
 
 ### Changed
 - `.clinerules/10-project.md`, `README.md` — синхронизированы с ADR-002.
@@ -24,6 +26,9 @@
 - `very_good_analysis` и `test` — версии приняты по pub.dev, перепроверка в 1.1a.
 - `docs/PROJECT_CONTEXT.md` — `lib/` и `test/` отнесены к Phase 1 (ADR-003).
 - `docs/ARCHITECTURE.md` — добавлен раздел Non-goals.
+- `LocalDate.fromDateTime` и `today` — без неявного `.toLocal()`, тесты TZ-независимы.
+- `.clinerules/20-code-style.md` — freezed только для Riverpod state.
+- `.clinerules/30-workflow.md` — шаг 5 приведён к Definition of Done.
 
 ### Verified
 - Host: Dart 3.13.4 stable, linux_x64.
@@ -39,5 +44,8 @@
 
 ### Fixed
 - BL-01 ошибочно закрыт до завершения 1.1 → In progress.
+- 10 analyzer issues `avoid_equals_and_hash_code_on_mutable_classes` закрыты через `@immutable`.
+- ADR-003 — удалена устаревшая гипотеза про несовместимость SDK (опровергнута прогоном на Dart 3.13.4).
+- ADR-001 — добавлен пункт (e): effective minimum Dart SDK 3.13.
 
 ### Security

@@ -8,6 +8,7 @@
 ## Done
 - Phase 0 — Bootstrap: 11 файлов управления проектом (`.clinerules/` + `docs/`).
 - Phase 1, task 1.0 — ADR-001 и ADR-002 в статусе Accepted.
+- Phase 1, task 1.1a.0 — toolchain verified on Dart 3.13.4; pubspec.lock committed.
 
 ## In progress
 - BL-01 Phase 1, task 1.1 — domain contracts.

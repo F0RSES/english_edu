@@ -41,6 +41,8 @@ Architecture Decision Records: один ADR — одно решение.
   - (b) build_runner обязателен в сборке; политика «коммитить generated-файлы (.drift/.freezed/.g/.riverpod) или генерировать в CI» — решение Phase 2a.
   - (c) riverpod_generator + riverpod_annotation — основной путь; при проблемах в Phase 2a допускается fallback на manual providers с обновлением этого ADR.
   - (d) pubspec.lock committed as source of truth for dependency versions. Host SDK: Dart 3.13.4.
+  - (e) effective minimum Dart SDK — 3.13.4 (dev_deps VGA 11 требует ^3.13.0); pubspec lower bound >=3.5.0 — официальная совместимость, фактическая — 3.13.
+  - (f) Domain may depend on package:meta for @immutable; meta — annotations only, no runtime.
 - **Open questions:** зрелость пакетов пересмотреть в Phase 2a (см. ADR-002 Verification gate); выбор TZ-пакета — Phase 1.1; лицензия проекта — BL-08.
 
 ---
@@ -75,8 +77,8 @@ Architecture Decision Records: один ADR — одно решение.
 - **Alternatives considered:**
   - Держать контракты только в docs до Phase 2a — тогда компиляция и DoD «analyze clean» не проверяются, контракты расходятся с кодом.
   - Выделить domain в отдельный пакет сразу — изоляция лучше, но tooling и структура усложняются до появления второго потребителя.
-- **Consequences:** pubspec появляется в Phase 1, а не в Phase 2a; в Phase 1 используются `dart analyze` и `dart test`, `flutter analyze` и `flutter test` — с Phase 2a; runtime-зависимости остаются нулевыми до 2a; домен компилируется независимо от Flutter.
-- **Open questions:** проверить в 1.1a актуальные версии very_good_analysis и test и их совместимость с нижней границей `sdk: ">=3.5.0 <4.0.0"`; решить позже, остаётся ли `lib/domain/` внутри приложения или выделяется в пакет.
+- **Consequences:** pubspec появляется в Phase 1, а не в Phase 2a; в Phase 1 используются `dart analyze` и `dart test`, `flutter analyze` и `flutter test` — с Phase 2a; runtime-зависимости остаются нулевыми до 2a; домен компилируется независимо от Flutter. LocalDate stores days since epoch; no implicit TZ conversion; fromDateTime uses Y/M/D as provided.
+- **Open questions:** решить в Phase 2a: остаётся ли `lib/domain/` внутри приложения или выделяется в отдельный Dart-пакет.
 
 ## Реестр
 

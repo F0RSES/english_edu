@@ -6,7 +6,7 @@
 - Импорты только используемые, порядок задаёт линтер.
 
 ## Обязательно
-- freezed для state, событий и value objects. Ручные ==/hashCode/copyWith не пишем.
+- freezed — только для Riverpod state. Entities и value objects: final class + @immutable + const + ручная equality. Freezed только для >8 полей и сложного copyWith.
 - dartdoc для всего public API пакетов и domain-контрактов.
 - Имена по смыслу: без сокращений, без венгерской нотации, без «manager»/«helper»/«util» без нужды.
 - Ошибки — через явные типы (sealed-иерархии или Result), не через null в неоднозначных случаях.

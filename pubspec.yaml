@@ -5,6 +5,9 @@ publish_to: none
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
+dependencies:
+  meta: ^1.19.0
+
 dev_dependencies:
   test: ^1.33.0
   very_good_analysis: ^11.0.0

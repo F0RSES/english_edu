@@ -2,7 +2,7 @@
 
 Мобильное приложение для изучения английского: карточки со словами, интервальное повторение по SM-2 и ежедневная короткая сессия. Работает offline-first — урок, повторение и прогресс не требуют сети; приложение помнит, что учить сегодня, и показывает честный прогресс по локальному времени. Цель MVP — довести пользователя до устойчивой ежедневной привычки, а не до каталога контента.
 
-**Status:** bootstrap (Phase 0)
+**Status:** Phase 1 — Architecture
 
 ## Стек
 
@@ -11,13 +11,13 @@
 | UI | Flutter |
 | State | Riverpod |
 | Навигация | go_router |
-| Данные | Drift (SQLite) |
+| Данные | Drift (SQLite) — см. ADR-002 (Accepted) |
 | Модели | freezed |
 | Речь | flutter_tts |
 | Уведомления | flutter_local_notifications |
 | Линт | very_good_analysis |
 
-Версии пакетов фиксируются в Phase 2 после проверки pub.dev. Состав стека — `docs/DECISIONS.md`, ADR-001 (Status: Proposed).
+Версии пакетов фиксируются в Phase 2 после проверки pub.dev. Состав стека — `docs/DECISIONS.md`, ADR-001 (Status: Accepted).
 
 ## Документация
 

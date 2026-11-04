@@ -5,8 +5,8 @@
 
 | ID | Приоритет | Задача | Критерий приёмки | Статус |
 |---|---|---|---|---|
-| BL-01 | P0 | Phase 1 — Архитектура: слои, контракты domain, ADR-002 (Drift vs Isar) | Domain-контракты репозиториев и use cases описаны, схема слоёв зафиксирована в docs, ADR-002 имеет статус Proposed | In progress |
-| BL-02 | P0 | Phase 1 — Контент-пайплайн: схема seed, скрипт валидации, 300–500 слов с лицензиями | Seed проходит валидацию без ошибок, у каждого слова есть источник и лицензия, объём в диапазоне 300–500 | Todo |
+| BL-01 | P0 | Phase 1 — Архитектура: слои, контракты domain, ADR-002 (Drift vs Isar) | ARCHITECTURE.md committed; lib/domain/ содержит контракты; dart analyze = 0; dart test test/domain/ зелёный | In progress |
+| BL-02 | P0 | Phase 1 — Контент-пайплайн: схема seed, скрипт валидации, 300–500 слов с лицензиями | Seed проходит валидацию без ошибок, у каждого слова есть источник и лицензия, объём в диапазоне 300–500 | In progress |
 | BL-03 | P0 | Phase 2 — Каркас + Drift schema v1 + миграции + репозитории + export/import JSON | Приложение запускается, схема v1 создаётся с нуля и мигрирует на тестовой базе, export→import возвращает идентичные данные | Todo |
 | BL-04 | P0 | Phase 3 — Ядро: SM-2 + review log + due-очередь + LessonScreen + TTS + undo + session complete | Урок пишет review log, пересчитывает интервалы по SM-2 и завершается экраном итогов; undo возвращает предыдущее состояние карточки | Todo |
 | BL-05 | P0 | Phase 4 — DictionaryScreen + Settings + onboarding + empty states + daily goal | Новый пользователь проходит onboarding, видит словарь и настройки, у каждого пустого экрана есть empty state, дневная цель сохраняется и отображается | Todo |

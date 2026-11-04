@@ -1,0 +1,11 @@
+/.dart_tool/
+/build/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.env
+.env
+
+# pubspec.lock НЕ игнорируется — коммитится.
+# lib/, test/ НЕ игнорируются.

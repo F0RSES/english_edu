@@ -12,6 +12,28 @@ const allowedPartsOfSpeech = <String>{
   'numeral',
 };
 
+/// Приводит `partOfSpeech` из ответа модели к одному значению из списка.
+///
+/// Модель регулярно отвечает `noun|adjective`, `verb, noun` или `adv/adj`,
+/// а формат ждёт ровно одно значение. Берём первую часть, которая входит в
+/// [allowedPartsOfSpeech]; если ни одна не подходит — `null`.
+///
+/// `null` вместо ошибки: поле необязательное, слово без части речи полезнее
+/// выброшенного слова. Функция живёт в общей библиотеке инструментов, а не в
+/// генераторе, чтобы правило покрывалось тестами без CLI и сети.
+String? sanitizePartOfSpeech(String? raw) {
+  if (raw == null) {
+    return null;
+  }
+  for (final part in raw.split(RegExp('[|,/]'))) {
+    final normalized = part.trim().toLowerCase();
+    if (allowedPartsOfSpeech.contains(normalized)) {
+      return normalized;
+    }
+  }
+  return null;
+}
+
 /// Уровни CEFR, допустимые в seed-файле (ADR-023).
 ///
 /// Список дублирует `CefrLevel.label` из приложения: tools не импортируют

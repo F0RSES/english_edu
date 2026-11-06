@@ -111,12 +111,24 @@ Future<void> main(List<String> args) async {
         // слова, которые модель считает несоответствующими уровню.
         warnings.add('${entry.term}: model doubts it matches ${entry.level}');
       }
+      // Модель отвечает и "noun|adjective": валидатор ждёт одно значение,
+      // поэтому чистим ответ до записи в JSON.
+      final rawPartOfSpeech = fields['partOfSpeech'];
+      final partOfSpeech = sanitizePartOfSpeech(
+        rawPartOfSpeech is String ? rawPartOfSpeech : null,
+      );
+      if (rawPartOfSpeech != null && partOfSpeech == null) {
+        warnings.add(
+          'Word ${entry.term}: partOfSpeech "$rawPartOfSpeech" unknown, '
+          'set to null',
+        );
+      }
       generated.add(<String, Object?>{
         'id': nextId++,
         'term': entry.term,
         'translation': fields['translation'],
         'transcription': fields['transcription'],
-        'partOfSpeech': fields['partOfSpeech'],
+        'partOfSpeech': partOfSpeech,
         'exampleSentence': fields['exampleSentence'],
         'sourceId': _autoSourceId,
         if (entry.rank case final rank?) 'frequencyRank': rank,
@@ -350,9 +362,12 @@ String _promptFor(String term, String level) =>
     'Сгенерируй перевод и пример. '
     'Верни строгий JSON: '
     '{"translation": "<russian>", "transcription": "/<IPA>/", '
-    '"partOfSpeech": "<${allowedPartsOfSpeech.join('|')}>", '
+    '"partOfSpeech": "<one tag>", '
     '"exampleSentence": "<one English sentence>", '
     '"levelFits": <true|false>}. '
+    'partOfSpeech ОБЯЗАТЕЛЬНО одно слово из списка: '
+    '${allowedPartsOfSpeech.join(', ')}. '
+    'НИКАКИХ "noun|verb" или "noun, verb". '
     'Перевод и пример — на лексике и грамматике уровня $level. '
     'No markdown, no code fences, only JSON.';
 

@@ -223,4 +223,40 @@ void main() {
       expect(result.warnings, isEmpty);
     });
   });
+
+  group('sanitizePartOfSpeech', () {
+    test('sanitize noun|adjective returns noun', () {
+      expect(sanitizePartOfSpeech('noun|adjective'), 'noun');
+    });
+
+    test('sanitize verb, noun returns verb', () {
+      expect(sanitizePartOfSpeech('verb, noun'), 'verb');
+    });
+
+    test('sanitize unknown returns null', () {
+      expect(sanitizePartOfSpeech('unknown'), isNull);
+    });
+
+    test('sanitize null returns null', () {
+      expect(sanitizePartOfSpeech(null), isNull);
+    });
+
+    test('keeps a single known tag and normalises the case', () {
+      expect(sanitizePartOfSpeech('  NOUN '), 'noun');
+    });
+
+    test('skips unknown parts before a known one', () {
+      expect(sanitizePartOfSpeech('phrasal verb/adjective'), 'adjective');
+    });
+
+    test('returns null when every part is unknown', () {
+      expect(sanitizePartOfSpeech('gerund|participle'), isNull);
+    });
+
+    test('accepts every allowed tag unchanged', () {
+      for (final tag in allowedPartsOfSpeech) {
+        expect(sanitizePartOfSpeech(tag), tag);
+      }
+    });
+  });
 }

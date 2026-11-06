@@ -2,6 +2,8 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
+import 'package:english_edu/domain/services/cloud_auth_service.dart';
+import 'package:english_edu/domain/services/cloud_sync_service.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../core/notifications/fake_notification_service.dart';
+import '../../core/sync/fake_cloud_auth_service.dart';
+import '../../core/sync/fake_cloud_sync_service.dart';
 import '../../core/tts/fake_tts_service.dart';
 import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
@@ -23,10 +27,16 @@ Future<void> _scrollToReminders(WidgetTester tester) async {
 }
 
 final class Harness {
-  Harness({UserSettings? settings, List<DailyStats> stats = const []})
-    : settingsRepo = FakeSettingsRepository(settings),
-      statsRepo = FakeStatsRepository(stats),
-      tts = FakeTtsService();
+  Harness({
+    UserSettings? settings,
+    List<DailyStats> stats = const [],
+    CloudAuthService? auth,
+    CloudSyncService? sync,
+  }) : settingsRepo = FakeSettingsRepository(settings),
+       statsRepo = FakeStatsRepository(stats),
+       auth = auth ?? FakeCloudAuthService(available: false),
+       sync = sync ?? FakeCloudSyncService(),
+       tts = FakeTtsService();
 
   final FakeNotificationService notifications = FakeNotificationService();
 
@@ -34,6 +44,8 @@ final class Harness {
   final FakeStatsRepository statsRepo;
   final FakeProgressRepository progressRepo = FakeProgressRepository();
   final FakeReviewLogRepository logRepo = FakeReviewLogRepository();
+  final CloudAuthService auth;
+  final CloudSyncService sync;
   final FakeTtsService tts;
 
   Widget app() => ProviderScope(
@@ -47,6 +59,8 @@ final class Harness {
       reviewLogRepositoryProvider.overrideWithValue(logRepo),
       ttsProvider.overrideWithValue(tts),
       notificationServiceProvider.overrideWithValue(notifications),
+      cloudAuthServiceProvider.overrideWithValue(auth),
+      cloudSyncServiceProvider.overrideWithValue(sync),
     ],
     child: const MaterialApp(home: ProfileScreen()),
   );
@@ -297,5 +311,82 @@ void main() {
     expect(await harness.progressRepo.getAll(), isEmpty);
     expect(await harness.logRepo.getAll(), isEmpty);
     expect((await container.read(computeStreakProvider.future)).count, 0);
+  });
+
+  testWidgets('shows the unavailable hint when cloud keys are missing', (
+    tester,
+  ) async {
+    final harness = Harness();
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Синхронизация недоступна'), 200);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Синхронизация недоступна'), findsOneWidget);
+  });
+
+  testWidgets('shows login button when not authenticated', (tester) async {
+    final harness = Harness(auth: FakeCloudAuthService());
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Войти через Email'), 200);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Войти через Email'), findsOneWidget);
+    expect(find.text('Синхронизировать сейчас'), findsNothing);
+  });
+
+  testWidgets('shows sync button when authenticated', (tester) async {
+    final harness = Harness(
+      auth: FakeCloudAuthService(email: 'learner@example.com'),
+    );
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Синхронизировать сейчас'), 200);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Синхронизировать сейчас'), findsOneWidget);
+    expect(find.text('learner@example.com'), findsOneWidget);
+  });
+
+  testWidgets('login sends a magic link to the entered email', (tester) async {
+    final auth = FakeCloudAuthService();
+    final harness = Harness(auth: auth);
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Войти через Email'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Войти через Email'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'learner@example.com');
+    await tester.tap(find.text('Отправить'));
+    await tester.pumpAndSettle();
+
+    expect(auth.requestedEmail, 'learner@example.com');
+  });
+
+  testWidgets('sync button reports what was sent and received', (tester) async {
+    final sync = FakeCloudSyncService(
+      report: const SyncReport(pushed: 4, pulled: 1),
+    );
+    final harness = Harness(
+      auth: FakeCloudAuthService(email: 'learner@example.com'),
+      sync: sync,
+    );
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Синхронизировать сейчас'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Синхронизировать сейчас'));
+    await tester.pumpAndSettle();
+
+    expect(sync.syncCalls, 1);
+    expect(find.text('Отправлено 4, получено 1'), findsOneWidget);
   });
 }

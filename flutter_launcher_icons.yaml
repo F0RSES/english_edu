@@ -1,0 +1,13 @@
+# Иконки приложения. Запуск: dart run flutter_launcher_icons
+#
+# assets/icon.png — квадратная картинка 1024x1024 без прозрачности по краям;
+# сейчас там сгенерированная заглушка, её нужно заменить настоящей.
+flutter_launcher_icons:
+  image_path: "assets/icon.png"
+  android: true
+  ios: true
+  # iOS не принимает альфа-канал в иконке App Store.
+  remove_alpha_ios: true
+  adaptive_icon_background: "#E0F2F1"
+  adaptive_icon_foreground: "assets/icon.png"
+  min_sdk_android: 26

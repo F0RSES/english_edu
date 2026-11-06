@@ -1,6 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Карточка слова: до раскрытия виден только термин, после — перевод и пример.
@@ -139,6 +140,14 @@ class _WordCardState extends ConsumerState<WordCard> {
                 const SizedBox(height: 12),
                 if (_association case final association?)
                   _AssociationCard(text: association)
+                      .animate()
+                      .fadeIn(duration: 250.ms)
+                      .slideY(
+                        begin: 0.2,
+                        end: 0,
+                        duration: 250.ms,
+                        curve: Curves.easeOutCubic,
+                      )
                 else
                   TextButton.icon(
                     onPressed: _loading ? null : _loadAssociation,

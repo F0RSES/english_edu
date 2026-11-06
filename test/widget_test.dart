@@ -18,6 +18,9 @@ void main() {
           nextReviewLogIdProvider.overrideWithValue(
             NextReviewLogIdGenerator(1).next,
           ),
+          onboardingSeenProvider.overrideWith(
+            () => OnboardingSeen(seeded: true),
+          ),
         ],
         child: const EnglishEduApp(),
       ),

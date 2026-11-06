@@ -47,7 +47,23 @@
 - ADR-020 «Error Hunter contract»: `correctWord` обязательно, порядок `options` контрактом не является. **BL-59 закрыт.**
 - **BL-60 закрыт** на стороне воркера: прокси нормализует `wrongWord`/`correctWord` до одного слова (`split(' ')[0]` + системный промпт), клиент не менялся.
 - **Fixed:** график аналитики всегда содержит 7 дней: окно дозаполняется `DailyStats.empty`, иначе `getRange` возвращал только дни с записями и столбцов было меньше семи.
+- Онбординг показывается один раз (BL-61): `UserSettings.hasSeenOnboarding`, колонка `user_settings.has_seen_onboarding`, **схема v4 → v5** (`m.addColumn`); `onboardingSeenProvider` + `redirect` в роутере (`/onboarding?manual=1` — ручной вход из профиля). **BL-61 закрыт.**
+- UI/UX overhaul (Phase 11): `google_fonts ^6.2.1` с локально уложенным Inter (`assets/google_fonts/`, `allowRuntimeFetching = false` — офлайн), `lightTheme`/`darkTheme` с radius 20 и `themeMode.system`; переходы `CustomTransitionPage` (вкладки — fade, урок — slide снизу, игра/онбординг — fade+scale).
+- Свайп карточек переписан на `SwipeCard`: поворот, масштаб 1.05, цветная подложка, пружинный возврат, вылет за экран; `HapticFeedback` на свайп и на завершение сессии.
+- Error Hunter: варианты в `_OptionsSheet` — вспышка зелёным на верном, тряска (`flutter_animate`) и haptics на неверном; лист не закрывается на ошибке.
+- Онбординг (`/onboarding`, `smooth_page_indicator` + `flutter_animate`), вход — «Как это работает» в профиле. Автопоказ при первом запуске — BL-61.
+- Аналитика: столбцы графика вырастают снизу вверх каскадом; плашка AI-подсказки появляется через `fadeIn + slideY`.
+- Подготовка к Google Play (Phase 10): релизная подпись через `android/key.properties` + `signingConfigs.release` (при отсутствии keystore — debug-ключ, чтобы клон собирался без чужих секретов); `key.properties` и `*.jks` в `.gitignore`.
+- Иконки и splash: `flutter_launcher_icons ^0.14.0`, `flutter_native_splash ^2.4.0`, конфиги в корне, `assets/icon.png` 1024×1024 (заглушка), splash `#E0F2F1`; сгенерированы mipmap/AppIcon/launch-ресурсы.
+- `docs/PRIVACY_POLICY.md` (EN + RU): что хранится локально, что уходит в AI-прокси, Sentry без PII.
+- README: раздел «Release build» — keystore, `key.properties`, сборка AAB/APK, иконки, splash.
 - Аналитика (ADR-021, Phase 9): `Analytics` + `HardWord` (VO), `GetAnalytics` (счётчики статусов, топ-5 по `lapses`, 7 дней статистики, прогноз mastery), `getAnalyticsProvider` + `analyticsProvider`, виджет `AnalyticsSection` в конце `ProfileScreen` (плитки, столбцы по дням, трудные слова, прогноз).
+- Облачная синхронизация (ADR-022, Phase 12): `supabase_flutter ^2.5.0`; контракты `CloudSyncService` (`push`/`pull`/`sync`, `SyncReport`, `CloudSyncException`) и `CloudAuthService` в domain; `RemoteProgressRow` + `RemoteProgressStore`, `SupabaseRemoteProgressStore`, `SupabaseCloudSyncService` (слияние по `updatedAtUtc = lastReviewedAt ?? firstSeenAt`, равные метки не перезаписываются) в `lib/data/sync/`.
+- DI облака: `supabaseClientProvider`, `cloudAuthServiceProvider`, `cloudEmailProvider`, `cloudSyncServiceProvider`, `isCloudConfiguredProvider`; без `--dart-define=SUPABASE_URL/SUPABASE_ANON_KEY` отдаются заглушки `UnavailableCloudAuthService`/`UnavailableCloudSyncService`, приложение работает офлайн.
+- `ProfileScreen`: секция «Синхронизация» — вход по magic link (диалог email), email пользователя, «Синхронизировать сейчас» со счётчиками «отправлено / получено», выход из аккаунта.
+- `main.dart`: `_initCloud` поднимает Supabase только при наличии ключей; падение инициализации не блокирует старт.
+- `AndroidManifest.xml`: intent-filter `io.supabase.englishedu://login-callback` для возврата из письма magic link.
+- README: раздел «Cloud sync» — SQL для `user_progress` с RLS, Redirect URL, сборка с `--dart-define`.
 - Мини-игра «Охота на ошибки» (Phase 8): `ErrorHunterTask` (VO с `fromJson`; `correctWord` берётся из ответа, а при его отсутствии выводится как первый вариант ≠ `wrongWord` — BL-59), `ErrorTaskGenerator` в domain + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с), `errorTaskGeneratorProvider`, `ErrorHunterScreen` (loading/error/data, выбор варианта через BottomSheet, зелёный/красный SnackBar), маршрут `/error-hunter` и кнопка на главном экране.
 - Кэш AI-подсказок (ADR-019): таблица `word_hints` (`wordId` PK → CASCADE, `term`, `hintText`, `createdAtUtc`), **схема v3 → v4** (`onUpgrade`), `WordHint` VO, `WordHintRepository` + `DriftWordHintRepository`, use case `GetWordHint` с инвалидацией по `term`; ошибки AI не кэшируются. `HintGenerator` вынесен в domain, `AiClient` его реализует (`generate` вместо `getAssociation`) — domain больше не зависит от `http`. `WordCard` берёт подсказку через `getWordHintProvider`. BL-58 (TTL).
 - AI-ассоциации (ADR-019): `http ^1.2.0`, `AiClient` (прокси, таймаут 10 с, типизированный `AiException`), `aiClientProvider`; кнопка «Подсказка» в `WordCard` после раскрытия, плашка с ассоциацией, SnackBar при ошибке.
@@ -62,6 +78,7 @@
 ### Fixed
 - Очередь дня строилась только от `WordProgress`, поэтому слова без прогресса (seed и `AddWordDialog`) не попадали в сессию и экран показывал «на сегодня всё» при непустом словаре. `GetTodayQueue` теперь сопоставляет все слова с прогрессом: newWords = слова без прогресса или со статусом `newWord`, due = прогресс с наступившим `dueAt` вне `newWord`.
 - README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
+- `AndroidManifest.xml`: `INTERNET` добавлен в main-манифест — release-сборка не имела доступа к сети, поэтому AI-прокси и синхронизация работали только в debug.
 - BL-41: `computeStreakProvider` / `getTodayQueueProvider` переведены в `FutureProvider` (UseCase-провайдеры переименованы в `computeStreakUseCaseProvider` / `getTodayQueueUseCaseProvider`). `HomeScreen` использует `AsyncValue.when` вместо `FutureBuilder`, `LessonScreen` инвалидирует серию, очередь и цель после сессии и при закрытии — главный экран видит прогресс сразу после урока.
 - ADR-001 «Core stack» — Accepted.
 - ADR-002 «Persistence: Drift vs Isar» — Accepted.
@@ -130,7 +147,7 @@
 - ARCHITECTURE — таблицы `Word` и `SettingsRepository` приведены к коду, путь `lib/domain/usecases/`.
 
 ### Verified
-- [host] Phase 7 (AI hints): `flutter analyze` — 0 issues; `flutter test` — 481 passed; `flutter build apk --debug` — `✓ Built build/app/outputs/flutter-apk/app-debug.apk` (9.3 s), без KGP-предупреждений; `flutter build apk --release` — `✓ Built build/app/outputs/flutter-apk/app-release.apk (69.5MB)` (41.9 s).
+- [host] Phase 7 (AI hints): `flutter analyze` — 0 issues; `flutter test` — 493 passed; `flutter build apk --debug` — `✓ Built build/app/outputs/flutter-apk/app-debug.apk` (9.8 s), без KGP-предупреждений; `flutter build apk --release` — `✓ Built build/app/outputs/flutter-apk/app-release.apk (69.5MB)` (41.9 s); `flutter build appbundle --release` — `app-release.aab (66.9MB)`.
 - [host] 1.1a.0: Dart 3.13.4 stable, linux_x64.
 - [host] 1.1a.0: `dart pub get` — resolved 50 dependencies (very_good_analysis 11.0.0, test 1.33.0).
 - [host] 1.1a.0: `dart analyze` — 0 issues.

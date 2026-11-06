@@ -2044,6 +2044,21 @@ class $UserSettingsTableTable extends UserSettingsTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0.5),
   );
+  static const VerificationMeta _hasSeenOnboardingMeta = const VerificationMeta(
+    'hasSeenOnboarding',
+  );
+  @override
+  late final GeneratedColumn<bool> hasSeenOnboarding = GeneratedColumn<bool>(
+    'has_seen_onboarding',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("has_seen_onboarding" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
     'updatedAtUtc',
   );
@@ -2065,6 +2080,7 @@ class $UserSettingsTableTable extends UserSettingsTable
     reminderMinute,
     ttsVoice,
     ttsSpeed,
+    hasSeenOnboarding,
     updatedAtUtc,
   ];
   @override
@@ -2139,6 +2155,15 @@ class $UserSettingsTableTable extends UserSettingsTable
         ttsSpeed.isAcceptableOrUnknown(data['tts_speed']!, _ttsSpeedMeta),
       );
     }
+    if (data.containsKey('has_seen_onboarding')) {
+      context.handle(
+        _hasSeenOnboardingMeta,
+        hasSeenOnboarding.isAcceptableOrUnknown(
+          data['has_seen_onboarding']!,
+          _hasSeenOnboardingMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at_utc')) {
       context.handle(
         _updatedAtUtcMeta,
@@ -2191,6 +2216,10 @@ class $UserSettingsTableTable extends UserSettingsTable
         DriftSqlType.double,
         data['${effectivePrefix}tts_speed'],
       )!,
+      hasSeenOnboarding: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}has_seen_onboarding'],
+      )!,
       updatedAtUtc: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at_utc'],
@@ -2230,6 +2259,9 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
   /// сравнение в домене идёт через double.
   final double ttsSpeed;
 
+  /// Пройден ли онбординг; false у новых установок (BL-61).
+  final bool hasSeenOnboarding;
+
   /// Момент последнего изменения, миллисекунды UTC.
   final int updatedAtUtc;
   const UserSettingsRow({
@@ -2241,6 +2273,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     required this.reminderMinute,
     required this.ttsVoice,
     required this.ttsSpeed,
+    required this.hasSeenOnboarding,
     required this.updatedAtUtc,
   });
   @override
@@ -2254,6 +2287,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     map['reminder_minute'] = Variable<int>(reminderMinute);
     map['tts_voice'] = Variable<String>(ttsVoice);
     map['tts_speed'] = Variable<double>(ttsSpeed);
+    map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
     map['updated_at_utc'] = Variable<int>(updatedAtUtc);
     return map;
   }
@@ -2268,6 +2302,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       reminderMinute: Value(reminderMinute),
       ttsVoice: Value(ttsVoice),
       ttsSpeed: Value(ttsSpeed),
+      hasSeenOnboarding: Value(hasSeenOnboarding),
       updatedAtUtc: Value(updatedAtUtc),
     );
   }
@@ -2286,6 +2321,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       reminderMinute: serializer.fromJson<int>(json['reminderMinute']),
       ttsVoice: serializer.fromJson<String>(json['ttsVoice']),
       ttsSpeed: serializer.fromJson<double>(json['ttsSpeed']),
+      hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
       updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
     );
   }
@@ -2301,6 +2337,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       'reminderMinute': serializer.toJson<int>(reminderMinute),
       'ttsVoice': serializer.toJson<String>(ttsVoice),
       'ttsSpeed': serializer.toJson<double>(ttsSpeed),
+      'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
       'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
     };
   }
@@ -2314,6 +2351,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     int? reminderMinute,
     String? ttsVoice,
     double? ttsSpeed,
+    bool? hasSeenOnboarding,
     int? updatedAtUtc,
   }) => UserSettingsRow(
     id: id ?? this.id,
@@ -2324,6 +2362,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     reminderMinute: reminderMinute ?? this.reminderMinute,
     ttsVoice: ttsVoice ?? this.ttsVoice,
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+    hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
   );
   UserSettingsRow copyWithCompanion(UserSettingsTableCompanion data) {
@@ -2346,6 +2385,9 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           : this.reminderMinute,
       ttsVoice: data.ttsVoice.present ? data.ttsVoice.value : this.ttsVoice,
       ttsSpeed: data.ttsSpeed.present ? data.ttsSpeed.value : this.ttsSpeed,
+      hasSeenOnboarding: data.hasSeenOnboarding.present
+          ? data.hasSeenOnboarding.value
+          : this.hasSeenOnboarding,
       updatedAtUtc: data.updatedAtUtc.present
           ? data.updatedAtUtc.value
           : this.updatedAtUtc,
@@ -2363,6 +2405,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           ..write('reminderMinute: $reminderMinute, ')
           ..write('ttsVoice: $ttsVoice, ')
           ..write('ttsSpeed: $ttsSpeed, ')
+          ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -2378,6 +2421,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     reminderMinute,
     ttsVoice,
     ttsSpeed,
+    hasSeenOnboarding,
     updatedAtUtc,
   );
   @override
@@ -2392,6 +2436,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           other.reminderMinute == this.reminderMinute &&
           other.ttsVoice == this.ttsVoice &&
           other.ttsSpeed == this.ttsSpeed &&
+          other.hasSeenOnboarding == this.hasSeenOnboarding &&
           other.updatedAtUtc == this.updatedAtUtc);
 }
 
@@ -2404,6 +2449,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
   final Value<int> reminderMinute;
   final Value<String> ttsVoice;
   final Value<double> ttsSpeed;
+  final Value<bool> hasSeenOnboarding;
   final Value<int> updatedAtUtc;
   const UserSettingsTableCompanion({
     this.id = const Value.absent(),
@@ -2414,6 +2460,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.reminderMinute = const Value.absent(),
     this.ttsVoice = const Value.absent(),
     this.ttsSpeed = const Value.absent(),
+    this.hasSeenOnboarding = const Value.absent(),
     this.updatedAtUtc = const Value.absent(),
   });
   UserSettingsTableCompanion.insert({
@@ -2425,6 +2472,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.reminderMinute = const Value.absent(),
     this.ttsVoice = const Value.absent(),
     this.ttsSpeed = const Value.absent(),
+    this.hasSeenOnboarding = const Value.absent(),
     required int updatedAtUtc,
   }) : updatedAtUtc = Value(updatedAtUtc);
   static Insertable<UserSettingsRow> custom({
@@ -2436,6 +2484,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Expression<int>? reminderMinute,
     Expression<String>? ttsVoice,
     Expression<double>? ttsSpeed,
+    Expression<bool>? hasSeenOnboarding,
     Expression<int>? updatedAtUtc,
   }) {
     return RawValuesInsertable({
@@ -2447,6 +2496,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       if (reminderMinute != null) 'reminder_minute': reminderMinute,
       if (ttsVoice != null) 'tts_voice': ttsVoice,
       if (ttsSpeed != null) 'tts_speed': ttsSpeed,
+      if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
       if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
     });
   }
@@ -2460,6 +2510,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Value<int>? reminderMinute,
     Value<String>? ttsVoice,
     Value<double>? ttsSpeed,
+    Value<bool>? hasSeenOnboarding,
     Value<int>? updatedAtUtc,
   }) {
     return UserSettingsTableCompanion(
@@ -2471,6 +2522,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       reminderMinute: reminderMinute ?? this.reminderMinute,
       ttsVoice: ttsVoice ?? this.ttsVoice,
       ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+      hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
     );
   }
@@ -2502,6 +2554,9 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     if (ttsSpeed.present) {
       map['tts_speed'] = Variable<double>(ttsSpeed.value);
     }
+    if (hasSeenOnboarding.present) {
+      map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding.value);
+    }
     if (updatedAtUtc.present) {
       map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
     }
@@ -2519,6 +2574,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
           ..write('reminderMinute: $reminderMinute, ')
           ..write('ttsVoice: $ttsVoice, ')
           ..write('ttsSpeed: $ttsSpeed, ')
+          ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -4791,6 +4847,7 @@ typedef $$UserSettingsTableTableCreateCompanionBuilder =
       Value<int> reminderMinute,
       Value<String> ttsVoice,
       Value<double> ttsSpeed,
+      Value<bool> hasSeenOnboarding,
       required int updatedAtUtc,
     });
 typedef $$UserSettingsTableTableUpdateCompanionBuilder =
@@ -4803,6 +4860,7 @@ typedef $$UserSettingsTableTableUpdateCompanionBuilder =
       Value<int> reminderMinute,
       Value<String> ttsVoice,
       Value<double> ttsSpeed,
+      Value<bool> hasSeenOnboarding,
       Value<int> updatedAtUtc,
     });
 
@@ -4852,6 +4910,11 @@ class $$UserSettingsTableTableFilterComposer
 
   ColumnFilters<double> get ttsSpeed => $composableBuilder(
     column: $table.ttsSpeed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get hasSeenOnboarding => $composableBuilder(
+    column: $table.hasSeenOnboarding,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4910,6 +4973,11 @@ class $$UserSettingsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get hasSeenOnboarding => $composableBuilder(
+    column: $table.hasSeenOnboarding,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => ColumnOrderings(column),
@@ -4958,6 +5026,11 @@ class $$UserSettingsTableTableAnnotationComposer
 
   GeneratedColumn<double> get ttsSpeed =>
       $composableBuilder(column: $table.ttsSpeed, builder: (column) => column);
+
+  GeneratedColumn<bool> get hasSeenOnboarding => $composableBuilder(
+    column: $table.hasSeenOnboarding,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
@@ -5013,6 +5086,7 @@ class $$UserSettingsTableTableTableManager
                 Value<int> reminderMinute = const Value.absent(),
                 Value<String> ttsVoice = const Value.absent(),
                 Value<double> ttsSpeed = const Value.absent(),
+                Value<bool> hasSeenOnboarding = const Value.absent(),
                 Value<int> updatedAtUtc = const Value.absent(),
               }) => UserSettingsTableCompanion(
                 id: id,
@@ -5023,6 +5097,7 @@ class $$UserSettingsTableTableTableManager
                 reminderMinute: reminderMinute,
                 ttsVoice: ttsVoice,
                 ttsSpeed: ttsSpeed,
+                hasSeenOnboarding: hasSeenOnboarding,
                 updatedAtUtc: updatedAtUtc,
               ),
           createCompanionCallback:
@@ -5035,6 +5110,7 @@ class $$UserSettingsTableTableTableManager
                 Value<int> reminderMinute = const Value.absent(),
                 Value<String> ttsVoice = const Value.absent(),
                 Value<double> ttsSpeed = const Value.absent(),
+                Value<bool> hasSeenOnboarding = const Value.absent(),
                 required int updatedAtUtc,
               }) => UserSettingsTableCompanion.insert(
                 id: id,
@@ -5045,6 +5121,7 @@ class $$UserSettingsTableTableTableManager
                 reminderMinute: reminderMinute,
                 ttsVoice: ttsVoice,
                 ttsSpeed: ttsSpeed,
+                hasSeenOnboarding: hasSeenOnboarding,
                 updatedAtUtc: updatedAtUtc,
               ),
           withReferenceMapper: (p0) => p0

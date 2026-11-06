@@ -18,6 +18,7 @@ final class UserSettingsMapper {
     reminderMinute: row.reminderMinute,
     ttsVoice: row.ttsVoice,
     ttsSpeed: row.ttsSpeed,
+    hasSeenOnboarding: row.hasSeenOnboarding,
   );
 
   /// Раскладывает настройки в companion.
@@ -37,6 +38,7 @@ final class UserSettingsMapper {
     reminderMinute: Value(settings.reminderMinute),
     ttsVoice: Value(settings.ttsVoice),
     ttsSpeed: Value(settings.ttsSpeed),
+    hasSeenOnboarding: Value(settings.hasSeenOnboarding),
     updatedAtUtc: Value(updatedAt.toUtc().millisecondsSinceEpoch),
   );
 }

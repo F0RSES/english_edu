@@ -4,6 +4,7 @@ import 'package:english_edu/core/di/review_log_id_generator.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_rule.dart';
@@ -15,7 +16,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -24,6 +27,7 @@ typedef BootstrapResult = ({
   NextReviewLogIdGenerator idGenerator,
   CrashReporter crashReporter,
   NotificationService notificationService,
+  bool hasSeenOnboarding,
 });
 
 /// Bootstrap: crash reporting → seed (best effort) → стартовый id журнала.
@@ -61,10 +65,13 @@ Future<BootstrapResult> bootstrapApp({
       notificationServiceProvider.overrideWithValue(notificationService),
     ],
   );
+  // Настройки читаются один раз: из них нужен и флаг онбординга, и напоминания.
+  var settings = UserSettings.defaults();
   try {
     await _seed(container, logger, crashReporter);
     await _coverMissedDay(container, logger);
-    await _scheduleReminderIfEnabled(container, notificationService, logger);
+    settings = await _readSettings(container, logger);
+    await _scheduleReminderIfEnabled(notificationService, settings, logger);
   } finally {
     container.dispose();
   }
@@ -77,6 +84,7 @@ Future<BootstrapResult> bootstrapApp({
       idGenerator: NextReviewLogIdGenerator(maxRow.read<int>('max_id') + 1),
       crashReporter: crashReporter,
       notificationService: notificationService,
+      hasSeenOnboarding: settings.hasSeenOnboarding,
     );
   } on Object catch (error, stack) {
     logger.error('Cannot read max review log id', error, stack);
@@ -89,6 +97,7 @@ Future<BootstrapResult> bootstrapApp({
       idGenerator: NextReviewLogIdGenerator(1),
       crashReporter: crashReporter,
       notificationService: notificationService,
+      hasSeenOnboarding: settings.hasSeenOnboarding,
     );
   }
 }
@@ -206,16 +215,28 @@ Future<NotificationService> _initNotifications(Logger logger) async {
 ///
 /// Разрешение спрашивается здесь только при уже включённых напоминаниях: при
 /// первом включении его спрашивает `ProfileScreen`.
-Future<void> _scheduleReminderIfEnabled(
+/// Читает настройки; при сбое возвращает дефолты, чтобы старт не падал.
+Future<UserSettings> _readSettings(
   ProviderContainer container,
+  Logger logger,
+) async {
+  try {
+    return await container.read(settingsRepositoryProvider).get();
+  } on Object catch (error, stack) {
+    logger.warn('Cannot read settings at bootstrap', error, stack);
+    return UserSettings.defaults();
+  }
+}
+
+Future<void> _scheduleReminderIfEnabled(
   NotificationService notificationService,
+  UserSettings settings,
   Logger logger,
 ) async {
   if (notificationService is NoOpNotificationService) {
     return;
   }
   try {
-    final settings = await container.read(settingsRepositoryProvider).get();
     if (!settings.remindersEnabled) {
       return;
     }
@@ -272,9 +293,12 @@ Future<void> _defaultSentryInit(String dsn) async {
 /// ассетах его быть не может.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Inter лежит в ассетах: сеть за шрифтами не ходим (offline-first).
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   const logger = DebugLogger();
   const dsn = String.fromEnvironment('SENTRY_DSN');
+  await _initCloud(logger);
   final db = AppDatabase();
   final bootstrap = await bootstrapApp(
     db: db,
@@ -290,6 +314,9 @@ Future<void> main() async {
         nextReviewLogIdProvider.overrideWithValue(bootstrap.idGenerator.next),
         loggerProvider.overrideWithValue(logger),
         crashReporterProvider.overrideWithValue(bootstrap.crashReporter),
+        onboardingSeenProvider.overrideWith(
+          () => OnboardingSeen(seeded: bootstrap.hasSeenOnboarding),
+        ),
         notificationServiceProvider.overrideWithValue(
           bootstrap.notificationService,
         ),
@@ -297,6 +324,24 @@ Future<void> main() async {
       child: const EnglishEduApp(),
     ),
   );
+}
+
+/// Поднимает Supabase, если ключи пришли через `--dart-define` (ADR-022).
+///
+/// Падение инициализации не блокирует запуск: облако останется недоступным,
+/// а уроки, повторение и прогресс работают офлайн.
+Future<void> _initCloud(Logger logger) async {
+  if (!isCloudConfigured) {
+    return;
+  }
+  try {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      publishableKey: supabaseAnonKey,
+    );
+  } on Object catch (error, stack) {
+    logger.warn('Supabase init failed, cloud sync disabled', error, stack);
+  }
 }
 
 /// Корневой виджет приложения.
@@ -307,7 +352,8 @@ class EnglishEduApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
     title: 'English Edu',
-    theme: buildAppTheme(),
+    theme: buildLightTheme(),
+    darkTheme: buildDarkTheme(),
     routerConfig: ref.watch(routerProvider),
   );
 }

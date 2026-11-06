@@ -13,6 +13,9 @@ import 'package:english_edu/data/repositories/drift_stats_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
+import 'package:english_edu/data/sync/supabase_cloud_auth_service.dart';
+import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
+import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
@@ -22,6 +25,8 @@ import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/services/cloud_auth_service.dart';
+import 'package:english_edu/domain/services/cloud_sync_service.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
@@ -47,6 +52,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:stts/stts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Riverpod providers без codegen.
 ///
@@ -59,6 +65,29 @@ import 'package:stts/stts.dart';
 /// В тестах переопределяется на фейк: реальный плагин требует платформенного
 /// канала.
 final ttsProvider = Provider<TtsService>((ref) => SttsTtsService(Tts()));
+
+/// Пройден ли онбординг (BL-61).
+///
+/// Начальное значение приходит из `bootstrapApp` (override в `main`), экран
+/// онбординга выставляет `true` перед переходом на главную. Роутер читает
+/// значение через `ref.read` в `redirect`, поэтому видит его сразу.
+final class OnboardingSeen extends Notifier<bool> {
+  /// Создаёт notifier; [seeded] — значение из БД на старте.
+  OnboardingSeen({bool seeded = false}) : _seeded = seeded;
+
+  final bool _seeded;
+
+  @override
+  bool build() => _seeded;
+
+  /// Помечает онбординг пройденным.
+  void markSeen() => state = true;
+}
+
+/// Флаг «онбординг пройден».
+final onboardingSeenProvider = NotifierProvider<OnboardingSeen, bool>(
+  OnboardingSeen.new,
+);
 
 /// Клиент AI-подсказок (ADR-019). Сеть — только по явному действию.
 final aiClientProvider = Provider<AiClient>((ref) => AiClient(http.Client()));
@@ -358,3 +387,61 @@ final undoLastReviewProvider = Provider<UndoLastReview>(
     stats: ref.watch(statsRepositoryProvider),
   ),
 );
+
+/// URL проекта Supabase (`--dart-define=SUPABASE_URL=...`, ADR-022).
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+
+/// Публичный anon key Supabase (`--dart-define=SUPABASE_ANON_KEY=...`).
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+/// Настроено ли облако.
+///
+/// Без ключей приложение работает ровно как раньше: офлайн, без синхронизации.
+bool get isCloudConfigured =>
+    supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
+
+/// Настроено ли облако (для провайдеров и тестов).
+final isCloudConfiguredProvider = Provider<bool>((ref) => isCloudConfigured);
+
+/// Клиент Supabase или null, когда облако не настроено.
+///
+/// `Supabase.instance` доступен только после `Supabase.initialize` в `main`,
+/// поэтому флаг конфигурации проверяется до обращения к нему.
+final supabaseClientProvider = Provider<SupabaseClient?>((ref) {
+  if (!ref.watch(isCloudConfiguredProvider)) {
+    return null;
+  }
+  return Supabase.instance.client;
+});
+
+/// Авторизация в облаке (ADR-022).
+final cloudAuthServiceProvider = Provider<CloudAuthService>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  return client == null
+      ? const UnavailableCloudAuthService()
+      : SupabaseCloudAuthService(client);
+});
+
+/// Email текущего пользователя облака; null — не авторизован.
+///
+/// Сначала отдаётся сохранённая сессия, затем поток изменений: экран не мигает
+/// «войдите» при каждом открытии профиля.
+final cloudEmailProvider = StreamProvider<String?>((ref) async* {
+  final auth = ref.watch(cloudAuthServiceProvider);
+  yield auth.email;
+  if (auth.isAvailable) {
+    yield* auth.authChanges;
+  }
+});
+
+/// Синхронизация прогресса с облаком (ADR-022).
+final cloudSyncServiceProvider = Provider<CloudSyncService>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  if (client == null) {
+    return const UnavailableCloudSyncService();
+  }
+  return SupabaseCloudSyncService(
+    local: ref.watch(progressRepositoryProvider),
+    remote: SupabaseRemoteProgressStore(client),
+  );
+});

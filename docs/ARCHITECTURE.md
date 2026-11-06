@@ -236,6 +236,7 @@ Providers — `lib/core/di/providers.dart`, Riverpod 3.x без codegen (`riverp
 | Use cases | `getTodayQueueUseCaseProvider`, `recordReviewProvider`, `computeStreakUseCaseProvider`, `exportProgressProvider`, `importProgressProvider` |
 | Async-данные экрана | `getTodayQueueProvider`, `computeStreakProvider`, `dailyGoalProvider` |
 | Сброс и бэкап | `resetProgressProvider` (ADR-013), `exportProgressProvider`, `importProgressProvider`, `payloadCodecProvider` (ADR-014) |
+| Облако (ADR-022) | `isCloudConfiguredProvider`, `supabaseClientProvider` (`SupabaseClient?`), `cloudAuthServiceProvider`, `cloudEmailProvider` (`StreamProvider<String?>`), `cloudSyncServiceProvider` |
 | Прочее | `seedLoaderProvider` |
 
 Async-данные — `FutureProvider`: состоянием владеет провайдер, поэтому `ref.invalidate` действительно запускает пересчёт. Использовать `AsyncValue.when` в UI, не `FutureBuilder` с future из `build` — иначе кэш живёт до следующего rebuild и главный экран показывает прогресс до урока (BL-41, исправлено в 4b.1). UseCase-провайдеры оставлены отдельно: тесты подменяют реализацию через `overrideWithValue`, не трогая async-состояние. `LessonScreen` инвалидирует все три после сессии и при закрытии.
@@ -279,6 +280,9 @@ XP и признак «верно» считаются в домене: `XpRules
 - `lib/domain/services/hint_generator.dart` — `HintGenerator` (интерфейс) + `AiClient` (data, реализация через прокси): domain не импортирует `package:http` (ADR-019).
 - `lib/domain/services/error_task_generator.dart` — `ErrorTaskGenerator` (интерфейс, Phase 8) + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с). Задание — `ErrorHunterTask` (VO с `fromJson`: `sentence`, `wrongWord`, `correctWord`, `options`). `correctWord` читается из ответа, если прокси его присылает; иначе выводится как первый вариант ≠ `wrongWord` (текущий контракт прокси, BL-59) и обязан присутствовать в `options`.
 - `lib/data/repositories/drift_word_hint_repository.dart` — кэш подсказок `word_hints` (schema v4), время создания приходит из домена.
+- `lib/domain/services/cloud_sync_service.dart` — `CloudSyncService` (`push`/`pull`/`sync`), `SyncReport`, `CloudSyncException` и заглушка `UnavailableCloudSyncService` (ADR-022). Реализация — `lib/data/sync/supabase_cloud_sync_service.dart`: слияние по `updatedAtUtc = lastReviewedAt ?? firstSeenAt`, строка с равной меткой не перезаписывается.
+- `lib/domain/services/cloud_auth_service.dart` — `CloudAuthService` (`isAvailable`, `email`, `authChanges`, `signInWithMagicLink`, `signOut`); Supabase-реализация в `lib/data/sync/supabase_cloud_auth_service.dart`, magic link возвращается по схеме `io.supabase.englishedu://login-callback/` из манифеста.
+- `lib/data/sync/remote_progress_row.dart` — DTO строки `user_progress` + интерфейс `RemoteProgressStore` (`fetchAll`/`upsertAll`). Транспорт отделён от Supabase, чтобы слияние тестировалось без сети.
 - `lib/core/logger.dart` — `Logger`/`DebugLogger`.
 
 Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.intent.action.TTS_SERVICE`; других изменений нет.

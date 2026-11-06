@@ -75,6 +75,9 @@ void main() {
           ),
         );
     await v3.customStatement('DROP TABLE word_hints');
+    await v3.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
+    );
     await v3.customStatement('PRAGMA user_version = 3');
     await v3.close();
 
@@ -87,6 +90,36 @@ void main() {
     final row = (await v4.select(v4.words).get()).single;
     expect(row.term, 'book');
     expect(row.category, 'Быт');
+  });
+
+  test('migration v4 to v5 adds the onboarding flag', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v5');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v4 = текущая схема без флага онбординга.
+    final v4 = AppDatabase.forTesting(NativeDatabase(file));
+    await v4
+        .into(v4.userSettingsTable)
+        .insert(
+          UserSettingsTableCompanion.insert(
+            id: const Value(1),
+            updatedAtUtc: _nowMs,
+          ),
+        );
+    await v4.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
+    );
+    await v4.customStatement('PRAGMA user_version = 4');
+    await v4.close();
+
+    final v5 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v5.close);
+
+    // Колонка появилась миграцией; старая строка получила дефолт false.
+    final row = (await v5.select(v5.userSettingsTable).get()).single;
+    expect(row.hasSeenOnboarding, isFalse);
+    expect(row.updatedAtUtc, _nowMs);
   });
 
   test('creates all seven tables on open', () async {
@@ -115,6 +148,9 @@ void main() {
         .insert(
           DailyStatsTableCompanion.insert(dateEpochDays: const Value(19723)),
         );
+    await v1.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
+    );
     await v1.customStatement('PRAGMA user_version = 1');
     await v1.close();
 
@@ -145,6 +181,9 @@ void main() {
         );
     await v2.customStatement('DROP TABLE word_hints');
     await v2.customStatement('ALTER TABLE words DROP COLUMN category');
+    await v2.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
+    );
     await v2.customStatement('PRAGMA user_version = 2');
     await v2.close();
 

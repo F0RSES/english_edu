@@ -44,6 +44,21 @@ void main() {
     expect(UserSettingsMapper.toDomain(row), settings);
   });
 
+  test('round-trips the onboarding flag', () async {
+    final settings = UserSettings.defaults().copyWith(hasSeenOnboarding: true);
+    final updatedAt = DateTime.utc(2024, 5, 15, 12);
+
+    await db
+        .into(db.userSettingsTable)
+        .insertOnConflictUpdate(
+          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
+        );
+    final row = (await db.select(db.userSettingsTable).get()).single;
+
+    expect(row.hasSeenOnboarding, isTrue);
+    expect(UserSettingsMapper.toDomain(row).hasSeenOnboarding, isTrue);
+  });
+
   test('keeps boundary ttsSpeed values', () async {
     for (final speed in [0.1, 1.0]) {
       final settings = UserSettings.defaults().copyWith(ttsSpeed: speed);
@@ -57,6 +72,7 @@ void main() {
           reminderMinute: settings.reminderMinute,
           ttsVoice: settings.ttsVoice,
           ttsSpeed: speed,
+          hasSeenOnboarding: settings.hasSeenOnboarding,
           updatedAtUtc: 0,
         ),
       );

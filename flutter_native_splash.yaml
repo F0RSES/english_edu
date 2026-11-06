@@ -1,0 +1,10 @@
+# Splash screen. Запуск: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#E0F2F1"
+  image: assets/icon.png
+  android: true
+  ios: true
+  web: false
+  android_12:
+    color: "#E0F2F1"
+    image: assets/icon.png

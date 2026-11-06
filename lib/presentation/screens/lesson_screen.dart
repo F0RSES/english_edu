@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -5,8 +7,10 @@ import 'package:english_edu/domain/value_objects/review_outcome.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/session_summary.dart';
+import 'package:english_edu/presentation/widgets/swipe_card.dart';
 import 'package:english_edu/presentation/widgets/word_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -72,6 +76,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       });
       // сессия закончилась — главный экран должен увидеть новые числа
       if (_finished) {
+        unawaited(HapticFeedback.mediumImpact());
         _invalidateHome();
       }
       // Новый snackbar заменяет предыдущий, иначе он перекрывает кнопки.
@@ -97,18 +102,6 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       return false;
     }
   }
-
-  Future<bool> _confirmDismiss(
-    DismissDirection direction,
-    Word word,
-    int total,
-  ) => _grade(
-    word,
-    direction == DismissDirection.startToEnd
-        ? ReviewGrade.good
-        : ReviewGrade.again,
-    total,
-  );
 
   Future<void> _undo() async {
     final wordId = _lastWordId;
@@ -241,18 +234,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       Expanded(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Dismissible(
+          child: SwipeCard(
             key: ValueKey('card-${word.id.value}-$_index'),
-            background: const _SwipeBackground(
-              alignment: Alignment.centerLeft,
-              label: 'Не знаю',
+            onSwiped: (direction) => unawaited(
+              _grade(
+                word,
+                direction > 0 ? ReviewGrade.good : ReviewGrade.again,
+                total,
+              ),
             ),
-            secondaryBackground: const _SwipeBackground(
-              alignment: Alignment.centerRight,
-              label: 'Знаю',
-            ),
-            confirmDismiss: (direction) =>
-                _confirmDismiss(direction, word, total),
             child: WordCard(
               word: word,
               revealed: _revealed,
@@ -282,20 +272,5 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
         ),
       ),
     ],
-  );
-}
-
-class _SwipeBackground extends StatelessWidget {
-  const _SwipeBackground({required this.alignment, required this.label});
-
-  final Alignment alignment;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    alignment: alignment,
-    padding: const EdgeInsets.symmetric(horizontal: 24),
-    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-    child: Text(label),
   );
 }

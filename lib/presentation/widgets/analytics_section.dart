@@ -4,6 +4,7 @@ import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Высота самого высокого столбца графика.
@@ -144,9 +145,17 @@ class _WeekChart extends StatelessWidget {
 
   final List<DailyStats> days;
 
+  /// Высота столбца: пустой день всё равно виден.
+  double _heightFor(DailyStats day, int maxAnswers) {
+    if (maxAnswers == 0) {
+      return _minBarHeight;
+    }
+    return _minBarHeight +
+        (_chartHeight - _minBarHeight) * day.totalAnswers / maxAnswers;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     var maxAnswers = 0;
     for (final day in days) {
       if (day.totalAnswers > maxAnswers) {
@@ -158,23 +167,14 @@ class _WeekChart extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          for (final day in days)
+          for (final (index, day) in days.indexed)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Container(
-                  // Ключ нужен тестам: по нему считается число столбцов.
+                child: _Bar(
                   key: ValueKey('bar-${day.date}'),
-                  height: maxAnswers == 0
-                      ? _minBarHeight
-                      : _minBarHeight +
-                            (_chartHeight - _minBarHeight) *
-                                day.totalAnswers /
-                                maxAnswers,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+                  height: _heightFor(day, maxAnswers),
+                  delayIndex: index,
                 ),
               ),
             ),
@@ -182,4 +182,30 @@ class _WeekChart extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Один столбец графика: вырастает снизу вверх с каскадной задержкой.
+class _Bar extends StatelessWidget {
+  const _Bar({required this.height, required this.delayIndex, super.key});
+
+  final double height;
+  final int delayIndex;
+
+  @override
+  Widget build(BuildContext context) =>
+      Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          )
+          .animate(delay: (delayIndex * 40).ms)
+          .scaleY(
+            begin: 0,
+            end: 1,
+            alignment: Alignment.bottomCenter,
+            duration: 320.ms,
+            curve: Curves.easeOutCubic,
+          );
 }

@@ -40,7 +40,12 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        overrides: [
+          appDatabaseProvider.overrideWithValue(db),
+          onboardingSeenProvider.overrideWith(
+            () => OnboardingSeen(seeded: true),
+          ),
+        ],
         child: const EnglishEduApp(),
       ),
     );
@@ -54,5 +59,21 @@ void main() {
     // Очередь непустая, поэтому экран урока показывает карточку с оценками,
     // а не итог «На сегодня всё».
     expect(find.text('Знаю'), findsOneWidget);
+  });
+
+  testWidgets('redirects to onboarding until the flag is set', (tester) async {
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+        child: const EnglishEduApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Флаг в БД не выставлен — вместо главной показывается онбординг.
+    expect(find.text('Карточки со словами'), findsOneWidget);
   });
 }

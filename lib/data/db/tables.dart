@@ -191,6 +191,10 @@ class UserSettingsTable extends Table {
   /// сравнение в домене идёт через double.
   RealColumn get ttsSpeed => real().withDefault(const Constant(0.5))();
 
+  /// Пройден ли онбординг; false у новых установок (BL-61).
+  BoolColumn get hasSeenOnboarding =>
+      boolean().withDefault(const Constant(false))();
+
   /// Момент последнего изменения, миллисекунды UTC.
   IntColumn get updatedAtUtc => integer()();
 

@@ -3,6 +3,9 @@
          запрашивается: используется inexactAllowWhileIdle. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- AI-прокси (ADR-019) и облачная синхронизация (ADR-022): в debug-сборке
+         флаттер-плагин добавляет INTERNET сам, в release — нет. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="english_edu"
         android:name="${applicationName}"
@@ -27,6 +30,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Возврат из письма magic link (ADR-022). Схема совпадает с
+                 emailRedirectTo в SupabaseCloudAuthService. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="io.supabase.englishedu"
+                    android:host="login-callback"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -12,6 +12,7 @@ final class UserSettings {
     this.reminderMinute = 0,
     this.ttsVoice = 'en-US',
     this.ttsSpeed = 0.5,
+    this.hasSeenOnboarding = false,
   }) : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
        assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
        assert(
@@ -51,6 +52,10 @@ final class UserSettings {
   /// Speech rate, 0.1..1.0.
   final double ttsSpeed;
 
+  /// Пройден ли онбординг. `false` при первом запуске — экран показывается
+  /// один раз (BL-61).
+  final bool hasSeenOnboarding;
+
   /// Returns a copy with the given fields replaced.
   UserSettings copyWith({
     int? dailyNewLimit,
@@ -60,6 +65,7 @@ final class UserSettings {
     int? reminderMinute,
     String? ttsVoice,
     double? ttsSpeed,
+    bool? hasSeenOnboarding,
   }) => UserSettings(
     dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
     dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
@@ -68,6 +74,7 @@ final class UserSettings {
     reminderMinute: reminderMinute ?? this.reminderMinute,
     ttsVoice: ttsVoice ?? this.ttsVoice,
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+    hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
   );
 
   @override
@@ -80,7 +87,8 @@ final class UserSettings {
           reminderHour == other.reminderHour &&
           reminderMinute == other.reminderMinute &&
           ttsVoice == other.ttsVoice &&
-          ttsSpeed == other.ttsSpeed;
+          ttsSpeed == other.ttsSpeed &&
+          hasSeenOnboarding == other.hasSeenOnboarding;
 
   @override
   int get hashCode => Object.hash(
@@ -91,6 +99,7 @@ final class UserSettings {
     reminderMinute,
     ttsVoice,
     ttsSpeed,
+    hasSeenOnboarding,
   );
 
   @override

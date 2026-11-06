@@ -22,3 +22,8 @@ ios/Flutter/ephemeral/
 # pubspec.lock НЕ игнорируется — коммитится.
 # lib/, test/ НЕ игнорируются.
 # android/ и ios/ НЕ игнорируются: без них проект не собрать из чистого клона.
+
+# Релизная подпись: секреты и сам keystore не коммитятся.
+android/key.properties
+*.jks
+*.keystore

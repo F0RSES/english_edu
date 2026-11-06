@@ -7,6 +7,7 @@ import 'package:english_edu/presentation/widgets/export_dialog.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Голоса, доступные в MVP.
 const _voices = <String>['en-US', 'en-GB'];
@@ -321,6 +322,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onTap: () => unawaited(_import()),
             ),
             const Divider(),
+            const _SectionHeader('Синхронизация'),
+            const _CloudSyncSection(),
+            const Divider(),
             const _SectionHeader('Опасная зона'),
             ListTile(
               leading: Icon(
@@ -333,6 +337,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               subtitle: const Text('Словарь и настройки останутся'),
               onTap: () => unawaited(_reset()),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.school_outlined),
+              title: const Text('Как это работает'),
+              subtitle: const Text('Короткий онбординг'),
+              onTap: () => context.push('/onboarding?manual=1'),
             ),
             const Divider(),
             const _SectionHeader('Аналитика'),
@@ -372,5 +383,168 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
     child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+  );
+}
+
+/// Вход в облако и ручная синхронизация прогресса (ADR-022).
+///
+/// Секция живёт в профиле целиком: настройка нужна редко, а отдельный экран
+/// ради двух кнопок усложнил бы навигацию.
+class _CloudSyncSection extends ConsumerStatefulWidget {
+  const _CloudSyncSection();
+
+  @override
+  ConsumerState<_CloudSyncSection> createState() => _CloudSyncSectionState();
+}
+
+class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
+  bool _busy = false;
+
+  /// Спрашивает email и отправляет magic link.
+  Future<void> _signIn() async {
+    final email = await showDialog<String>(
+      context: context,
+      builder: (context) => const _EmailDialog(),
+    );
+    if (email == null) {
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await ref.read(cloudAuthServiceProvider).signInWithMagicLink(email);
+      if (mounted) {
+        _showMessage('Ссылка отправлена на $email');
+      }
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Magic link failed', error, stack);
+      if (mounted) {
+        _showMessage('Не удалось отправить ссылку');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  /// Тянет и отправляет прогресс, затем обновляет зависимые экраны.
+  Future<void> _sync() async {
+    setState(() => _busy = true);
+    try {
+      final report = await ref.read(cloudSyncServiceProvider).sync();
+      ref
+        ..invalidate(computeStreakProvider)
+        ..invalidate(getTodayQueueProvider)
+        ..invalidate(dailyGoalProvider)
+        ..invalidate(dictionaryEntriesProvider);
+      if (mounted) {
+        _showMessage('Отправлено ${report.pushed}, получено ${report.pulled}');
+      }
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Cloud sync failed', error, stack);
+      if (mounted) {
+        _showMessage('Не удалось синхронизироваться');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await ref.read(cloudAuthServiceProvider).signOut();
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Sign out failed', error, stack);
+    }
+  }
+
+  void _showMessage(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+
+  @override
+  Widget build(BuildContext context) {
+    final available = ref.watch(cloudAuthServiceProvider).isAvailable;
+    final email = ref.watch(cloudEmailProvider).value;
+
+    if (!available) {
+      return const ListTile(
+        leading: Icon(Icons.cloud_off),
+        title: Text('Синхронизация недоступна'),
+        subtitle: Text('Ключи Supabase не переданы при сборке'),
+      );
+    }
+    if (email == null) {
+      return ListTile(
+        leading: const Icon(Icons.login),
+        title: const Text('Войти через Email'),
+        subtitle: const Text('Пришлём ссылку для входа'),
+        enabled: !_busy,
+        onTap: () => unawaited(_signIn()),
+      );
+    }
+    return ListTile(
+      leading: const Icon(Icons.cloud_sync),
+      title: const Text('Синхронизировать сейчас'),
+      subtitle: Text(email),
+      enabled: !_busy,
+      onTap: () => unawaited(_sync()),
+      trailing: IconButton(
+        icon: const Icon(Icons.logout),
+        tooltip: 'Выйти',
+        onPressed: _busy ? null : () => unawaited(_signOut()),
+      ),
+    );
+  }
+}
+
+/// Диалог ввода email для magic link.
+///
+/// Возвращает введённый адрес или null при отмене; формат проверяется здесь,
+/// чтобы письмо не уходило на заведомо неверный адрес.
+class _EmailDialog extends StatefulWidget {
+  const _EmailDialog();
+
+  @override
+  State<_EmailDialog> createState() => _EmailDialogState();
+}
+
+class _EmailDialogState extends State<_EmailDialog> {
+  final _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.trim();
+    if (!value.contains('@')) {
+      setState(() => _error = 'Проверьте адрес');
+      return;
+    }
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Вход по email'),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      keyboardType: TextInputType.emailAddress,
+      decoration: InputDecoration(labelText: 'Email', errorText: _error),
+      onSubmitted: (_) => _submit(),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Отмена'),
+      ),
+      FilledButton(onPressed: _submit, child: const Text('Отправить')),
+    ],
   );
 }

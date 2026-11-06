@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Мини-игра «Охота на ошибки» (Phase 8).
@@ -72,37 +74,16 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
     if (_solved || _normalize(chunk) != _normalize(task.wrongWord)) {
       return;
     }
-    final chosen = await showModalBottomSheet<String>(
+    final solved = await showModalBottomSheet<bool>(
       context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Как правильно?'),
-            ),
-            for (final option in task.options)
-              ListTile(
-                title: Text(option),
-                onTap: () => Navigator.of(sheetContext).pop(option),
-              ),
-          ],
-        ),
-      ),
+      builder: (sheetContext) => _OptionsSheet(task: task),
     );
-    if (chosen == null || !mounted) {
+    if (solved != true || !mounted) {
       return;
     }
-    if (chosen == task.correctWord) {
-      setState(() => _solved = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Верно!'), backgroundColor: Colors.green),
-      );
-      return;
-    }
+    setState(() => _solved = true);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ошибка'), backgroundColor: Colors.red),
+      const SnackBar(content: Text('Верно!'), backgroundColor: Colors.green),
     );
   }
 
@@ -206,4 +187,83 @@ class _ErrorState extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Лист с вариантами: правильный вспыхивает зелёным, неверный трясётся.
+///
+/// Лист не закрывается на ошибке — можно попробовать снова, не открывая
+/// заново. При верном ответе закрывается сам и отдаёт `true`.
+class _OptionsSheet extends StatefulWidget {
+  const _OptionsSheet({required this.task});
+
+  final ErrorHunterTask task;
+
+  @override
+  State<_OptionsSheet> createState() => _OptionsSheetState();
+}
+
+class _OptionsSheetState extends State<_OptionsSheet> {
+  String? _wrongOption;
+  String? _correctOption;
+  int _shakeCount = 0;
+
+  Future<void> _choose(String option) async {
+    if (option == widget.task.correctWord) {
+      unawaited(HapticFeedback.selectionClick());
+      setState(() => _correctOption = option);
+      // Даём вспышке доиграть, прежде чем закрывать лист.
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+      return;
+    }
+    unawaited(HapticFeedback.heavyImpact());
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _wrongOption = option;
+      _shakeCount++;
+    });
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      const SnackBar(content: Text('Ошибка'), backgroundColor: Colors.red),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Как правильно?'),
+          ),
+          for (final option in widget.task.options)
+            ListTile(
+                  key: ValueKey('option-$option'),
+                  title: Text(option),
+                  selected: option == _correctOption,
+                  selectedTileColor: Colors.green.withValues(alpha: 0.15),
+                  textColor: option == _correctOption
+                      ? Colors.green.shade800
+                      : theme.colorScheme.onSurface,
+                  onTap: () => _choose(option),
+                )
+                .animate(
+                  key: ValueKey(
+                    'option-$option-$_shakeCount-${option == _wrongOption}',
+                  ),
+                )
+                .shakeX(
+                  amount: option == _wrongOption ? 6 : 0,
+                  duration: 300.ms,
+                ),
+        ],
+      ),
+    );
+  }
 }

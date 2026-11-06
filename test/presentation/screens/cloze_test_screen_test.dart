@@ -109,4 +109,36 @@ void main() {
     expect(generator.calls, 1);
     expect(find.text(_task.sentence), findsOneWidget);
   });
+
+  testWidgets('marks the field red after a wrong answer', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'drink');
+    await tester.tap(find.text('Проверить'));
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    final border = field.decoration!.enabledBorder! as OutlineInputBorder;
+    expect(border.borderSide.style, BorderStyle.solid);
+    expect(border.borderSide.width, 2);
+  });
+
+  testWidgets('clears the red border when the answer is edited', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'drink');
+    await tester.tap(find.text('Проверить'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'eat');
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    final border = field.decoration!.enabledBorder! as OutlineInputBorder;
+    expect(border.borderSide, BorderSide.none);
+  });
 }

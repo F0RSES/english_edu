@@ -35,6 +35,32 @@ class Words extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Кэш AI-подсказок (ADR-019): одна запись на слово.
+///
+/// `term` хранится рядом с подсказкой — по нему кэш инвалидируется, если слово
+/// отредактировали. Удаление слова удаляет и подсказку.
+@DataClassName('WordHintRow')
+class WordHints extends Table {
+  @override
+  String get tableName => 'word_hints';
+
+  /// Слово, к которому относится подсказка.
+  IntColumn get wordId =>
+      integer().references(Words, #id, onDelete: KeyAction.cascade)();
+
+  /// Написание слова на момент генерации.
+  TextColumn get term => text()();
+
+  /// Текст подсказки.
+  TextColumn get hintText => text()();
+
+  /// Момент сохранения, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+
+  @override
+  Set<Column> get primaryKey => {wordId};
+}
+
 /// Состояние изучения слова. Одна запись на слово, удаляется каскадом
 /// вместе со словом.
 @DataClassName('WordProgressRow')

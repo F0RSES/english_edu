@@ -79,6 +79,12 @@ class HomeScreen extends ConsumerWidget {
                     label: const Text('Повторить'),
                   ),
                 ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/error-hunter'),
+              icon: const Icon(Icons.games_outlined),
+              label: const Text('Играть в Error Hunter'),
+            ),
           ],
         ),
       ),

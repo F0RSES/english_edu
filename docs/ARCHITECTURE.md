@@ -190,12 +190,14 @@ Dart-код в документе не приводится: сигнатуры 
 | ComputeStreak | `ComputeStreak({required StatsRepository stats, required FrozenDaysRepository frozen, required DateTime Function() clock})` → `Future<StreakInfo>` | 3 запроса: `getLastActiveDate` + `getRange` + `FrozenDays.getAll`; локальная дата `clock().toLocal()`, окно `_lookbackDays = 3650`; замороженный день продолжает серию и входит в счёт; `frozenAvailable` — `StreakRule.frozenEarnedFor(count)` минус израсходованные, клампится в `[0, 2]` |
 | MarkMissedDay | `MarkMissedDay({required FrozenDaysRepository frozen})` → `Future<void>` | ставит заморозку на дату с причиной `missedDay`; вызывается из `bootstrapApp` для вчерашнего пропуска (ADR-015) |
 | ResetProgress | `ResetProgress({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required FrozenDaysRepository frozen})` → `Future<void>` | очищает прогресс → логи → статистику → заморозки; слова и настройки сохраняются (ADR-013, BL-51) |
+| GetWordHint | `GetWordHint({required WordHintRepository hints, required HintGenerator generator, required DateTime Function() clock})` → `Future<String>` | кэш `word_hints` → AI → кэш; запись валидна только при совпадении `term` (инвалидация при редактировании слова); ошибка генератора не кэшируется (ADR-019) |
+| GetAnalytics | `GetAnalytics({required WordRepository words, required ProgressRepository progress, required StatsRepository stats, required DateTime Function() clock})` → `Future<Analytics>` | только чтение: счётчики по статусам (слово без прогресса — новое), топ-5 по `lapses`, `getRange` за 7 дней, прогноз `mastered / дни` → `LocalDate?` (null без `mastered`) (ADR-021) |
 
 Поддерживающие типы `QueueItem`, `RecordReviewResult`, `ExportPayload`, `ImportResult`, `WordId`, `ReviewLogId`, `ReviewGrade`, `LocalDate` определяются в 1.1a вместе с сущностями.
 
 ## Data
 
-Схема v3 — шесть таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`) — существующие таблицы и данные не пересоздаются.
+Схема v4 — семь таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints` — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -205,6 +207,7 @@ Dart-код в документе не приводится: сигнатуры 
 | `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |
 | `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
 | `frozen_days` | `FrozenDayRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`), схема v2 | нет |
+| `word_hints` | `WordHintRow` | `wordId` → `words.id` ON DELETE CASCADE, схема v4 | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -247,7 +250,7 @@ Bootstrap (`bootstrapApp` в `main.dart`): `AppDatabase()` → `seedLoader.loadI
 
 - `lib/presentation/theme.dart` — Material 3, seed `Colors.teal`, пастельный фон.
 - `lib/presentation/router.dart` — `routerProvider` (GoRouter): `/`, `/lesson`, `/dictionary`, `/profile`.
-- `lib/presentation/screens/` — `HomeScreen` (серия, дневная цель, запуск урока, `NavigationBar`), `LessonScreen` (сессия), `DictionaryScreen` (словарь), `ProfileScreen` (настройки и скорость TTS).
+- `lib/presentation/screens/` — `HomeScreen` (серия, дневная цель, запуск урока, `NavigationBar`), `LessonScreen` (сессия), `DictionaryScreen` (словарь), `ProfileScreen` (настройки и скорость TTS). Плюс `ErrorHunterScreen` (`/error-hunter`) — мини-игра «Охота на ошибки» (Phase 8). В `ProfileScreen` — `AnalyticsSection` (плитки, 7-дневный график, трудные слова, прогноз; ADR-021).
 - `lib/presentation/widgets/streak_card.dart` — серия дней из `StreakInfo`: крупная цифра, остаток до вехи 7, поздравления на 7/30/100/365, остаток заморозок (`frozenAvailable`) и бейдж «Freeze использован», если заморозка израсходована за последние 7 дней (ADR-015). Дату `today` передаёт экран — виджет не читает часы сам.
 - `lib/presentation/widgets/daily_goal_card.dart` — «сделано / план» из `DailyStats.totalAnswers` и суммы `dailyNewLimit + dailyReviewLimit`; полоска обрезана на 100%, счётчик показывает факт (перебор виден как «7 / 5»).
 - `HomeScreen` не считает сам: серию берёт у `ComputeStreak`, очередь у `GetTodayQueue`, план — сумма лимитов `UserSettings`. Кнопка старта выключена при пустой очереди; ошибка очереди показывает «Повторить» и пересоздаёт репозитории через `ref.invalidate` (у `ConsumerWidget` нет `setState`).
@@ -273,6 +276,9 @@ XP и признак «верно» считаются в домене: `XpRules
 - `lib/core/notifications/notification_service.dart` — `NotificationService` (`requestPermission`, `scheduleDailyReminder`, `cancelAll`), `FlutterNotificationService` (плагин `flutter_local_notifications`) и `NoOpNotificationService` (fallback, если инициализация не удалась).
 - Напоминание: `zonedSchedule` с `DateTimeComponents.time` (ежедневно) и `AndroidScheduleMode.inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` не запрашивается (ADR-017). Таймзона — `timezone` + `flutter_timezone`; `initializeTimeZones()` и `setLocalLocation` выполняются в `bootstrapApp`, падение даёт NoOp и warning в лог.
 - Android: `compileSdk 36` литералом, desugaring `desugar_jdk_libs 2.1.4`, `multiDexEnabled`; манифест — `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`).
+- `lib/domain/services/hint_generator.dart` — `HintGenerator` (интерфейс) + `AiClient` (data, реализация через прокси): domain не импортирует `package:http` (ADR-019).
+- `lib/domain/services/error_task_generator.dart` — `ErrorTaskGenerator` (интерфейс, Phase 8) + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с). Задание — `ErrorHunterTask` (VO с `fromJson`: `sentence`, `wrongWord`, `correctWord`, `options`). `correctWord` читается из ответа, если прокси его присылает; иначе выводится как первый вариант ≠ `wrongWord` (текущий контракт прокси, BL-59) и обязан присутствовать в `options`.
+- `lib/data/repositories/drift_word_hint_repository.dart` — кэш подсказок `word_hints` (schema v4), время создания приходит из домена.
 - `lib/core/logger.dart` — `Logger`/`DebugLogger`.
 
 Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.intent.action.TTS_SERVICE`; других изменений нет.

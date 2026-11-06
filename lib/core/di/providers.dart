@@ -2,6 +2,7 @@ import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/core/tts/tts_service.dart';
+import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
@@ -9,6 +10,7 @@ import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_settings_repository.dart';
 import 'package:english_edu/data/repositories/drift_stats_repository.dart';
+import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
@@ -18,17 +20,23 @@ import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/services/error_task_generator.dart';
+import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
+import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
+import 'package:english_edu/domain/usecases/get_word_hint.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
 import 'package:english_edu/domain/usecases/mark_missed_day.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
+import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
@@ -37,6 +45,7 @@ import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:stts/stts.dart';
 
 /// Riverpod providers без codegen.
@@ -50,6 +59,35 @@ import 'package:stts/stts.dart';
 /// В тестах переопределяется на фейк: реальный плагин требует платформенного
 /// канала.
 final ttsProvider = Provider<TtsService>((ref) => SttsTtsService(Tts()));
+
+/// Клиент AI-подсказок (ADR-019). Сеть — только по явному действию.
+final aiClientProvider = Provider<AiClient>((ref) => AiClient(http.Client()));
+
+/// Генератор подсказок: реализация — `AiClient` (ADR-019).
+///
+/// Домен зависит от интерфейса, поэтому `http` в domain не протекает.
+final hintGeneratorProvider = Provider<HintGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Генератор заданий мини-игры; реализация — `AiClient` (Phase 8).
+final errorTaskGeneratorProvider = Provider<ErrorTaskGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Хранилище AI-подсказок (ADR-019, schema v4).
+final wordHintRepositoryProvider = Provider<WordHintRepository>(
+  (ref) => DriftWordHintRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Подсказка к слову: кэш → AI → кэш (ADR-019).
+final getWordHintProvider = Provider<GetWordHint>(
+  (ref) => GetWordHint(
+    hints: ref.watch(wordHintRepositoryProvider),
+    generator: ref.watch(hintGeneratorProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
 
 /// Логгер приложения.
 final loggerProvider = Provider<Logger>((ref) => const DebugLogger());
@@ -175,6 +213,24 @@ final recordReviewProvider = Provider<RecordReview>(
     nextLogId: ref.watch(nextReviewLogIdProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Сводка для экрана аналитики (ADR-021).
+final getAnalyticsProvider = Provider<GetAnalytics>(
+  (ref) => GetAnalytics(
+    words: ref.watch(wordRepositoryProvider),
+    progress: ref.watch(progressRepositoryProvider),
+    stats: ref.watch(statsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Аналитика как async-данные экрана.
+///
+/// `FutureProvider`, а не future из `build`: иначе любой rebuild
+/// перезапускал бы три запроса к БД (BL-41).
+final analyticsProvider = FutureProvider<Analytics>(
+  (ref) => ref.watch(getAnalyticsProvider)(),
 );
 
 /// Расчёт серии: use case.

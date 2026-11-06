@@ -44,6 +44,13 @@
 - `ExportPayload` v2: `+ frozenDays` (`Set<LocalDate>`), `currentSchemaVersion = 2`; обратная совместимость — снимок v1 читается с пустым `frozenDays`.
 - `ExportPayloadCodec`: `encode` пишет `frozenDays` (`daysSinceEpoch`), `decode` принимает v1 (пусто) и v2 (восстанавливает), версия 3+ — `FormatException`.
 - Заморозки входят в export/import и очищаются сбросом прогресса. **BL-51 закрыт.**
+- ADR-020 «Error Hunter contract»: `correctWord` обязательно, порядок `options` контрактом не является. **BL-59 закрыт.**
+- **BL-60 закрыт** на стороне воркера: прокси нормализует `wrongWord`/`correctWord` до одного слова (`split(' ')[0]` + системный промпт), клиент не менялся.
+- **Fixed:** график аналитики всегда содержит 7 дней: окно дозаполняется `DailyStats.empty`, иначе `getRange` возвращал только дни с записями и столбцов было меньше семи.
+- Аналитика (ADR-021, Phase 9): `Analytics` + `HardWord` (VO), `GetAnalytics` (счётчики статусов, топ-5 по `lapses`, 7 дней статистики, прогноз mastery), `getAnalyticsProvider` + `analyticsProvider`, виджет `AnalyticsSection` в конце `ProfileScreen` (плитки, столбцы по дням, трудные слова, прогноз).
+- Мини-игра «Охота на ошибки» (Phase 8): `ErrorHunterTask` (VO с `fromJson`; `correctWord` берётся из ответа, а при его отсутствии выводится как первый вариант ≠ `wrongWord` — BL-59), `ErrorTaskGenerator` в domain + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с), `errorTaskGeneratorProvider`, `ErrorHunterScreen` (loading/error/data, выбор варианта через BottomSheet, зелёный/красный SnackBar), маршрут `/error-hunter` и кнопка на главном экране.
+- Кэш AI-подсказок (ADR-019): таблица `word_hints` (`wordId` PK → CASCADE, `term`, `hintText`, `createdAtUtc`), **схема v3 → v4** (`onUpgrade`), `WordHint` VO, `WordHintRepository` + `DriftWordHintRepository`, use case `GetWordHint` с инвалидацией по `term`; ошибки AI не кэшируются. `HintGenerator` вынесен в domain, `AiClient` его реализует (`generate` вместо `getAssociation`) — domain больше не зависит от `http`. `WordCard` берёт подсказку через `getWordHintProvider`. BL-58 (TTL).
+- AI-ассоциации (ADR-019): `http ^1.2.0`, `AiClient` (прокси, таймаут 10 с, типизированный `AiException`), `aiClientProvider`; кнопка «Подсказка» в `WordCard` после раскрытия, плашка с ассоциацией, SnackBar при ошибке.
 - `ExportPayload` v3: `Word.category` в снимке (`ExportPayloadCodec` пишет поле начиная с v3); снимки v1/v2 читаются с `category = null`. **BL-57 закрыт.**
 - Тематические категории слов: `Word.category` (nullable), колонка `words.category`, **схема v2 → v3** с миграцией `m.addColumn`. Диалог добавления получил выбор категории, словарь — чипы-фильтр («Все категории», «Бизнес», «IT», «Путешествия», «Быт»). Seed остался без категорий; BL-56 (кастомные категории).
 - Локальные напоминания (ADR-017): `flutter_local_notifications ^22.3.3`, `timezone ^0.11.2`, `flutter_timezone ^5.1.1`.
@@ -123,7 +130,7 @@
 - ARCHITECTURE — таблицы `Word` и `SettingsRepository` приведены к коду, путь `lib/domain/usecases/`.
 
 ### Verified
-- [host] Phase 4 (categories): `flutter analyze` — 0 issues; `flutter test` — 434 passed; `flutter build apk --debug` — `✓ Built build/app/outputs/flutter-apk/app-debug.apk` (8.7 s), без KGP-предупреждений.
+- [host] Phase 7 (AI hints): `flutter analyze` — 0 issues; `flutter test` — 481 passed; `flutter build apk --debug` — `✓ Built build/app/outputs/flutter-apk/app-debug.apk` (9.3 s), без KGP-предупреждений; `flutter build apk --release` — `✓ Built build/app/outputs/flutter-apk/app-release.apk (69.5MB)` (41.9 s).
 - [host] 1.1a.0: Dart 3.13.4 stable, linux_x64.
 - [host] 1.1a.0: `dart pub get` — resolved 50 dependencies (very_good_analysis 11.0.0, test 1.33.0).
 - [host] 1.1a.0: `dart analyze` — 0 issues.

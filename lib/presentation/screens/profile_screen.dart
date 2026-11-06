@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/presentation/widgets/analytics_section.dart';
 import 'package:english_edu/presentation/widgets/export_dialog.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
 import 'package:flutter/material.dart';
@@ -333,6 +334,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               subtitle: const Text('Словарь и настройки останутся'),
               onTap: () => unawaited(_reset()),
             ),
+            const Divider(),
+            const _SectionHeader('Аналитика'),
+            const AnalyticsSection(),
             const Divider(),
             const _SectionHeader('Напоминания'),
             SwitchListTile(

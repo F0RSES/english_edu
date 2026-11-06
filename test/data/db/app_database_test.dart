@@ -57,13 +57,46 @@ void main() {
   setUp(() => db = openDb());
   tearDown(() => db.close());
 
-  test('creates all six tables on open', () async {
+  test('migration v3 to v4 creates the word_hints table', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v4');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v3 = текущая схема без кэша подсказок.
+    final v3 = AppDatabase.forTesting(NativeDatabase(file));
+    await v3
+        .into(v3.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'book',
+            translation: 'книга',
+            category: const Value('Быт'),
+          ),
+        );
+    await v3.customStatement('DROP TABLE word_hints');
+    await v3.customStatement('PRAGMA user_version = 3');
+    await v3.close();
+
+    final v4 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v4.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v4.select(v4.wordHints).get(), isEmpty);
+    // Данные v3 пережили миграцию, включая category из v3.
+    final row = (await v4.select(v4.words).get()).single;
+    expect(row.term, 'book');
+    expect(row.category, 'Быт');
+  });
+
+  test('creates all seven tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
     expect(await db.select(db.userSettingsTable).get(), isEmpty);
     expect(await db.select(db.dailyStatsTable).get(), isEmpty);
     expect(await db.select(db.frozenDays).get(), isEmpty);
+    expect(await db.select(db.wordHints).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {
@@ -75,6 +108,7 @@ void main() {
     // таблиц остаётся настоящим, правим только отличия версий.
     final v1 = AppDatabase.forTesting(NativeDatabase(file));
     await v1.customStatement('DROP TABLE frozen_days');
+    await v1.customStatement('DROP TABLE word_hints');
     await v1.customStatement('ALTER TABLE words DROP COLUMN category');
     await v1
         .into(v1.dailyStatsTable)
@@ -109,6 +143,7 @@ void main() {
             translation: 'книга',
           ),
         );
+    await v2.customStatement('DROP TABLE word_hints');
     await v2.customStatement('ALTER TABLE words DROP COLUMN category');
     await v2.customStatement('PRAGMA user_version = 2');
     await v2.close();

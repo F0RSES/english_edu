@@ -3174,6 +3174,318 @@ class FrozenDaysCompanion extends UpdateCompanion<FrozenDayRow> {
   }
 }
 
+class $WordHintsTable extends WordHints
+    with TableInfo<$WordHintsTable, WordHintRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WordHintsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _wordIdMeta = const VerificationMeta('wordId');
+  @override
+  late final GeneratedColumn<int> wordId = GeneratedColumn<int>(
+    'word_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES words (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _termMeta = const VerificationMeta('term');
+  @override
+  late final GeneratedColumn<String> term = GeneratedColumn<String>(
+    'term',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _hintTextMeta = const VerificationMeta(
+    'hintText',
+  );
+  @override
+  late final GeneratedColumn<String> hintText = GeneratedColumn<String>(
+    'hint_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [wordId, term, hintText, createdAtUtc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'word_hints';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WordHintRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('word_id')) {
+      context.handle(
+        _wordIdMeta,
+        wordId.isAcceptableOrUnknown(data['word_id']!, _wordIdMeta),
+      );
+    }
+    if (data.containsKey('term')) {
+      context.handle(
+        _termMeta,
+        term.isAcceptableOrUnknown(data['term']!, _termMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_termMeta);
+    }
+    if (data.containsKey('hint_text')) {
+      context.handle(
+        _hintTextMeta,
+        hintText.isAcceptableOrUnknown(data['hint_text']!, _hintTextMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_hintTextMeta);
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {wordId};
+  @override
+  WordHintRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WordHintRow(
+      wordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}word_id'],
+      )!,
+      term: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}term'],
+      )!,
+      hintText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hint_text'],
+      )!,
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $WordHintsTable createAlias(String alias) {
+    return $WordHintsTable(attachedDatabase, alias);
+  }
+}
+
+class WordHintRow extends DataClass implements Insertable<WordHintRow> {
+  /// Слово, к которому относится подсказка.
+  final int wordId;
+
+  /// Написание слова на момент генерации.
+  final String term;
+
+  /// Текст подсказки.
+  final String hintText;
+
+  /// Момент сохранения, миллисекунды UTC.
+  final int createdAtUtc;
+  const WordHintRow({
+    required this.wordId,
+    required this.term,
+    required this.hintText,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['word_id'] = Variable<int>(wordId);
+    map['term'] = Variable<String>(term);
+    map['hint_text'] = Variable<String>(hintText);
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  WordHintsCompanion toCompanion(bool nullToAbsent) {
+    return WordHintsCompanion(
+      wordId: Value(wordId),
+      term: Value(term),
+      hintText: Value(hintText),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory WordHintRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WordHintRow(
+      wordId: serializer.fromJson<int>(json['wordId']),
+      term: serializer.fromJson<String>(json['term']),
+      hintText: serializer.fromJson<String>(json['hintText']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'wordId': serializer.toJson<int>(wordId),
+      'term': serializer.toJson<String>(term),
+      'hintText': serializer.toJson<String>(hintText),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  WordHintRow copyWith({
+    int? wordId,
+    String? term,
+    String? hintText,
+    int? createdAtUtc,
+  }) => WordHintRow(
+    wordId: wordId ?? this.wordId,
+    term: term ?? this.term,
+    hintText: hintText ?? this.hintText,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  WordHintRow copyWithCompanion(WordHintsCompanion data) {
+    return WordHintRow(
+      wordId: data.wordId.present ? data.wordId.value : this.wordId,
+      term: data.term.present ? data.term.value : this.term,
+      hintText: data.hintText.present ? data.hintText.value : this.hintText,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordHintRow(')
+          ..write('wordId: $wordId, ')
+          ..write('term: $term, ')
+          ..write('hintText: $hintText, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(wordId, term, hintText, createdAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WordHintRow &&
+          other.wordId == this.wordId &&
+          other.term == this.term &&
+          other.hintText == this.hintText &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class WordHintsCompanion extends UpdateCompanion<WordHintRow> {
+  final Value<int> wordId;
+  final Value<String> term;
+  final Value<String> hintText;
+  final Value<int> createdAtUtc;
+  const WordHintsCompanion({
+    this.wordId = const Value.absent(),
+    this.term = const Value.absent(),
+    this.hintText = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  WordHintsCompanion.insert({
+    this.wordId = const Value.absent(),
+    required String term,
+    required String hintText,
+    required int createdAtUtc,
+  }) : term = Value(term),
+       hintText = Value(hintText),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<WordHintRow> custom({
+    Expression<int>? wordId,
+    Expression<String>? term,
+    Expression<String>? hintText,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (wordId != null) 'word_id': wordId,
+      if (term != null) 'term': term,
+      if (hintText != null) 'hint_text': hintText,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  WordHintsCompanion copyWith({
+    Value<int>? wordId,
+    Value<String>? term,
+    Value<String>? hintText,
+    Value<int>? createdAtUtc,
+  }) {
+    return WordHintsCompanion(
+      wordId: wordId ?? this.wordId,
+      term: term ?? this.term,
+      hintText: hintText ?? this.hintText,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (wordId.present) {
+      map['word_id'] = Variable<int>(wordId.value);
+    }
+    if (term.present) {
+      map['term'] = Variable<String>(term.value);
+    }
+    if (hintText.present) {
+      map['hint_text'] = Variable<String>(hintText.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordHintsCompanion(')
+          ..write('wordId: $wordId, ')
+          ..write('term: $term, ')
+          ..write('hintText: $hintText, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3186,6 +3498,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $FrozenDaysTable frozenDays = $FrozenDaysTable(this);
+  late final $WordHintsTable wordHints = $WordHintsTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -3217,6 +3530,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userSettingsTable,
     dailyStatsTable,
     frozenDays,
+    wordHints,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -3231,6 +3545,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('word_progresses', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'words',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('word_hints', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3271,6 +3592,24 @@ final class $$WordsTableReferences
     ).filter((f) => f.wordId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_wordProgressesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$WordHintsTable, List<WordHintRow>>
+  _wordHintsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.wordHints,
+    aliasName: 'words__id__word_hints__word_id',
+  );
+
+  $$WordHintsTableProcessedTableManager get wordHintsRefs {
+    final manager = $$WordHintsTableTableManager(
+      $_db,
+      $_db.wordHints,
+    ).filter((f) => f.wordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_wordHintsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3336,6 +3675,31 @@ class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
           }) => $$WordProgressesTableFilterComposer(
             $db: $db,
             $table: $db.wordProgresses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> wordHintsRefs(
+    Expression<bool> Function($$WordHintsTableFilterComposer f) f,
+  ) {
+    final $$WordHintsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wordHints,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordHintsTableFilterComposer(
+            $db: $db,
+            $table: $db.wordHints,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3453,6 +3817,31 @@ class $$WordsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> wordHintsRefs<T extends Object>(
+    Expression<T> Function($$WordHintsTableAnnotationComposer a) f,
+  ) {
+    final $$WordHintsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wordHints,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordHintsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wordHints,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$WordsTableTableManager
@@ -3468,7 +3857,7 @@ class $$WordsTableTableManager
           $$WordsTableUpdateCompanionBuilder,
           (Word, $$WordsTableReferences),
           Word,
-          PrefetchHooks Function({bool wordProgressesRefs})
+          PrefetchHooks Function({bool wordProgressesRefs, bool wordHintsRefs})
         > {
   $$WordsTableTableManager(_$AppDatabase db, $WordsTable table)
     : super(
@@ -3525,38 +3914,61 @@ class $$WordsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({wordProgressesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (wordProgressesRefs) db.wordProgresses,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (wordProgressesRefs)
-                    await $_getPrefetchedDataByColumns<
-                      Word,
-                      $WordsTable,
-                      WordProgressRow,
-                      $WordProgressesTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$WordsTableReferences
-                          ._wordProgressesRefsTable(db),
-                      managerFromTypedResult: (p0) => $$WordsTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).wordProgressesRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'word_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({wordProgressesRefs = false, wordHintsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (wordProgressesRefs) db.wordProgresses,
+                    if (wordHintsRefs) db.wordHints,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (wordProgressesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Word,
+                          $WordsTable,
+                          WordProgressRow,
+                          $WordProgressesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WordsTableReferences
+                              ._wordProgressesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).wordProgressesRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'word_id',
+                          typedResults: items,
+                        ),
+                      if (wordHintsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Word,
+                          $WordsTable,
+                          WordHintRow,
+                          $WordHintsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WordsTableReferences
+                              ._wordHintsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).wordHintsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'word_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3573,7 +3985,7 @@ typedef $$WordsTableProcessedTableManager =
       $$WordsTableUpdateCompanionBuilder,
       (Word, $$WordsTableReferences),
       Word,
-      PrefetchHooks Function({bool wordProgressesRefs})
+      PrefetchHooks Function({bool wordProgressesRefs, bool wordHintsRefs})
     >;
 typedef $$WordProgressesTableCreateCompanionBuilder =
     WordProgressesCompanion Function({
@@ -5049,6 +5461,296 @@ typedef $$FrozenDaysTableProcessedTableManager =
       FrozenDayRow,
       PrefetchHooks Function()
     >;
+typedef $$WordHintsTableCreateCompanionBuilder = WordHintsCompanion Function({
+  Value<int> wordId,
+  required String term,
+  required String hintText,
+  required int createdAtUtc,
+});
+typedef $$WordHintsTableUpdateCompanionBuilder = WordHintsCompanion Function({
+  Value<int> wordId,
+  Value<String> term,
+  Value<String> hintText,
+  Value<int> createdAtUtc,
+});
+
+final class $$WordHintsTableReferences
+    extends BaseReferences<_$AppDatabase, $WordHintsTable, WordHintRow> {
+  $$WordHintsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $WordsTable _wordIdTable(_$AppDatabase db) =>
+      db.words.createAlias('word_hints__word_id__words__id');
+
+  $$WordsTableProcessedTableManager get wordId {
+    final $_column = $_itemColumn<int>('word_id')!;
+
+    final manager = $$WordsTableTableManager(
+      $_db,
+      $_db.words,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_wordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$WordHintsTableFilterComposer
+    extends Composer<_$AppDatabase, $WordHintsTable> {
+  $$WordHintsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get hintText => $composableBuilder(
+    column: $table.hintText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WordsTableFilterComposer get wordId {
+    final $$WordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableFilterComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordHintsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WordHintsTable> {
+  $$WordHintsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hintText => $composableBuilder(
+    column: $table.hintText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WordsTableOrderingComposer get wordId {
+    final $$WordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordHintsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WordHintsTable> {
+  $$WordHintsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get term =>
+      $composableBuilder(column: $table.term, builder: (column) => column);
+
+  GeneratedColumn<String> get hintText =>
+      $composableBuilder(column: $table.hintText, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+
+  $$WordsTableAnnotationComposer get wordId {
+    final $$WordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordHintsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WordHintsTable,
+          WordHintRow,
+          $$WordHintsTableFilterComposer,
+          $$WordHintsTableOrderingComposer,
+          $$WordHintsTableAnnotationComposer,
+          $$WordHintsTableCreateCompanionBuilder,
+          $$WordHintsTableUpdateCompanionBuilder,
+          (WordHintRow, $$WordHintsTableReferences),
+          WordHintRow,
+          PrefetchHooks Function({bool wordId})
+        > {
+  $$WordHintsTableTableManager(_$AppDatabase db, $WordHintsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WordHintsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WordHintsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WordHintsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                Value<String> term = const Value.absent(),
+                Value<String> hintText = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => WordHintsCompanion(
+                wordId: wordId,
+                term: term,
+                hintText: hintText,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                required String term,
+                required String hintText,
+                required int createdAtUtc,
+              }) => WordHintsCompanion.insert(
+                wordId: wordId,
+                term: term,
+                hintText: hintText,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WordHintsTable, WordHintRow>(table),
+                  $$WordHintsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({wordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (wordId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.wordId,
+                        referencedTable: $$WordHintsTableReferences
+                            ._wordIdTable(db),
+                        referencedColumn: $$WordHintsTableReferences
+                            ._wordIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WordHintsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WordHintsTable,
+      WordHintRow,
+      $$WordHintsTableFilterComposer,
+      $$WordHintsTableOrderingComposer,
+      $$WordHintsTableAnnotationComposer,
+      $$WordHintsTableCreateCompanionBuilder,
+      $$WordHintsTableUpdateCompanionBuilder,
+      (WordHintRow, $$WordHintsTableReferences),
+      WordHintRow,
+      PrefetchHooks Function({bool wordId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5065,4 +5767,6 @@ class $AppDatabaseManager {
       $$DailyStatsTableTableTableManager(_db, _db.dailyStatsTable);
   $$FrozenDaysTableTableManager get frozenDays =>
       $$FrozenDaysTableTableManager(_db, _db.frozenDays);
+  $$WordHintsTableTableManager get wordHints =>
+      $$WordHintsTableTableManager(_db, _db.wordHints);
 }

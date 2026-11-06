@@ -1,4 +1,5 @@
 import 'package:english_edu/presentation/screens/dictionary_screen.dart';
+import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
 import 'package:english_edu/presentation/screens/home_screen.dart';
 import 'package:english_edu/presentation/screens/lesson_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
@@ -13,6 +14,10 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(
         path: '/lesson',
         builder: (context, state) => const LessonScreen(),
+      ),
+      GoRoute(
+        path: '/error-hunter',
+        builder: (context, state) => const ErrorHunterScreen(),
       ),
       GoRoute(
         path: '/dictionary',

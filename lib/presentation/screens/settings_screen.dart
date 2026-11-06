@@ -262,7 +262,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Настройки')),
+    appBar: AppBar(
+      title: const Text('Настройки'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: 'Назад',
+        onPressed: () => context.pop(),
+      ),
+    ),
     body: FutureBuilder<UserSettings>(
       future: _settings,
       builder: (context, snapshot) {
@@ -444,7 +451,15 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-    child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        fontSize: 12,
+        letterSpacing: 1.2,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+    ),
   );
 }
 

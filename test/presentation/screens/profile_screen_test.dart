@@ -27,13 +27,20 @@ Widget host() => ProviderScope(
 );
 
 void main() {
+  testWidgets('has a back button in the app bar', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+  });
+
   testWidgets('shows identity and statistics', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
     expect(find.text('Learner'), findsOneWidget);
     expect(find.textContaining('Уровень:'), findsOneWidget);
-    expect(find.text('Streak'), findsOneWidget);
+    expect(find.text('Серия'), findsOneWidget);
     expect(find.text('Слов'), findsOneWidget);
   });
 

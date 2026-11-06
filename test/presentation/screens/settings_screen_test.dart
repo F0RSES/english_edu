@@ -75,6 +75,14 @@ final class _ThrowingSettings implements SettingsRepository {
 }
 
 void main() {
+  testWidgets('has a back button in the app bar', (tester) async {
+    final harness = Harness();
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.arrow_back), findsOneWidget);
+  });
+
   testWidgets('changing the voice saves settings', (tester) async {
     final harness = Harness();
     await tester.pumpWidget(harness.app());

@@ -139,19 +139,27 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
-/// Столбцы по дням: высота пропорциональна числу ответов за день.
+/// Столбцы по дням: высота пропорциональна числу ответов, под ними день недели.
 class _WeekChart extends StatelessWidget {
   const _WeekChart({required this.days});
 
   final List<DailyStats> days;
 
-  /// Высота столбца: пустой день всё равно виден.
+  static const _labels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
   double _heightFor(DailyStats day, int maxAnswers) {
     if (maxAnswers == 0) {
       return _minBarHeight;
     }
     return _minBarHeight +
         (_chartHeight - _minBarHeight) * day.totalAnswers / maxAnswers;
+  }
+
+  String _labelFor(DailyStats day) {
+    final date = DateTime.utc(
+      1970,
+    ).add(Duration(days: day.date.daysSinceEpoch));
+    return _labels[date.weekday - 1];
   }
 
   @override
@@ -162,20 +170,26 @@ class _WeekChart extends StatelessWidget {
         maxAnswers = day.totalAnswers;
       }
     }
+    final labelStyle = Theme.of(context).textTheme.labelSmall;
     return SizedBox(
-      height: _chartHeight,
+      height: _chartHeight + 20,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           for (final (index, day) in days.indexed)
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: _Bar(
-                  key: ValueKey('bar-${day.date}'),
-                  height: _heightFor(day, maxAnswers),
-                  delayIndex: index,
-                ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _Bar(
+                    key: ValueKey('bar-${day.date}'),
+                    height: _heightFor(day, maxAnswers),
+                    delayIndex: index,
+                    isEmpty: day.totalAnswers == 0,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(_labelFor(day), style: labelStyle),
+                ],
               ),
             ),
         ],
@@ -184,28 +198,38 @@ class _WeekChart extends StatelessWidget {
   }
 }
 
-/// Один столбец графика: вырастает снизу вверх с каскадной задержкой.
+/// Один столбец: аккуратный цилиндр, растущий снизу вверх.
 class _Bar extends StatelessWidget {
-  const _Bar({required this.height, required this.delayIndex, super.key});
+  const _Bar({
+    required this.height,
+    required this.delayIndex,
+    required this.isEmpty,
+    super.key,
+  });
 
   final double height;
   final int delayIndex;
+  final bool isEmpty;
 
   @override
-  Widget build(BuildContext context) =>
-      Container(
-            height: height,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          )
-          .animate(delay: (delayIndex * 40).ms)
-          .scaleY(
-            begin: 0,
-            end: 1,
-            alignment: Alignment.bottomCenter,
-            duration: 320.ms,
-            curve: Curves.easeOutCubic,
-          );
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+          width: 12,
+          height: height,
+          decoration: BoxDecoration(
+            // Пустой день виден, но не спорит с данными.
+            color: isEmpty ? scheme.outlineVariant : scheme.primary,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        )
+        .animate(delay: (delayIndex * 40).ms)
+        .scaleY(
+          begin: 0,
+          end: 1,
+          alignment: Alignment.bottomCenter,
+          duration: 320.ms,
+          curve: Curves.easeOutCubic,
+        );
+  }
 }

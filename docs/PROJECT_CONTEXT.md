@@ -45,8 +45,9 @@
 - Phase 13b — BL-67: `ExportPayload` v4 с `Word.level` (снимки v1–v3 читаются с A1), выбор уровня в `AddWordDialog` (544 test). **BL-67 Done.**
 - Phase 13c–13e — контент и упаковка: генератор берёт уровень из списка (`term,level`), чистит `partOfSpeech`; `tools/merge_seeds.dart` слил 2796 записей в 2071 уникальное слово (`assets/seed/words_v2.json`, уровни A1–C1), `JsonSeedLoader` читает слитый файл, в APK попадает только он; ExportPayload **v5** с `UserSettings.preferredLevel` (564 test). **BL-68 Done.**
 - Phase 13f — защита от дубликатов (ADR-024): `findByTerm`, диалог «Перейти» в `AddWordDialog`, дедупликация в `ExportPayloadCodec.decode` (574 test).
-- Phase 14a — игра «Заполни пропуск» (ADR-025): `ClozeTask`, `AiClient.generateCloze`, кэш `cloze_tasks` (схема v7), `GetClozeTask`, экран `/cloze-test` (603 test).
-- Phase 14c — повторение сложных слов (ADR-026): `GetWeakWordsQueue` (lapses > 0 или ease < 2.0), `LessonMode.weak` в `LessonScreen`, маршрут `/weak-words`, кнопка «Повторить сложные (N)» с бейджем (603 test).
+- Phase 14a — игра «Заполни пропуск» (ADR-025): `ClozeTask`, `AiClient.generateCloze`, кэш `cloze_tasks` (схема v7), `GetClozeTask`, экран `/cloze-test` (626 test).
+- Phase 14c — повторение сложных слов (ADR-026): `GetWeakWordsQueue` (lapses > 0 или ease < 2.0), `LessonMode.weak` в `LessonScreen`, маршрут `/weak-words`, кнопка «Повторить сложные (N)» с бейджем (626 test).
+- Phase 14d — игра «Собери слово» (ADR-027): `ScramblePuzzle`, `GenerateScramblePuzzles` (офлайн, без AI), `/word-scramble`, кнопка на главном (626 test).
 
 ## In progress
 - — (MVP ready)

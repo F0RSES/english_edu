@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/notifications/notification_service.dart';
@@ -36,6 +38,7 @@ import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
+import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
@@ -287,6 +290,17 @@ final weakWordsQueueProvider = FutureProvider<TodayQueue>(
 /// Количество проблемных слов для бейджа на кнопке (ADR-026).
 final weakWordsCountProvider = FutureProvider<int>(
   (ref) async => (await ref.watch(weakWordsQueueProvider.future)).due.length,
+);
+
+/// Генератор заданий «Собери слово» (ADR-027).
+///
+/// `Random()` без seed: в приложении перестановка должна отличаться от раза к
+/// разу. Тесты подменяют провайдер целиком, поэтому seed здесь не нужен.
+final generateScramblePuzzlesProvider = Provider<GenerateScramblePuzzles>(
+  (ref) => GenerateScramblePuzzles(
+    words: ref.watch(wordRepositoryProvider),
+    random: Random(),
+  ),
 );
 
 /// Сводка для экрана аналитики (ADR-021).

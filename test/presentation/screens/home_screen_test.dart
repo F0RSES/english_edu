@@ -292,6 +292,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    // Кнопка ниже сгиба: на главной уже три кнопки игр.
+    await tester.scrollUntilVisible(find.text('Повторить сложные (1)'), 200);
     await tester.tap(find.text('Повторить сложные (1)'));
     await tester.pumpAndSettle();
 

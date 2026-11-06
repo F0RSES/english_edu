@@ -8,6 +8,12 @@ final class FakeWordRepository implements WordRepository {
   FakeWordRepository([Iterable<Word> seed = const []])
     : _byId = {for (final word in seed) word.id: word};
 
+  /// Хук, который выполняется перед `getAll`.
+  ///
+  /// Нужен экранам, которые показывают состояние загрузки или ошибки: тест
+  /// придерживает чтение через `Completer` или бросает исключение.
+  Future<void> Function()? beforeGetAll;
+
   final Map<WordId, Word> _byId;
 
   @override
@@ -20,7 +26,10 @@ final class FakeWordRepository implements WordRepository {
   ];
 
   @override
-  Future<List<Word>> getAll() async => _byId.values.toList();
+  Future<List<Word>> getAll() async {
+    await beforeGetAll?.call();
+    return _byId.values.toList();
+  }
 
   @override
   Future<int> count() async => _byId.length;

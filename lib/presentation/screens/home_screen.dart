@@ -93,6 +93,16 @@ class HomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.text_fields),
               label: const Text('Заполни пропуск'),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/word-scramble'),
+              icon: const Icon(Icons.abc),
+              label: const Text('Собери слово'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                side: BorderSide(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
             // Бейдж проблемных слов: кнопка появляется только когда есть что
             // повторять, иначе вела бы на пустой экран (ADR-026).
             ref

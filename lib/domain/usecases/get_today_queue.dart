@@ -3,6 +3,7 @@ import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
@@ -16,6 +17,11 @@ import 'package:english_edu/domain/value_objects/word_status.dart';
 ///
 /// Порядок: due — по `dueAt` возрастанию; newWords — по `firstSeenAt`
 /// возрастанию, а слова без прогресса идут после уже введённых, по `id`.
+///
+/// newWords фильтруются по уровню пользователя (ADR-023): показываются слова
+/// не выше `settings.preferredLevel`. dueWords — без фильтра: если пользователь
+/// уже начал учить слово выше своего уровня (добавил вручную), оно должно
+/// повторяться по расписанию SM-2.
 final class GetTodayQueue {
   /// Creates the use case.
   const GetTodayQueue({
@@ -60,6 +66,7 @@ final class GetTodayQueue {
         allWords: allWords,
         progressByWordId: progressByWordId,
         limit: settings.dailyNewLimit,
+        maxLevel: settings.preferredLevel,
       ),
     );
   }
@@ -97,14 +104,18 @@ final class GetTodayQueue {
     return result;
   }
 
-  /// Новые слова: нет прогресса или статус `newWord`.
+  /// Новые слова: нет прогресса или статус `newWord`, уровень не выше
+  /// [maxLevel].
   ///
   /// Сначала те, кого уже показывали (`firstSeenAt` asc), затем ещё не
   /// введённые — по `id`, чтобы порядок не зависел от порядка строк в БД.
+  /// Фильтр по уровню нужен здесь, а не в SQL: уровень — свойство слова,
+  /// а решение «показывать или нет» зависит от настроек пользователя.
   List<Word> _newWords({
     required List<Word> allWords,
     required Map<WordId, WordProgress> progressByWordId,
     required int limit,
+    required CefrLevel maxLevel,
   }) {
     if (limit == 0) {
       return const [];
@@ -112,7 +123,8 @@ final class GetTodayQueue {
     final candidates =
         <({Word word, DateTime? firstSeenAt})>[
           for (final word in allWords)
-            if (_isNewWord(word, progressByWordId))
+            if (_isNewWord(word, progressByWordId) &&
+                word.level.index <= maxLevel.index)
               (word: word, firstSeenAt: progressByWordId[word.id]?.firstSeenAt),
         ]..sort((a, b) {
           final aSeen = a.firstSeenAt;

@@ -74,6 +74,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Флаг в БД не выставлен — вместо главной показывается онбординг.
-    expect(find.text('Карточки со словами'), findsOneWidget);
+    expect(find.text('Учи слова легко'), findsOneWidget);
   });
 }

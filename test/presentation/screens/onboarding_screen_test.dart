@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +35,7 @@ void main() {
     await tester.pumpWidget(host(FakeSettingsRepository()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Карточки со словами'), findsOneWidget);
+    expect(find.text('Учи слова легко'), findsOneWidget);
     expect(find.text('Далее'), findsOneWidget);
     expect(find.text('Пропустить'), findsOneWidget);
   });
@@ -46,21 +47,39 @@ void main() {
     await tester.tap(find.text('Далее'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Серия и заморозки'), findsOneWidget);
+    expect(find.text('AI-подсказки'), findsOneWidget);
   });
 
   testWidgets('shows Начать on the last slide', (tester) async {
     await tester.pumpWidget(host(FakeSettingsRepository()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Далее'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Далее'));
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Далее'));
+      await tester.pumpAndSettle();
+    }
 
-    expect(find.text('AI-подсказки'), findsOneWidget);
+    expect(find.text('Какой у тебя уровень?'), findsOneWidget);
     expect(find.text('Начать'), findsOneWidget);
     expect(find.text('Далее'), findsNothing);
+  });
+
+  testWidgets('level selection saves preferredLevel', (tester) async {
+    final settings = FakeSettingsRepository(const UserSettings());
+    await tester.pumpWidget(host(settings));
+    await tester.pumpAndSettle();
+
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Далее'));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('B1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Начать'));
+    await tester.pumpAndSettle();
+
+    expect((await settings.get()).preferredLevel, CefrLevel.b1);
+    expect((await settings.get()).hasSeenOnboarding, isTrue);
   });
 
   testWidgets('completing onboarding saves hasSeenOnboarding = true', (

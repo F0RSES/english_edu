@@ -64,6 +64,15 @@
 - `main.dart`: `_initCloud` поднимает Supabase только при наличии ключей; падение инициализации не блокирует старт.
 - `AndroidManifest.xml`: intent-filter `io.supabase.englishedu://login-callback` для возврата из письма magic link.
 - README: раздел «Cloud sync» — SQL для `user_progress` с RLS, Redirect URL, сборка с `--dart-define`.
+- CEFR-градация (ADR-023, Phase 13a): `CefrLevel` (enum `a0`…`c2` с `label`/`description`, `fromLabel` без учёта регистра), `Word.level` (default `a1`) и `UserSettings.preferredLevel` (default `a1`).
+- Схема **v5 → v6**: колонки `words.level` и `user_settings.preferred_level` с `DEFAULT 'a1'` (`m.addColumn`, данные v5 сохраняются); `WordMapper`/`UserSettingsMapper` пишут метку в нижнем регистре.
+- `GetTodayQueue`: `newWords` фильтруются по `word.level.index <= settings.preferredLevel.index`; `dueWords` — без фильтра, начатое слово повторяется по SM-2.
+- `JsonSeedLoader`: поле `level` из JSON, без поля — `A1` (seed v1 не обновлялся).
+- `OnboardingScreen`: 4 страницы — «Учи слова легко», «AI-подсказки», «Играй и запоминай», «Какой у тебя уровень?»; выбор A0–C2 сохраняется в настройки вместе с флагом онбординга.
+- `ProfileScreen`: секция «Уровень английского» с диалогом выбора A0–C2; смена уровня инвалидирует очередь дня и цель дня.
+- `DictionaryScreen`: второй ряд фильтров «Все уровни» / A0…C2, складывается по AND с категорией и вкладкой; пустой результат даёт «Для этого уровня пока пусто».
+- `WordCard` и `WordListItem`: бейдж уровня (`CefrBadge`, `cefrLevelColor`) — teal для A0/A1 … red для C2.
+- BL-65 (контент по уровням), BL-66 (UI/text polish), BL-67 (`level` в export/import).
 - Мини-игра «Охота на ошибки» (Phase 8): `ErrorHunterTask` (VO с `fromJson`; `correctWord` берётся из ответа, а при его отсутствии выводится как первый вариант ≠ `wrongWord` — BL-59), `ErrorTaskGenerator` в domain + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с), `errorTaskGeneratorProvider`, `ErrorHunterScreen` (loading/error/data, выбор варианта через BottomSheet, зелёный/красный SnackBar), маршрут `/error-hunter` и кнопка на главном экране.
 - Кэш AI-подсказок (ADR-019): таблица `word_hints` (`wordId` PK → CASCADE, `term`, `hintText`, `createdAtUtc`), **схема v3 → v4** (`onUpgrade`), `WordHint` VO, `WordHintRepository` + `DriftWordHintRepository`, use case `GetWordHint` с инвалидацией по `term`; ошибки AI не кэшируются. `HintGenerator` вынесен в domain, `AiClient` его реализует (`generate` вместо `getAssociation`) — domain больше не зависит от `http`. `WordCard` берёт подсказку через `getWordHintProvider`. BL-58 (TTL).
 - AI-ассоциации (ADR-019): `http ^1.2.0`, `AiClient` (прокси, таймаут 10 с, типизированный `AiException`), `aiClientProvider`; кнопка «Подсказка» в `WordCard` после раскрытия, плашка с ассоциацией, SnackBar при ошибке.

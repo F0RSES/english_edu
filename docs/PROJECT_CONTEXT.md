@@ -41,6 +41,7 @@
 - Phase 5, task 5c — Локальные напоминания (ADR-017): `flutter_local_notifications` 22.3.3, desugaring + multiDex, `NotificationService` + NoOp, tz init в `bootstrapApp`, переключатель и выбор времени в `ProfileScreen`; `flutter build apk --debug` — успех. **BL-38 Done.**
 - Phase 5, task 5d — Freeze system (ADR-015 Accepted): `frozen_days` + `schemaVersion 2` (миграция v1→v2 под тестом), `StreakRule` (7/30), `ComputeStreak` учитывает заморозки, `MarkMissedDay` в `bootstrapApp`, `StreakCard` показывает остаток и бейдж; BL-46 Done (385 tests).
 - Phase 7–12 — AI-подсказки (ADR-019, схема v4 `word_hints`), Error Hunter (ADR-020), аналитика (ADR-021), UI/UX overhaul, онбординг-гейт, релизная подпись; Phase 12 — облачная синхронизация прогресса через Supabase (ADR-022): `CloudSyncService`/`CloudAuthService` в domain, `lib/data/sync/` с merge по `updatedAtUtc`, секция «Синхронизация» в профиле; ключи только через `--dart-define` (513 tests).
+- Phase 13a — CEFR-градация (ADR-023): `CefrLevel` (A0–C2), `Word.level` и `UserSettings.preferredLevel`, схема v6 (`words.level`, `user_settings.preferred_level`), фильтр `newWords` по уровню (due — без фильтра), выбор уровня в онбординге и профиле, фильтр и бейдж уровня в словаре (534 test).
 
 ## In progress
 - — (MVP ready)
@@ -50,6 +51,7 @@
 - Phase 5e — streak continuity и защита от эксплойта freeze (BL-50).
 - Phase 7 — публикация, решение пользователя.
 - Phase 13 — расширение облака на логи/статистику/заморозки (BL-62) и инкрементальный `pull` (BL-63).
+- Phase 13b — разметка контента по уровням A1–B2 (BL-65); Phase 13c — UI/text polish (BL-66).
 
 ## Open questions
 - APK build: `flutter build apk --debug` собран (Android SDK 36, JDK 25) — BL-48 закрывается проверкой release-сборки на CI.

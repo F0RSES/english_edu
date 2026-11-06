@@ -31,6 +31,12 @@ class Words extends Table {
   /// Список категорий фиксирован в UI; пользовательские категории — BL-56.
   TextColumn get category => text().nullable()();
 
+  /// Уровень по CEFR меткой: `a0`…`c2` (schema v6, ADR-023).
+  ///
+  /// Хранится как текст, а не как индекс enum: порядок значений в коде может
+  /// измениться, а миграция чужого файла с числом стала бы неоднозначной.
+  TextColumn get level => text().withDefault(const Constant('a1'))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -194,6 +200,11 @@ class UserSettingsTable extends Table {
   /// Пройден ли онбординг; false у новых установок (BL-61).
   BoolColumn get hasSeenOnboarding =>
       boolean().withDefault(const Constant(false))();
+
+  /// Уровень пользователя по CEFR меткой: `a0`…`c2` (schema v6, ADR-023).
+  ///
+  /// Фильтрует новые слова в очереди дня; уже начатые слова не фильтруются.
+  TextColumn get preferredLevel => text().withDefault(const Constant('a1'))();
 
   /// Момент последнего изменения, миллисекунды UTC.
   IntColumn get updatedAtUtc => integer()();

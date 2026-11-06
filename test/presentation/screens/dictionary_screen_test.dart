@@ -3,6 +3,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/screens/dictionary_screen.dart';
@@ -16,11 +17,17 @@ import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id, String term, {String? category}) => Word(
+Word word(
+  int id,
+  String term, {
+  String? category,
+  CefrLevel level = CefrLevel.a1,
+}) => Word(
   id: WordId(id),
   term: term,
   translation: 'перевод$term',
   category: category,
+  level: level,
 );
 
 WordProgress progress(int id, WordStatus status) => WordProgress(
@@ -64,6 +71,17 @@ Widget host({
   child: const MaterialApp(home: DictionaryScreen()),
 );
 
+/// Список — единственный вертикальный скролл на экране.
+///
+/// Две строки фильтров (категории и уровни) сжимают область списка, поэтому
+/// последние слова в ленивом `ListView` могут быть ещё не построены.
+final Finder _listScrollable = find
+    .descendant(of: find.byType(ListView), matching: find.byType(Scrollable))
+    .first;
+
+Future<void> scrollToWord(WidgetTester tester, String term) => tester
+    .scrollUntilVisible(find.text(term), 120, scrollable: _listScrollable);
+
 /// Слова разных категорий: фильтр должен показывать только выбранную.
 List<Word> categorizedWords() => [
   word(1, 'apple', category: 'Быт'),
@@ -85,6 +103,14 @@ List<WordProgress> sampleProgress() => [
   progress(3, WordStatus.mastered),
 ];
 
+/// Слова двух уровней и двух категорий: фильтры должны складываться по AND.
+List<Word> leveledWords() => [
+  word(1, 'apple', category: 'Быт'),
+  word(2, 'invoice', category: 'Бизнес', level: CefrLevel.b2),
+  word(3, 'server', category: 'IT', level: CefrLevel.b2),
+  word(4, 'cat', category: 'Быт'),
+];
+
 void main() {
   testWidgets('shows every word on the all tab', (tester) async {
     await tester.pumpWidget(
@@ -92,7 +118,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(WordListItem), findsNWidgets(5));
+    expect(find.text('apple'), findsOneWidget);
+
+    await scrollToWord(tester, 'fig');
+
+    expect(find.text('fig'), findsOneWidget);
   });
 
   testWidgets('filters the learning tab', (tester) async {
@@ -127,6 +157,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await scrollToWord(tester, 'fig');
     expect(find.text('fig'), findsOneWidget);
 
     await tester.tap(find.text('Изучаю'));
@@ -211,5 +242,31 @@ void main() {
 
     expect(find.text('apple'), findsOneWidget);
     expect(find.text('server'), findsOneWidget);
+  });
+
+  testWidgets('filters by CEFR level', (tester) async {
+    await tester.pumpWidget(host(words: leveledWords()));
+    await tester.pumpAndSettle();
+
+    // Бейдж в строке тоже содержит 'B2', поэтому берём именно чип-фильтр.
+    await tester.tap(find.widgetWithText(ChoiceChip, 'B2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('invoice'), findsOneWidget);
+    expect(find.text('server'), findsOneWidget);
+    expect(find.text('apple'), findsNothing);
+  });
+
+  testWidgets('level filter combined with category filter', (tester) async {
+    await tester.pumpWidget(host(words: leveledWords()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'B2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('IT'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('server'), findsOneWidget);
+    expect(find.text('invoice'), findsNothing);
   });
 }

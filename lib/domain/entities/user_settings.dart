@@ -1,3 +1,4 @@
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:meta/meta.dart';
 
 /// User preferences that drive the daily session and reminders.
@@ -13,6 +14,7 @@ final class UserSettings {
     this.ttsVoice = 'en-US',
     this.ttsSpeed = 0.5,
     this.hasSeenOnboarding = false,
+    this.preferredLevel = CefrLevel.a1,
   }) : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
        assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
        assert(
@@ -56,6 +58,12 @@ final class UserSettings {
   /// один раз (BL-61).
   final bool hasSeenOnboarding;
 
+  /// Уровень пользователя по CEFR (ADR-023).
+  ///
+  /// По нему фильтруются новые слова в очереди дня: слова выше уровня в урок
+  /// не попадают. Слова, которые пользователь уже начал учить, не фильтруются.
+  final CefrLevel preferredLevel;
+
   /// Returns a copy with the given fields replaced.
   UserSettings copyWith({
     int? dailyNewLimit,
@@ -66,6 +74,7 @@ final class UserSettings {
     String? ttsVoice,
     double? ttsSpeed,
     bool? hasSeenOnboarding,
+    CefrLevel? preferredLevel,
   }) => UserSettings(
     dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
     dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
@@ -75,6 +84,7 @@ final class UserSettings {
     ttsVoice: ttsVoice ?? this.ttsVoice,
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+    preferredLevel: preferredLevel ?? this.preferredLevel,
   );
 
   @override
@@ -88,7 +98,8 @@ final class UserSettings {
           reminderMinute == other.reminderMinute &&
           ttsVoice == other.ttsVoice &&
           ttsSpeed == other.ttsSpeed &&
-          hasSeenOnboarding == other.hasSeenOnboarding;
+          hasSeenOnboarding == other.hasSeenOnboarding &&
+          preferredLevel == other.preferredLevel;
 
   @override
   int get hashCode => Object.hash(
@@ -100,11 +111,13 @@ final class UserSettings {
     ttsVoice,
     ttsSpeed,
     hasSeenOnboarding,
+    preferredLevel,
   );
 
   @override
   String toString() =>
       'UserSettings(new: $dailyNewLimit, '
       'review: $dailyReviewLimit, reminders: $remindersEnabled '
-      'at $reminderHour:$reminderMinute, tts: $ttsVoice@$ttsSpeed)';
+      'at $reminderHour:$reminderMinute, tts: $ttsVoice@$ttsSpeed, '
+      'level: ${preferredLevel.label})';
 }

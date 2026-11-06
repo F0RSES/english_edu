@@ -6,17 +6,18 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
-Roadmap ниже). 513 тестов, analyze=0.
+Roadmap ниже). 534 теста, analyze=0.
 
 ## Features
 
 - Интервальные повторения (SM-2) с реальной моделью памяти
 - Streak (серия дней)
 - Swipe-карточки с TTS
-- Личный словарь с поиском и добавлением
+- Личный словарь с поиском, добавлением и фильтром по уровню CEFR (A0–C2)
 - Export/Import через clipboard
 - Crash reporting (Sentry, опционально)
 - Ежедневные локальные напоминания (точность ±5–15 минут)
+- Уровень пользователя: новые слова подбираются не выше выбранного A0–C2
 - Полностью offline-first
 
 ## Environment
@@ -31,7 +32,7 @@ Roadmap ниже). 513 тестов, analyze=0.
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 513 passed
+    flutter test               # 534 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -187,7 +188,7 @@ flutter build apk --debug \
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 22 ADR + архитектурные решения — docs/DECISIONS.md
+- 23 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 

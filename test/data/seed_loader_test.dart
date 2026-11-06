@@ -117,4 +117,30 @@ void main() {
     expect(first.partOfSpeech, 'article');
     expect(first.exampleSentence, 'The cat is on the mat.');
   });
+
+  test('defaults a missing level to a1', () async {
+    final bundle = JsonAssetBundle(jsonEncode(seedJson([seedWord(1, 'book')])));
+
+    await loaderFor(bundle).loadIfEmpty();
+
+    // seed v1 уровня не содержит: слово должно остаться доступным новичку.
+    expect((await db.select(db.words).get()).single.level, 'a1');
+  });
+
+  test('keeps the level from the seed', () async {
+    final entry = seedWord(1, 'ubiquitous')..['level'] = 'C1';
+    final bundle = JsonAssetBundle(jsonEncode(seedJson([entry])));
+
+    await loaderFor(bundle).loadIfEmpty();
+
+    // В БД метка канонизируется в нижний регистр маппером.
+    expect((await db.select(db.words).get()).single.level, 'c1');
+  });
+
+  test('throws on an unknown level', () async {
+    final entry = seedWord(1, 'book')..['level'] = 'D1';
+    final bundle = JsonAssetBundle(jsonEncode(seedJson([entry])));
+
+    expect(loaderFor(bundle).loadIfEmpty(), throwsStateError);
+  });
 }

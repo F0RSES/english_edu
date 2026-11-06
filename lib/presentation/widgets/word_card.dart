@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -93,76 +94,87 @@ class _WordCardState extends ConsumerState<WordCard> {
       onTap: widget.onTap,
       child: Card(
         elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Flexible(
-                    child: Text(
-                      word.term,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          word.term,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      textAlign: TextAlign.center,
+                      IconButton(
+                        icon: const Icon(Icons.volume_up),
+                        tooltip: 'Озвучить',
+                        onPressed: _speak,
+                      ),
+                    ],
+                  ),
+                  if (word.transcription != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      word.transcription!,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
+                  ],
+                  const SizedBox(height: 24),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: widget.revealed
+                        ? _Revealed(word: word)
+                        : const Text('Нажмите, чтобы увидеть перевод'),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.volume_up),
-                    tooltip: 'Озвучить',
-                    onPressed: _speak,
-                  ),
+                  // Подсказка доступна только после раскрытия: до ответа она
+                  // подсказывала бы перевод.
+                  if (widget.revealed) ...[
+                    const SizedBox(height: 12),
+                    if (_association case final association?)
+                      _AssociationCard(text: association)
+                          .animate()
+                          .fadeIn(duration: 250.ms)
+                          .slideY(
+                            begin: 0.2,
+                            end: 0,
+                            duration: 250.ms,
+                            curve: Curves.easeOutCubic,
+                          )
+                    else
+                      TextButton.icon(
+                        onPressed: _loading ? null : _loadAssociation,
+                        icon: _loading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.lightbulb, color: Colors.amber),
+                        label: const Text('Подсказка'),
+                      ),
+                  ],
                 ],
               ),
-              if (word.transcription != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  word.transcription!,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: widget.revealed
-                    ? _Revealed(word: word)
-                    : const Text('Нажмите, чтобы увидеть перевод'),
-              ),
-              // Подсказка доступна только после раскрытия: до ответа она
-              // подсказывала бы перевод.
-              if (widget.revealed) ...[
-                const SizedBox(height: 12),
-                if (_association case final association?)
-                  _AssociationCard(text: association)
-                      .animate()
-                      .fadeIn(duration: 250.ms)
-                      .slideY(
-                        begin: 0.2,
-                        end: 0,
-                        duration: 250.ms,
-                        curve: Curves.easeOutCubic,
-                      )
-                else
-                  TextButton.icon(
-                    onPressed: _loading ? null : _loadAssociation,
-                    icon: _loading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.lightbulb, color: Colors.amber),
-                    label: const Text('Подсказка'),
-                  ),
-              ],
-            ],
-          ),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: CefrBadge(level: word.level, dense: false),
+            ),
+          ],
         ),
       ),
     );

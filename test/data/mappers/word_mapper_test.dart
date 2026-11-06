@@ -1,7 +1,9 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/mappers/word_mapper.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
@@ -64,6 +66,38 @@ void main() {
 
     expect(row.category, isNull);
     expect(WordMapper.toDomain(row).category, isNull);
+  });
+
+  test('round-trip preserves cefr level', () async {
+    const word = domain.Word(
+      id: WordId(8),
+      term: 'ubiquitous',
+      translation: 'вездесущий',
+      level: CefrLevel.c1,
+    );
+
+    await db.into(db.words).insert(WordMapper.toCompanion(word));
+    final row = (await db.select(db.words).get()).single;
+
+    expect(row.level, 'c1');
+    expect(WordMapper.toDomain(row).level, CefrLevel.c1);
+  });
+
+  test('defaults to a1 for a row without an explicit level', () async {
+    // Старая строка (schema v5) уровня не имела: колонка получила DEFAULT 'a1'.
+    await db
+        .into(db.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(9),
+            term: 'book',
+            translation: 'книга',
+          ),
+        );
+    final row = (await db.select(db.words).get()).single;
+
+    expect(row.level, 'a1');
+    expect(WordMapper.toDomain(row).level, CefrLevel.a1);
   });
 
   test('keeps a single-letter term lower-case', () async {

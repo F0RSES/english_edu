@@ -1,3 +1,4 @@
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:meta/meta.dart';
 
@@ -26,6 +27,7 @@ final class Word {
     this.partOfSpeech,
     this.exampleSentence,
     this.category,
+    this.level = CefrLevel.a1,
   }) : assert(term.length > 0, 'term must not be empty'),
        assert(translation.length > 0, 'translation must not be empty');
 
@@ -53,6 +55,12 @@ final class Word {
   /// пользовательские категории — BL-56.
   final String? category;
 
+  /// Уровень слова по CEFR (ADR-023).
+  ///
+  /// По умолчанию `A1`: старый seed и слова, добавленные вручную, не знают
+  /// уровня, а A1 — безопасная середина для новичка.
+  final CefrLevel level;
+
   /// Returns a copy with the given fields replaced.
   ///
   /// Nullable fields are cleared by passing null explicitly; omitting them
@@ -65,6 +73,7 @@ final class Word {
     Object? partOfSpeech = _unset,
     Object? exampleSentence = _unset,
     Object? category = _unset,
+    CefrLevel? level,
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -73,6 +82,7 @@ final class Word {
     partOfSpeech: _resolveText(partOfSpeech, this.partOfSpeech),
     exampleSentence: _resolveText(exampleSentence, this.exampleSentence),
     category: _resolveText(category, this.category),
+    level: level ?? this.level,
   );
 
   @override
@@ -85,7 +95,8 @@ final class Word {
           transcription == other.transcription &&
           partOfSpeech == other.partOfSpeech &&
           exampleSentence == other.exampleSentence &&
-          category == other.category;
+          category == other.category &&
+          level == other.level;
 
   @override
   int get hashCode => Object.hash(
@@ -96,6 +107,7 @@ final class Word {
     partOfSpeech,
     exampleSentence,
     category,
+    level,
   );
 
   @override

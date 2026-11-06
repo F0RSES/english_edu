@@ -116,6 +116,8 @@ void main() {
     await tester.pumpWidget(harness.app());
     await tester.pumpAndSettle();
 
+    // Плитка ниже сгиба: секция уровня добавила строку в начало списка.
+    await tester.scrollUntilVisible(find.text('Проверить'), 200);
     await tester.tap(find.text('Проверить'));
     await tester.pumpAndSettle();
 

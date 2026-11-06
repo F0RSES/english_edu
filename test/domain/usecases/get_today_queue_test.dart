@@ -3,6 +3,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
@@ -13,8 +14,12 @@ import 'fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id) =>
-    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
+Word word(int id, {CefrLevel level = CefrLevel.a1}) => Word(
+  id: WordId(id),
+  term: 'term$id',
+  translation: 'перевод$id',
+  level: level,
+);
 
 WordProgress dueProgress(int id, Duration offset) => WordProgress(
   wordId: WordId(id),
@@ -214,6 +219,57 @@ void main() {
       final queue = await queueOf(
         words: [word(1)],
         progress: [dueProgress(1, const Duration(hours: -1))],
+      ).call();
+
+      expect(ids(queue.due), [1]);
+      expect(queue.newWords, isEmpty);
+    });
+
+    test('newWords filtered by preferredLevel', () async {
+      final queue = await queueOf(
+        words: [
+          word(1),
+          word(2),
+          word(3),
+          word(4, level: CefrLevel.b2),
+          word(5, level: CefrLevel.b2),
+        ],
+        progress: const [],
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.a1,
+          dailyNewLimit: 50,
+        ),
+      ).call();
+
+      expect(ids(queue.newWords), [1, 2, 3]);
+    });
+
+    test('newWords include levels below the preferred one', () async {
+      final queue = await queueOf(
+        words: [
+          word(1, level: CefrLevel.a0),
+          word(2),
+          word(3, level: CefrLevel.a2),
+          word(4, level: CefrLevel.b1),
+        ],
+        progress: const [],
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.a2,
+          dailyNewLimit: 50,
+        ),
+      ).call();
+
+      expect(ids(queue.newWords), [1, 2, 3]);
+    });
+
+    test('dueWords not filtered by level', () async {
+      final queue = await queueOf(
+        words: [word(1, level: CefrLevel.c1)],
+        progress: [dueProgress(1, const Duration(hours: -1))],
+        // Уровень пользователя A1, но слово уже в прогрессе — повторяем.
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.a1,
+        ),
       ).call();
 
       expect(ids(queue.due), [1]);

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:flutter/services.dart';
 
@@ -82,6 +83,29 @@ final class JsonSeedLoader implements SeedLoader {
       exampleSentence: item['exampleSentence'] as String?,
       // Поле необязательное: seed v1 его не содержит (20 слов без категорий).
       category: item['category'] as String?,
+      level: _level(item),
     );
+  }
+
+  /// Уровень слова из seed; без поля — A1 (ADR-023).
+  ///
+  /// seed v1 уровня не содержит, а переписывать контент в этой задаче нельзя:
+  /// слова без метки получают A1 и остаются доступными новичку.
+  CefrLevel _level(Map<String, Object?> item) {
+    final raw = item['level'];
+    if (raw == null) {
+      return CefrLevel.a1;
+    }
+    if (raw is! String) {
+      throw StateError('Seed word "level" must be a string');
+    }
+    // Сравнение вручную, а не CefrLevel.fromLabel: его ArgumentError — Error,
+    // и перехватывать его ради сообщения об ошибке контента нельзя.
+    for (final level in CefrLevel.values) {
+      if (level.label.toLowerCase() == raw.toLowerCase()) {
+        return level;
+      }
+    }
+    throw StateError('Seed word has unknown level: $raw');
   }
 }

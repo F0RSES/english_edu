@@ -1,8 +1,9 @@
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
+import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:flutter/material.dart';
 
-/// Строка словаря: слово, перевод, чип статуса.
+/// Строка словаря: слово, перевод, бейдж уровня и чип статуса.
 class WordListItem extends StatelessWidget {
   /// Создаёт строку.
   const WordListItem({required this.entry, super.key});
@@ -35,9 +36,16 @@ class WordListItem extends StatelessWidget {
               ),
           ],
         ),
-        trailing: Chip(
-          label: Text(_statusLabel(entry.status)),
-          visualDensity: VisualDensity.compact,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CefrBadge(level: word.level),
+            const SizedBox(width: 6),
+            Chip(
+              label: Text(_statusLabel(entry.status)),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
         ),
         onTap: () {
           final example = word.exampleSentence;

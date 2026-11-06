@@ -1,4 +1,5 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
@@ -37,6 +38,8 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   DictionaryTab _tab = DictionaryTab.all;
   // null — фильтр по категории выключен («Все»).
   String? _selectedCategory;
+  // null — фильтр по уровню выключен («Все уровни»).
+  CefrLevel? _selectedLevel;
 
   @override
   void dispose() {
@@ -66,6 +69,18 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     return [
       for (final entry in entries)
         if (entry.word.category == category) entry,
+    ];
+  }
+
+  /// Оставляет слова выбранного уровня; при `null` не фильтрует.
+  List<DictionaryEntry> _applyLevel(List<DictionaryEntry> entries) {
+    final level = _selectedLevel;
+    if (level == null) {
+      return entries;
+    }
+    return [
+      for (final entry in entries)
+        if (entry.word.level == level) entry,
     ];
   }
 
@@ -127,6 +142,24 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
           ),
         ),
         const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              for (final level in <CefrLevel?>[null, ...CefrLevel.values])
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(level?.label ?? 'Все уровни'),
+                    selected: _selectedLevel == level,
+                    onSelected: (_) => setState(() => _selectedLevel = level),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         SegmentedButton<DictionaryTab>(
           segments: const [
             ButtonSegment(value: DictionaryTab.all, label: Text('Все')),
@@ -154,7 +187,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   );
 
   Widget _buildList(List<DictionaryEntry> entries) {
-    final filtered = _applyCategory(_applyTab(entries));
+    // Категория, уровень и вкладка складываются по AND: выбранные фильтры
+    // сужают список, а не заменяют друг друга.
+    final filtered = _applyLevel(_applyCategory(_applyTab(entries)));
     if (filtered.isEmpty) {
       return Center(child: Text(_emptyMessage()));
     }
@@ -173,6 +208,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     }
     if (_selectedCategory != null) {
       return 'В этой категории пока пусто';
+    }
+    if (_selectedLevel != null) {
+      return 'Для этого уровня пока пусто';
     }
     if (_tab != DictionaryTab.all) {
       return 'В этой вкладке пока пусто';

@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/get_word_hint.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/word_card.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ Widget host({
   UserSettings? settings,
   VoidCallback? onTap,
   GetWordHint? hint,
+  Word? wordOverride,
 }) => ProviderScope(
   overrides: [
     ttsProvider.overrideWithValue(tts ?? FakeTtsService()),
@@ -37,7 +39,11 @@ Widget host({
   ],
   child: MaterialApp(
     home: Scaffold(
-      body: WordCard(word: word, revealed: revealed, onTap: onTap ?? () {}),
+      body: WordCard(
+        word: wordOverride ?? word,
+        revealed: revealed,
+        onTap: onTap ?? () {},
+      ),
     ),
   ),
 );
@@ -140,5 +146,31 @@ void main() {
     await tester.pumpWidget(host(revealed: false));
 
     expect(find.text('Подсказка'), findsNothing);
+  });
+
+  testWidgets('renders cefr level badge', (tester) async {
+    await tester.pumpWidget(
+      host(
+        revealed: false,
+        wordOverride: const Word(
+          id: WordId(2),
+          term: 'ubiquitous',
+          translation: 'вездесущий',
+          level: CefrLevel.c1,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('C1'), findsOneWidget);
+  });
+
+  testWidgets('badge is visible before the translation', (tester) async {
+    await tester.pumpWidget(host(revealed: false));
+    await tester.pumpAndSettle();
+
+    // Бейдж уровня не раскрывает перевод, поэтому виден и до ответа.
+    expect(find.text('A1'), findsOneWidget);
+    expect(find.text('привет'), findsNothing);
   });
 }

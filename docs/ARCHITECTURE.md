@@ -92,6 +92,12 @@ Dart-код в документе не приводится: сигнатуры 
 
 Геттер `ease` возвращает `easePermille / 1000.0`.
 
+### CefrLevel
+
+`enum CefrLevel { a0, a1, a2, b1, b2, c1, c2 }` с `label` (`A0`…`C2`) и `description` (ADR-023). Порядок значений — шкала сложности, поэтому сравнение уровней идёт через `index`, а не через строку. `fromLabel` разбирает метку без учёта регистра и бросает `ArgumentError` на неизвестной. `A0` — Pre-A1, вне оригинального CEFR: слова до первого уровня.
+
+В БД хранится метка в нижнем регистре (`a0`…`c2`, DDL-дефолт `a1`) — индексы enum привязаны к порядку в коде и для данных непригодны.
+
 ### StreakRule
 Правила выдачи заморозок (ADR-015). `StreakRule.frozenEarnedFor(streakCount)`: 0 до 7 дней, 1 на 7, 2 на 30; `StreakRule.maxAvailable = 2`. Класс статический (`abstract final`), состояния не имеет: баланс выводится из длины серии и размера `frozenDates`.
 
@@ -183,7 +189,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 | Use case | Сигнатура | Поведение |
 |---|---|---|
-| GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | слова и прогресс сопоставляются по `wordId`: newWords — слова без прогресса или со статусом `newWord` (порядок: `firstSeenAt` asc, затем слова без прогресса по `id`), due — прогресс с наступившим `dueAt` вне `newWord` (порядок: `dueAt` asc); оба списка обрезаны `dailyNewLimit` / `dailyReviewLimit` |
+| GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | слова и прогресс сопоставляются по `wordId`: newWords — слова без прогресса или со статусом `newWord` **и уровнем не выше `settings.preferredLevel`** (ADR-023; порядок: `firstSeenAt` asc, затем слова без прогресса по `id`), due — прогресс с наступившим `dueAt` вне `newWord` (порядок: `dueAt` asc), **без фильтра по уровню** — начатое слово повторяется по SM-2; оба списка обрезаны `dailyNewLimit` / `dailyReviewLimit` |
 | RecordReview | `RecordReview({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required WordRepository words, required SrsCalculator srs, required ReviewLogId Function() nextLogId, required DateTime Function() clock})` → `Future<CardState>` | проверяет существование слова; создаёт или обновляет прогресс, пишет ReviewLog, поднимает DailyStats. Статус: mastered при `reps ≥ 5 && intervalDays ≥ 21` (Anki-style mature); `lapses` не блокирует — история провалов не мешает mastered. Иначе learning: после любого ответа слово уже видели, `newWord` только до первого ответа |
 | ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, frozen, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = ExportPayload.currentSchemaVersion` (2, есть `frozenDays`) |
 | ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats, frozen})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion in 1..2` и `exportedAt.isUtc`; порядок settings → words → progress → logs → stats → frozen; v1 приходит с пустыми заморозками; атомарность per-repo |
@@ -197,11 +203,11 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v4 — семь таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints` — существующие таблицы и данные не пересоздаются.
+Схема v6 — семь таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
-| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement); `category` nullable (v3) | `idx_words_term` |
+| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement); `category` nullable (v3); `level` текст `a0`…`c2`, default `a1` (v6, ADR-023) | `idx_words_term` |
 | `word_progresses` | `WordProgressRow` | `wordId` → `words.id` ON DELETE CASCADE | `idx_word_progress_due`, `idx_word_progress_status` |
 | `review_logs` | `ReviewLogRow` | `id` | `idx_review_logs_word`, `idx_review_logs_reviewed` |
 | `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |
@@ -253,6 +259,8 @@ Bootstrap (`bootstrapApp` в `main.dart`): `AppDatabase()` → `seedLoader.loadI
 - `lib/presentation/router.dart` — `routerProvider` (GoRouter): `/`, `/lesson`, `/dictionary`, `/profile`.
 - `lib/presentation/screens/` — `HomeScreen` (серия, дневная цель, запуск урока, `NavigationBar`), `LessonScreen` (сессия), `DictionaryScreen` (словарь), `ProfileScreen` (настройки и скорость TTS). Плюс `ErrorHunterScreen` (`/error-hunter`) — мини-игра «Охота на ошибки» (Phase 8). В `ProfileScreen` — `AnalyticsSection` (плитки, 7-дневный график, трудные слова, прогноз; ADR-021).
 - `lib/presentation/widgets/streak_card.dart` — серия дней из `StreakInfo`: крупная цифра, остаток до вехи 7, поздравления на 7/30/100/365, остаток заморозок (`frozenAvailable`) и бейдж «Freeze использован», если заморозка израсходована за последние 7 дней (ADR-015). Дату `today` передаёт экран — виджет не читает часы сам.
+- `lib/presentation/widgets/cefr_badge.dart` — `CefrBadge` + `cefrLevelColor`: бейдж уровня на карточке урока (правый верхний угол) и в строке словаря. Цвет фиксирован по уровню (`teal` → `red`), а не берётся из темы: он кодирует сам уровень (ADR-023).
+- `DictionaryScreen` — два независимых фильтра (категория и уровень) плюс вкладки статуса; складываются по AND. Уровень не влияет на очередь дня.
 - `lib/presentation/widgets/daily_goal_card.dart` — «сделано / план» из `DailyStats.totalAnswers` и суммы `dailyNewLimit + dailyReviewLimit`; полоска обрезана на 100%, счётчик показывает факт (перебор виден как «7 / 5»).
 - `HomeScreen` не считает сам: серию берёт у `ComputeStreak`, очередь у `GetTodayQueue`, план — сумма лимитов `UserSettings`. Кнопка старта выключена при пустой очереди; ошибка очереди показывает «Повторить» и пересоздаёт репозитории через `ref.invalidate` (у `ConsumerWidget` нет `setState`).
 - `lib/presentation/widgets/` — `WordCard` (термин + транскрипция, reveal перевода и примера через `AnimatedSwitcher`), `SessionSummary` (итоги + «Готово»).

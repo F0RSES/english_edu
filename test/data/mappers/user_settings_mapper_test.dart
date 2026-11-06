@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/mappers/user_settings_mapper.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:test/test.dart';
 
 final updatedAt = DateTime.utc(2024, 5, 15, 12);
@@ -59,6 +60,22 @@ void main() {
     expect(UserSettingsMapper.toDomain(row).hasSeenOnboarding, isTrue);
   });
 
+  test('round-trip preserves preferredLevel', () async {
+    final settings = UserSettings.defaults().copyWith(
+      preferredLevel: CefrLevel.b2,
+    );
+
+    await db
+        .into(db.userSettingsTable)
+        .insertOnConflictUpdate(
+          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
+        );
+    final row = (await db.select(db.userSettingsTable).get()).single;
+
+    expect(row.preferredLevel, 'b2');
+    expect(UserSettingsMapper.toDomain(row).preferredLevel, CefrLevel.b2);
+  });
+
   test('keeps boundary ttsSpeed values', () async {
     for (final speed in [0.1, 1.0]) {
       final settings = UserSettings.defaults().copyWith(ttsSpeed: speed);
@@ -73,6 +90,7 @@ void main() {
           ttsVoice: settings.ttsVoice,
           ttsSpeed: speed,
           hasSeenOnboarding: settings.hasSeenOnboarding,
+          preferredLevel: settings.preferredLevel.label,
           updatedAtUtc: 0,
         ),
       );

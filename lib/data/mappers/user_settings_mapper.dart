@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 
 /// Domain `UserSettings` ↔ Drift `UserSettingsRow`.
 ///
@@ -19,6 +20,7 @@ final class UserSettingsMapper {
     ttsVoice: row.ttsVoice,
     ttsSpeed: row.ttsSpeed,
     hasSeenOnboarding: row.hasSeenOnboarding,
+    preferredLevel: CefrLevel.fromLabel(row.preferredLevel),
   );
 
   /// Раскладывает настройки в companion.
@@ -39,6 +41,8 @@ final class UserSettingsMapper {
     ttsVoice: Value(settings.ttsVoice),
     ttsSpeed: Value(settings.ttsSpeed),
     hasSeenOnboarding: Value(settings.hasSeenOnboarding),
+    // Нижний регистр — как DDL-дефолт 'a1' (см. WordMapper).
+    preferredLevel: Value(settings.preferredLevel.label.toLowerCase()),
     updatedAtUtc: Value(updatedAt.toUtc().millisecondsSinceEpoch),
   );
 }

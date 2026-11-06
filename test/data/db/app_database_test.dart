@@ -78,6 +78,10 @@ void main() {
     await v3.customStatement(
       'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
     );
+    await v3.customStatement('ALTER TABLE words DROP COLUMN level');
+    await v3.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN preferred_level',
+    );
     await v3.customStatement('PRAGMA user_version = 3');
     await v3.close();
 
@@ -110,6 +114,10 @@ void main() {
     await v4.customStatement(
       'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
     );
+    await v4.customStatement('ALTER TABLE words DROP COLUMN level');
+    await v4.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN preferred_level',
+    );
     await v4.customStatement('PRAGMA user_version = 4');
     await v4.close();
 
@@ -120,6 +128,47 @@ void main() {
     final row = (await v5.select(v5.userSettingsTable).get()).single;
     expect(row.hasSeenOnboarding, isFalse);
     expect(row.updatedAtUtc, _nowMs);
+  });
+
+  test('migration v5 to v6 adds level and preferred_level columns', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v6');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v5 = текущая схема без уровней CEFR.
+    final v5 = AppDatabase.forTesting(NativeDatabase(file));
+    await v5
+        .into(v5.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'book',
+            translation: 'книга',
+          ),
+        );
+    await v5
+        .into(v5.userSettingsTable)
+        .insert(
+          UserSettingsTableCompanion.insert(
+            id: const Value(1),
+            updatedAtUtc: _nowMs,
+          ),
+        );
+    await v5.customStatement('ALTER TABLE words DROP COLUMN level');
+    await v5.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN preferred_level',
+    );
+    await v5.customStatement('PRAGMA user_version = 5');
+    await v5.close();
+
+    final v6 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v6.close);
+
+    // DEFAULT 'a1' в DDL: старые строки получают A1, а не пустую строку.
+    final word = (await v6.select(v6.words).get()).single;
+    expect(word.level, 'a1');
+    final settings = (await v6.select(v6.userSettingsTable).get()).single;
+    expect(settings.preferredLevel, 'a1');
   });
 
   test('creates all seven tables on open', () async {
@@ -143,6 +192,10 @@ void main() {
     await v1.customStatement('DROP TABLE frozen_days');
     await v1.customStatement('DROP TABLE word_hints');
     await v1.customStatement('ALTER TABLE words DROP COLUMN category');
+    await v1.customStatement('ALTER TABLE words DROP COLUMN level');
+    await v1.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN preferred_level',
+    );
     await v1
         .into(v1.dailyStatsTable)
         .insert(
@@ -181,6 +234,10 @@ void main() {
         );
     await v2.customStatement('DROP TABLE word_hints');
     await v2.customStatement('ALTER TABLE words DROP COLUMN category');
+    await v2.customStatement('ALTER TABLE words DROP COLUMN level');
+    await v2.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN preferred_level',
+    );
     await v2.customStatement(
       'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
     );

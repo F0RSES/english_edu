@@ -81,6 +81,16 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<String> level = GeneratedColumn<String>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('a1'),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -90,6 +100,7 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     partOfSpeech,
     exampleSentence,
     category,
+    level,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -158,6 +169,12 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
       );
     }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    }
     return context;
   }
 
@@ -195,6 +212,10 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         DriftSqlType.string,
         data['${effectivePrefix}category'],
       ),
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}level'],
+      )!,
     );
   }
 
@@ -227,6 +248,12 @@ class Word extends DataClass implements Insertable<Word> {
   ///
   /// Список категорий фиксирован в UI; пользовательские категории — BL-56.
   final String? category;
+
+  /// Уровень по CEFR меткой: `a0`…`c2` (schema v6, ADR-023).
+  ///
+  /// Хранится как текст, а не как индекс enum: порядок значений в коде может
+  /// измениться, а миграция чужого файла с числом стала бы неоднозначной.
+  final String level;
   const Word({
     required this.id,
     required this.term,
@@ -235,6 +262,7 @@ class Word extends DataClass implements Insertable<Word> {
     this.partOfSpeech,
     this.exampleSentence,
     this.category,
+    required this.level,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -254,6 +282,7 @@ class Word extends DataClass implements Insertable<Word> {
     if (!nullToAbsent || category != null) {
       map['category'] = Variable<String>(category);
     }
+    map['level'] = Variable<String>(level);
     return map;
   }
 
@@ -274,6 +303,7 @@ class Word extends DataClass implements Insertable<Word> {
       category: category == null && nullToAbsent
           ? const Value.absent()
           : Value(category),
+      level: Value(level),
     );
   }
 
@@ -290,6 +320,7 @@ class Word extends DataClass implements Insertable<Word> {
       partOfSpeech: serializer.fromJson<String?>(json['partOfSpeech']),
       exampleSentence: serializer.fromJson<String?>(json['exampleSentence']),
       category: serializer.fromJson<String?>(json['category']),
+      level: serializer.fromJson<String>(json['level']),
     );
   }
   @override
@@ -303,6 +334,7 @@ class Word extends DataClass implements Insertable<Word> {
       'partOfSpeech': serializer.toJson<String?>(partOfSpeech),
       'exampleSentence': serializer.toJson<String?>(exampleSentence),
       'category': serializer.toJson<String?>(category),
+      'level': serializer.toJson<String>(level),
     };
   }
 
@@ -314,6 +346,7 @@ class Word extends DataClass implements Insertable<Word> {
     Value<String?> partOfSpeech = const Value.absent(),
     Value<String?> exampleSentence = const Value.absent(),
     Value<String?> category = const Value.absent(),
+    String? level,
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -326,6 +359,7 @@ class Word extends DataClass implements Insertable<Word> {
         ? exampleSentence.value
         : this.exampleSentence,
     category: category.present ? category.value : this.category,
+    level: level ?? this.level,
   );
   Word copyWithCompanion(WordsCompanion data) {
     return Word(
@@ -344,6 +378,7 @@ class Word extends DataClass implements Insertable<Word> {
           ? data.exampleSentence.value
           : this.exampleSentence,
       category: data.category.present ? data.category.value : this.category,
+      level: data.level.present ? data.level.value : this.level,
     );
   }
 
@@ -356,7 +391,8 @@ class Word extends DataClass implements Insertable<Word> {
           ..write('transcription: $transcription, ')
           ..write('partOfSpeech: $partOfSpeech, ')
           ..write('exampleSentence: $exampleSentence, ')
-          ..write('category: $category')
+          ..write('category: $category, ')
+          ..write('level: $level')
           ..write(')'))
         .toString();
   }
@@ -370,6 +406,7 @@ class Word extends DataClass implements Insertable<Word> {
     partOfSpeech,
     exampleSentence,
     category,
+    level,
   );
   @override
   bool operator ==(Object other) =>
@@ -381,7 +418,8 @@ class Word extends DataClass implements Insertable<Word> {
           other.transcription == this.transcription &&
           other.partOfSpeech == this.partOfSpeech &&
           other.exampleSentence == this.exampleSentence &&
-          other.category == this.category);
+          other.category == this.category &&
+          other.level == this.level);
 }
 
 class WordsCompanion extends UpdateCompanion<Word> {
@@ -392,6 +430,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
   final Value<String?> partOfSpeech;
   final Value<String?> exampleSentence;
   final Value<String?> category;
+  final Value<String> level;
   const WordsCompanion({
     this.id = const Value.absent(),
     this.term = const Value.absent(),
@@ -400,6 +439,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.partOfSpeech = const Value.absent(),
     this.exampleSentence = const Value.absent(),
     this.category = const Value.absent(),
+    this.level = const Value.absent(),
   });
   WordsCompanion.insert({
     this.id = const Value.absent(),
@@ -409,6 +449,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.partOfSpeech = const Value.absent(),
     this.exampleSentence = const Value.absent(),
     this.category = const Value.absent(),
+    this.level = const Value.absent(),
   }) : term = Value(term),
        translation = Value(translation);
   static Insertable<Word> custom({
@@ -419,6 +460,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Expression<String>? partOfSpeech,
     Expression<String>? exampleSentence,
     Expression<String>? category,
+    Expression<String>? level,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -428,6 +470,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       if (partOfSpeech != null) 'part_of_speech': partOfSpeech,
       if (exampleSentence != null) 'example_sentence': exampleSentence,
       if (category != null) 'category': category,
+      if (level != null) 'level': level,
     });
   }
 
@@ -439,6 +482,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Value<String?>? partOfSpeech,
     Value<String?>? exampleSentence,
     Value<String?>? category,
+    Value<String>? level,
   }) {
     return WordsCompanion(
       id: id ?? this.id,
@@ -448,6 +492,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       partOfSpeech: partOfSpeech ?? this.partOfSpeech,
       exampleSentence: exampleSentence ?? this.exampleSentence,
       category: category ?? this.category,
+      level: level ?? this.level,
     );
   }
 
@@ -475,6 +520,9 @@ class WordsCompanion extends UpdateCompanion<Word> {
     if (category.present) {
       map['category'] = Variable<String>(category.value);
     }
+    if (level.present) {
+      map['level'] = Variable<String>(level.value);
+    }
     return map;
   }
 
@@ -487,7 +535,8 @@ class WordsCompanion extends UpdateCompanion<Word> {
           ..write('transcription: $transcription, ')
           ..write('partOfSpeech: $partOfSpeech, ')
           ..write('exampleSentence: $exampleSentence, ')
-          ..write('category: $category')
+          ..write('category: $category, ')
+          ..write('level: $level')
           ..write(')'))
         .toString();
   }
@@ -2059,6 +2108,18 @@ class $UserSettingsTableTable extends UserSettingsTable
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _preferredLevelMeta = const VerificationMeta(
+    'preferredLevel',
+  );
+  @override
+  late final GeneratedColumn<String> preferredLevel = GeneratedColumn<String>(
+    'preferred_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('a1'),
+  );
   static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
     'updatedAtUtc',
   );
@@ -2081,6 +2142,7 @@ class $UserSettingsTableTable extends UserSettingsTable
     ttsVoice,
     ttsSpeed,
     hasSeenOnboarding,
+    preferredLevel,
     updatedAtUtc,
   ];
   @override
@@ -2164,6 +2226,15 @@ class $UserSettingsTableTable extends UserSettingsTable
         ),
       );
     }
+    if (data.containsKey('preferred_level')) {
+      context.handle(
+        _preferredLevelMeta,
+        preferredLevel.isAcceptableOrUnknown(
+          data['preferred_level']!,
+          _preferredLevelMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at_utc')) {
       context.handle(
         _updatedAtUtcMeta,
@@ -2220,6 +2291,10 @@ class $UserSettingsTableTable extends UserSettingsTable
         DriftSqlType.bool,
         data['${effectivePrefix}has_seen_onboarding'],
       )!,
+      preferredLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}preferred_level'],
+      )!,
       updatedAtUtc: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at_utc'],
@@ -2262,6 +2337,11 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
   /// Пройден ли онбординг; false у новых установок (BL-61).
   final bool hasSeenOnboarding;
 
+  /// Уровень пользователя по CEFR меткой: `a0`…`c2` (schema v6, ADR-023).
+  ///
+  /// Фильтрует новые слова в очереди дня; уже начатые слова не фильтруются.
+  final String preferredLevel;
+
   /// Момент последнего изменения, миллисекунды UTC.
   final int updatedAtUtc;
   const UserSettingsRow({
@@ -2274,6 +2354,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     required this.ttsVoice,
     required this.ttsSpeed,
     required this.hasSeenOnboarding,
+    required this.preferredLevel,
     required this.updatedAtUtc,
   });
   @override
@@ -2288,6 +2369,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     map['tts_voice'] = Variable<String>(ttsVoice);
     map['tts_speed'] = Variable<double>(ttsSpeed);
     map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
+    map['preferred_level'] = Variable<String>(preferredLevel);
     map['updated_at_utc'] = Variable<int>(updatedAtUtc);
     return map;
   }
@@ -2303,6 +2385,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       ttsVoice: Value(ttsVoice),
       ttsSpeed: Value(ttsSpeed),
       hasSeenOnboarding: Value(hasSeenOnboarding),
+      preferredLevel: Value(preferredLevel),
       updatedAtUtc: Value(updatedAtUtc),
     );
   }
@@ -2322,6 +2405,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       ttsVoice: serializer.fromJson<String>(json['ttsVoice']),
       ttsSpeed: serializer.fromJson<double>(json['ttsSpeed']),
       hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
+      preferredLevel: serializer.fromJson<String>(json['preferredLevel']),
       updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
     );
   }
@@ -2338,6 +2422,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       'ttsVoice': serializer.toJson<String>(ttsVoice),
       'ttsSpeed': serializer.toJson<double>(ttsSpeed),
       'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
+      'preferredLevel': serializer.toJson<String>(preferredLevel),
       'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
     };
   }
@@ -2352,6 +2437,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     String? ttsVoice,
     double? ttsSpeed,
     bool? hasSeenOnboarding,
+    String? preferredLevel,
     int? updatedAtUtc,
   }) => UserSettingsRow(
     id: id ?? this.id,
@@ -2363,6 +2449,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     ttsVoice: ttsVoice ?? this.ttsVoice,
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+    preferredLevel: preferredLevel ?? this.preferredLevel,
     updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
   );
   UserSettingsRow copyWithCompanion(UserSettingsTableCompanion data) {
@@ -2388,6 +2475,9 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       hasSeenOnboarding: data.hasSeenOnboarding.present
           ? data.hasSeenOnboarding.value
           : this.hasSeenOnboarding,
+      preferredLevel: data.preferredLevel.present
+          ? data.preferredLevel.value
+          : this.preferredLevel,
       updatedAtUtc: data.updatedAtUtc.present
           ? data.updatedAtUtc.value
           : this.updatedAtUtc,
@@ -2406,6 +2496,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           ..write('ttsVoice: $ttsVoice, ')
           ..write('ttsSpeed: $ttsSpeed, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
+          ..write('preferredLevel: $preferredLevel, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -2422,6 +2513,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     ttsVoice,
     ttsSpeed,
     hasSeenOnboarding,
+    preferredLevel,
     updatedAtUtc,
   );
   @override
@@ -2437,6 +2529,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           other.ttsVoice == this.ttsVoice &&
           other.ttsSpeed == this.ttsSpeed &&
           other.hasSeenOnboarding == this.hasSeenOnboarding &&
+          other.preferredLevel == this.preferredLevel &&
           other.updatedAtUtc == this.updatedAtUtc);
 }
 
@@ -2450,6 +2543,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
   final Value<String> ttsVoice;
   final Value<double> ttsSpeed;
   final Value<bool> hasSeenOnboarding;
+  final Value<String> preferredLevel;
   final Value<int> updatedAtUtc;
   const UserSettingsTableCompanion({
     this.id = const Value.absent(),
@@ -2461,6 +2555,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.ttsVoice = const Value.absent(),
     this.ttsSpeed = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
+    this.preferredLevel = const Value.absent(),
     this.updatedAtUtc = const Value.absent(),
   });
   UserSettingsTableCompanion.insert({
@@ -2473,6 +2568,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.ttsVoice = const Value.absent(),
     this.ttsSpeed = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
+    this.preferredLevel = const Value.absent(),
     required int updatedAtUtc,
   }) : updatedAtUtc = Value(updatedAtUtc);
   static Insertable<UserSettingsRow> custom({
@@ -2485,6 +2581,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Expression<String>? ttsVoice,
     Expression<double>? ttsSpeed,
     Expression<bool>? hasSeenOnboarding,
+    Expression<String>? preferredLevel,
     Expression<int>? updatedAtUtc,
   }) {
     return RawValuesInsertable({
@@ -2497,6 +2594,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       if (ttsVoice != null) 'tts_voice': ttsVoice,
       if (ttsSpeed != null) 'tts_speed': ttsSpeed,
       if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
+      if (preferredLevel != null) 'preferred_level': preferredLevel,
       if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
     });
   }
@@ -2511,6 +2609,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Value<String>? ttsVoice,
     Value<double>? ttsSpeed,
     Value<bool>? hasSeenOnboarding,
+    Value<String>? preferredLevel,
     Value<int>? updatedAtUtc,
   }) {
     return UserSettingsTableCompanion(
@@ -2523,6 +2622,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       ttsVoice: ttsVoice ?? this.ttsVoice,
       ttsSpeed: ttsSpeed ?? this.ttsSpeed,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
+      preferredLevel: preferredLevel ?? this.preferredLevel,
       updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
     );
   }
@@ -2557,6 +2657,9 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     if (hasSeenOnboarding.present) {
       map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding.value);
     }
+    if (preferredLevel.present) {
+      map['preferred_level'] = Variable<String>(preferredLevel.value);
+    }
     if (updatedAtUtc.present) {
       map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
     }
@@ -2575,6 +2678,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
           ..write('ttsVoice: $ttsVoice, ')
           ..write('ttsSpeed: $ttsSpeed, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
+          ..write('preferredLevel: $preferredLevel, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -3620,6 +3724,7 @@ typedef $$WordsTableCreateCompanionBuilder = WordsCompanion Function({
   Value<String?> partOfSpeech,
   Value<String?> exampleSentence,
   Value<String?> category,
+  Value<String> level,
 });
 typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<int> id,
@@ -3629,6 +3734,7 @@ typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<String?> partOfSpeech,
   Value<String?> exampleSentence,
   Value<String?> category,
+  Value<String> level,
 });
 
 final class $$WordsTableReferences
@@ -3712,6 +3818,11 @@ class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
 
   ColumnFilters<String> get category => $composableBuilder(
     column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get level => $composableBuilder(
+    column: $table.level,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3809,6 +3920,11 @@ class $$WordsTableOrderingComposer
     column: $table.category,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$WordsTableAnnotationComposer
@@ -3848,6 +3964,9 @@ class $$WordsTableAnnotationComposer
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
 
   Expression<T> wordProgressesRefs<T extends Object>(
     Expression<T> Function($$WordProgressesTableAnnotationComposer a) f,
@@ -3935,6 +4054,7 @@ class $$WordsTableTableManager
                 Value<String?> partOfSpeech = const Value.absent(),
                 Value<String?> exampleSentence = const Value.absent(),
                 Value<String?> category = const Value.absent(),
+                Value<String> level = const Value.absent(),
               }) => WordsCompanion(
                 id: id,
                 term: term,
@@ -3943,6 +4063,7 @@ class $$WordsTableTableManager
                 partOfSpeech: partOfSpeech,
                 exampleSentence: exampleSentence,
                 category: category,
+                level: level,
               ),
           createCompanionCallback:
               ({
@@ -3953,6 +4074,7 @@ class $$WordsTableTableManager
                 Value<String?> partOfSpeech = const Value.absent(),
                 Value<String?> exampleSentence = const Value.absent(),
                 Value<String?> category = const Value.absent(),
+                Value<String> level = const Value.absent(),
               }) => WordsCompanion.insert(
                 id: id,
                 term: term,
@@ -3961,6 +4083,7 @@ class $$WordsTableTableManager
                 partOfSpeech: partOfSpeech,
                 exampleSentence: exampleSentence,
                 category: category,
+                level: level,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -4848,6 +4971,7 @@ typedef $$UserSettingsTableTableCreateCompanionBuilder =
       Value<String> ttsVoice,
       Value<double> ttsSpeed,
       Value<bool> hasSeenOnboarding,
+      Value<String> preferredLevel,
       required int updatedAtUtc,
     });
 typedef $$UserSettingsTableTableUpdateCompanionBuilder =
@@ -4861,6 +4985,7 @@ typedef $$UserSettingsTableTableUpdateCompanionBuilder =
       Value<String> ttsVoice,
       Value<double> ttsSpeed,
       Value<bool> hasSeenOnboarding,
+      Value<String> preferredLevel,
       Value<int> updatedAtUtc,
     });
 
@@ -4915,6 +5040,11 @@ class $$UserSettingsTableTableFilterComposer
 
   ColumnFilters<bool> get hasSeenOnboarding => $composableBuilder(
     column: $table.hasSeenOnboarding,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get preferredLevel => $composableBuilder(
+    column: $table.preferredLevel,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4978,6 +5108,11 @@ class $$UserSettingsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get preferredLevel => $composableBuilder(
+    column: $table.preferredLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => ColumnOrderings(column),
@@ -5029,6 +5164,11 @@ class $$UserSettingsTableTableAnnotationComposer
 
   GeneratedColumn<bool> get hasSeenOnboarding => $composableBuilder(
     column: $table.hasSeenOnboarding,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get preferredLevel => $composableBuilder(
+    column: $table.preferredLevel,
     builder: (column) => column,
   );
 
@@ -5087,6 +5227,7 @@ class $$UserSettingsTableTableTableManager
                 Value<String> ttsVoice = const Value.absent(),
                 Value<double> ttsSpeed = const Value.absent(),
                 Value<bool> hasSeenOnboarding = const Value.absent(),
+                Value<String> preferredLevel = const Value.absent(),
                 Value<int> updatedAtUtc = const Value.absent(),
               }) => UserSettingsTableCompanion(
                 id: id,
@@ -5098,6 +5239,7 @@ class $$UserSettingsTableTableTableManager
                 ttsVoice: ttsVoice,
                 ttsSpeed: ttsSpeed,
                 hasSeenOnboarding: hasSeenOnboarding,
+                preferredLevel: preferredLevel,
                 updatedAtUtc: updatedAtUtc,
               ),
           createCompanionCallback:
@@ -5111,6 +5253,7 @@ class $$UserSettingsTableTableTableManager
                 Value<String> ttsVoice = const Value.absent(),
                 Value<double> ttsSpeed = const Value.absent(),
                 Value<bool> hasSeenOnboarding = const Value.absent(),
+                Value<String> preferredLevel = const Value.absent(),
                 required int updatedAtUtc,
               }) => UserSettingsTableCompanion.insert(
                 id: id,
@@ -5122,6 +5265,7 @@ class $$UserSettingsTableTableTableManager
                 ttsVoice: ttsVoice,
                 ttsSpeed: ttsSpeed,
                 hasSeenOnboarding: hasSeenOnboarding,
+                preferredLevel: preferredLevel,
                 updatedAtUtc: updatedAtUtc,
               ),
           withReferenceMapper: (p0) => p0

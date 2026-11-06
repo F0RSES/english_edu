@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 
 /// Domain `Word` ↔ Drift `Word`.
@@ -18,6 +19,7 @@ final class WordMapper {
     partOfSpeech: row.partOfSpeech,
     exampleSentence: row.exampleSentence,
     category: row.category,
+    level: CefrLevel.fromLabel(row.level),
   );
 
   /// Раскладывает сущность в companion для insert/update.
@@ -29,5 +31,8 @@ final class WordMapper {
     partOfSpeech: Value(word.partOfSpeech),
     exampleSentence: Value(word.exampleSentence),
     category: Value(word.category),
+    // Метка пишется в нижнем регистре: DDL-дефолт 'a1' и данные не должны
+    // расходиться регистром (CefrLevel.fromLabel читает оба).
+    level: Value(word.level.label.toLowerCase()),
   );
 }

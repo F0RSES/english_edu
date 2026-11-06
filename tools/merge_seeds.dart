@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'review_seed_lib.dart';
 import 'validate_seed_lib.dart';
 
 /// Входные файлы в порядке приоритета при дедупликации.
@@ -19,6 +20,50 @@ const _inputs = <String>[
 
 /// Куда пишется слитый словарь.
 const _outputPath = 'assets/seed/words_v2.json';
+
+/// Файл ручных правок после LLM-ревью (BL-21).
+///
+/// Отдельный файл, а не правка `words_v2.json`: слитый словарь
+/// перезаписывается при каждом запуске, поэтому ручные фиксы хранятся здесь и
+/// применяются в конце.
+const _overridesPath = 'tools/manual_review_overrides.json';
+
+/// Применяет ручные правки и печатает итог.
+///
+/// Отсутствие файла — норма: ревью может ещё не быть. Несовпадение термина —
+/// предупреждение, а не ошибка: словарь мог измениться, и правку нужно
+/// перенести руками, а не потерять молча.
+void _applyOverrides(List<Map<String, Object?>> words) {
+  final file = File(_overridesPath);
+  if (!file.existsSync()) {
+    stdout.writeln('No manual overrides file, skipped');
+    return;
+  }
+
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(file.readAsStringSync());
+  } on FormatException catch (error) {
+    stderr.writeln('WARNING: invalid overrides JSON: ${error.message}');
+    return;
+  }
+
+  if (decoded is! Map<String, Object?> || decoded['overrides'] is! List) {
+    stderr.writeln('WARNING: overrides file has no overrides array');
+    return;
+  }
+
+  final overrides = [
+    for (final item in decoded['overrides']! as List)
+      if (item is Map<String, Object?>) item,
+  ];
+  final result = applyManualOverrides(words, overrides);
+
+  for (final term in result.missingTerms) {
+    stdout.writeln("WARNING: override term '$term' not found in seed");
+  }
+  stdout.writeln('Applied ${result.applied} manual overrides');
+}
 
 /// Сливает словари по уровням в один seed-файл.
 ///
@@ -89,6 +134,10 @@ Future<void> main() async {
   for (var index = 0; index < merged.length; index++) {
     merged[index]['id'] = index + 1;
   }
+
+  // Ручные правки применяются последними: они должны побеждать и слияние, и
+  // перенумерацию (BL-21).
+  _applyOverrides(merged);
 
   final output = <String, Object?>{
     'schemaVersion': 1,

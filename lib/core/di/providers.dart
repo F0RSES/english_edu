@@ -15,6 +15,7 @@ import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_settings_repository.dart';
 import 'package:english_edu/data/repositories/drift_stats_repository.dart';
+import 'package:english_edu/data/repositories/drift_user_category_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
@@ -31,6 +32,7 @@ import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/repositories/user_category_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/services/cloud_auth_service.dart';
@@ -42,6 +44,7 @@ import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
+import 'package:english_edu/domain/usecases/create_user_category.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
@@ -50,6 +53,7 @@ import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/usecases/get_or_create_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/get_smart_review_queue.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
+import 'package:english_edu/domain/usecases/get_user_categories.dart';
 import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/get_word_hint.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
@@ -69,6 +73,7 @@ import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/smart_review_item.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
@@ -534,6 +539,32 @@ final class DictionarySearchQuery extends Notifier<String> {
   // ignore: use_setters_to_change_properties
   void update(String value) => state = value;
 }
+
+/// Хранилище категорий слов (ADR-034, schema v10).
+final userCategoryRepositoryProvider = Provider<UserCategoryRepository>(
+  (ref) => DriftUserCategoryRepository(
+    ref.watch(appDatabaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Список категорий для фильтра и диалогов.
+final getUserCategoriesProvider = Provider<GetUserCategories>(
+  (ref) => GetUserCategories(repo: ref.watch(userCategoryRepositoryProvider)),
+);
+
+/// Создание пользовательской категории с проверками имени.
+final createUserCategoryProvider = Provider<CreateUserCategory>(
+  (ref) => CreateUserCategory(repo: ref.watch(userCategoryRepositoryProvider)),
+);
+
+/// Категории как async-данные экрана.
+///
+/// `FutureProvider`, а не future из `build`: после создания или удаления
+/// `ref.invalidate` перечитывает список, и чипы обновляются сразу.
+final userCategoriesProvider = FutureProvider<List<UserCategory>>(
+  (ref) => ref.watch(getUserCategoriesProvider)(),
+);
 
 /// Текст поиска по словарю.
 final dictionarySearchQueryProvider =

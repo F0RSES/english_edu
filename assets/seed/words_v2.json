@@ -6323,12 +6323,12 @@
     {
       "id": 576,
       "term": "block",
-      "translation": "блок; квартал; блокировать",
+      "translation": "блок",
       "transcription": "/blɒk/",
       "partOfSpeech": "noun",
       "exampleSentence": "I live in a big block of flats.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "A2"
     },
     {
@@ -16410,12 +16410,12 @@
     {
       "id": 1493,
       "term": "accord",
-      "translation": "соглашение; соответствовать",
+      "translation": "соглашение",
       "transcription": "/əˈkɔːd/",
       "partOfSpeech": "noun",
       "exampleSentence": "The two countries finally reached an accord on trade after months of difficult negotiations.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "B2"
     },
     {
@@ -16960,12 +16960,12 @@
     {
       "id": 1543,
       "term": "articulate",
-      "translation": "ясно выражать мысли; умение чётко излагать",
+      "translation": "ясно выражать",
       "transcription": "/ɑːrˈtɪkjələt/",
       "partOfSpeech": "verb",
       "exampleSentence": "She was able to articulate her ideas clearly during the meeting.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "B2"
     },
     {
@@ -17004,12 +17004,12 @@
     {
       "id": 1547,
       "term": "assault",
-      "translation": "нападение; штурм; нападать",
+      "translation": "нападение",
       "transcription": "/əˈsɔːlt/",
       "partOfSpeech": "noun",
       "exampleSentence": "The soldiers launched an assault on the enemy base at dawn.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "B2"
     },
     {
@@ -17554,12 +17554,12 @@
     {
       "id": 1597,
       "term": "boycott",
-      "translation": "бойкот; бойкотировать",
+      "translation": "бойкот",
       "transcription": "/ˈbɔɪkɒt/",
       "partOfSpeech": "noun",
       "exampleSentence": "The workers called for a boycott of the company's products after the unfair decision.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "B2"
     },
     {
@@ -21074,12 +21074,12 @@
     {
       "id": 1917,
       "term": "bludgeon",
-      "translation": "дубина; бить дубиной",
+      "translation": "дубина",
       "transcription": "/ˈblʌdʒən/",
       "partOfSpeech": "noun",
       "exampleSentence": "The negotiators accused the government of using the threat of regulatory action as a bludgeon to force concessions from the industry.",
       "sourceId": "ngsl-auto",
-      "autoTranslated": true,
+      "autoTranslated": false,
       "level": "C1"
     },
     {

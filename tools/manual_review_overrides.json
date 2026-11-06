@@ -1,0 +1,41 @@
+{
+  "_comment": "Ручные правки после LLM-ревью. Применяются merge_seeds в конце.",
+  "overrides": [
+    {
+      "term": "accord",
+      "translation": "соглашение",
+      "partOfSpeech": "noun",
+      "autoTranslated": false
+    },
+    {
+      "term": "articulate",
+      "translation": "ясно выражать",
+      "partOfSpeech": "verb",
+      "autoTranslated": false
+    },
+    {
+      "term": "boycott",
+      "translation": "бойкот",
+      "partOfSpeech": "noun",
+      "autoTranslated": false
+    },
+    {
+      "term": "assault",
+      "translation": "нападение",
+      "partOfSpeech": "noun",
+      "autoTranslated": false
+    },
+    {
+      "term": "block",
+      "translation": "блок",
+      "partOfSpeech": "noun",
+      "autoTranslated": false
+    },
+    {
+      "term": "bludgeon",
+      "translation": "дубина",
+      "partOfSpeech": "noun",
+      "autoTranslated": false
+    }
+  ]
+}

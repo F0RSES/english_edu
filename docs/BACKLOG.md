@@ -25,7 +25,7 @@
 | BL-18 | P3 | Phase 3 — оценить FSRS/Anki-style для долгих серий | ADR keep SM-2 / switch, тесты на обе формулы | Todo |
 | BL-19 | P3 | Phase 2 — вынести `_requireUtc` в общий хелпер, когда появится третий потребитель | один хелпер, analyze=0 | Todo |
 | BL-20 | P2 | Phase 2 — все Drift-маппинги конвертируют в UTC до создания сущностей | integration-тест round-trip local→UTC→local для всех DateTime-полей | Todo |
-| BL-21 | P2 | Phase 2 — заменить autoTranslated на verified; sourceId: ngsl-auto → ngsl-verified | нет autoTranslated=true в assets/seed/; валидатор 0 warnings | Todo |
+| BL-21 | P2 | Phase 2 — ревью `autoTranslated` контента | **MVP-проход закрыт:** выборка 200 слов (`--sample=200`), 6 проблем исправлены через `tools/manual_review_overrides.json` (`accord`, `articulate`, `boycott`, `assault`, `block`, `bludgeon`), warnings 2071 → 2065. Полное ревью остальных 2065 слов — BL-79 | Done |
 | BL-24 | P3 | CI — тесты по Platform.script; dart test из любой директории | тесты зелёные при запуске не из корня | Todo |
 | BL-25 | P3 | Phase 3 — mastery-порог на реальных данных (ADR keep/change) | ADR с решением, тесты на оба порога | Todo |
 | BL-26 | P3 | Phase 2a.3 — riverpod_annotation + codegen для Riverpod | analyze=0, тесты DI | Todo |
@@ -56,7 +56,7 @@
 | BL-53 | P3 | Phase 6c — если тестеры пожалуются на неточность напоминаний: `AndroidScheduleMode.exact` + `SCHEDULE_EXACT_ALARM` + `requestExactAlarmsPermission()` | точное время на Android 14+, инструкция по разрешению в UI | Todo |
 | BL-54 | P2 | Phase 6c — миграция `flutter_tts` 4.2.5 → `stts` 1.3.4: flutter_tts применяет Kotlin Gradle Plugin, будущие версии Flutter перестанут такие плагины собирать | `flutter build apk --debug` зелёный без предупреждения KGP, `SttsTtsService`, analyze=0, тесты без изменений | Done |
 | BL-55 | P3 | Если словарь вырастет: `GetTodayQueue` читает `words.getAll()` + `progress.getAll()` целиком и фильтрует в памяти | SQL-выборка с JOIN и LIMIT, замер на 10k слов | Todo |
-| BL-56 | P3 | Phase 5 — кастомные категории: пользователь создаёт свои, сейчас список фиксирован (`wordCategories`) | добавление/переименование категории сохраняется в БД, фильтр и диалог берут список из репозитория | Todo |
+| BL-56 | P3 | Phase 5 — кастомные категории: пользователь создаёт свои, сейчас список фиксирован (`wordCategories`) | ADR-034: таблица `user_categories` (v10) с `UNIQUE name` и 4 базовыми, `CreateUserCategory` + диалог, «+ Создать категорию» в форме слова, фильтр словаря из БД, пункт в профиле. Удаление категорий — BL-80 | Done |
 | BL-57 | P2 | Export/import теряет `Word.category`: `ExportPayloadCodec` сериализует только v2-поля, формат снимка не расширен | `category` в JSON снимка + round-trip тест; при необходимости — payload schema v3 и ADR | Done |
 | BL-58 | P3 | Phase 7c — TTL для кэша подсказок (например, 30 дней), чтобы ассоциации обновлялись | поле `createdAtUtc` уже есть: фильтр по возрасту в `GetWordHint` + тест на протухание | Todo |
 | BL-59 | P2 | Прокси `error_hunter` не возвращает `correctWord`: клиент выводит ответ как первый вариант ≠ `wrongWord` (порядок в `options` становится контрактом) | прокси присылает `correctWord` явно; `AiClient`/VO уже читают поле, если оно есть | Done |
@@ -78,6 +78,8 @@
 | BL-76 | P3 | Phase 16 — объединить гомонимы в одной карточке (`Word.senses: List<Translation>`) | миграция v9→v10, все экраны обновлены, экспорт переносит senses, тест на round-trip | Todo |
 | BL-77 | P3 | Phase 16 — достижения за challenge streak (7 / 30 / 100 дней) | набор достижений в domain + хранение разблокированных, UI-бейдж на карточке, тест на разблокировку и на повтор | Todo |
 | BL-78 | P3 | Phase 16 — Smart Review v2: учитывать `grade` из review log (`last grade = again` → boost) | join с `review_logs` в `GetSmartReviewQueue` (или отдельный репозиторный метод), тест на boost и на отсутствие лога | Todo |
+| BL-79 | P2 | Phase 17 — полное ревью остальных 2065 слов с `autoTranslated: true` (BL-21 закрыл только выборку 200) | warnings валидатора 2065 → 0; правки через `tools/manual_review_overrides.json`; `docs/LICENSE_CONTENT.md` обновлён | Todo |
+| BL-80 | P3 | Phase 17 — расширенный color picker (wheel) вместо 8 кружков + удаление категории из чипа словаря (иконка X, проверка «есть слова») | wheel или HSV-выбор цвета; чип с X для `id > 4`; подтверждение удаления; тест на запрет удаления категории со словами | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

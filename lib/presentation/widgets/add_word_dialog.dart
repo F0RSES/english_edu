@@ -1,6 +1,8 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
+import 'package:english_edu/domain/value_objects/user_category.dart';
+import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
 import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +20,12 @@ const _partOfSpeechOptions = <String>[
   'interjection',
   'numeral',
 ];
+
+/// Сентинел пункта «создать категорию» в выпадающем списке.
+///
+/// Отдельное значение, а не null: null означает «без категории», и путать эти
+/// два случая нельзя.
+const _createCategoryValue = '__create__';
 
 /// Чем закончилось добавление слова.
 ///
@@ -167,6 +175,25 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
     }
   }
 
+  /// Реакция на выбор категории: обычная — просто сохранить, «создать» —
+  /// открыть диалог и выбрать только что созданную (ADR-034).
+  Future<void> _onCategoryChanged(String? value) async {
+    if (value != _createCategoryValue) {
+      setState(() => _category = value);
+      return;
+    }
+
+    final created = await showDialog<UserCategory>(
+      context: context,
+      builder: (context) => const CreateCategoryDialog(),
+    );
+    if (!mounted || created == null) {
+      return;
+    }
+    ref.invalidate(userCategoriesProvider);
+    setState(() => _category = created.name);
+  }
+
   String? _optional(String value) {
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
@@ -200,19 +227,36 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
             ],
             onChanged: (value) => setState(() => _partOfSpeech = value),
           ),
-          DropdownButtonFormField<String?>(
-            initialValue: _category,
-            // Пустое значение = «без категории»: показываем подпись, иначе
-            // поле выглядит незаполненным.
-            hint: const Text(noCategoryLabel),
-            decoration: const InputDecoration(labelText: 'Категория'),
-            items: [
-              const DropdownMenuItem<String?>(child: Text(noCategoryLabel)),
-              for (final option in wordCategories)
-                DropdownMenuItem<String?>(value: option, child: Text(option)),
-            ],
-            onChanged: (value) => setState(() => _category = value),
-          ),
+          ref
+              .watch(userCategoriesProvider)
+              .when(
+                data: (categories) => DropdownButtonFormField<String?>(
+                  initialValue: _category,
+                  // Пустое значение = «без категории»: показываем подпись,
+                  // иначе поле выглядит незаполненным.
+                  hint: const Text(noCategoryLabel),
+                  decoration: const InputDecoration(labelText: 'Категория'),
+                  items: [
+                    const DropdownMenuItem<String?>(
+                      child: Text(noCategoryLabel),
+                    ),
+                    for (final category in categories)
+                      DropdownMenuItem<String?>(
+                        value: category.name,
+                        child: Text(category.name),
+                      ),
+                    const DropdownMenuItem<String?>(
+                      value: _createCategoryValue,
+                      child: Text('+ Создать категорию…'),
+                    ),
+                  ],
+                  onChanged: _onCategoryChanged,
+                ),
+                // Категории нужны только для выбора: без них форма остаётся
+                // рабочей, слово сохранится «без категории».
+                loading: () => const SizedBox.shrink(),
+                error: (error, stack) => const SizedBox.shrink(),
+              ),
           DropdownButtonFormField<CefrLevel>(
             initialValue: _level,
             decoration: const InputDecoration(labelText: 'Уровень'),

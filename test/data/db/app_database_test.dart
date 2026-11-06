@@ -261,7 +261,41 @@ void main() {
     expect((await v9.select(v9.words).get()).single.term, 'apple');
   });
 
-  test('creates all ten tables on open', () async {
+  test('migration v9 to v10 creates user_categories with defaults', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_v10');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v9 = текущая схема без пользовательских категорий.
+    final v9 = AppDatabase.forTesting(NativeDatabase(file));
+    await v9
+        .into(v9.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'apple',
+            translation: 'яблоко',
+          ),
+        );
+    await v9.customStatement('DROP TABLE user_categories');
+    await v9.customStatement('PRAGMA user_version = 9');
+    await v9.close();
+
+    final v10 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v10.close);
+
+    // Миграция создала таблицу и вставила четыре базовые категории.
+    final categories = await v10.select(v10.userCategories).get();
+    expect(categories, hasLength(4));
+    expect(
+      categories.map((row) => row.name),
+      containsAll(<String>['Бизнес', 'IT', 'Путешествия', 'Быт']),
+    );
+    // Данные v9 пережили миграцию.
+    expect((await v10.select(v10.words).get()).single.term, 'apple');
+  });
+
+  test('creates all eleven tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -272,6 +306,7 @@ void main() {
     expect(await db.select(db.clozeTasks).get(), isEmpty);
     expect(await db.select(db.dailyChallenges).get(), isEmpty);
     expect(await db.select(db.challengeStreaks).get(), isEmpty);
+    expect(await db.select(db.userCategories).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

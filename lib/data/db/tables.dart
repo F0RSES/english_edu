@@ -358,3 +358,26 @@ class ChallengeStreaks extends Table {
   @override
   List<String> get customConstraints => ['CHECK (id = 1)'];
 }
+
+/// Категории слов, включая созданные пользователем (Phase 16c, ADR-034).
+///
+/// Четыре базовые категории вставляются миграцией v10, поэтому удалять их
+/// нельзя (проверка по `id <= 4`). `UNIQUE (name)` не даёт создать дубль,
+/// который фильтр словаря не смог бы различить.
+@DataClassName('UserCategoryRow')
+class UserCategories extends Table {
+  @override
+  String get tableName => 'user_categories';
+
+  /// Автоинкремент: id базовых категорий фиксированы миграцией (1..4).
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Название категории; уникально, регистр не нормализуется в БД.
+  TextColumn get name => text().unique()();
+
+  /// Цвет для чипа в UI, например `#FF5722`; null — цвет по умолчанию.
+  TextColumn get colorHex => text().nullable()();
+
+  /// Момент создания, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+}

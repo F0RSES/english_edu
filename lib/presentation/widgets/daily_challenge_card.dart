@@ -92,15 +92,20 @@ class _ChallengeBody extends ConsumerWidget {
   }
 
   /// Забирает награду через use case и сообщает результат.
+  ///
+  /// Messenger и контейнер берутся **до** `await`: пока идёт запись, карточка
+  /// успевает перестроиться, и `context.mounted` после await оказывается
+  /// false — тогда терялись и SnackBar, и инвалидация (найдено
+  /// integration-тестом Phase 16a).
   Future<void> _claim(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final container = ProviderScope.containerOf(context, listen: false);
+
     final int xp;
     try {
       xp = await ref.read(claimDailyChallengeProvider)();
     } on Object {
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('Не удалось забрать награду')),
       );
       return;
@@ -109,18 +114,15 @@ class _ChallengeBody extends ConsumerWidget {
       return;
     }
 
-    await HapticFeedback.mediumImpact();
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('+$xp XP')));
-    ref
+    // XP входит в дневную цель, а серия челленджей выросла: без инвалидации
+    // главная показывала бы старые числа до перезапуска.
+    container
       ..invalidate(dailyChallengeProvider)
-      // XP входит в дневную цель: без инвалидации главная показывала бы
-      // старый прогресс до перезапуска.
-      ..invalidate(dailyGoalProvider);
+      ..invalidate(dailyGoalProvider)
+      ..invalidate(challengeStreakProvider);
+
+    await HapticFeedback.mediumImpact();
+    messenger.showSnackBar(SnackBar(content: Text('+$xp XP')));
   }
 
   static IconData _iconFor(DailyChallengeType type) => switch (type) {

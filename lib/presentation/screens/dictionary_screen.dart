@@ -103,6 +103,17 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     _showMessage('Добавлено');
   }
 
+  /// Имена категорий для фильтра (ADR-034).
+  ///
+  /// Пока список читается из БД, показывается базовый набор: фильтр не должен
+  /// исчезать и «прыгать» при каждом открытии экрана.
+  List<String> _categoryNames(WidgetRef ref) =>
+      ref.watch(userCategoriesProvider).when(
+        data: (categories) => [for (final item in categories) item.name],
+        loading: () => wordCategories,
+        error: (error, stack) => wordCategories,
+      );
+
   void _showMessage(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
@@ -138,7 +149,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              for (final category in <String?>[null, ...wordCategories])
+              for (final category in <String?>[
+                null,
+                ..._categoryNames(ref),
+              ])
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(

@@ -7,6 +7,9 @@
 ## [Unreleased]
 
 ### Added
+- **Кастомные категории (Phase 16c, ADR-034, BL-56 закрыт):** таблица `user_categories` (**schema v9 → v10**, `UNIQUE name`, 4 базовые категории вставляются миграцией), VO `UserCategory` (+ `isBuiltIn`), `UserCategoryRepository` + `DriftUserCategoryRepository`, use cases `GetUserCategories` / `CreateUserCategory` (пустое имя → `ArgumentError`, дубль без учёта регистра → `StateError`), `CreateCategoryDialog` (8 цветов, валидация, сообщение при дубле), пункт «+ Создать категорию…» в `AddWordDialog`, фильтр словаря из БД (с fallback на базовый список), пункт «Управление категориями» в профиле. `Word.category` не менялся — остаётся `text` nullable.
+- ADR-034 «Custom categories», BL-80 (wheel-палитра и удаление категорий из словаря).
+- **Ревью переводов (BL-21a, BL-21 → In progress):** `tools/review_seed.dart` + `tools/review_seed_lib.dart` — второй проход DeepSeek не переводит заново, а проверяет существующий перевод, часть речи и уровень; CLI `--levels`, `--sample`, `--output`, retry 1 раз, задержка 200 мс, прогресс в stdout. Невалидный ответ модели (или два провала запроса) попадает в `problems` как `parse error` — слово уходит в ручную проверку, а не теряется. Инструкция и оценка стоимости — `docs/REVIEW_TRANSLATIONS.md`. Сам словарь не менялся: снятие `autoTranslated` требует человеческого решения.
 - **Smart Review (Phase 15e, ADR-033, BL-70 закрыт):** `SmartReviewItem` (VO: слово + прогресс + score + причина), `GetSmartReviewQueue` (score = `lapses*10 + daysSinceReview + (2.5-ease)*20`, порог давности 7 дней, `maxItems=20`, `mastered` исключён, только чтение), провайдеры `getSmartReviewQueueProvider` / `smartReviewQueueProvider` / `smartReviewCountProvider` / `smartReviewTodayQueueProvider`, `LessonMode.smart` с заголовком «Умное повторение», маршрут `/smart-review`, фиолетовая кнопка «Умное повторение (N)» на главной.
 - ADR-033 «Smart Review», BL-78 (Smart Review v2 с `grade` из review log).
 - **Challenge Streak (Phase 15d, ADR-032, BL-75 закрыт):** таблица `challenge_streaks` (**schema v8 → v9**, singleton `CHECK (id = 1)`), VO `ChallengeStreak` (non-const, UTC-валидация), контракт `ChallengeStreakRepository` + `DriftChallengeStreakRepository`, use case `UpdateChallengeStreak` (пропуск дня → `current = 1`, `best` только растёт, шаг идемпотентен по дню), обновление серии в `ClaimDailyChallenge`, бейдж «Серия: N дней · Лучший: M» на `DailyChallengeCard`.
@@ -118,6 +121,9 @@
 - **BL-38 закрыт**, BL-53 (exact alarms, P3).
 
 ### Fixed
+- **6 переводов исправлены по итогам LLM-ревью (BL-21):** `accord` → «соглашение» (noun), `articulate` → «ясно выражать» (verb), `boycott` → «бойкот» (noun), `assault` → «нападение» (noun), `block` → «блок» (noun), `bludgeon` → «дубина» (noun). Правки внесены через `tools/manual_review_overrides.json` и применяются `merge_seeds` — `words_v2.json` руками не правился. Warnings валидатора: 2071 → 2065.
+- **Daily challenge: награда начислялась, но UI не обновлялся.** После `await` карточка успевала перестроиться, `context.mounted` становился `false`, и код выходил раньше SnackBar и `invalidate` — пользователь не видел ни «+N XP», ни «✓ Выполнено» до перезапуска. Найдено integration-тестом Phase 16a; `ScaffoldMessenger` и `ProviderContainer` теперь берутся до `await`.
+- **Бейдж серии челленджей не обновлялся после claim.** `challengeStreakProvider` не инвалидировался, и «Серия: N дней» показывала старое значение. Найдено тем же тестом.
 - 15a-fix-3: остаточные дрейфы документации — раздел Verification в ARCHITECTURE (`dart analyze`/`dart test` → `flutter analyze`/`flutter test`), PROJECT_CONTEXT о миграциях (v1→v8, forward-only).
 - ADR-016: дата `2026-11-13` → `2026-11-06` (стояла впереди текущей даты и ломала хронологию реестра).
 - BACKLOG: BL-01/02/04/05/06/07 → `Done` — Phase 1–6 закрыты (теги `phase-1.1a.1` … `phase-6-mvp`).

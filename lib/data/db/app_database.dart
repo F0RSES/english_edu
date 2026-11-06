@@ -5,12 +5,13 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v9: серия выполненных заданий дня (ADR-032).
+/// Schema v10: пользовательские категории слов (ADR-034).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
 /// v6 — `words.level` и `user_settings.preferred_level`,
-/// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`.
+/// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
+/// v10 — `user_categories`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -25,6 +26,7 @@ part 'app_database.g.dart';
     ClozeTasks,
     DailyChallenges,
     ChallengeStreaks,
+    UserCategories,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -35,7 +37,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -69,6 +71,21 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 9) {
         await m.createTable(challengeStreaks);
+      }
+      if (from < 10) {
+        await m.createTable(userCategories);
+        // Четыре базовые категории существуют у всех пользователей с v3:
+        // без них слова с `Words.category` остались бы без чипа в фильтре.
+        // id приходят из autoIncrement, поэтому защита «не удалять базовые»
+        // опирается на порядок вставки (1..4).
+        final now = DateTime.now().toUtc().millisecondsSinceEpoch;
+        await customStatement(
+          'INSERT INTO user_categories (name, color_hex, created_at_utc) '
+          "VALUES ('Бизнес', '#FF5722', $now), "
+          "('IT', '#2196F3', $now), "
+          "('Путешествия', '#4CAF50', $now), "
+          "('Быт', '#FFC107', $now)",
+        );
       }
     },
     // SQLite не проверяет внешние ключи, пока их не включат явно.

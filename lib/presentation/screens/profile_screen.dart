@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
+import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:english_edu/presentation/widgets/analytics_section.dart';
+import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
 import 'package:english_edu/presentation/widgets/export_dialog.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
 import 'package:flutter/material.dart';
@@ -240,6 +242,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  /// Открывает диалог создания категории (ADR-034).
+  ///
+  /// После создания список фильтров словаря перечитывается, иначе новая
+  /// категория не появилась бы до перезапуска.
+  Future<void> _createCategory() async {
+    final created = await showDialog<UserCategory>(
+      context: context,
+      builder: (context) => const CreateCategoryDialog(),
+    );
+    if (created == null || !mounted) {
+      return;
+    }
+    ref.invalidate(userCategoriesProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Категория «${created.name}» создана')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Профиль')),
@@ -337,6 +357,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const Divider(),
             const _SectionHeader('Резервная копия'),
+            ListTile(
+              leading: const Icon(Icons.category_outlined),
+              title: const Text('Управление категориями'),
+              subtitle: const Text('Создать свою категорию'),
+              onTap: () => unawaited(_createCategory()),
+            ),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.upload),
               title: const Text('Экспорт'),

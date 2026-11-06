@@ -272,6 +272,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(find.text('Сбросить прогресс'), 200);
+    await tester.ensureVisible(find.text('Сбросить прогресс'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Сбросить прогресс'));
     await tester.pumpAndSettle();
 
@@ -304,6 +306,8 @@ void main() {
     expect((await container.read(computeStreakProvider.future)).count, 1);
 
     await tester.scrollUntilVisible(find.text('Сбросить прогресс'), 200);
+    await tester.ensureVisible(find.text('Сбросить прогресс'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Сбросить прогресс'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Сбросить'));

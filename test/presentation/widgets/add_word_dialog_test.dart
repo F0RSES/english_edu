@@ -1,6 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
+import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
 import 'package:english_edu/presentation/widgets/word_categories.dart';
@@ -10,8 +11,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
+/// Базовые категории: в тестах БД нет, поэтому список подменяется явно.
+List<UserCategory> seedCategories() => [
+  for (var index = 0; index < wordCategories.length; index++)
+    UserCategory(
+      id: index + 1,
+      name: wordCategories[index],
+      colorHex: '#FF5722',
+      createdAtUtc: DateTime.utc(2024, 5, 15, 12),
+    ),
+];
+
 Widget host(FakeWordRepository repo) => ProviderScope(
-  overrides: [wordRepositoryProvider.overrideWithValue(repo)],
+  overrides: [
+    wordRepositoryProvider.overrideWithValue(repo),
+    userCategoriesProvider.overrideWith((ref) async => seedCategories()),
+  ],
   child: MaterialApp(
     home: Scaffold(
       body: Builder(
@@ -70,6 +85,17 @@ void main() {
     expect(saved, isNotNull);
     expect(saved!.term, 'book');
     expect(saved.translation, 'книга');
+  });
+
+  testWidgets('shows the create category option', (tester) async {
+    await tester.pumpWidget(host(FakeWordRepository()));
+    await openDialog(tester);
+
+    // Пункт «создать» есть в списке рядом с базовыми категориями (ADR-034).
+    await tester.tap(find.byType(DropdownButtonFormField<String?>));
+    await tester.pumpAndSettle();
+
+    expect(find.text('+ Создать категорию…'), findsOneWidget);
   });
 
   testWidgets('selecting category saves word with category', (tester) async {

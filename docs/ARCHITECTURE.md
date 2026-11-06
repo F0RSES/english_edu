@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v9 — десять таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032) — существующие таблицы и данные не пересоздаются.
+Схема v10 — одиннадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -219,6 +219,7 @@ Dart-код в документе не приводится: сигнатуры 
 | `cloze_tasks` | `ClozeTaskRow` | `wordId` (PK, FK → `words.id`) ON DELETE CASCADE; колонки `sentence`, `answer`, `createdAtUtc`; схема v7 | нет |
 | `daily_challenges` | `DailyChallengeRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`); колонки `goalType` (имя `DailyChallengeType`), `goalValue`, `progress`, `completedAtUtc`, `claimedAtUtc`, `xpReward`; схема v8 | нет |
 | `challenge_streaks` | `ChallengeStreakRow` | `id` + `CHECK (id = 1)`; колонки `currentStreak`, `bestStreak`, `lastCompletedDateEpochDays`, `updatedAtUtc`; схема v9 | нет |
+| `user_categories` | `UserCategoryRow` | `id` (autoIncrement), `name` (`UNIQUE`); колонки `colorHex`, `createdAtUtc`; схема v10 | unique(`name`) |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -226,7 +227,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 **`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
 
-**Версия схемы: 9.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+**Версия схемы: 10.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
 
 Инициализация из `assets/seed/` — 2a.2 (BL-29).
 
@@ -339,8 +340,8 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
 - `lib/presentation/screens/` — 9 экранов; `lib/presentation/widgets/` — 13 виджетов
 - `lib/presentation/router.dart` — GoRouter, 10 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 89 файлов тестов, зеркалят структуру `lib/`
-- `tools/` — 3 скрипта + библиотека валидатора: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart`, `validate_seed_lib.dart`
+- `test/` — 92 файла тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `tools/` — 3 скрипта + 2 библиотеки: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart` + `validate_seed_lib.dart`, `review_seed.dart` + `review_seed_lib.dart`
 - `assets/seed/` — `words_v2.json` (2071 слово); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
 Правила: один публичный тип на файл, имена файлов в snake_case, импорт через полный путь пакета.
@@ -375,3 +376,4 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v7 | `cloze_tasks` | ADR-025 |
 | v8 | `daily_challenges` | ADR-030 |
 | v9 | `challenge_streaks` | ADR-032 |
+| v10 | `user_categories` (+ 4 базовые категории) | ADR-034 |

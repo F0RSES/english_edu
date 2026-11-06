@@ -4840,6 +4840,318 @@ class ChallengeStreaksCompanion extends UpdateCompanion<ChallengeStreakRow> {
   }
 }
 
+class $UserCategoriesTable extends UserCategories
+    with TableInfo<$UserCategoriesTable, UserCategoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserCategoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _colorHexMeta = const VerificationMeta(
+    'colorHex',
+  );
+  @override
+  late final GeneratedColumn<String> colorHex = GeneratedColumn<String>(
+    'color_hex',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, colorHex, createdAtUtc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_categories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserCategoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color_hex')) {
+      context.handle(
+        _colorHexMeta,
+        colorHex.isAcceptableOrUnknown(data['color_hex']!, _colorHexMeta),
+      );
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserCategoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserCategoryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      colorHex: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color_hex'],
+      ),
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $UserCategoriesTable createAlias(String alias) {
+    return $UserCategoriesTable(attachedDatabase, alias);
+  }
+}
+
+class UserCategoryRow extends DataClass implements Insertable<UserCategoryRow> {
+  /// Автоинкремент: id базовых категорий фиксированы миграцией (1..4).
+  final int id;
+
+  /// Название категории; уникально, регистр не нормализуется в БД.
+  final String name;
+
+  /// Цвет для чипа в UI, например `#FF5722`; null — цвет по умолчанию.
+  final String? colorHex;
+
+  /// Момент создания, миллисекунды UTC.
+  final int createdAtUtc;
+  const UserCategoryRow({
+    required this.id,
+    required this.name,
+    this.colorHex,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || colorHex != null) {
+      map['color_hex'] = Variable<String>(colorHex);
+    }
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  UserCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return UserCategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      colorHex: colorHex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorHex),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory UserCategoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserCategoryRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      colorHex: serializer.fromJson<String?>(json['colorHex']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'colorHex': serializer.toJson<String?>(colorHex),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  UserCategoryRow copyWith({
+    int? id,
+    String? name,
+    Value<String?> colorHex = const Value.absent(),
+    int? createdAtUtc,
+  }) => UserCategoryRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    colorHex: colorHex.present ? colorHex.value : this.colorHex,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  UserCategoryRow copyWithCompanion(UserCategoriesCompanion data) {
+    return UserCategoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      colorHex: data.colorHex.present ? data.colorHex.value : this.colorHex,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserCategoryRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, colorHex, createdAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserCategoryRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.colorHex == this.colorHex &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class UserCategoriesCompanion extends UpdateCompanion<UserCategoryRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> colorHex;
+  final Value<int> createdAtUtc;
+  const UserCategoriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.colorHex = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  UserCategoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.colorHex = const Value.absent(),
+    required int createdAtUtc,
+  }) : name = Value(name),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<UserCategoryRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? colorHex,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (colorHex != null) 'color_hex': colorHex,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  UserCategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String?>? colorHex,
+    Value<int>? createdAtUtc,
+  }) {
+    return UserCategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      colorHex: colorHex ?? this.colorHex,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (colorHex.present) {
+      map['color_hex'] = Variable<String>(colorHex.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserCategoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorHex: $colorHex, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4860,6 +5172,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChallengeStreaksTable challengeStreaks = $ChallengeStreaksTable(
     this,
   );
+  late final $UserCategoriesTable userCategories = $UserCategoriesTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -4895,6 +5208,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     clozeTasks,
     dailyChallenges,
     challengeStreaks,
+    userCategories,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -8050,6 +8364,198 @@ typedef $$ChallengeStreaksTableProcessedTableManager =
       ChallengeStreakRow,
       PrefetchHooks Function()
     >;
+typedef $$UserCategoriesTableCreateCompanionBuilder =
+    UserCategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String?> colorHex,
+      required int createdAtUtc,
+    });
+typedef $$UserCategoriesTableUpdateCompanionBuilder =
+    UserCategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String?> colorHex,
+      Value<int> createdAtUtc,
+    });
+
+class $$UserCategoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get colorHex => $composableBuilder(
+    column: $table.colorHex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserCategoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get colorHex => $composableBuilder(
+    column: $table.colorHex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserCategoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserCategoriesTable> {
+  $$UserCategoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get colorHex =>
+      $composableBuilder(column: $table.colorHex, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$UserCategoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserCategoriesTable,
+          UserCategoryRow,
+          $$UserCategoriesTableFilterComposer,
+          $$UserCategoriesTableOrderingComposer,
+          $$UserCategoriesTableAnnotationComposer,
+          $$UserCategoriesTableCreateCompanionBuilder,
+          $$UserCategoriesTableUpdateCompanionBuilder,
+          (
+            UserCategoryRow,
+            BaseReferences<
+              _$AppDatabase,
+              $UserCategoriesTable,
+              UserCategoryRow
+            >,
+          ),
+          UserCategoryRow,
+          PrefetchHooks Function()
+        > {
+  $$UserCategoriesTableTableManager(
+    _$AppDatabase db,
+    $UserCategoriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserCategoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserCategoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserCategoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> colorHex = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => UserCategoriesCompanion(
+                id: id,
+                name: name,
+                colorHex: colorHex,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String?> colorHex = const Value.absent(),
+                required int createdAtUtc,
+              }) => UserCategoriesCompanion.insert(
+                id: id,
+                name: name,
+                colorHex: colorHex,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$UserCategoriesTable, UserCategoryRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $UserCategoriesTable,
+                    UserCategoryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserCategoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserCategoriesTable,
+      UserCategoryRow,
+      $$UserCategoriesTableFilterComposer,
+      $$UserCategoriesTableOrderingComposer,
+      $$UserCategoriesTableAnnotationComposer,
+      $$UserCategoriesTableCreateCompanionBuilder,
+      $$UserCategoriesTableUpdateCompanionBuilder,
+      (
+        UserCategoryRow,
+        BaseReferences<_$AppDatabase, $UserCategoriesTable, UserCategoryRow>,
+      ),
+      UserCategoryRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8074,4 +8580,6 @@ class $AppDatabaseManager {
       $$DailyChallengesTableTableManager(_db, _db.dailyChallenges);
   $$ChallengeStreaksTableTableManager get challengeStreaks =>
       $$ChallengeStreaksTableTableManager(_db, _db.challengeStreaks);
+  $$UserCategoriesTableTableManager get userCategories =>
+      $$UserCategoriesTableTableManager(_db, _db.userCategories);
 }

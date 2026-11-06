@@ -6,10 +6,10 @@ import 'validate_seed_lib.dart';
 const _baseSeedPath = 'assets/seed/words_v1.json';
 const _apiUrl = 'https://api.deepseek.com/v1/chat/completions';
 const _model = 'deepseek-chat';
-const _maxWords = 100;
+const _defaultLimit = 1000;
 const _requestDelay = Duration(milliseconds: 200);
 const _autoSourceId = 'ngsl-auto';
-const _levelFlag = '--level=';
+const _limitFlag = '--limit=';
 const _autoSourceName = 'NGSL terms, auto-translated';
 const _autoSourceLicense =
     'CC BY-SA 4.0 (NGSL terms); '
@@ -18,10 +18,15 @@ const _autoSourceLicense =
 /// Сколько раз повторяем запрос к API при ошибке.
 const _attempts = 2;
 
-/// Читает TSV/CSV с частотным списком и дополняет seed переводами.
+/// Читает TSV/CSV со списком слов по уровням CEFR и дополняет seed переводами.
 ///
 /// Запуск:
-/// `dart run tools/generate_seed.dart <ngsl.csv> <output.json> [--level=A1]`.
+/// `dart run tools/generate_seed.dart <list.csv> <output.json> [--limit=1000]`.
+///
+/// Вход — колонки `term` и `level` (ADR-023); заголовок необязателен, но если
+/// он есть, колонки ищутся по именам, а не по позиции. Уровень берётся из
+/// файла, а не из флага: один список может быть смешанным по уровням.
+///
 /// Требует переменную окружения `DEEPSEEK_API_KEY`; сеть нужна только этому
 /// скрипту, приложение остаётся офлайновым.
 ///
@@ -30,15 +35,15 @@ const _attempts = 2;
 Future<void> main(List<String> args) async {
   if (args.length < 2 || args.length > 3) {
     stderr.writeln(
-      'ERROR: usage: dart run tools/generate_seed.dart <ngsl.csv> '
-      '<output.json> [--level=A1]',
+      'ERROR: usage: dart run tools/generate_seed.dart <list.csv> '
+      '<output.json> [--limit=$_defaultLimit]',
     );
     exitCode = 1;
     return;
   }
 
-  final level = _parseLevel(args.length == 3 ? args[2] : null);
-  if (level == null) {
+  final limit = _parseLimit(args.length == 3 ? args[2] : null);
+  if (limit == null) {
     exitCode = 1;
     return;
   }
@@ -66,19 +71,28 @@ Future<void> main(List<String> args) async {
 
   final base = jsonDecode(baseFile.readAsStringSync()) as Map<String, Object?>;
   final existing = _existingTerms(base);
-  final candidates = _readRankedTerms(csvFile)
-      .where((entry) => !existing.contains(entry.term))
-      .take(_maxWords)
-      .toList();
+  final warnings = <String>[];
+
+  final candidates = <SeedCandidate>[];
+  for (final entry in _readCandidates(csvFile)) {
+    if (!allowedCefrLevels.contains(entry.level)) {
+      // Опечатка в уровне — не повод угадывать: слово выпадает, автор видит.
+      warnings.add('${entry.term}: skipped, unknown level "${entry.level}"');
+      continue;
+    }
+    if (existing.contains(entry.term) || candidates.length >= limit) {
+      continue;
+    }
+    candidates.add(entry);
+  }
 
   if (candidates.isEmpty) {
-    stdout.writeln('Nothing to do: every term is already in the seed');
+    stdout.writeln('Nothing to do: no new terms in the list');
     exitCode = 0;
     return;
   }
 
   final generated = <Map<String, Object?>>[];
-  final warnings = <String>[];
   var nextId = _maxId(base) + 1;
 
   final client = HttpClient()
@@ -87,10 +101,15 @@ Future<void> main(List<String> args) async {
   try {
     for (var index = 0; index < candidates.length; index++) {
       final entry = candidates[index];
-      final fields = await _translate(client, apiKey, entry.term, level);
+      final fields = await _translate(client, apiKey, entry.term, entry.level);
       if (fields == null) {
         warnings.add('${entry.term}: skipped, translation failed');
         continue;
+      }
+      if (fields['levelFits'] == false) {
+        // Уровень остаётся из списка (он источник истины), но автор видит
+        // слова, которые модель считает несоответствующими уровню.
+        warnings.add('${entry.term}: model doubts it matches ${entry.level}');
       }
       generated.add(<String, Object?>{
         'id': nextId++,
@@ -100,13 +119,15 @@ Future<void> main(List<String> args) async {
         'partOfSpeech': fields['partOfSpeech'],
         'exampleSentence': fields['exampleSentence'],
         'sourceId': _autoSourceId,
-        'frequencyRank': entry.rank,
+        if (entry.rank case final rank?) 'frequencyRank': rank,
         'autoTranslated': true,
-        'level': _normalizeLevel(fields['level'], level, entry.term, warnings),
+        // Уровень из входного списка, а не из ответа модели: разметка —
+        // ответственность источника контента (ADR-023).
+        'level': entry.level,
       });
       stdout.writeln(
         'Word ${index + 1}/${candidates.length}: '
-        '${entry.term} → ${fields['translation']}',
+        '${entry.term} [${entry.level}] → ${fields['translation']}',
       );
       await Future<void>.delayed(_requestDelay);
     }
@@ -137,16 +158,19 @@ Future<void> main(List<String> args) async {
   exitCode = 0;
 }
 
-/// Пара «частотный ранг — термин» из входного списка.
-final class RankedTerm {
-  /// Создаёт пару.
-  const RankedTerm(this.rank, this.term);
-
-  /// Частотный ранг из списка.
-  final int rank;
+/// Слово из входного списка: термин, уровень и необязательный ранг.
+final class SeedCandidate {
+  /// Создаёт кандидата.
+  const SeedCandidate(this.term, this.level, {this.rank});
 
   /// Английский термин в нижнем регистре.
   final String term;
+
+  /// Уровень CEFR из списка (метка в верхнем регистре).
+  final String level;
+
+  /// Частотный ранг, если в списке была колонка `rank`.
+  final int? rank;
 }
 
 Set<String> _existingTerms(Map<String, Object?> base) {
@@ -175,77 +199,72 @@ int _maxId(Map<String, Object?> base) {
   return maxId;
 }
 
-/// Читает TSV или CSV с колонками `rank` и `term`.
+/// Читает TSV/CSV с колонками `term` и `level`.
 ///
-/// Header распознаётся по первому полю, которое не парсится в int.
-List<RankedTerm> _readRankedTerms(File file) {
+/// Заголовок необязателен: если он есть (`term`/`level`/`rank` в любом
+/// порядке), колонки ищутся по именам, иначе берутся первые две — `term`,
+/// `level`. Порядок слов сохраняется: список уже отсортирован автором.
+List<SeedCandidate> _readCandidates(File file) {
   final content = file.readAsStringSync();
   final separator = content.contains('\t') ? '\t' : ',';
-  final terms = <RankedTerm>[];
-  for (final line in content.split('\n')) {
-    final trimmed = line.trim();
-    if (trimmed.isEmpty) {
-      continue;
-    }
-    final cells = trimmed.split(separator);
-    if (cells.length < 2) {
-      continue;
-    }
-    final rank = int.tryParse(cells[0].trim());
-    final term = cells[1].trim().toLowerCase();
-    if (rank == null || term.isEmpty) {
-      continue;
-    }
-    terms.add(RankedTerm(rank, term));
+  final rows = [
+    for (final line in content.split('\n'))
+      if (line.trim().isNotEmpty) line.split(separator),
+  ];
+  if (rows.isEmpty) {
+    return const [];
   }
-  terms.sort((left, right) => left.rank.compareTo(right.rank));
-  return terms;
+
+  var termIndex = 0;
+  var levelIndex = 1;
+  var rankIndex = -1;
+  var firstRow = 0;
+
+  final header = [for (final cell in rows.first) cell.trim().toLowerCase()];
+  if (header.contains('term') && header.contains('level')) {
+    termIndex = header.indexOf('term');
+    levelIndex = header.indexOf('level');
+    rankIndex = header.indexOf('rank');
+    firstRow = 1;
+  }
+
+  final candidates = <SeedCandidate>[];
+  for (final cells in rows.skip(firstRow)) {
+    if (cells.length <= termIndex || cells.length <= levelIndex) {
+      continue;
+    }
+    final term = cells[termIndex].trim().toLowerCase();
+    if (term.isEmpty) {
+      continue;
+    }
+    final rank = rankIndex >= 0 && rankIndex < cells.length
+        ? int.tryParse(cells[rankIndex].trim())
+        : null;
+    candidates.add(
+      SeedCandidate(term, cells[levelIndex].trim().toUpperCase(), rank: rank),
+    );
+  }
+  return candidates;
 }
 
-/// Разбирает `--level=A1`; null — ошибка уже напечатана.
+/// Разбирает `--limit=1000`; null — ошибка уже напечатана.
 ///
-/// Отсутствие флага даёт A1: пачка без указанного уровня не должна молча
-/// размечаться как A1 «по факту», поэтому дефолт явный и документирован.
-String? _parseLevel(String? raw) {
+/// Лимит ограничивает один запуск: 1000 слов — это ~17 минут при задержке
+/// 200 мс, дольше держать один прогон смысла нет.
+int? _parseLimit(String? raw) {
   if (raw == null) {
-    return 'A1';
+    return _defaultLimit;
   }
-  if (!raw.startsWith(_levelFlag)) {
-    stderr.writeln('ERROR: unknown option $raw, expected ${_levelFlag}A1');
+  if (!raw.startsWith(_limitFlag)) {
+    stderr.writeln('ERROR: unknown option $raw, expected ${_limitFlag}1000');
     return null;
   }
-  final value = raw.substring(_levelFlag.length).trim().toUpperCase();
-  if (!allowedCefrLevels.contains(value)) {
-    stderr.writeln(
-      'ERROR: unknown level "$value", expected one of '
-      '${(allowedCefrLevels.toList()..sort()).join(', ')}',
-    );
+  final value = int.tryParse(raw.substring(_limitFlag.length).trim());
+  if (value == null || value <= 0) {
+    stderr.writeln('ERROR: limit must be a positive integer, got $raw');
     return null;
   }
   return value;
-}
-
-/// Уровень из ответа модели; неизвестная метка заменяется на [fallback].
-///
-/// Модель иногда отвечает не тем уровнем, который просили. Слово с чужим
-/// уровнем исказило бы очередь дня (ADR-023), поэтому метка нормализуется, а
-/// расхождение попадает в предупреждения.
-String _normalizeLevel(
-  Object? raw,
-  String fallback,
-  String term,
-  List<String> warnings,
-) {
-  if (raw is! String) {
-    warnings.add('$term: no level in response, using $fallback');
-    return fallback;
-  }
-  final normalized = raw.trim().toUpperCase();
-  if (!allowedCefrLevels.contains(normalized)) {
-    warnings.add('$term: unknown level "$raw", using $fallback');
-    return fallback;
-  }
-  return normalized;
 }
 
 Map<String, Object?> _merge(
@@ -327,12 +346,14 @@ Future<Map<String, Object?>> _requestTranslation(
 }
 
 String _promptFor(String term, String level) =>
-    'For the English word "$term" at CEFR level $level, return strict JSON: '
+    'Определи, подходит ли слово "$term" под уровень $level. '
+    'Сгенерируй перевод и пример. '
+    'Верни строгий JSON: '
     '{"translation": "<russian>", "transcription": "/<IPA>/", '
     '"partOfSpeech": "<${allowedPartsOfSpeech.join('|')}>", '
     '"exampleSentence": "<one English sentence>", '
-    '"level": "$level"}. '
-    'Use simple vocabulary and grammar that match $level. '
+    '"levelFits": <true|false>}. '
+    'Перевод и пример — на лексике и грамматике уровня $level. '
     'No markdown, no code fences, only JSON.';
 
 /// Убирает markdown-обёртку, если модель её всё же добавила.

@@ -145,6 +145,17 @@ void main() {
       expect(result.errors.single, contains('autoTranslated'));
     });
 
+    test('accepts every level of the CEFR scale', () {
+      // Список зафиксирован: приложение поддерживает A0 (Pre-A1, ADR-023),
+      // и валидатор не должен отставать от домена.
+      expect(allowedCefrLevels, {'A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'});
+
+      for (final level in allowedCefrLevels) {
+        final result = validateSeed(seed(words: [word(level: level)]));
+        expect(result.isValid, isTrue, reason: '$level: ${result.errors}');
+      }
+    });
+
     test('accepts valid cefr level', () {
       final result = validateSeed(seed(words: [word(level: 'B2')]));
 

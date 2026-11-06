@@ -316,7 +316,7 @@ final exportProgressProvider = Provider<ExportProgress>(
 /// Живёт в data-слое, но экраны получают его через DI: presentation не должен
 /// импортировать data напрямую.
 final payloadCodecProvider = Provider<ExportPayloadCodec>(
-  (ref) => const ExportPayloadCodec(),
+  (ref) => ExportPayloadCodec(logger: ref.watch(loggerProvider)),
 );
 
 /// Сброс прогресса обучения (ADR-013).

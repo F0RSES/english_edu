@@ -30,6 +30,16 @@ abstract interface class WordRepository {
   /// транзакция с retry в Phase 5 (BL-39).
   Future<WordId> nextId();
 
+  /// Ищет слово по точному совпадению с [term] (ADR-024).
+  ///
+  /// Сравнение идёт по нормализованному значению: `term.trim().toLowerCase()`.
+  /// Пустая строка после нормализации даёт null. Возвращается первое
+  /// совпадение: дубликатов быть не должно, а если они есть — виноват импорт
+  /// или ручная правка БД, и выбор конкретной строки ничего не решает.
+  ///
+  /// Нужен, чтобы не создать вторую карточку для `apple` при вводе `Apple`.
+  Future<Word?> findByTerm(String term);
+
   /// Returns words matching [query] by term or translation.
   ///
   /// Matching is a case-insensitive substring search over term OR

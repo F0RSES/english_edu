@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
+import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -23,13 +26,14 @@ ExportPayload payloadOf({
   int schemaVersion = ExportPayload.currentSchemaVersion,
   Set<LocalDate> frozenDays = const <LocalDate>{},
   List<Word> words = const [],
+  List<WordProgress> progress = const [],
   UserSettings? settings,
 }) => ExportPayload(
   schemaVersion: schemaVersion,
   exportedAt: now,
   settings: settings ?? UserSettings.defaults(),
   words: words,
-  progress: const [],
+  progress: progress,
   logs: const [],
   stats: const [],
   frozenDays: frozenDays,
@@ -151,6 +155,39 @@ void main() {
     );
 
     expect(decoded.words.single.level, CefrLevel.b2);
+  });
+
+  test('decode deduplicates words by term case-insensitively', () {
+    const first = Word(id: WordId(1), term: 'apple', translation: 'яблоко');
+    const second = Word(id: WordId(2), term: ' Apple ', translation: 'яблоко');
+
+    final decoded = codec.decode(
+      codec.encode(payloadOf(words: [first, second])),
+    );
+
+    // Остаётся первое вхождение: второе — тот же термин в другом регистре.
+    expect(decoded.words.single, first);
+  });
+
+  test('decode drops progress of a deduplicated word', () {
+    const first = Word(id: WordId(1), term: 'apple', translation: 'яблоко');
+    const second = Word(id: WordId(2), term: 'apple', translation: 'яблоко');
+    final progressOfDropped = WordProgress(
+      wordId: const WordId(2),
+      cardState: CardState.initial(now),
+      status: WordStatus.learning,
+      firstSeenAt: now,
+    );
+
+    final decoded = codec.decode(
+      codec.encode(
+        payloadOf(words: [first, second], progress: [progressOfDropped]),
+      ),
+    );
+
+    // FK `word_progresses -> words` не даст записать прогресс без слова.
+    expect(decoded.words, hasLength(1));
+    expect(decoded.progress, isEmpty);
   });
 
   test('decode rejects an unknown cefr level', () {

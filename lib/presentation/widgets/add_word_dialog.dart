@@ -19,9 +19,22 @@ const _partOfSpeechOptions = <String>[
   'numeral',
 ];
 
+/// Чем закончилось добавление слова.
+///
+/// Отдельный тип вместо `bool`: экрану нужно отличать «сохранил» от «такое
+/// слово уже есть», чтобы показать разный SnackBar (ADR-024).
+enum AddWordOutcome {
+  /// Слово сохранено.
+  added,
+
+  /// Слово с таким `term` уже было; вторая карточка не создавалась.
+  duplicate,
+}
+
 /// Диалог добавления слова в словарь.
 ///
-/// Возвращает `true` через `Navigator.pop`, если слово сохранено.
+/// Возвращает [AddWordOutcome] через `Navigator.pop`: `added` — слово
+/// сохранено, `duplicate` — такое уже есть, `null` — пользователь отменил.
 class AddWordDialog extends ConsumerStatefulWidget {
   /// Создаёт диалог.
   const AddWordDialog({super.key});
@@ -51,12 +64,19 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
     super.dispose();
   }
 
-  Future<bool> _confirmDuplicate(String term) async {
+  /// Спрашивает, что делать с уже существующим [existing].
+  ///
+  /// `true` — пользователь хочет перейти к слову; второй карточки не будет
+  /// ни при каком ответе (ADR-024).
+  Future<bool> _confirmDuplicate(Word existing) async {
     final answer = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Слово уже есть'),
-        content: Text('«$term» уже в словаре. Добавить всё равно?'),
+        content: Text(
+          'Слово уже есть: «${existing.term}» — ${existing.translation}. '
+          'Перейти к нему?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -64,7 +84,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Добавить'),
+            child: const Text('Перейти'),
           ),
         ],
       ),
@@ -86,9 +106,18 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
 
     final repo = ref.read(wordRepositoryProvider);
     try {
-      final found = await repo.search(term);
-      final duplicate = found.any((word) => word.term.toLowerCase() == term);
-      if (duplicate && !await _confirmDuplicate(term)) {
+      // Точный поиск, а не подстрока: `search('apple')` нашёл бы и «apple pie»,
+      // и блокировал бы добавление из-за другого слова.
+      final existing = await repo.findByTerm(term);
+      if (existing != null) {
+        final goToWord = await _confirmDuplicate(existing);
+        if (!mounted) {
+          return;
+        }
+        // «Отмена» оставляет форму открытой — пользователь поправит слово.
+        if (goToWord) {
+          Navigator.of(context).pop(AddWordOutcome.duplicate);
+        }
         return;
       }
 
@@ -108,7 +137,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(AddWordOutcome.added);
     } on Object catch (error, stack) {
       ref.read(loggerProvider).error('Add word failed', error, stack);
       if (mounted) {
@@ -195,7 +224,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
     ),
     actions: [
       TextButton(
-        onPressed: () => Navigator.of(context).pop(false),
+        onPressed: () => Navigator.of(context).pop(),
         child: const Text('Отмена'),
       ),
       FilledButton(onPressed: _submit, child: const Text('Добавить')),

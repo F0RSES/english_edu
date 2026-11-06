@@ -86,15 +86,29 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
 
   void _reload() => ref.invalidate(dictionaryEntriesProvider);
 
+  /// Открывает диалог добавления и сообщает итог (ADR-024).
+  ///
+  /// Дубликат не сохраняется: экран лишь говорит, что такое слово уже есть.
+  /// `null` — пользователь отменил, реакции нет.
   Future<void> _addWord() async {
-    final added = await showDialog<bool>(
+    final outcome = await showDialog<AddWordOutcome>(
       context: context,
       builder: (context) => const AddWordDialog(),
     );
-    if (added ?? false) {
-      ref.invalidate(dictionaryEntriesProvider);
+    if (!mounted || outcome == null) {
+      return;
+    }
+    switch (outcome) {
+      case AddWordOutcome.added:
+        ref.invalidate(dictionaryEntriesProvider);
+        _showMessage('Добавлено');
+      case AddWordOutcome.duplicate:
+        _showMessage('Слово уже есть в словаре');
     }
   }
+
+  void _showMessage(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   @override
   Widget build(BuildContext context) => Scaffold(

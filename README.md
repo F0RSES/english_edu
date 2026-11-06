@@ -6,7 +6,7 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
-Roadmap ниже). 564 теста, analyze=0.
+Roadmap ниже). 574 теста, analyze=0.
 
 ## Features
 
@@ -33,7 +33,7 @@ Roadmap ниже). 564 теста, analyze=0.
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 564 passed
+    flutter test               # 574 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -189,7 +189,7 @@ flutter build apk --debug \
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 23 ADR + архитектурные решения — docs/DECISIONS.md
+- 24 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 

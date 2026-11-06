@@ -143,4 +143,31 @@ void main() {
     expect(all, hasLength(1));
     expect(all.single.id.value, 3);
   });
+
+  test('findByTerm returns exact match case-insensitive', () async {
+    await repo.upsert(word(1, 'apple'));
+
+    final found = await repo.findByTerm('Apple');
+
+    expect(found, word(1, 'apple'));
+  });
+
+  test('findByTerm trims whitespace', () async {
+    await repo.upsert(word(1, 'apple'));
+
+    expect(await repo.findByTerm('  APPLE  '), word(1, 'apple'));
+  });
+
+  test('findByTerm returns null for empty', () async {
+    await repo.upsert(word(1, 'apple'));
+
+    expect(await repo.findByTerm('   '), isNull);
+  });
+
+  test('findByTerm does not match a substring', () async {
+    await repo.upsert(word(1, 'apple pie'));
+
+    // Подстрока не должна блокировать добавление другого слова.
+    expect(await repo.findByTerm('apple'), isNull);
+  });
 }

@@ -44,6 +44,7 @@
 - Phase 13a — CEFR-градация (ADR-023): `CefrLevel` (A0–C2), `Word.level` и `UserSettings.preferredLevel`, схема v6 (`words.level`, `user_settings.preferred_level`), фильтр `newWords` по уровню (due — без фильтра), выбор уровня в онбординге и профиле, фильтр и бейдж уровня в словаре (534 test).
 - Phase 13b — BL-67: `ExportPayload` v4 с `Word.level` (снимки v1–v3 читаются с A1), выбор уровня в `AddWordDialog` (544 test). **BL-67 Done.**
 - Phase 13c–13e — контент и упаковка: генератор берёт уровень из списка (`term,level`), чистит `partOfSpeech`; `tools/merge_seeds.dart` слил 2796 записей в 2071 уникальное слово (`assets/seed/words_v2.json`, уровни A1–C1), `JsonSeedLoader` читает слитый файл, в APK попадает только он; ExportPayload **v5** с `UserSettings.preferredLevel` (564 test). **BL-68 Done.**
+- Phase 13f — защита от дубликатов (ADR-024): `findByTerm`, диалог «Перейти» в `AddWordDialog`, дедупликация в `ExportPayloadCodec.decode` (574 test).
 
 ## In progress
 - — (MVP ready)

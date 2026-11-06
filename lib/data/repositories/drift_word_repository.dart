@@ -65,6 +65,26 @@ final class DriftWordRepository implements WordRepository {
     return WordId(row.read<int>('max_id') + 1);
   }
 
+  /// Точное совпадение по нормализованному term (ADR-024).
+  ///
+  /// Сравнение в SQL, а не в Dart: нужен один конкретный термин, а не
+  /// подстрока, и таблица слов уже проиндексирована по `term`
+  /// (`idx_words_term`). `term` в БД нормализован при записи, поэтому `equals`
+  /// достаточно.
+  @override
+  Future<domain.Word?> findByTerm(String term) async {
+    final normalized = term.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return null;
+    }
+    final row =
+        await (_db.select(_db.words)
+              ..where((t) => t.term.equals(normalized))
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : WordMapper.toDomain(row);
+  }
+
   /// Ищет по term ИЛИ translation без учёта регистра.
   ///
   /// Фильтрация в Dart, а не в SQL: `LIKE` в SQLite регистронезависим только

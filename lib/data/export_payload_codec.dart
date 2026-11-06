@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
@@ -48,7 +49,10 @@ const _preferredLevelSinceVersion = 5;
 /// попадает, иначе импорт в другом часовом поясе сдвинул бы расписание.
 final class ExportPayloadCodec {
   /// Создаёт кодек.
-  const ExportPayloadCodec();
+  const ExportPayloadCodec({Logger? logger}) : _logger = logger;
+
+  /// Куда сообщать о пропущенных дубликатах; null — молча (ADR-024).
+  final Logger? _logger;
 
   /// Сериализует [payload] в компактный JSON.
   ///
@@ -152,6 +156,16 @@ final class ExportPayloadCodec {
     if (version < 1 || version > ExportPayload.currentSchemaVersion) {
       throw FormatException('schemaVersion: неподдерживаемая версия $version');
     }
+    final parsedWords = [
+      for (final item in _list(root, 'words'))
+        _wordFromJson(_asMap(item, 'words[]'), version),
+    ];
+    final parsedProgress = [
+      for (final item in _list(root, 'progress'))
+        _progressFromJson(_asMap(item, 'progress[]')),
+    ];
+    final deduped = _dedupe(parsedWords, parsedProgress);
+
     return ExportPayload(
       schemaVersion: version,
       exportedAt: _date(root, 'exportedAt'),
@@ -159,14 +173,8 @@ final class ExportPayloadCodec {
         _asMap(root['settings'], 'settings'),
         version,
       ),
-      words: [
-        for (final item in _list(root, 'words'))
-          _wordFromJson(_asMap(item, 'words[]'), version),
-      ],
-      progress: [
-        for (final item in _list(root, 'progress'))
-          _progressFromJson(_asMap(item, 'progress[]')),
-      ],
+      words: deduped.words,
+      progress: deduped.progress,
       logs: [
         for (final item in _list(root, 'logs'))
           _logFromJson(_asMap(item, 'logs[]')),
@@ -177,6 +185,42 @@ final class ExportPayloadCodec {
       ],
       frozenDays: _frozenDaysFromJson(root, version),
     );
+  }
+
+  /// Убирает повторы слов по `term` и осиротевший прогресс (ADR-024).
+  ///
+  /// Снимок мог быть собран до дедупликации или правлен руками: два `apple`
+  /// дали бы две карточки на одно слово. Остаётся первое вхождение — оно
+  /// ближе к источнику. Прогресс отброшенных слов тоже уходит: его `wordId`
+  /// больше не существует, а внешний ключ `word_progresses` не даст его
+  /// записать. Логи не трогаем — они append-only история (ADR-005) и живут без
+  /// внешнего ключа.
+  ({List<Word> words, List<WordProgress> progress}) _dedupe(
+    List<Word> words,
+    List<WordProgress> progress,
+  ) {
+    final seen = <String>{};
+    final uniqueWords = <Word>[];
+    final droppedIds = <WordId>{};
+    for (final word in words) {
+      if (seen.add(word.term.trim().toLowerCase())) {
+        uniqueWords.add(word);
+      } else {
+        droppedIds.add(word.id);
+      }
+    }
+    if (droppedIds.isEmpty) {
+      return (words: uniqueWords, progress: progress);
+    }
+    final keptProgress = [
+      for (final item in progress)
+        if (!droppedIds.contains(item.wordId)) item,
+    ];
+    _logger?.warn(
+      'import: skipped ${words.length - uniqueWords.length} duplicates, '
+      '${progress.length - keptProgress.length} progress rows',
+    );
+    return (words: uniqueWords, progress: keptProgress);
   }
 
   /// Заморозки: появились в v2, в v1 их не было.

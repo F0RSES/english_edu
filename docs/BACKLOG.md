@@ -69,6 +69,7 @@
 | BL-66 | P3 | Phase 13c — UI/text polish: типографика, переносы длинных слов в карточке, контраст в тёмной теме (бейдж уровня на `teal`/`lightGreen` фоне) | единый типографический масштаб, проверка контраста WCAG AA, golden-тесты на тёмную тему | Todo |
 | BL-67 | P2 | Export/import теряет `Word.level`: `ExportPayloadCodec` пишет поля до v3 включительно, уровень в снимке отсутствует | `level` в JSON снимка + round-trip тест, при необходимости payload schema v4 и ADR | Done |
 | BL-68 | P3 | Снимок v4 переносит `Word.level`, но не `UserSettings.preferredLevel`: после импорта на новом устройстве уровень пользователя откатывается к A1 | `preferredLevel` в `settings` снимка (payload v5) + тест на round-trip | Done |
+| BL-69 | P3 | Phase 14 — гомонимы: `apple` (яблоко) и `Apple` (компания) нельзя завести разными словами — `findByTerm` считает их одним (ADR-024) | `Word.senses` (список значений с переводом и примером), UI выбора значения, миграция схемы; UNIQUE-индекс по `term` | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

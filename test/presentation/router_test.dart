@@ -51,9 +51,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Начать урок (1 слово)'), findsOneWidget);
+    expect(find.text('Начать урок'), findsOneWidget);
 
-    await tester.tap(find.text('Начать урок (1 слово)'));
+    await tester.tap(find.text('Начать урок'));
     await tester.pumpAndSettle();
 
     // Очередь непустая, поэтому экран урока показывает карточку с оценками,

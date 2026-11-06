@@ -64,7 +64,7 @@ void main() {
     await tester.pumpWidget(app(db));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Начать урок (1 слово)'));
+    await tester.tap(find.text('Начать урок'));
     await tester.pumpAndSettle();
 
     expect(find.text('1/1'), findsOneWidget);

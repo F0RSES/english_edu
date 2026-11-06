@@ -106,11 +106,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // 3. Главная: очередь собрана из двух новых слов.
-    expect(find.text('Начать урок (2 слова)'), findsOneWidget);
-    expect(find.text('Играть в Error Hunter'), findsOneWidget);
+    expect(find.text('Начать урок'), findsOneWidget);
+    expect(find.text('Error Hunter'), findsOneWidget);
 
     // 4. Урок: обе карточки оценены кнопкой «Знаю».
-    await tester.tap(find.text('Начать урок (2 слова)'));
+    await tester.tap(find.text('Начать урок'));
     await tester.pumpAndSettle();
     expect(find.text('1/2'), findsOneWidget);
 

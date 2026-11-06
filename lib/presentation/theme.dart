@@ -48,9 +48,19 @@ ThemeData _buildTheme(Brightness brightness) {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-        shape: RoundedRectangleBorder(borderRadius: radius),
-        textStyle: textTheme.titleMedium,
+        // Компактная кнопка: в диалогах и на карточках полноширинная
+        // (Size.fromHeight) выглядела как полоса.
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        // Из textTheme, а не из голого TextStyle: иначе кнопка выпадает с
+        // Inter на системный шрифт.
+        textStyle: textTheme.labelLarge?.copyWith(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -78,6 +88,20 @@ ThemeData _buildTheme(Brightness brightness) {
     ),
     dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(borderRadius: radius),
+      elevation: 8,
+      backgroundColor: scheme.surface,
+      surfaceTintColor: Colors.transparent,
+      // Стили текста берутся из textTheme: голый TextStyle потерял бы Inter.
+      titleTextStyle: textTheme.titleLarge?.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: scheme.onSurface,
+      ),
+      contentTextStyle: textTheme.bodyMedium?.copyWith(
+        fontSize: 15,
+        height: 1.45,
+        color: scheme.onSurfaceVariant,
+      ),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       shape: RoundedRectangleBorder(

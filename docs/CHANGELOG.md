@@ -157,6 +157,9 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- **Редизайн главного экрана (Phase 17):** структура переведена на секции — `Row` со `StreakCard` и `DailyGoalCard`, hero-кнопка «Начать урок» с градиентом и счётчиком слов, `Row` «таблеток» «Сложные (N)» / «Smart (N)», заголовок «Тренировки» и сетка `GridView` с четырьмя плитками (`Error Hunter`, `Пропуск`, `Собери слово`, `Диктант`), карточка задания дня; `RefreshIndicator` с инвалидацией дневной цели; появление секций анимировано `flutter_animate` (`fadeIn` + `slideY`).
+- **Диалоги:** `dialogTheme` получил `elevation: 8`, `surfaceTintColor: transparent`, фон `surface`, `titleTextStyle` (20 / w600) и `contentTextStyle` (15 / 1.45); `filledButtonTheme` переведён на компактный размер (минимум 48 по высоте, паддинги 24×12, скругление 12) — полноширинная кнопка в диалогах выглядела полосой. Стили выведены из `textTheme`, чтобы сохранить Inter.
+- **Профиль:** иконка шестерёнки на главной открывает профиль через `push`, поэтому в `AppBar` появилась кнопка «Назад».
 - `AddWordOutcome.duplicate` удалён: с ADR-031 исход «такое уже есть» недостижим (отмена выражается `null`), а `DictionaryScreen` больше не различает два успешных исхода — всегда «Добавлено».
 - ARCHITECTURE: раздел Verification приведён к Phase 14 — `flutter analyze` / `flutter test`, `bash scripts/ci.sh` как локальная проверка (format + analyze + test).
 - PROJECT_CONTEXT: миграции v1→v8 покрыты тестами, откат (даунгрейд) не поддерживается — БД forward-only.

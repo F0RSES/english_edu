@@ -76,9 +76,13 @@
 | BL-74 | P3 | Phase 16 — оценить Lottie для сложных анимаций (confetti при завершении сессии, transition между экранами) | ADR keep/replace по `flutter_animate`; perf-замер на устройстве; при отказе от Lottie — запись решения в ADR-029 | Todo |
 | BL-75 | P3 | Phase 16 — Streak of challenges (серия дней с выполненным ежедневным заданием) | ADR-032: таблица `challenge_streaks` (v9), `ChallengeStreak` + `UpdateChallengeStreak`, обновление при `ClaimDailyChallenge`, бейдж на карточке | Done |
 | BL-76 | P3 | Phase 16 — объединить гомонимы в одной карточке (`Word.senses: List<Translation>`) | миграция v9→v10, все экраны обновлены, экспорт переносит senses, тест на round-trip | Todo |
-| BL-77 | P3 | Phase 16 — достижения за challenge streak (7 / 30 / 100 дней) | набор достижений в domain + хранение разблокированных, UI-бейдж на карточке, тест на разблокировку и на повтор | Todo |
+| BL-77 | P3 | Phase 16 — достижения за прогресс | ADR-035: 9 достижений, таблица `achievements` (v11), `CheckAchievements` после `RecordReview`, экран `/achievements`, `newlyUnlockedAchievements` в `ReviewOutcome`. Тост в уроке — BL-81 | Done |
 | BL-78 | P3 | Phase 16 — Smart Review v2: учитывать `grade` из review log (`last grade = again` → boost) | join с `review_logs` в `GetSmartReviewQueue` (или отдельный репозиторный метод), тест на boost и на отсутствие лога | Todo |
 | BL-79 | P2 | Phase 17 — полное ревью остальных 2065 слов с `autoTranslated: true` (BL-21 закрыл только выборку 200) | warnings валидатора 2065 → 0; правки через `tools/manual_review_overrides.json`; `docs/LICENSE_CONTENT.md` обновлён | Todo |
+| BL-81 | P3 | Phase 18b — тост достижения в уроке + тесты VO и экрана | `AchievementToast` через `Overlay` (slideY+fadeIn, автозакрытие 3 с, тап закрывает), показ после `RecordReview`, `achievement_test` (5), `achievements_screen_test` (2) | Done |
+| BL-83 | P3 | Phase 20 — адаптивное число пар в Word Match по уровню CEFR (A1: 4 пары, C1: 12 пар) | `GenerateMemoryGame` получает `preferredLevel`; тест на границы; сетка подстраивается | Todo |
+| BL-84 | P3 | Phase 20 — рекорды Word Match (лучшее число ходов/время) | таблица рекордов (схема v12) или `UserSettings`; экран рекордов; тест на обновление | Todo |
+| BL-82 | P3 | Phase 19 — расширить набор достижений до 20–30 (первая сессия, 100 ответов, идеальная неделя) и убрать полный проход журнала в `perfect` | новые `AchievementType` с метриками; `perfect` считать инкрементально; тесты на каждый тип | Todo |
 | BL-80 | P3 | Phase 17 — расширенный color picker (wheel) вместо 8 кружков + удаление категории из чипа словаря (иконка X, проверка «есть слова») | wheel или HSV-выбор цвета; чип с X для `id > 4`; подтверждение удаления; тест на запрет удаления категории со словами | Todo |
 
 ## Заметки

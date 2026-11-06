@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v10 — одиннадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034) — существующие таблицы и данные не пересоздаются.
+Схема v11 — двенадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -227,7 +227,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 **`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
 
-**Версия схемы: 10.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+**Версия схемы: 11.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
 
 Инициализация из `assets/seed/` — 2a.2 (BL-29).
 
@@ -331,14 +331,14 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/domain/repositories/` — 10 контрактов репозиториев
 - `lib/domain/services/` — 5 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — 19 use case
+- `lib/domain/usecases/` — 22 use case
 - `lib/data/db/` — Drift: 10 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v9, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
 - `lib/data/repositories/` — 10 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 9 экранов; `lib/presentation/widgets/` — 13 виджетов
+- `lib/presentation/screens/` — 11 экранов; `lib/presentation/widgets/` — 14 виджетов
 - `lib/presentation/router.dart` — GoRouter, 10 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
 - `test/` — 92 файла тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 3 скрипта + 2 библиотеки: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart` + `validate_seed_lib.dart`, `review_seed.dart` + `review_seed_lib.dart`
@@ -377,3 +377,4 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v8 | `daily_challenges` | ADR-030 |
 | v9 | `challenge_streaks` | ADR-032 |
 | v10 | `user_categories` (+ 4 базовые категории) | ADR-034 |
+| v11 | `achievements` | ADR-035 |

@@ -191,6 +191,13 @@ class HomeScreen extends ConsumerWidget {
             _openGame(context, '/word-scramble', HapticFeedback.selectionClick),
       ),
       _GameCard(
+        title: 'Memory',
+        icon: Icons.memory,
+        color: Colors.indigo,
+        onTap: () =>
+            _openGame(context, '/word-match', HapticFeedback.selectionClick),
+      ),
+      _GameCard(
         title: 'Диктант',
         icon: Icons.hearing,
         color: Colors.orange,

@@ -8,6 +8,7 @@ import 'package:english_edu/presentation/screens/lesson_screen.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
+import 'package:english_edu/presentation/screens/word_match_screen.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,6 +45,11 @@ final routerProvider = Provider<GoRouter>(
         path: '/lesson',
         pageBuilder: (context, state) =>
             _slideUpPage(state, const LessonScreen()),
+      ),
+      GoRoute(
+        path: '/word-match',
+        pageBuilder: (context, state) =>
+            _fadeScalePage(state, const WordMatchScreen()),
       ),
       GoRoute(
         path: '/listening',

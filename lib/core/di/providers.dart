@@ -49,7 +49,9 @@ import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/create_user_category.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
+import 'package:english_edu/domain/usecases/flip_memory_card.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
+import 'package:english_edu/domain/usecases/generate_memory_game.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
@@ -544,6 +546,21 @@ final class DictionarySearchQuery extends Notifier<String> {
   // ignore: use_setters_to_change_properties
   void update(String value) => state = value;
 }
+
+/// Сборка партии «Memory» (ADR-036).
+///
+/// `Random()` без seed: расклад должен меняться от партии к партии.
+final generateMemoryGameProvider = Provider<GenerateMemoryGame>(
+  (ref) => GenerateMemoryGame(
+    words: ref.watch(wordRepositoryProvider),
+    random: Random(),
+  ),
+);
+
+/// Правило хода в «Memory»: чистая функция, состояние приходит снаружи.
+final flipMemoryCardProvider = Provider<FlipMemoryCard>(
+  (ref) => const FlipMemoryCard(),
+);
 
 /// Хранилище достижений (ADR-035, schema v11).
 final achievementRepositoryProvider = Provider<AchievementRepository>(

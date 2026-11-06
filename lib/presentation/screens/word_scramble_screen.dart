@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/scramble_puzzle.dart';
+import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -15,7 +17,12 @@ const _feedbackDelay = Duration(milliseconds: 800);
 ///
 /// Показывает перевод и перемешанные буквы; слово собирается тапом по буквам.
 /// Работает полностью офлайн — задания строятся из локального словаря, AI и
-/// сеть не участвуют. Прогресс SRS игра не пишет (BL-71).
+/// сеть не участвуют.
+///
+/// BL-71: Scramble теперь пишет прогресс в SRS — верный ответ уходит как
+/// `good`, а слово, проваленное трижды, как `again`. Запись делается не больше
+/// одного раза на слово за сессию, иначе частые «угадывания» испортили бы
+/// расписание (ADR-028).
 class WordScrambleScreen extends ConsumerStatefulWidget {
   /// Создаёт экран.
   const WordScrambleScreen({super.key});
@@ -42,6 +49,16 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
   int _pulseKey = 0;
   int _correctCount = 0;
 
+  /// Неудачные попытки на текущем слове: на третьей слово уходит в SRS как
+  /// `again`, чтобы пользователь мог пойти дальше.
+  int _wrongAttempts = 0;
+
+  /// Слова, чей прогресс уже записан в этой сессии (ADR-028).
+  final Set<WordId> _recorded = {};
+
+  /// Порог, после которого слово считается проваленным.
+  static const _failedAttempts = 3;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +79,8 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _userAnswer = [];
       _used = [];
       _hasError = false;
+      _wrongAttempts = 0;
+      _recorded.clear();
     });
     try {
       // Размер сессии — дефолт use case (10 карточек, ADR-027).
@@ -114,6 +133,7 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
         _waiting = true;
       });
       _showMessage('Правильно!', correct: true);
+      unawaited(_record(puzzle.word, ReviewGrade.good));
       await Future<void>.delayed(_feedbackDelay);
       if (!mounted) {
         return;
@@ -127,8 +147,14 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _hasError = true;
       _shakeKey++;
       _waiting = true;
+      _wrongAttempts++;
     });
     _showMessage('Неверно', correct: false);
+    // Слово провалено, если не собралось с трёх попыток: только тогда оно
+    // уходит в SRS как `again`, чтобы одна опечатка не портила расписание.
+    if (_wrongAttempts >= _failedAttempts) {
+      unawaited(_record(puzzle.word, ReviewGrade.again));
+    }
     await Future<void>.delayed(_feedbackDelay);
     if (!mounted) {
       return;
@@ -140,6 +166,32 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
     });
   }
 
+  /// Пишет ответ в SRS не больше одного раза на слово за сессию (ADR-028).
+  ///
+  /// Повторная запись перезаписала бы прогресс: пользователь может несколько
+  /// раз собрать одно слово или ошибиться после верного ответа.
+  Future<void> _record(WordId wordId, ReviewGrade grade) async {
+    if (!_recorded.add(wordId)) {
+      return;
+    }
+    try {
+      await ref.read(recordReviewProvider).call(wordId, grade);
+      if (!mounted) {
+        return;
+      }
+      // Ответ меняет серию, очередь и дневную цель — как в уроке.
+      ref
+        ..invalidate(computeStreakProvider)
+        ..invalidate(getTodayQueueProvider)
+        ..invalidate(weakWordsQueueProvider)
+        ..invalidate(dailyGoalProvider);
+    } on Object catch (error, stack) {
+      ref
+          .read(loggerProvider)
+          .error('Scramble SRS record failed', error, stack);
+    }
+  }
+
   /// Переход к следующей карточке; после последней — диалог итогов.
   void _advance() {
     final next = _currentIndex + 1;
@@ -148,6 +200,7 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _waiting = false;
       _userAnswer = [];
       _hasError = false;
+      _wrongAttempts = 0;
       _used = List<bool>.filled(
         next < _puzzles.length ? _puzzles[next].scrambled.length : 0,
         false,

@@ -38,6 +38,7 @@ import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
+import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
@@ -290,6 +291,17 @@ final weakWordsQueueProvider = FutureProvider<TodayQueue>(
 /// Количество проблемных слов для бейджа на кнопке (ADR-026).
 final weakWordsCountProvider = FutureProvider<int>(
   (ref) async => (await ref.watch(weakWordsQueueProvider.future)).due.length,
+);
+
+/// Генератор очереди аудио-диктанта (ADR-028).
+///
+/// `Random()` без seed: порядок слов должен меняться от сессии к сессии.
+/// Тесты подменяют провайдер целиком.
+final generateDictationQueueProvider = Provider<GenerateDictationQueue>(
+  (ref) => GenerateDictationQueue(
+    words: ref.watch(wordRepositoryProvider),
+    random: Random(),
+  ),
 );
 
 /// Генератор заданий «Собери слово» (ADR-027).

@@ -4,6 +4,7 @@ import 'package:english_edu/presentation/screens/dictionary_screen.dart';
 import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
 import 'package:english_edu/presentation/screens/home_screen.dart';
 import 'package:english_edu/presentation/screens/lesson_screen.dart';
+import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
@@ -42,6 +43,11 @@ final routerProvider = Provider<GoRouter>(
         path: '/lesson',
         pageBuilder: (context, state) =>
             _slideUpPage(state, const LessonScreen()),
+      ),
+      GoRoute(
+        path: '/listening',
+        pageBuilder: (context, state) =>
+            _fadePage(state, const ListeningDictationScreen()),
       ),
       GoRoute(
         path: '/word-scramble',

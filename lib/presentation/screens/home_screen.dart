@@ -103,6 +103,12 @@ class HomeScreen extends ConsumerWidget {
                 side: BorderSide(color: Theme.of(context).colorScheme.primary),
               ),
             ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/listening'),
+              icon: const Icon(Icons.hearing),
+              label: const Text('Аудио-диктант'),
+            ),
             // Бейдж проблемных слов: кнопка появляется только когда есть что
             // повторять, иначе вела бы на пустой экран (ADR-026).
             ref

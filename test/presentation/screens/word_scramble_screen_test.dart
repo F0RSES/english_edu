@@ -4,12 +4,21 @@ import 'dart:math';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
+import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/value_objects/review_grade.dart';
+import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../core/fakes/fake_crash_reporter.dart';
+import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
+import '../../domain/usecases/fakes/fake_progress_repository.dart';
+import '../../domain/usecases/fakes/fake_review_log_repository.dart';
+import '../../domain/usecases/fakes/fake_srs_calculator.dart';
+import '../../domain/usecases/fakes/fake_stats_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 Word word(int id, String term, String translation) =>
@@ -22,18 +31,46 @@ List<Word> twoWords() => [word(1, 'apple', 'яблоко'), word(2, 'book', 'к�
 ///
 /// Генератор не подменяется: он `final`, и это правильно — иначе тест проверял
 /// бы собственную заглушку. Управляем словарём, а seed фиксирует перемешивание.
-Widget host({List<Word>? words, FakeWordRepository? repo}) {
-  final wordRepo = repo ?? FakeWordRepository(words ?? twoWords());
-  return ProviderScope(
+/// Окружение: словарь, настоящий use case и настоящий `RecordReview`.
+final class _Harness {
+  _Harness({List<Word>? words, FakeWordRepository? wordRepo})
+    : wordRepo = wordRepo ?? FakeWordRepository(words ?? twoWords());
+
+  final FakeWordRepository wordRepo;
+  final FakeProgressRepository progress = FakeProgressRepository();
+  final FakeReviewLogRepository logs = FakeReviewLogRepository();
+  final FakeStatsRepository stats = FakeStatsRepository();
+  var _nextId = 1;
+
+  Widget app() => ProviderScope(
     overrides: [
       wordRepositoryProvider.overrideWithValue(wordRepo),
       generateScramblePuzzlesProvider.overrideWithValue(
         GenerateScramblePuzzles(words: wordRepo, random: Random(5)),
       ),
+      statsRepositoryProvider.overrideWithValue(stats),
+      frozenDaysRepositoryProvider.overrideWithValue(
+        FakeFrozenDaysRepository(),
+      ),
+      crashReporterProvider.overrideWithValue(FakeCrashReporter()),
+      recordReviewProvider.overrideWithValue(
+        RecordReview(
+          progress: progress,
+          reviewLog: logs,
+          stats: stats,
+          words: wordRepo,
+          srs: const FakeSrsCalculator(),
+          nextLogId: () => ReviewLogId(_nextId++),
+          clock: () => DateTime.utc(2024, 5, 15, 12),
+        ),
+      ),
     ],
     child: const MaterialApp(home: WordScrambleScreen()),
   );
 }
+
+Widget host({List<Word>? words, FakeWordRepository? repo}) =>
+    _Harness(words: words, wordRepo: repo).app();
 
 /// Тапает буквы в порядке [letters], различая повторы по порядку кнопок.
 Future<void> tapLetters(WidgetTester tester, String letters) async {
@@ -165,5 +202,42 @@ void main() {
 
     expect(find.text('Не удалось загрузить'), findsOneWidget);
     expect(find.text('Повторить'), findsOneWidget);
+  });
+
+  testWidgets('correct answer records SRS good grade (BL-71)', (tester) async {
+    final harness = _Harness(words: [word(1, 'apple', 'яблоко')]);
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tapLetters(tester, 'apple');
+    await tester.pump();
+
+    final log = (await harness.logs.getAll()).single;
+    expect(log.grade, ReviewGrade.good);
+    expect(log.wordId, const WordId(1));
+
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('wrong answer records SRS again grade', (tester) async {
+    final harness = _Harness(words: [word(1, 'apple', 'яблоко')]);
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    // Три неудачи подряд: до третьей слово в SRS не попадает.
+    for (var attempt = 0; attempt < 2; attempt++) {
+      await tapLetters(tester, 'elppa');
+      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pumpAndSettle();
+    }
+    expect(await harness.logs.getAll(), isEmpty);
+
+    await tapLetters(tester, 'elppa');
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+
+    final log = (await harness.logs.getAll()).single;
+    expect(log.grade, ReviewGrade.again);
   });
 }

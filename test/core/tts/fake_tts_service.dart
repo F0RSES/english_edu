@@ -11,6 +11,9 @@ final class FakeTtsService implements TtsService {
   /// Скорость последнего вызова `speak`.
   double? lastSpeed;
 
+  /// Сколько раз вызывали `speak`.
+  int speakCount = 0;
+
   /// Если true, `speak` бросает исключение.
   bool speakThrows = false;
 
@@ -22,6 +25,7 @@ final class FakeTtsService implements TtsService {
     if (speakThrows) {
       throw Exception('TTS failure');
     }
+    speakCount++;
     lastText = text;
     lastVoice = voice;
     lastSpeed = speed;

@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
@@ -32,6 +33,15 @@ final class JsonAssetBundle extends AssetBundle {
       ByteData.sublistView(Uint8List.fromList(utf8.encode(json)));
 }
 
+/// Слитый словарь, который читает приложение (2700+ слов до дедупликации).
+const _mergedSeedPath = 'assets/seed/words_v2.json';
+
+/// Сколько слов осталось после дедупликации по `term`.
+///
+/// Файл лежит в репозитории, поэтому число стабильно: точное значение ловит
+/// случайную потерю контента при пересборке словаря.
+const _mergedSeedWords = 2071;
+
 Map<String, Object?> seedJson(List<Object?> words, {int version = 1}) => {
   'schemaVersion': version,
   'sources': const [],
@@ -57,23 +67,24 @@ void main() {
   JsonSeedLoader loaderFor(AssetBundle bundle) =>
       JsonSeedLoader(words: words, bundle: bundle);
 
-  test('loads 20 words into an empty database', () async {
-    final loader = loaderFor(FileAssetBundle('assets/seed/words_v1.json'));
+  test('loads the whole merged seed into an empty database', () async {
+    final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
 
-    expect(await loader.loadIfEmpty(), 20);
-    expect(await words.getAll(), hasLength(20));
+    expect(await loader.loadIfEmpty(), _mergedSeedWords);
+    expect(await words.getAll(), hasLength(_mergedSeedWords));
+    expect(_mergedSeedWords, greaterThan(2000));
   });
 
   test('does not duplicate on a second call', () async {
-    final loader = loaderFor(FileAssetBundle('assets/seed/words_v1.json'));
+    final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
 
-    expect(await loader.loadIfEmpty(), 20);
+    expect(await loader.loadIfEmpty(), _mergedSeedWords);
     expect(await loader.loadIfEmpty(), 0);
-    expect(await words.getAll(), hasLength(20));
+    expect(await words.getAll(), hasLength(_mergedSeedWords));
   });
 
   test('returns 0 when the table already has rows', () async {
-    await loaderFor(FileAssetBundle('assets/seed/words_v1.json')).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
 
     final second = JsonSeedLoader(
       words: words,
@@ -106,8 +117,26 @@ void main() {
     );
   });
 
+  test('loads words of every graded level from the merged seed', () async {
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+
+    final levels = {for (final word in await words.getAll()) word.level};
+
+    // A0 и C2 пока не размечены контентом (BL-65) — их в файле нет.
+    expect(
+      levels,
+      containsAll(<CefrLevel>[
+        CefrLevel.a1,
+        CefrLevel.a2,
+        CefrLevel.b1,
+        CefrLevel.b2,
+        CefrLevel.c1,
+      ]),
+    );
+  });
+
   test('maps seed fields into columns', () async {
-    await loaderFor(FileAssetBundle('assets/seed/words_v1.json')).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
 
     final stored = await words.getAll();
     final first = stored.firstWhere((word) => word.id.value == 1);

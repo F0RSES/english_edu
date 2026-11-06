@@ -23,6 +23,10 @@ const _categorySinceVersion = 3;
 /// Первая версия снимка, в которой появился `Word.level` (ADR-023).
 const _levelSinceVersion = 4;
 
+/// Первая версия снимка, в которой появился `UserSettings.preferredLevel`
+/// (BL-68).
+const _preferredLevelSinceVersion = 5;
+
 /// JSON-представление снимка состояния, схема v4 (v1–v3 читаются).
 ///
 /// Версии и поля слов:
@@ -33,9 +37,10 @@ const _levelSinceVersion = 4;
 /// | v2 | `frozenDays` |
 /// | v3 | `Word.category` |
 /// | v4 | `Word.level` |
+/// | v5 | `UserSettings.preferredLevel` |
 ///
 /// Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null,
-/// `level` A1.
+/// `level` A1, `preferredLevel` A1.
 ///
 /// Формат принадлежит data-слою (см. `ExportPayload`): домен знает только
 /// структуру, а сериализация живёт рядом с остальными преобразованиями.
@@ -52,7 +57,10 @@ final class ExportPayloadCodec {
   String encode(ExportPayload payload) => jsonEncode({
     'schemaVersion': payload.schemaVersion,
     'exportedAt': payload.exportedAt.toUtc().toIso8601String(),
-    'settings': _settingsToJson(payload.settings),
+    'settings': _settingsToJson(
+      payload.settings,
+      version: payload.schemaVersion,
+    ),
     'words': [
       for (final word in payload.words)
         _wordToJson(word, version: payload.schemaVersion),
@@ -63,7 +71,10 @@ final class ExportPayloadCodec {
     'frozenDays': [for (final date in payload.frozenDays) date.daysSinceEpoch],
   });
 
-  Map<String, Object?> _settingsToJson(UserSettings settings) => {
+  Map<String, Object?> _settingsToJson(
+    UserSettings settings, {
+    required int version,
+  }) => {
     'dailyNewLimit': settings.dailyNewLimit,
     'dailyReviewLimit': settings.dailyReviewLimit,
     'remindersEnabled': settings.remindersEnabled,
@@ -71,6 +82,9 @@ final class ExportPayloadCodec {
     'reminderMinute': settings.reminderMinute,
     'ttsVoice': settings.ttsVoice,
     'ttsSpeed': settings.ttsSpeed,
+    // В снимках v1–v4 уровня пользователя не было (BL-68).
+    if (version >= _preferredLevelSinceVersion)
+      'preferredLevel': settings.preferredLevel.label,
   };
 
   Map<String, Object?> _wordToJson(Word word, {required int version}) => {
@@ -141,7 +155,10 @@ final class ExportPayloadCodec {
     return ExportPayload(
       schemaVersion: version,
       exportedAt: _date(root, 'exportedAt'),
-      settings: _settingsFromJson(_asMap(root['settings'], 'settings')),
+      settings: _settingsFromJson(
+        _asMap(root['settings'], 'settings'),
+        version,
+      ),
       words: [
         for (final item in _list(root, 'words'))
           _wordFromJson(_asMap(item, 'words[]'), version),
@@ -173,15 +190,31 @@ final class ExportPayloadCodec {
     };
   }
 
-  UserSettings _settingsFromJson(Map<String, Object?> map) => UserSettings(
-    dailyNewLimit: _int(map, 'dailyNewLimit'),
-    dailyReviewLimit: _int(map, 'dailyReviewLimit'),
-    remindersEnabled: _bool(map, 'remindersEnabled'),
-    reminderHour: _int(map, 'reminderHour'),
-    reminderMinute: _int(map, 'reminderMinute'),
-    ttsVoice: _str(map, 'ttsVoice'),
-    ttsSpeed: _double(map, 'ttsSpeed'),
-  );
+  UserSettings _settingsFromJson(Map<String, Object?> map, int version) =>
+      UserSettings(
+        dailyNewLimit: _int(map, 'dailyNewLimit'),
+        dailyReviewLimit: _int(map, 'dailyReviewLimit'),
+        remindersEnabled: _bool(map, 'remindersEnabled'),
+        reminderHour: _int(map, 'reminderHour'),
+        reminderMinute: _int(map, 'reminderMinute'),
+        ttsVoice: _str(map, 'ttsVoice'),
+        ttsSpeed: _double(map, 'ttsSpeed'),
+        preferredLevel: _preferredLevelFromJson(map, version),
+      );
+
+  /// Уровень пользователя из снимка; в v1–v4 поля не было — получаем A1.
+  CefrLevel _preferredLevelFromJson(Map<String, Object?> map, int version) {
+    if (version < _preferredLevelSinceVersion) {
+      return CefrLevel.a1;
+    }
+    final label = _str(map, 'preferredLevel');
+    for (final level in CefrLevel.values) {
+      if (level.label.toLowerCase() == label.toLowerCase()) {
+        return level;
+      }
+    }
+    throw FormatException('preferredLevel: неизвестное значение $label');
+  }
 
   Word _wordFromJson(Map<String, Object?> map, int version) => Word(
     id: WordId(_int(map, 'id')),

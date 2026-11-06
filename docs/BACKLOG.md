@@ -68,7 +68,7 @@
 | BL-65 | P2 | Phase 13b — словарь не размечен по уровням: seed v1 без `level`, поэтому все 20 слов — A1, и фильтр по A2+ в словаре даёт пусто | 300–500 слов по уровням A1–B2 с полем `level` в JSON (генератор `--level=A1` и валидатор уровня уже готовы, Phase 13c) | Todo |
 | BL-66 | P3 | Phase 13c — UI/text polish: типографика, переносы длинных слов в карточке, контраст в тёмной теме (бейдж уровня на `teal`/`lightGreen` фоне) | единый типографический масштаб, проверка контраста WCAG AA, golden-тесты на тёмную тему | Todo |
 | BL-67 | P2 | Export/import теряет `Word.level`: `ExportPayloadCodec` пишет поля до v3 включительно, уровень в снимке отсутствует | `level` в JSON снимка + round-trip тест, при необходимости payload schema v4 и ADR | Done |
-| BL-68 | P3 | Снимок v4 переносит `Word.level`, но не `UserSettings.preferredLevel`: после импорта на новом устройстве уровень пользователя откатывается к A1 | `preferredLevel` в `settings` снимка (payload v5) + тест на round-trip | Todo |
+| BL-68 | P3 | Снимок v4 переносит `Word.level`, но не `UserSettings.preferredLevel`: после импорта на новом устройстве уровень пользователя откатывается к A1 | `preferredLevel` в `settings` снимка (payload v5) + тест на round-trip | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

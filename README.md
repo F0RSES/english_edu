@@ -6,7 +6,7 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
-Roadmap ниже). 558 тестов, analyze=0.
+Roadmap ниже). 564 теста, analyze=0.
 
 ## Features
 
@@ -14,6 +14,7 @@ Roadmap ниже). 558 тестов, analyze=0.
 - Streak (серия дней)
 - Swipe-карточки с TTS
 - Личный словарь с поиском, добавлением и фильтром по уровню CEFR (A0–C2)
+- 2071 слово по уровням A1–C1 в комплекте; новые слова подбираются по уровню
 - Export/Import через clipboard
 - Crash reporting (Sentry, опционально)
 - Ежедневные локальные напоминания (точность ±5–15 минут)
@@ -32,7 +33,7 @@ Roadmap ниже). 558 тестов, analyze=0.
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 558 passed
+    flutter test               # 564 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)

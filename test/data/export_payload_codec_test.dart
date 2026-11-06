@@ -23,10 +23,11 @@ ExportPayload payloadOf({
   int schemaVersion = ExportPayload.currentSchemaVersion,
   Set<LocalDate> frozenDays = const <LocalDate>{},
   List<Word> words = const [],
+  UserSettings? settings,
 }) => ExportPayload(
   schemaVersion: schemaVersion,
   exportedAt: now,
-  settings: UserSettings.defaults(),
+  settings: settings ?? UserSettings.defaults(),
   words: words,
   progress: const [],
   logs: const [],
@@ -42,14 +43,14 @@ Map<String, Object?> firstWord(String json) {
 void main() {
   const codec = ExportPayloadCodec();
 
-  test('currentSchemaVersion is 4', () {
-    expect(ExportPayload.currentSchemaVersion, 4);
+  test('currentSchemaVersion is 5', () {
+    expect(ExportPayload.currentSchemaVersion, 5);
   });
 
   test('encode v3 includes word category', () {
     final json = codec.encode(payloadOf(words: [word(category: 'Бизнес')]));
 
-    expect((jsonDecode(json) as Map<String, Object?>)['schemaVersion'], 4);
+    expect((jsonDecode(json) as Map<String, Object?>)['schemaVersion'], 5);
     expect(firstWord(json)['category'], 'Бизнес');
   });
 
@@ -162,6 +163,65 @@ void main() {
     expect(() => codec.decode(jsonEncode(root)), throwsFormatException);
   });
 
+  test('encode v5 includes preferredLevel', () {
+    final json = codec.encode(
+      payloadOf(
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.b1,
+        ),
+      ),
+    );
+    final settings =
+        (jsonDecode(json) as Map<String, Object?>)['settings']!
+            as Map<String, Object?>;
+
+    expect(settings['preferredLevel'], 'B1');
+  });
+
+  test('encode v4 leaves the preferredLevel key out', () {
+    final json = codec.encode(
+      payloadOf(
+        schemaVersion: 4,
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.c1,
+        ),
+      ),
+    );
+    final settings =
+        (jsonDecode(json) as Map<String, Object?>)['settings']!
+            as Map<String, Object?>;
+
+    expect(settings.containsKey('preferredLevel'), isFalse);
+  });
+
+  test('decode v4 defaults preferredLevel to A1', () {
+    final decoded = codec.decode(codec.encode(payloadOf(schemaVersion: 4)));
+
+    expect(decoded.settings.preferredLevel, CefrLevel.a1);
+  });
+
+  test('decode rejects an unknown preferredLevel', () {
+    final root = jsonDecode(codec.encode(payloadOf())) as Map<String, Object?>;
+    (root['settings']! as Map<String, Object?>)['preferredLevel'] = 'Z9';
+
+    expect(() => codec.decode(jsonEncode(root)), throwsFormatException);
+  });
+
+  test('decode v5 restores preferredLevel', () {
+    final decoded = codec.decode(
+      codec.encode(
+        payloadOf(
+          settings: UserSettings.defaults().copyWith(
+            preferredLevel: CefrLevel.b2,
+          ),
+        ),
+      ),
+    );
+
+    expect(decoded.schemaVersion, 5);
+    expect(decoded.settings.preferredLevel, CefrLevel.b2);
+  });
+
   test('round-trips the current payload', () {
     final original = payloadOf(
       frozenDays: {const LocalDate(19723), const LocalDate(19724)},
@@ -172,7 +232,7 @@ void main() {
   });
 
   test('invalid schemaVersion throws', () {
-    final json = codec.encode(payloadOf(schemaVersion: 5));
+    final json = codec.encode(payloadOf(schemaVersion: 6));
 
     expect(() => codec.decode(json), throwsFormatException);
   });

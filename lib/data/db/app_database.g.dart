@@ -3646,6 +3646,323 @@ class WordHintsCompanion extends UpdateCompanion<WordHintRow> {
   }
 }
 
+class $ClozeTasksTable extends ClozeTasks
+    with TableInfo<$ClozeTasksTable, ClozeTaskRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ClozeTasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _wordIdMeta = const VerificationMeta('wordId');
+  @override
+  late final GeneratedColumn<int> wordId = GeneratedColumn<int>(
+    'word_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES words (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _sentenceMeta = const VerificationMeta(
+    'sentence',
+  );
+  @override
+  late final GeneratedColumn<String> sentence = GeneratedColumn<String>(
+    'sentence',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _answerMeta = const VerificationMeta('answer');
+  @override
+  late final GeneratedColumn<String> answer = GeneratedColumn<String>(
+    'answer',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    wordId,
+    sentence,
+    answer,
+    createdAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cloze_tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ClozeTaskRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('word_id')) {
+      context.handle(
+        _wordIdMeta,
+        wordId.isAcceptableOrUnknown(data['word_id']!, _wordIdMeta),
+      );
+    }
+    if (data.containsKey('sentence')) {
+      context.handle(
+        _sentenceMeta,
+        sentence.isAcceptableOrUnknown(data['sentence']!, _sentenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sentenceMeta);
+    }
+    if (data.containsKey('answer')) {
+      context.handle(
+        _answerMeta,
+        answer.isAcceptableOrUnknown(data['answer']!, _answerMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_answerMeta);
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {wordId};
+  @override
+  ClozeTaskRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ClozeTaskRow(
+      wordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}word_id'],
+      )!,
+      sentence: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sentence'],
+      )!,
+      answer: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}answer'],
+      )!,
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $ClozeTasksTable createAlias(String alias) {
+    return $ClozeTasksTable(attachedDatabase, alias);
+  }
+}
+
+class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
+  /// Слово, к которому относится задание.
+  final int wordId;
+
+  /// Предложение с пропуском `___`.
+  final String sentence;
+
+  /// Слово-ответ.
+  final String answer;
+
+  /// Момент генерации, миллисекунды UTC.
+  final int createdAtUtc;
+  const ClozeTaskRow({
+    required this.wordId,
+    required this.sentence,
+    required this.answer,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['word_id'] = Variable<int>(wordId);
+    map['sentence'] = Variable<String>(sentence);
+    map['answer'] = Variable<String>(answer);
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  ClozeTasksCompanion toCompanion(bool nullToAbsent) {
+    return ClozeTasksCompanion(
+      wordId: Value(wordId),
+      sentence: Value(sentence),
+      answer: Value(answer),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory ClozeTaskRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ClozeTaskRow(
+      wordId: serializer.fromJson<int>(json['wordId']),
+      sentence: serializer.fromJson<String>(json['sentence']),
+      answer: serializer.fromJson<String>(json['answer']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'wordId': serializer.toJson<int>(wordId),
+      'sentence': serializer.toJson<String>(sentence),
+      'answer': serializer.toJson<String>(answer),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  ClozeTaskRow copyWith({
+    int? wordId,
+    String? sentence,
+    String? answer,
+    int? createdAtUtc,
+  }) => ClozeTaskRow(
+    wordId: wordId ?? this.wordId,
+    sentence: sentence ?? this.sentence,
+    answer: answer ?? this.answer,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  ClozeTaskRow copyWithCompanion(ClozeTasksCompanion data) {
+    return ClozeTaskRow(
+      wordId: data.wordId.present ? data.wordId.value : this.wordId,
+      sentence: data.sentence.present ? data.sentence.value : this.sentence,
+      answer: data.answer.present ? data.answer.value : this.answer,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClozeTaskRow(')
+          ..write('wordId: $wordId, ')
+          ..write('sentence: $sentence, ')
+          ..write('answer: $answer, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(wordId, sentence, answer, createdAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ClozeTaskRow &&
+          other.wordId == this.wordId &&
+          other.sentence == this.sentence &&
+          other.answer == this.answer &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
+  final Value<int> wordId;
+  final Value<String> sentence;
+  final Value<String> answer;
+  final Value<int> createdAtUtc;
+  const ClozeTasksCompanion({
+    this.wordId = const Value.absent(),
+    this.sentence = const Value.absent(),
+    this.answer = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  ClozeTasksCompanion.insert({
+    this.wordId = const Value.absent(),
+    required String sentence,
+    required String answer,
+    required int createdAtUtc,
+  }) : sentence = Value(sentence),
+       answer = Value(answer),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<ClozeTaskRow> custom({
+    Expression<int>? wordId,
+    Expression<String>? sentence,
+    Expression<String>? answer,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (wordId != null) 'word_id': wordId,
+      if (sentence != null) 'sentence': sentence,
+      if (answer != null) 'answer': answer,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  ClozeTasksCompanion copyWith({
+    Value<int>? wordId,
+    Value<String>? sentence,
+    Value<String>? answer,
+    Value<int>? createdAtUtc,
+  }) {
+    return ClozeTasksCompanion(
+      wordId: wordId ?? this.wordId,
+      sentence: sentence ?? this.sentence,
+      answer: answer ?? this.answer,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (wordId.present) {
+      map['word_id'] = Variable<int>(wordId.value);
+    }
+    if (sentence.present) {
+      map['sentence'] = Variable<String>(sentence.value);
+    }
+    if (answer.present) {
+      map['answer'] = Variable<String>(answer.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ClozeTasksCompanion(')
+          ..write('wordId: $wordId, ')
+          ..write('sentence: $sentence, ')
+          ..write('answer: $answer, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3659,6 +3976,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $FrozenDaysTable frozenDays = $FrozenDaysTable(this);
   late final $WordHintsTable wordHints = $WordHintsTable(this);
+  late final $ClozeTasksTable clozeTasks = $ClozeTasksTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -3691,6 +4009,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyStatsTable,
     frozenDays,
     wordHints,
+    clozeTasks,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -3712,6 +4031,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('word_hints', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'words',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('cloze_tasks', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -3772,6 +4098,24 @@ final class $$WordsTableReferences
     ).filter((f) => f.wordId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_wordHintsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$ClozeTasksTable, List<ClozeTaskRow>>
+  _clozeTasksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.clozeTasks,
+    aliasName: 'words__id__cloze_tasks__word_id',
+  );
+
+  $$ClozeTasksTableProcessedTableManager get clozeTasksRefs {
+    final manager = $$ClozeTasksTableTableManager(
+      $_db,
+      $_db.clozeTasks,
+    ).filter((f) => f.wordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_clozeTasksRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3867,6 +4211,31 @@ class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
           }) => $$WordHintsTableFilterComposer(
             $db: $db,
             $table: $db.wordHints,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> clozeTasksRefs(
+    Expression<bool> Function($$ClozeTasksTableFilterComposer f) f,
+  ) {
+    final $$ClozeTasksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.clozeTasks,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClozeTasksTableFilterComposer(
+            $db: $db,
+            $table: $db.clozeTasks,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4017,6 +4386,31 @@ class $$WordsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> clozeTasksRefs<T extends Object>(
+    Expression<T> Function($$ClozeTasksTableAnnotationComposer a) f,
+  ) {
+    final $$ClozeTasksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.clozeTasks,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClozeTasksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.clozeTasks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$WordsTableTableManager
@@ -4032,7 +4426,11 @@ class $$WordsTableTableManager
           $$WordsTableUpdateCompanionBuilder,
           (Word, $$WordsTableReferences),
           Word,
-          PrefetchHooks Function({bool wordProgressesRefs, bool wordHintsRefs})
+          PrefetchHooks Function({
+            bool wordProgressesRefs,
+            bool wordHintsRefs,
+            bool clozeTasksRefs,
+          })
         > {
   $$WordsTableTableManager(_$AppDatabase db, $WordsTable table)
     : super(
@@ -4094,12 +4492,17 @@ class $$WordsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({wordProgressesRefs = false, wordHintsRefs = false}) {
+              ({
+                wordProgressesRefs = false,
+                wordHintsRefs = false,
+                clozeTasksRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (wordProgressesRefs) db.wordProgresses,
                     if (wordHintsRefs) db.wordHints,
+                    if (clozeTasksRefs) db.clozeTasks,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -4144,6 +4547,26 @@ class $$WordsTableTableManager
                           referencedColumn: 'word_id',
                           typedResults: items,
                         ),
+                      if (clozeTasksRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Word,
+                          $WordsTable,
+                          ClozeTaskRow,
+                          $ClozeTasksTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$WordsTableReferences
+                              ._clozeTasksRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$WordsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).clozeTasksRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'word_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4164,7 +4587,11 @@ typedef $$WordsTableProcessedTableManager =
       $$WordsTableUpdateCompanionBuilder,
       (Word, $$WordsTableReferences),
       Word,
-      PrefetchHooks Function({bool wordProgressesRefs, bool wordHintsRefs})
+      PrefetchHooks Function({
+        bool wordProgressesRefs,
+        bool wordHintsRefs,
+        bool clozeTasksRefs,
+      })
     >;
 typedef $$WordProgressesTableCreateCompanionBuilder =
     WordProgressesCompanion Function({
@@ -5972,6 +6399,296 @@ typedef $$WordHintsTableProcessedTableManager =
       WordHintRow,
       PrefetchHooks Function({bool wordId})
     >;
+typedef $$ClozeTasksTableCreateCompanionBuilder = ClozeTasksCompanion Function({
+  Value<int> wordId,
+  required String sentence,
+  required String answer,
+  required int createdAtUtc,
+});
+typedef $$ClozeTasksTableUpdateCompanionBuilder = ClozeTasksCompanion Function({
+  Value<int> wordId,
+  Value<String> sentence,
+  Value<String> answer,
+  Value<int> createdAtUtc,
+});
+
+final class $$ClozeTasksTableReferences
+    extends BaseReferences<_$AppDatabase, $ClozeTasksTable, ClozeTaskRow> {
+  $$ClozeTasksTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $WordsTable _wordIdTable(_$AppDatabase db) =>
+      db.words.createAlias('cloze_tasks__word_id__words__id');
+
+  $$WordsTableProcessedTableManager get wordId {
+    final $_column = $_itemColumn<int>('word_id')!;
+
+    final manager = $$WordsTableTableManager(
+      $_db,
+      $_db.words,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_wordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ClozeTasksTableFilterComposer
+    extends Composer<_$AppDatabase, $ClozeTasksTable> {
+  $$ClozeTasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get sentence => $composableBuilder(
+    column: $table.sentence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get answer => $composableBuilder(
+    column: $table.answer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WordsTableFilterComposer get wordId {
+    final $$WordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableFilterComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ClozeTasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $ClozeTasksTable> {
+  $$ClozeTasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get sentence => $composableBuilder(
+    column: $table.sentence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get answer => $composableBuilder(
+    column: $table.answer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WordsTableOrderingComposer get wordId {
+    final $$WordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ClozeTasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ClozeTasksTable> {
+  $$ClozeTasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get sentence =>
+      $composableBuilder(column: $table.sentence, builder: (column) => column);
+
+  GeneratedColumn<String> get answer =>
+      $composableBuilder(column: $table.answer, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+
+  $$WordsTableAnnotationComposer get wordId {
+    final $$WordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ClozeTasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ClozeTasksTable,
+          ClozeTaskRow,
+          $$ClozeTasksTableFilterComposer,
+          $$ClozeTasksTableOrderingComposer,
+          $$ClozeTasksTableAnnotationComposer,
+          $$ClozeTasksTableCreateCompanionBuilder,
+          $$ClozeTasksTableUpdateCompanionBuilder,
+          (ClozeTaskRow, $$ClozeTasksTableReferences),
+          ClozeTaskRow,
+          PrefetchHooks Function({bool wordId})
+        > {
+  $$ClozeTasksTableTableManager(_$AppDatabase db, $ClozeTasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ClozeTasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ClozeTasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ClozeTasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                Value<String> sentence = const Value.absent(),
+                Value<String> answer = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => ClozeTasksCompanion(
+                wordId: wordId,
+                sentence: sentence,
+                answer: answer,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                required String sentence,
+                required String answer,
+                required int createdAtUtc,
+              }) => ClozeTasksCompanion.insert(
+                wordId: wordId,
+                sentence: sentence,
+                answer: answer,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ClozeTasksTable, ClozeTaskRow>(table),
+                  $$ClozeTasksTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({wordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (wordId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.wordId,
+                        referencedTable: $$ClozeTasksTableReferences
+                            ._wordIdTable(db),
+                        referencedColumn: $$ClozeTasksTableReferences
+                            ._wordIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ClozeTasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ClozeTasksTable,
+      ClozeTaskRow,
+      $$ClozeTasksTableFilterComposer,
+      $$ClozeTasksTableOrderingComposer,
+      $$ClozeTasksTableAnnotationComposer,
+      $$ClozeTasksTableCreateCompanionBuilder,
+      $$ClozeTasksTableUpdateCompanionBuilder,
+      (ClozeTaskRow, $$ClozeTasksTableReferences),
+      ClozeTaskRow,
+      PrefetchHooks Function({bool wordId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5990,4 +6707,6 @@ class $AppDatabaseManager {
       $$FrozenDaysTableTableManager(_db, _db.frozenDays);
   $$WordHintsTableTableManager get wordHints =>
       $$WordHintsTableTableManager(_db, _db.wordHints);
+  $$ClozeTasksTableTableManager get clozeTasks =>
+      $$ClozeTasksTableTableManager(_db, _db.clozeTasks);
 }

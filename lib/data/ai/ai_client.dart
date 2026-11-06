@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
+import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:http/http.dart' as http;
 
@@ -20,6 +22,9 @@ const _taskTimeout = Duration(seconds: 15);
 
 /// Значение поля `type`, которое просит прокси вернуть задание игры.
 const _errorHunterType = 'error_hunter';
+
+/// Значение поля `type` для задания «Заполни пропуск» (ADR-025).
+const _clozeType = 'cloze_test';
 
 /// Ошибка AI-подсказки: сеть, статус ответа или неожиданный формат.
 ///
@@ -46,7 +51,8 @@ final class AiException implements Exception {
 /// Реализует доменный [HintGenerator]: домен не знает про HTTP.
 /// Сеть используется только по явному действию пользователя (кнопка
 /// «Подсказка»): учебный цикл остаётся офлайн.
-final class AiClient implements HintGenerator, ErrorTaskGenerator {
+final class AiClient
+    implements HintGenerator, ErrorTaskGenerator, ClozeGenerator {
   /// Создаёт клиент поверх переданного `http.Client`: тесты подставляют
   /// `MockClient`, приложение — реальный клиент.
   AiClient(this._client);
@@ -122,6 +128,43 @@ final class AiClient implements HintGenerator, ErrorTaskGenerator {
     }
     try {
       return ErrorHunterTask.fromJson(decoded);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned a malformed task: ${error.message}');
+    }
+  }
+
+  /// Запрашивает задание «Заполни пропуск» для [word] (ADR-025).
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или задание,
+  /// не прошедшее валидацию схемы.
+  @override
+  Future<ClozeTask> generateCloze(String word) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'type': _clozeType, 'word': word}),
+        )
+        .timeout(_taskTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    try {
+      return ClozeTask.fromJson(decoded);
     } on FormatException catch (error) {
       throw AiException('AI proxy returned a malformed task: ${error.message}');
     }

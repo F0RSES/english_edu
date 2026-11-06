@@ -32,7 +32,9 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Padding(
+      // Прокрутка, а не голый Column: на низких экранах (и в ландшафте)
+      // карточки плюс две кнопки игр не влезают в высоту.
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -84,6 +86,12 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () => context.push('/error-hunter'),
               icon: const Icon(Icons.games_outlined),
               label: const Text('Играть в Error Hunter'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () => context.push('/cloze-test'),
+              icon: const Icon(Icons.text_fields),
+              label: const Text('Заполни пропуск'),
             ),
           ],
         ),

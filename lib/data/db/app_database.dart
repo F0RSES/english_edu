@@ -5,11 +5,12 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v6: уровни CEFR (ADR-023).
+/// Schema v7: кэш заданий «Заполни пропуск» (ADR-025).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
-/// v6 — `words.level` и `user_settings.preferred_level`.
+/// v6 — `words.level` и `user_settings.preferred_level`,
+/// v7 — `cloze_tasks`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -21,6 +22,7 @@ part 'app_database.g.dart';
     DailyStatsTable,
     FrozenDays,
     WordHints,
+    ClozeTasks,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -31,7 +33,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,6 +58,9 @@ class AppDatabase extends _$AppDatabase {
         // DEFAULT 'a1' в DDL: старые строки получают A1, а не NULL.
         await m.addColumn(words, words.level);
         await m.addColumn(userSettingsTable, userSettingsTable.preferredLevel);
+      }
+      if (from < 7) {
+        await m.createTable(clozeTasks);
       }
     },
     // SQLite не проверяет внешние ключи, пока их не включат явно.

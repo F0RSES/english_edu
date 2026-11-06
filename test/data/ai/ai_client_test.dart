@@ -65,4 +65,31 @@ void main() {
 
     await expectLater(client.generate('hello'), throwsA(isA<AiException>()));
   });
+
+  test('generateCloze parses JSON and posts the cloze type', () async {
+    Object? capturedBody;
+    final client = AiClient(
+      MockClient((request) async {
+        capturedBody = jsonDecode(request.body);
+        return jsonResponse({
+          'sentence': 'I ___ apples every day.',
+          'answer': 'eat',
+        }, 200);
+      }),
+    );
+
+    final task = await client.generateCloze('eat');
+
+    expect(capturedBody, {'type': 'cloze_test', 'word': 'eat'});
+    expect(task.sentence, 'I ___ apples every day.');
+    expect(task.answer, 'eat');
+  });
+
+  test('generateCloze throws on a malformed payload', () async {
+    final client = AiClient(
+      MockClient((_) async => jsonResponse({'sentence': 'no answer'}, 200)),
+    );
+
+    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+  });
 }

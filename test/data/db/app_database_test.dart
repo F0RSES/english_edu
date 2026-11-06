@@ -82,6 +82,7 @@ void main() {
     await v3.customStatement(
       'ALTER TABLE user_settings DROP COLUMN preferred_level',
     );
+    await v3.customStatement('DROP TABLE cloze_tasks');
     await v3.customStatement('PRAGMA user_version = 3');
     await v3.close();
 
@@ -118,6 +119,7 @@ void main() {
     await v4.customStatement(
       'ALTER TABLE user_settings DROP COLUMN preferred_level',
     );
+    await v4.customStatement('DROP TABLE cloze_tasks');
     await v4.customStatement('PRAGMA user_version = 4');
     await v4.close();
 
@@ -158,6 +160,7 @@ void main() {
     await v5.customStatement(
       'ALTER TABLE user_settings DROP COLUMN preferred_level',
     );
+    await v5.customStatement('DROP TABLE cloze_tasks');
     await v5.customStatement('PRAGMA user_version = 5');
     await v5.close();
 
@@ -171,7 +174,36 @@ void main() {
     expect(settings.preferredLevel, 'a1');
   });
 
-  test('creates all seven tables on open', () async {
+  test('migration v6 to v7 creates the cloze_tasks table', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v7');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v6 = текущая схема без кэша заданий.
+    final v6 = AppDatabase.forTesting(NativeDatabase(file));
+    await v6
+        .into(v6.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'apple',
+            translation: 'яблоко',
+          ),
+        );
+    await v6.customStatement('DROP TABLE cloze_tasks');
+    await v6.customStatement('PRAGMA user_version = 6');
+    await v6.close();
+
+    final v7 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v7.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v7.select(v7.clozeTasks).get(), isEmpty);
+    // Данные v6 пережили миграцию.
+    expect((await v7.select(v7.words).get()).single.term, 'apple');
+  });
+
+  test('creates all eight tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -179,6 +211,7 @@ void main() {
     expect(await db.select(db.dailyStatsTable).get(), isEmpty);
     expect(await db.select(db.frozenDays).get(), isEmpty);
     expect(await db.select(db.wordHints).get(), isEmpty);
+    expect(await db.select(db.clozeTasks).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {
@@ -204,6 +237,7 @@ void main() {
     await v1.customStatement(
       'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
     );
+    await v1.customStatement('DROP TABLE cloze_tasks');
     await v1.customStatement('PRAGMA user_version = 1');
     await v1.close();
 
@@ -241,6 +275,7 @@ void main() {
     await v2.customStatement(
       'ALTER TABLE user_settings DROP COLUMN has_seen_onboarding',
     );
+    await v2.customStatement('DROP TABLE cloze_tasks');
     await v2.customStatement('PRAGMA user_version = 2');
     await v2.close();
 

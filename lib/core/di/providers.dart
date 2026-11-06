@@ -5,6 +5,7 @@ import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
+import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
@@ -18,6 +19,7 @@ import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
@@ -27,6 +29,7 @@ import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/services/cloud_auth_service.dart';
 import 'package:english_edu/domain/services/cloud_sync_service.dart';
+import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
@@ -34,6 +37,7 @@ import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
+import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/get_word_hint.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
@@ -102,6 +106,25 @@ final hintGeneratorProvider = Provider<HintGenerator>(
 /// Генератор заданий мини-игры; реализация — `AiClient` (Phase 8).
 final errorTaskGeneratorProvider = Provider<ErrorTaskGenerator>(
   (ref) => ref.watch(aiClientProvider),
+);
+
+/// Генератор заданий «Заполни пропуск»; реализация — `AiClient` (ADR-025).
+final clozeGeneratorProvider = Provider<ClozeGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Кэш заданий «Заполни пропуск» (ADR-025, schema v7).
+final clozeTaskRepositoryProvider = Provider<ClozeTaskRepository>(
+  (ref) => DriftClozeTaskRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Задание «Заполни пропуск»: кэш → AI → кэш (ADR-025).
+final getClozeTaskProvider = Provider<GetClozeTask>(
+  (ref) => GetClozeTask(
+    tasks: ref.watch(clozeTaskRepositoryProvider),
+    generator: ref.watch(clozeGeneratorProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 /// Хранилище AI-подсказок (ADR-019, schema v4).

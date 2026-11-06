@@ -67,6 +67,31 @@ class WordHints extends Table {
   Set<Column> get primaryKey => {wordId};
 }
 
+/// Кэш заданий «Заполни пропуск» (ADR-025): одна запись на слово.
+///
+/// Удаление слова удаляет и задание: пропуск без слова бессмыслен.
+@DataClassName('ClozeTaskRow')
+class ClozeTasks extends Table {
+  @override
+  String get tableName => 'cloze_tasks';
+
+  /// Слово, к которому относится задание.
+  IntColumn get wordId =>
+      integer().references(Words, #id, onDelete: KeyAction.cascade)();
+
+  /// Предложение с пропуском `___`.
+  TextColumn get sentence => text()();
+
+  /// Слово-ответ.
+  TextColumn get answer => text()();
+
+  /// Момент генерации, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+
+  @override
+  Set<Column> get primaryKey => {wordId};
+}
+
 /// Состояние изучения слова. Одна запись на слово, удаляется каскадом
 /// вместе со словом.
 @DataClassName('WordProgressRow')

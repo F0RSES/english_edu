@@ -7,6 +7,7 @@ import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
+import 'package:english_edu/data/repositories/drift_achievement_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
 import 'package:english_edu/data/repositories/drift_daily_challenge_repository.dart';
@@ -24,6 +25,7 @@ import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
 import 'package:english_edu/domain/repositories/daily_challenge_repository.dart';
@@ -42,6 +44,7 @@ import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/check_achievements.dart';
 import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/create_user_category.dart';
@@ -63,6 +66,7 @@ import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
+import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/daily_challenge.dart';
@@ -383,6 +387,7 @@ final recordReviewProvider = Provider<RecordReview>(
     nextLogId: ref.watch(nextReviewLogIdProvider),
     clock: ref.watch(clockProvider),
     challengeProgress: ref.watch(updateChallengeProgressProvider),
+    checkAchievements: ref.watch(checkAchievementsProvider),
   ),
 );
 
@@ -539,6 +544,29 @@ final class DictionarySearchQuery extends Notifier<String> {
   // ignore: use_setters_to_change_properties
   void update(String value) => state = value;
 }
+
+/// Хранилище достижений (ADR-035, schema v11).
+final achievementRepositoryProvider = Provider<AchievementRepository>(
+  (ref) => DriftAchievementRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Пересчёт достижений после ответа или награды (ADR-035).
+final checkAchievementsProvider = Provider<CheckAchievements>(
+  (ref) => CheckAchievements(
+    achievements: ref.watch(achievementRepositoryProvider),
+    stats: ref.watch(statsRepositoryProvider),
+    progress: ref.watch(progressRepositoryProvider),
+    frozen: ref.watch(frozenDaysRepositoryProvider),
+    challengeStreak: ref.watch(challengeStreakRepositoryProvider),
+    reviewLogs: ref.watch(reviewLogRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Достижения как async-данные экрана.
+final achievementsProvider = FutureProvider<List<Achievement>>(
+  (ref) => ref.watch(achievementRepositoryProvider).getAll(),
+);
 
 /// Хранилище категорий слов (ADR-034, schema v10).
 final userCategoryRepositoryProvider = Provider<UserCategoryRepository>(

@@ -5,13 +5,13 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v10: пользовательские категории слов (ADR-034).
+/// Schema v11: достижения (ADR-035).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
 /// v6 — `words.level` и `user_settings.preferred_level`,
 /// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
-/// v10 — `user_categories`.
+/// v10 — `user_categories`, v11 — `achievements`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -27,6 +27,7 @@ part 'app_database.g.dart';
     DailyChallenges,
     ChallengeStreaks,
     UserCategories,
+    Achievements,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -37,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -71,6 +72,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 9) {
         await m.createTable(challengeStreaks);
+      }
+      if (from < 11) {
+        await m.createTable(achievements);
       }
       if (from < 10) {
         await m.createTable(userCategories);

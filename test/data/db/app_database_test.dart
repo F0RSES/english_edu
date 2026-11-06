@@ -295,7 +295,23 @@ void main() {
     expect((await v10.select(v10.words).get()).single.term, 'apple');
   });
 
-  test('creates all eleven tables on open', () async {
+  test('migration v10 to v11 creates achievements', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_v11');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    final v10 = AppDatabase.forTesting(NativeDatabase(file));
+    await v10.customStatement('DROP TABLE achievements');
+    await v10.customStatement('PRAGMA user_version = 10');
+    await v10.close();
+
+    final v11 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v11.close);
+
+    expect(await v11.select(v11.achievements).get(), isEmpty);
+  });
+
+  test('creates all twelve tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -307,6 +323,7 @@ void main() {
     expect(await db.select(db.dailyChallenges).get(), isEmpty);
     expect(await db.select(db.challengeStreaks).get(), isEmpty);
     expect(await db.select(db.userCategories).get(), isEmpty);
+    expect(await db.select(db.achievements).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

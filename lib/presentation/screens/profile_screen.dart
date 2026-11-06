@@ -358,6 +358,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const Divider(),
             const _SectionHeader('Резервная копия'),
             ListTile(
+              leading: const Icon(Icons.emoji_events_outlined),
+              title: const Text('Достижения'),
+              subtitle: const Text('Серии, слова, идеальные ответы'),
+              onTap: () => context.push('/achievements'),
+            ),
+            const Divider(),
+            ListTile(
               leading: const Icon(Icons.category_outlined),
               title: const Text('Управление категориями'),
               subtitle: const Text('Создать свою категорию'),

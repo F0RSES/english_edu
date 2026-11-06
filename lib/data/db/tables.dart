@@ -381,3 +381,29 @@ class UserCategories extends Table {
   /// Момент создания, миллисекунды UTC.
   IntColumn get createdAtUtc => integer()();
 }
+
+/// Разблокированные достижения и прогресс по ним (Phase 18, ADR-035).
+///
+/// Ключ — строковый `AchievementType.key` (`streak_7`, `words_100`), а не
+/// числовой id: достижения приходят из кода, и порядок enum не должен влиять
+/// на данные (та же причина, что у `words.level`).
+@DataClassName('AchievementRow')
+class Achievements extends Table {
+  @override
+  String get tableName => 'achievements';
+
+  /// Ключ достижения из `AchievementType.key`.
+  TextColumn get id => text()();
+
+  /// Момент разблокировки, миллисекунды UTC; null — ещё не открыто.
+  IntColumn get unlockedAtUtc => integer().nullable()();
+
+  /// Текущий прогресс по метрике достижения.
+  IntColumn get progress => integer().withDefault(const Constant(0))();
+
+  /// Момент последнего пересчёта, миллисекунды UTC.
+  IntColumn get lastUpdatedAtUtc => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

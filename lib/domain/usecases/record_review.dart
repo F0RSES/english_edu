@@ -6,7 +6,9 @@ import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/check_achievements.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
+import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -42,7 +44,9 @@ final class RecordReview {
     required ReviewLogId Function() nextLogId,
     required DateTime Function() clock,
     required UpdateChallengeProgress challengeProgress,
+    CheckAchievements? checkAchievements,
   }) : _progress = progress,
+       _checkAchievements = checkAchievements,
        _reviewLog = reviewLog,
        _stats = stats,
        _words = words,
@@ -59,6 +63,7 @@ final class RecordReview {
   final ReviewLogId Function() _nextLogId;
   final DateTime Function() _clock;
   final UpdateChallengeProgress _challengeProgress;
+  final CheckAchievements? _checkAchievements;
 
   /// Records the answer of [grade] for [wordId].
   ///
@@ -102,10 +107,22 @@ final class RecordReview {
       isFirstResponse: existing == null,
     );
 
+    // Достижения — вспомогательный слой: сбой не откатывает записанный ответ.
+    var unlocked = const <Achievement>[];
+    final checker = _checkAchievements;
+    if (checker != null) {
+      try {
+        unlocked = await checker();
+      } on Object {
+        unlocked = const <Achievement>[];
+      }
+    }
+
     return ReviewOutcome(
       newCardState: next,
       xpGained: xpGained,
       isCorrect: isCorrect,
+      newlyUnlockedAchievements: unlocked,
     );
   }
 

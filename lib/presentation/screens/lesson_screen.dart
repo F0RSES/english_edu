@@ -6,6 +6,7 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_outcome.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
+import 'package:english_edu/presentation/widgets/achievement_toast.dart';
 import 'package:english_edu/presentation/widgets/session_summary.dart';
 import 'package:english_edu/presentation/widgets/swipe_card.dart';
 import 'package:english_edu/presentation/widgets/word_card.dart';
@@ -123,6 +124,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
             duration: const Duration(milliseconds: 800),
           ),
         );
+      // Достижения — поверх экрана: SnackBar внизу перекрыл бы кнопки.
+      for (final achievement in outcome.newlyUnlockedAchievements) {
+        AchievementToast.show(context, achievement);
+      }
       return true;
     } on Object catch (error, stack) {
       ref.read(loggerProvider).error('RecordReview failed', error, stack);

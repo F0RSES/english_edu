@@ -5152,6 +5152,340 @@ class UserCategoriesCompanion extends UpdateCompanion<UserCategoryRow> {
   }
 }
 
+class $AchievementsTable extends Achievements
+    with TableInfo<$AchievementsTable, AchievementRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AchievementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unlockedAtUtcMeta = const VerificationMeta(
+    'unlockedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> unlockedAtUtc = GeneratedColumn<int>(
+    'unlocked_at_utc',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _progressMeta = const VerificationMeta(
+    'progress',
+  );
+  @override
+  late final GeneratedColumn<int> progress = GeneratedColumn<int>(
+    'progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastUpdatedAtUtcMeta = const VerificationMeta(
+    'lastUpdatedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> lastUpdatedAtUtc = GeneratedColumn<int>(
+    'last_updated_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    unlockedAtUtc,
+    progress,
+    lastUpdatedAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'achievements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AchievementRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('unlocked_at_utc')) {
+      context.handle(
+        _unlockedAtUtcMeta,
+        unlockedAtUtc.isAcceptableOrUnknown(
+          data['unlocked_at_utc']!,
+          _unlockedAtUtcMeta,
+        ),
+      );
+    }
+    if (data.containsKey('progress')) {
+      context.handle(
+        _progressMeta,
+        progress.isAcceptableOrUnknown(data['progress']!, _progressMeta),
+      );
+    }
+    if (data.containsKey('last_updated_at_utc')) {
+      context.handle(
+        _lastUpdatedAtUtcMeta,
+        lastUpdatedAtUtc.isAcceptableOrUnknown(
+          data['last_updated_at_utc']!,
+          _lastUpdatedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastUpdatedAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AchievementRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AchievementRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      unlockedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}unlocked_at_utc'],
+      ),
+      progress: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress'],
+      )!,
+      lastUpdatedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_updated_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $AchievementsTable createAlias(String alias) {
+    return $AchievementsTable(attachedDatabase, alias);
+  }
+}
+
+class AchievementRow extends DataClass implements Insertable<AchievementRow> {
+  /// Ключ достижения из `AchievementType.key`.
+  final String id;
+
+  /// Момент разблокировки, миллисекунды UTC; null — ещё не открыто.
+  final int? unlockedAtUtc;
+
+  /// Текущий прогресс по метрике достижения.
+  final int progress;
+
+  /// Момент последнего пересчёта, миллисекунды UTC.
+  final int lastUpdatedAtUtc;
+  const AchievementRow({
+    required this.id,
+    this.unlockedAtUtc,
+    required this.progress,
+    required this.lastUpdatedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || unlockedAtUtc != null) {
+      map['unlocked_at_utc'] = Variable<int>(unlockedAtUtc);
+    }
+    map['progress'] = Variable<int>(progress);
+    map['last_updated_at_utc'] = Variable<int>(lastUpdatedAtUtc);
+    return map;
+  }
+
+  AchievementsCompanion toCompanion(bool nullToAbsent) {
+    return AchievementsCompanion(
+      id: Value(id),
+      unlockedAtUtc: unlockedAtUtc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unlockedAtUtc),
+      progress: Value(progress),
+      lastUpdatedAtUtc: Value(lastUpdatedAtUtc),
+    );
+  }
+
+  factory AchievementRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AchievementRow(
+      id: serializer.fromJson<String>(json['id']),
+      unlockedAtUtc: serializer.fromJson<int?>(json['unlockedAtUtc']),
+      progress: serializer.fromJson<int>(json['progress']),
+      lastUpdatedAtUtc: serializer.fromJson<int>(json['lastUpdatedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'unlockedAtUtc': serializer.toJson<int?>(unlockedAtUtc),
+      'progress': serializer.toJson<int>(progress),
+      'lastUpdatedAtUtc': serializer.toJson<int>(lastUpdatedAtUtc),
+    };
+  }
+
+  AchievementRow copyWith({
+    String? id,
+    Value<int?> unlockedAtUtc = const Value.absent(),
+    int? progress,
+    int? lastUpdatedAtUtc,
+  }) => AchievementRow(
+    id: id ?? this.id,
+    unlockedAtUtc: unlockedAtUtc.present
+        ? unlockedAtUtc.value
+        : this.unlockedAtUtc,
+    progress: progress ?? this.progress,
+    lastUpdatedAtUtc: lastUpdatedAtUtc ?? this.lastUpdatedAtUtc,
+  );
+  AchievementRow copyWithCompanion(AchievementsCompanion data) {
+    return AchievementRow(
+      id: data.id.present ? data.id.value : this.id,
+      unlockedAtUtc: data.unlockedAtUtc.present
+          ? data.unlockedAtUtc.value
+          : this.unlockedAtUtc,
+      progress: data.progress.present ? data.progress.value : this.progress,
+      lastUpdatedAtUtc: data.lastUpdatedAtUtc.present
+          ? data.lastUpdatedAtUtc.value
+          : this.lastUpdatedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AchievementRow(')
+          ..write('id: $id, ')
+          ..write('unlockedAtUtc: $unlockedAtUtc, ')
+          ..write('progress: $progress, ')
+          ..write('lastUpdatedAtUtc: $lastUpdatedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, unlockedAtUtc, progress, lastUpdatedAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AchievementRow &&
+          other.id == this.id &&
+          other.unlockedAtUtc == this.unlockedAtUtc &&
+          other.progress == this.progress &&
+          other.lastUpdatedAtUtc == this.lastUpdatedAtUtc);
+}
+
+class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
+  final Value<String> id;
+  final Value<int?> unlockedAtUtc;
+  final Value<int> progress;
+  final Value<int> lastUpdatedAtUtc;
+  final Value<int> rowid;
+  const AchievementsCompanion({
+    this.id = const Value.absent(),
+    this.unlockedAtUtc = const Value.absent(),
+    this.progress = const Value.absent(),
+    this.lastUpdatedAtUtc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AchievementsCompanion.insert({
+    required String id,
+    this.unlockedAtUtc = const Value.absent(),
+    this.progress = const Value.absent(),
+    required int lastUpdatedAtUtc,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       lastUpdatedAtUtc = Value(lastUpdatedAtUtc);
+  static Insertable<AchievementRow> custom({
+    Expression<String>? id,
+    Expression<int>? unlockedAtUtc,
+    Expression<int>? progress,
+    Expression<int>? lastUpdatedAtUtc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (unlockedAtUtc != null) 'unlocked_at_utc': unlockedAtUtc,
+      if (progress != null) 'progress': progress,
+      if (lastUpdatedAtUtc != null) 'last_updated_at_utc': lastUpdatedAtUtc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AchievementsCompanion copyWith({
+    Value<String>? id,
+    Value<int?>? unlockedAtUtc,
+    Value<int>? progress,
+    Value<int>? lastUpdatedAtUtc,
+    Value<int>? rowid,
+  }) {
+    return AchievementsCompanion(
+      id: id ?? this.id,
+      unlockedAtUtc: unlockedAtUtc ?? this.unlockedAtUtc,
+      progress: progress ?? this.progress,
+      lastUpdatedAtUtc: lastUpdatedAtUtc ?? this.lastUpdatedAtUtc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (unlockedAtUtc.present) {
+      map['unlocked_at_utc'] = Variable<int>(unlockedAtUtc.value);
+    }
+    if (progress.present) {
+      map['progress'] = Variable<int>(progress.value);
+    }
+    if (lastUpdatedAtUtc.present) {
+      map['last_updated_at_utc'] = Variable<int>(lastUpdatedAtUtc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AchievementsCompanion(')
+          ..write('id: $id, ')
+          ..write('unlockedAtUtc: $unlockedAtUtc, ')
+          ..write('progress: $progress, ')
+          ..write('lastUpdatedAtUtc: $lastUpdatedAtUtc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5173,6 +5507,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $UserCategoriesTable userCategories = $UserCategoriesTable(this);
+  late final $AchievementsTable achievements = $AchievementsTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -5209,6 +5544,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     dailyChallenges,
     challengeStreaks,
     userCategories,
+    achievements,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -8556,6 +8892,200 @@ typedef $$UserCategoriesTableProcessedTableManager =
       UserCategoryRow,
       PrefetchHooks Function()
     >;
+typedef $$AchievementsTableCreateCompanionBuilder =
+    AchievementsCompanion Function({
+      required String id,
+      Value<int?> unlockedAtUtc,
+      Value<int> progress,
+      required int lastUpdatedAtUtc,
+      Value<int> rowid,
+    });
+typedef $$AchievementsTableUpdateCompanionBuilder =
+    AchievementsCompanion Function({
+      Value<String> id,
+      Value<int?> unlockedAtUtc,
+      Value<int> progress,
+      Value<int> lastUpdatedAtUtc,
+      Value<int> rowid,
+    });
+
+class $$AchievementsTableFilterComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get unlockedAtUtc => $composableBuilder(
+    column: $table.unlockedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastUpdatedAtUtc => $composableBuilder(
+    column: $table.lastUpdatedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AchievementsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get unlockedAtUtc => $composableBuilder(
+    column: $table.unlockedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastUpdatedAtUtc => $composableBuilder(
+    column: $table.lastUpdatedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AchievementsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AchievementsTable> {
+  $$AchievementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get unlockedAtUtc => $composableBuilder(
+    column: $table.unlockedAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get progress =>
+      $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<int> get lastUpdatedAtUtc => $composableBuilder(
+    column: $table.lastUpdatedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$AchievementsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AchievementsTable,
+          AchievementRow,
+          $$AchievementsTableFilterComposer,
+          $$AchievementsTableOrderingComposer,
+          $$AchievementsTableAnnotationComposer,
+          $$AchievementsTableCreateCompanionBuilder,
+          $$AchievementsTableUpdateCompanionBuilder,
+          (
+            AchievementRow,
+            BaseReferences<_$AppDatabase, $AchievementsTable, AchievementRow>,
+          ),
+          AchievementRow,
+          PrefetchHooks Function()
+        > {
+  $$AchievementsTableTableManager(_$AppDatabase db, $AchievementsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AchievementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AchievementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AchievementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int?> unlockedAtUtc = const Value.absent(),
+                Value<int> progress = const Value.absent(),
+                Value<int> lastUpdatedAtUtc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AchievementsCompanion(
+                id: id,
+                unlockedAtUtc: unlockedAtUtc,
+                progress: progress,
+                lastUpdatedAtUtc: lastUpdatedAtUtc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<int?> unlockedAtUtc = const Value.absent(),
+                Value<int> progress = const Value.absent(),
+                required int lastUpdatedAtUtc,
+                Value<int> rowid = const Value.absent(),
+              }) => AchievementsCompanion.insert(
+                id: id,
+                unlockedAtUtc: unlockedAtUtc,
+                progress: progress,
+                lastUpdatedAtUtc: lastUpdatedAtUtc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AchievementsTable, AchievementRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AchievementsTable,
+                    AchievementRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AchievementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AchievementsTable,
+      AchievementRow,
+      $$AchievementsTableFilterComposer,
+      $$AchievementsTableOrderingComposer,
+      $$AchievementsTableAnnotationComposer,
+      $$AchievementsTableCreateCompanionBuilder,
+      $$AchievementsTableUpdateCompanionBuilder,
+      (
+        AchievementRow,
+        BaseReferences<_$AppDatabase, $AchievementsTable, AchievementRow>,
+      ),
+      AchievementRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8582,4 +9112,6 @@ class $AppDatabaseManager {
       $$ChallengeStreaksTableTableManager(_db, _db.challengeStreaks);
   $$UserCategoriesTableTableManager get userCategories =>
       $$UserCategoriesTableTableManager(_db, _db.userCategories);
+  $$AchievementsTableTableManager get achievements =>
+      $$AchievementsTableTableManager(_db, _db.achievements);
 }

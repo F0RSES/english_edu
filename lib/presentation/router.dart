@@ -60,6 +60,11 @@ final routerProvider = Provider<GoRouter>(
             _slideUpPage(state, const LessonScreen(mode: LessonMode.weak)),
       ),
       GoRoute(
+        path: '/smart-review',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const LessonScreen(mode: LessonMode.smart)),
+      ),
+      GoRoute(
         path: '/error-hunter',
         pageBuilder: (context, state) =>
             _fadeScalePage(state, const ErrorHunterScreen()),

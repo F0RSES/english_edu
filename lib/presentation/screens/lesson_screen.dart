@@ -26,6 +26,9 @@ enum LessonMode {
 
   /// Только проблемные слова: проваливали или просел ease (ADR-026).
   weak,
+
+  /// Ранжированное повторение по приоритету (ADR-033).
+  smart,
 }
 
 /// Экран урока: очередь карточек, оценка ответов, итоги.
@@ -55,9 +58,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     super.initState();
     // Очередь фиксируется на входе в урок: инвалидация провайдера во время
     // сессии не должна подменять карточки под пользователем.
-    _queue = widget.mode == LessonMode.weak
-        ? ref.read(weakWordsQueueProvider.future)
-        : ref.read(getTodayQueueProvider.future);
+    _queue = switch (widget.mode) {
+      LessonMode.normal => ref.read(getTodayQueueProvider.future),
+      LessonMode.weak => ref.read(weakWordsQueueProvider.future),
+      LessonMode.smart => ref.read(smartReviewTodayQueueProvider.future),
+    };
   }
 
   /// Сбрасывает кэш главного экрана: после ответов изменились серия, прогресс
@@ -75,6 +80,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       ..invalidate(computeStreakProvider)
       ..invalidate(getTodayQueueProvider)
       ..invalidate(weakWordsQueueProvider)
+      ..invalidate(smartReviewQueueProvider)
+      ..invalidate(smartReviewTodayQueueProvider)
       ..invalidate(dailyGoalProvider);
   }
 
@@ -154,9 +161,12 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     });
   }
 
-  /// Заголовок экрана: в режиме проблемных слов своя подпись.
-  String get _title =>
-      widget.mode == LessonMode.weak ? 'Сложные слова' : 'Урок';
+  /// Заголовок экрана: в режимах повторения своя подпись.
+  String get _title => switch (widget.mode) {
+    LessonMode.normal => 'Урок',
+    LessonMode.weak => 'Сложные слова',
+    LessonMode.smart => 'Умное повторение',
+  };
 
   /// Идёт ли сессия: есть ответы или уже показан итог.
   ///
@@ -240,11 +250,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           );
         }
         return _scaffold(
-          // В режиме сложных слов счётчик не показывается: заголовок задаёт
-          // режим, а прогресс виден по карточкам (ADR-026).
-          widget.mode == LessonMode.weak
-              ? _title
-              : '${_index + 1}/${words.length}',
+          // В режимах повторения счётчик не показывается: заголовок задаёт
+          // режим, а прогресс виден по карточкам (ADR-026, ADR-033).
+          widget.mode == LessonMode.normal
+              ? '${_index + 1}/${words.length}'
+              : _title,
           _card(words[_index], words.length),
         );
       },

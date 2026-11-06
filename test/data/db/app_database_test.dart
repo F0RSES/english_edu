@@ -203,7 +203,65 @@ void main() {
     expect((await v7.select(v7.words).get()).single.term, 'apple');
   });
 
-  test('creates all eight tables on open', () async {
+  test('migration v7 to v8 creates the daily_challenges table', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v8');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v7 = текущая схема без ежедневных заданий.
+    final v7 = AppDatabase.forTesting(NativeDatabase(file));
+    await v7
+        .into(v7.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'apple',
+            translation: 'яблоко',
+          ),
+        );
+    await v7.customStatement('DROP TABLE daily_challenges');
+    await v7.customStatement('PRAGMA user_version = 7');
+    await v7.close();
+
+    final v8 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v8.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v8.select(v8.dailyChallenges).get(), isEmpty);
+    // Данные v7 пережили миграцию.
+    expect((await v8.select(v8.words).get()).single.term, 'apple');
+  });
+
+  test('migration v8 to v9 creates challenge_streaks', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v9');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v8 = текущая схема без серии выполненных заданий.
+    final v8 = AppDatabase.forTesting(NativeDatabase(file));
+    await v8
+        .into(v8.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'apple',
+            translation: 'яблоко',
+          ),
+        );
+    await v8.customStatement('DROP TABLE challenge_streaks');
+    await v8.customStatement('PRAGMA user_version = 8');
+    await v8.close();
+
+    final v9 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v9.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v9.select(v9.challengeStreaks).get(), isEmpty);
+    // Данные v8 пережили миграцию.
+    expect((await v9.select(v9.words).get()).single.term, 'apple');
+  });
+
+  test('creates all ten tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -212,6 +270,8 @@ void main() {
     expect(await db.select(db.frozenDays).get(), isEmpty);
     expect(await db.select(db.wordHints).get(), isEmpty);
     expect(await db.select(db.clozeTasks).get(), isEmpty);
+    expect(await db.select(db.dailyChallenges).get(), isEmpty);
+    expect(await db.select(db.challengeStreaks).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

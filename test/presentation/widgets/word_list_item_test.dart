@@ -29,6 +29,33 @@ void main() {
     expect(find.text('/həˈləʊ/'), findsOneWidget);
   });
 
+  testWidgets('shows the part of speech next to the translation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const DictionaryEntry(
+          word: Word(
+            id: WordId(1),
+            term: 'apple',
+            translation: 'яблоко',
+            partOfSpeech: 'noun',
+          ),
+        ),
+      ),
+    );
+
+    // Часть речи отличает гомонимы друг от друга (ADR-031).
+    expect(find.text('яблоко (noun)'), findsOneWidget);
+  });
+
+  testWidgets('omits the part of speech when it is unknown', (tester) async {
+    await tester.pumpWidget(host(entry()));
+
+    expect(find.text('привет'), findsOneWidget);
+    expect(find.textContaining('('), findsNothing);
+  });
+
   testWidgets('marks a word without progress as new', (tester) async {
     await tester.pumpWidget(host(entry()));
 

@@ -136,6 +136,11 @@ Widget app({
             const Scaffold(body: Text('экран сложных слов')),
       ),
       GoRoute(
+        path: '/smart-review',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран умного повторения')),
+      ),
+      GoRoute(
         path: '/profile',
         builder: (context, state) =>
             const Scaffold(body: Text('экран профиля')),
@@ -298,5 +303,40 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('экран сложных слов'), findsOneWidget);
+  });
+
+  testWidgets('shows smart review button when count > 0', (tester) async {
+    await tester.pumpWidget(
+      app(words: [word(1)], progress: FakeProgressRepository([weak(1)])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Умное повторение (1)'), findsOneWidget);
+  });
+
+  testWidgets('hides smart review button when count == 0', (tester) async {
+    await tester.pumpWidget(
+      app(words: [word(1)], progress: FakeProgressRepository([fresh(1)])),
+    );
+    await tester.pumpAndSettle();
+
+    // Слово без провалов и с нормальным ease не приоритетно (ADR-033).
+    expect(find.textContaining('Умное повторение'), findsNothing);
+  });
+
+  testWidgets('tapping smart review navigates to /smart-review', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      app(words: [word(1)], progress: FakeProgressRepository([weak(1)])),
+    );
+    await tester.pumpAndSettle();
+
+    // Кнопка последняя в списке: до неё нужно доскроллить.
+    await tester.scrollUntilVisible(find.text('Умное повторение (1)'), 200);
+    await tester.tap(find.text('Умное повторение (1)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('экран умного повторения'), findsOneWidget);
   });
 }

@@ -112,13 +112,13 @@ Dart-код в документе не приводится: сигнатуры 
 | frozenDates | `Set<LocalDate>` | Даты, уже покрытые заморозкой |
 
 ### ExportPayload
-Снимок полного состояния для бэкапа. Не `const`: списки и множество копируются в unmodifiable. Валидация (поддерживаемые версии `1..4`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе. `ExportPayload.currentSchemaVersion = 4`.
+Снимок полного состояния для бэкапа. Не `const`: списки и множество копируются в unmodifiable. Валидация (поддерживаемые версии `1..5`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе. `ExportPayload.currentSchemaVersion = 5`.
 
 Версии снимка: v1 — базовая, v2 — `frozenDays`, v3 — `Word.category`, v4 — `Word.level` (ADR-023). Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null, `level` A1.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| schemaVersion | `int` | Версия схемы: 1–4 читаются, 5+ отклоняется |
+| schemaVersion | `int` | Версия схемы: 1–5 читаются, 6+ отклоняется |
 | exportedAt | `DateTime` | Момент снимка, UTC |
 | settings | `UserSettings` | Настройки на момент экспорта |
 | words | `List<Word>` | Словарь; `category` с v3, `level` с v4 |
@@ -193,8 +193,8 @@ Dart-код в документе не приводится: сигнатуры 
 |---|---|---|
 | GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | слова и прогресс сопоставляются по `wordId`: newWords — слова без прогресса или со статусом `newWord` **и уровнем не выше `settings.preferredLevel`** (ADR-023; порядок: `firstSeenAt` asc, затем слова без прогресса по `id`), due — прогресс с наступившим `dueAt` вне `newWord` (порядок: `dueAt` asc), **без фильтра по уровню** — начатое слово повторяется по SM-2; оба списка обрезаны `dailyNewLimit` / `dailyReviewLimit` |
 | RecordReview | `RecordReview({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required WordRepository words, required SrsCalculator srs, required ReviewLogId Function() nextLogId, required DateTime Function() clock})` → `Future<CardState>` | проверяет существование слова; создаёт или обновляет прогресс, пишет ReviewLog, поднимает DailyStats. Статус: mastered при `reps ≥ 5 && intervalDays ≥ 21` (Anki-style mature); `lapses` не блокирует — история провалов не мешает mastered. Иначе learning: после любого ответа слово уже видели, `newWord` только до первого ответа |
-| ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, frozen, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = ExportPayload.currentSchemaVersion` (2, есть `frozenDays`) |
-| ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats, frozen})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion in 1..2` и `exportedAt.isUtc`; порядок settings → words → progress → logs → stats → frozen; v1 приходит с пустыми заморозками; атомарность per-repo |
+| ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, frozen, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = ExportPayload.currentSchemaVersion` (5, есть `frozenDays` + `category` + `level` + `preferredLevel`) |
+| ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats, frozen})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion in 1..ExportPayload.currentSchemaVersion` (сейчас 1..5) и `exportedAt.isUtc`; порядок settings → words → progress → logs → stats → frozen; снимки старших версий читаются с дефолтами (`frozenDays` пустой, `category` null, `level` A1, `preferredLevel` A1); атомарность per-repo |
 | ComputeStreak | `ComputeStreak({required StatsRepository stats, required FrozenDaysRepository frozen, required DateTime Function() clock})` → `Future<StreakInfo>` | 3 запроса: `getLastActiveDate` + `getRange` + `FrozenDays.getAll`; локальная дата `clock().toLocal()`, окно `_lookbackDays = 3650`; замороженный день продолжает серию и входит в счёт; `frozenAvailable` — `StreakRule.frozenEarnedFor(count)` минус израсходованные, клампится в `[0, 2]` |
 | MarkMissedDay | `MarkMissedDay({required FrozenDaysRepository frozen})` → `Future<void>` | ставит заморозку на дату с причиной `missedDay`; вызывается из `bootstrapApp` для вчерашнего пропуска (ADR-015) |
 | ResetProgress | `ResetProgress({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required FrozenDaysRepository frozen})` → `Future<void>` | очищает прогресс → логи → статистику → заморозки; слова и настройки сохраняются (ADR-013, BL-51) |
@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v6 — семь таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023) — существующие таблицы и данные не пересоздаются.
+Схема v9 — десять таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -216,6 +216,9 @@ Dart-код в документе не приводится: сигнатуры 
 | `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
 | `frozen_days` | `FrozenDayRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`), схема v2 | нет |
 | `word_hints` | `WordHintRow` | `wordId` → `words.id` ON DELETE CASCADE, схема v4 | нет |
+| `cloze_tasks` | `ClozeTaskRow` | `wordId` (PK, FK → `words.id`) ON DELETE CASCADE; колонки `sentence`, `answer`, `createdAtUtc`; схема v7 | нет |
+| `daily_challenges` | `DailyChallengeRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`); колонки `goalType` (имя `DailyChallengeType`), `goalValue`, `progress`, `completedAtUtc`, `claimedAtUtc`, `xpReward`; схема v8 | нет |
+| `challenge_streaks` | `ChallengeStreakRow` | `id` + `CHECK (id = 1)`; колонки `currentStreak`, `bestStreak`, `lastCompletedDateEpochDays`, `updatedAtUtc`; схема v9 | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -223,7 +226,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 **`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
 
-**Версия схемы: 1.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+**Версия схемы: 9.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
 
 Инициализация из `assets/seed/` — 2a.2 (BL-29).
 
@@ -317,36 +320,58 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 
 ## File layout
 
-Текущее дерево после Flutter bootstrap (Phase 2a.0b):
+Текущее дерево (Phase 14):
 
-- `lib/main.dart` — точка входа, `ProviderScope` + `MaterialApp`
-- `lib/core/di/` — провайдеры зависимостей (пусто, 2a.3)
-- `lib/domain/entities/` — `word.dart`, `word_progress.dart`, `review_log.dart`, `user_settings.dart`, `daily_stats.dart`
-- `lib/domain/value_objects/` — `word_id.dart`, `review_log_id.dart`, `review_grade.dart`, `word_status.dart`, `local_date.dart`, `card_state.dart`, `streak_info.dart`, `today_queue.dart`, `export_payload.dart`
-- `lib/domain/repositories/` — `word_repository.dart`, `progress_repository.dart`, `review_log_repository.dart`, `settings_repository.dart`, `stats_repository.dart`
+- `lib/main.dart` — точка входа: `bootstrapApp` (crash reporting → seed → покрытие пропущенного дня → настройки → напоминания), `ProviderScope`, `MaterialApp.router`
+- `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `text/plural.dart`
+- `lib/core/di/providers.dart` — Riverpod-провайдеры (63), без codegen (BL-26)
+- `lib/domain/entities/` — 5 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`
+- `lib/domain/value_objects/` — 24 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`
+- `lib/domain/repositories/` — 10 контрактов репозиториев
+- `lib/domain/services/` — 5 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — `get_today_queue.dart`, `record_review.dart`, `export_progress.dart`, `import_progress.dart`, `compute_streak.dart`
-- `lib/data/db/` — Drift-схема (пусто, 2a.1)
-- `lib/data/repositories/` — реализации контрактов (пусто, 2a.1)
-- `lib/presentation/screens/`, `lib/presentation/widgets/` — UI (пусто, 2a.2)
-- `test/domain/` — тесты, зеркалящие структуру `lib/domain/`
-- `tools/` — `validate_seed*.dart`, `generate_seed.dart`
-- `assets/seed/` — seed-файлы контента
+- `lib/domain/usecases/` — 19 use case
+- `lib/data/db/` — Drift: 10 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v9, `app_database.g.dart` коммитится (ADR-008)
+- `lib/data/mappers/` — 6 мапперов domain↔data
+- `lib/data/repositories/` — 10 Drift-реализаций контрактов
+- `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
+- `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
+- `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
+- `lib/presentation/screens/` — 9 экранов; `lib/presentation/widgets/` — 13 виджетов
+- `lib/presentation/router.dart` — GoRouter, 10 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
+- `test/` — 89 файлов тестов, зеркалят структуру `lib/`
+- `tools/` — 3 скрипта + библиотека валидатора: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart`, `validate_seed_lib.dart`
+- `assets/seed/` — `words_v2.json` (2071 слово); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
 Правила: один публичный тип на файл, имена файлов в snake_case, импорт через полный путь пакета.
 
 ## Verification
 
-- `dart analyze` — ноль issues, ноль `// ignore`.
-- `dart test test/domain/` — зелёный.
-- Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. На 1.1 проверяется чтением импортов, с Phase 2a — линтером и CI.
-- Покрытие domain ≥ 80% — цель с момента появления реализаций (1.1b+); на 1.1 контракты тестами не покрываются.
-- `flutter analyze` и `flutter test` подключаются в Phase 2a вместе с Flutter SDK.
+- `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
+- `flutter test` — зелёный (643+ тестов на Phase 15a).
+- Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
+- Покрытие domain ≥ 80% — с момента появления реализаций.
+- `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).
 
 ## Non-goals
 
-- Cloud sync — прогресс живёт только на устройстве, сервера нет.
-- Accounts / auth — регистрации и входа нет, приложение локальное.
+- Cloud sync: Supabase (ADR-022). Opt-in, локальная БД — источник истины. Синхронизируется только `WordProgress`.
 - Multi-language — только пара en→ru, другие языки вне scope.
 - Web / desktop — только мобильные платформы.
 - AI-функции — Phase 8, post-launch, только через прокси.
+
+## История версий схемы
+
+Источник истины — `lib/data/db/app_database.dart` (`schemaVersion` + `onUpgrade`).
+
+| Версия | Что добавляет миграция | Решение |
+|---|---|---|
+| v1 | Базовая схема: `words`, `word_progresses`, `review_logs`, `user_settings`, `daily_stats` | ADR-002 |
+| v2 | `frozen_days` | ADR-015 |
+| v3 | `words.category` | BL-57 |
+| v4 | `word_hints` | ADR-019 |
+| v5 | `user_settings.has_seen_onboarding` | BL-61 |
+| v6 | `words.level`, `user_settings.preferred_level` (CEFR) | ADR-023 |
+| v7 | `cloze_tasks` | ADR-025 |
+| v8 | `daily_challenges` | ADR-030 |
+| v9 | `challenge_streaks` | ADR-032 |

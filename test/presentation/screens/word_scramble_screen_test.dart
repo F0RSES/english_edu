@@ -5,6 +5,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../core/fakes/fake_crash_reporter.dart';
+import '../../domain/usecases/fakes/fake_daily_challenge_repository.dart';
 import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_review_log_repository.dart';
@@ -62,6 +64,10 @@ final class _Harness {
           srs: const FakeSrsCalculator(),
           nextLogId: () => ReviewLogId(_nextId++),
           clock: () => DateTime.utc(2024, 5, 15, 12),
+          challengeProgress: UpdateChallengeProgress(
+            repo: FakeDailyChallengeRepository(),
+            clock: () => DateTime.utc(2024, 5, 15, 12),
+          ),
         ),
       ),
     ],

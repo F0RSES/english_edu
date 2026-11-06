@@ -4,7 +4,10 @@ import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/daily_challenge.dart';
+import 'package:english_edu/domain/value_objects/daily_challenge_type.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
@@ -13,6 +16,7 @@ import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/xp_rules.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_daily_challenge_repository.dart';
 import 'fakes/fake_progress_repository.dart';
 import 'fakes/fake_review_log_repository.dart';
 import 'fakes/fake_srs_calculator.dart';
@@ -49,10 +53,12 @@ final class Harness {
     List<WordProgress>? seedProgress,
     List<DailyStats>? seedStats,
     SrsCalculator? srs,
+    DailyChallenge? seedChallenge,
   }) : words = FakeWordRepository(seedWords ?? [word(1)]),
        progress = FakeProgressRepository(seedProgress ?? const []),
        stats = FakeStatsRepository(seedStats ?? const []),
-       srs = srs ?? const FakeSrsCalculator() {
+       srs = srs ?? const FakeSrsCalculator(),
+       challenges = FakeDailyChallengeRepository(seedChallenge) {
     useCase = RecordReview(
       progress: progress,
       reviewLog: logs,
@@ -61,6 +67,10 @@ final class Harness {
       srs: this.srs,
       nextLogId: () => ReviewLogId(logCounter++),
       clock: () => now,
+      challengeProgress: UpdateChallengeProgress(
+        repo: challenges,
+        clock: () => now,
+      ),
     );
   }
 
@@ -68,6 +78,7 @@ final class Harness {
 
   final FakeWordRepository words;
   final FakeProgressRepository progress;
+  final FakeDailyChallengeRepository challenges;
   final FakeStatsRepository stats;
   final FakeReviewLogRepository logs = FakeReviewLogRepository();
   final SrsCalculator srs;
@@ -383,6 +394,40 @@ void main() {
       expect(state.cardState.intervalDays, 22);
       expect(state.cardState.lapses, 2);
       expect(state.status, WordStatus.mastered);
+    });
+  });
+
+  group('daily challenge integration (ADR-030)', () {
+    DailyChallenge seededReview20({int progress = 0}) => DailyChallenge(
+      date: Harness.today,
+      goalType: DailyChallengeType.review20,
+      goalValue: DailyChallengeType.review20.goal,
+      progress: progress,
+      xpReward: DailyChallengeType.review20.xp,
+    );
+
+    test('updates challenge progress on review', () async {
+      final harness = Harness(seedChallenge: seededReview20());
+
+      await harness.useCase(const WordId(1), ReviewGrade.good);
+
+      final stored = await harness.challenges.getForDate(Harness.today);
+      expect(stored!.progress, 1);
+    });
+
+    test('challenge error does not rollback review', () async {
+      final harness = Harness(seedChallenge: seededReview20());
+      harness.challenges.throwOnGet = Exception('challenge storage broken');
+
+      final outcome = await harness.useCase(const WordId(1), ReviewGrade.good);
+
+      // Ответ записан полностью: сбой задания дня проглочен внутри
+      // UpdateChallengeProgress и не откатывает SRS.
+      expect(outcome.xpGained, XpRules.forGrade(ReviewGrade.good));
+      expect(
+        await harness.progress.getByWordId(const WordId(1)),
+        isNotNull,
+      );
     });
   });
 }

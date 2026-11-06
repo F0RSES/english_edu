@@ -7,7 +7,9 @@ import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
+import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
+import 'package:english_edu/data/repositories/drift_daily_challenge_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
@@ -21,7 +23,9 @@ import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
+import 'package:english_edu/domain/repositories/daily_challenge_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
@@ -36,12 +40,15 @@ import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
+import 'package:english_edu/domain/usecases/get_or_create_daily_challenge.dart';
+import 'package:english_edu/domain/usecases/get_smart_review_queue.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/get_word_hint.dart';
@@ -50,11 +57,16 @@ import 'package:english_edu/domain/usecases/mark_missed_day.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
+import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
+import 'package:english_edu/domain/value_objects/challenge_streak.dart';
+import 'package:english_edu/domain/value_objects/daily_challenge.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
+import 'package:english_edu/domain/value_objects/smart_review_item.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:flutter/services.dart';
@@ -259,6 +271,102 @@ final getTodayQueueProvider = FutureProvider<TodayQueue>(
   (ref) => ref.watch(getTodayQueueUseCaseProvider)(),
 );
 
+/// Хранилище ежедневных заданий (ADR-030, schema v8).
+final dailyChallengeRepositoryProvider = Provider<DailyChallengeRepository>(
+  (ref) => DriftDailyChallengeRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Задание дня: возвращает существующее или создаёт новое (ADR-030).
+final getOrCreateDailyChallengeProvider = Provider<GetOrCreateDailyChallenge>(
+  (ref) => GetOrCreateDailyChallenge(
+    repo: ref.watch(dailyChallengeRepositoryProvider),
+    clock: ref.watch(clockProvider),
+    // `Random()` без seed: тип задания должен меняться от дня ко дню.
+    random: Random(),
+  ),
+);
+
+/// Прогресс задания дня после ответа (ADR-030).
+final updateChallengeProgressProvider = Provider<UpdateChallengeProgress>(
+  (ref) => UpdateChallengeProgress(
+    repo: ref.watch(dailyChallengeRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Награда за выполненное задание дня (ADR-030).
+final claimDailyChallengeProvider = Provider<ClaimDailyChallenge>(
+  (ref) => ClaimDailyChallenge(
+    challenges: ref.watch(dailyChallengeRepositoryProvider),
+    stats: ref.watch(statsRepositoryProvider),
+    streaks: ref.watch(updateChallengeStreakProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Smart Review: ранжированная очередь повтора (ADR-033).
+final getSmartReviewQueueProvider = Provider<GetSmartReviewQueue>(
+  (ref) => GetSmartReviewQueue(
+    words: ref.watch(wordRepositoryProvider),
+    progress: ref.watch(progressRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Очередь умного повторения с причинами.
+final smartReviewQueueProvider = FutureProvider<List<SmartReviewItem>>(
+  (ref) => ref.watch(getSmartReviewQueueProvider)(),
+);
+
+/// Сколько слов попадёт в умное повторение — для бейджа на главной.
+final smartReviewCountProvider = FutureProvider<int>(
+  (ref) async => (await ref.watch(smartReviewQueueProvider.future)).length,
+);
+
+/// Умное повторение как очередь урока.
+///
+/// `LessonScreen` работает с `TodayQueue`, поэтому причины и score остаются
+/// в domain-провайдере, а экран получает привычный тип. `newWords` пуст: это
+/// режим повторения.
+final smartReviewTodayQueueProvider = FutureProvider<TodayQueue>((ref) async {
+  final items = await ref.watch(smartReviewQueueProvider.future);
+  return TodayQueue(
+    due: [for (final item in items) item.word],
+    newWords: const [],
+  );
+});
+
+/// Хранилище серии выполненных заданий (ADR-032, schema v9).
+final challengeStreakRepositoryProvider = Provider<ChallengeStreakRepository>(
+  (ref) => DriftChallengeStreakRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Обновление серии при выдаче награды (ADR-032).
+final updateChallengeStreakProvider = Provider<UpdateChallengeStreak>(
+  (ref) => UpdateChallengeStreak(
+    repo: ref.watch(challengeStreakRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Серия выполненных заданий как async-данные карточки.
+///
+/// Пустое хранилище отдаётся нулевой серией: бейджу нужно число, а не
+/// обработка null в виджете.
+final challengeStreakProvider = FutureProvider<ChallengeStreak>(
+  (ref) async =>
+      await ref.watch(challengeStreakRepositoryProvider).get() ??
+      ChallengeStreak.empty(DateTime.utc(1970)),
+);
+
+/// Задание дня как async-данные главного экрана.
+///
+/// `FutureProvider`, а не future из `build`: после награды `ref.invalidate`
+/// перечитывает задание, и карточка показывает «Выполнено».
+final dailyChallengeProvider = FutureProvider<DailyChallenge>(
+  (ref) => ref.watch(getOrCreateDailyChallengeProvider)(),
+);
+
 /// Запись ответа.
 final recordReviewProvider = Provider<RecordReview>(
   (ref) => RecordReview(
@@ -269,6 +377,7 @@ final recordReviewProvider = Provider<RecordReview>(
     srs: ref.watch(srsCalculatorProvider),
     nextLogId: ref.watch(nextReviewLogIdProvider),
     clock: ref.watch(clockProvider),
+    challengeProgress: ref.watch(updateChallengeProgressProvider),
   ),
 );
 

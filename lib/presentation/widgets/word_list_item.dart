@@ -25,7 +25,13 @@ class WordListItem extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(word.translation),
+            Text(
+              // Часть речи рядом с переводом: так гомонимы («яблоко (noun)» и
+              // «компания (proper noun)») различимы в списке (ADR-031).
+              word.partOfSpeech == null
+                  ? word.translation
+                  : '${word.translation} (${word.partOfSpeech})',
+            ),
             if (word.transcription != null)
               Text(
                 word.transcription!,

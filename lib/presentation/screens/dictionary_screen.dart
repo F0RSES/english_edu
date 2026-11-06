@@ -86,10 +86,11 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
 
   void _reload() => ref.invalidate(dictionaryEntriesProvider);
 
-  /// Открывает диалог добавления и сообщает итог (ADR-024).
+  /// Открывает диалог добавления и сообщает итог (ADR-031).
   ///
-  /// Дубликат не сохраняется: экран лишь говорит, что такое слово уже есть.
-  /// `null` — пользователь отменил, реакции нет.
+  /// Гомоним сохраняется как отдельная карточка, поэтому успешный исход один:
+  /// список перечитывается и показывается «Добавлено». `null` — пользователь
+  /// отменил, реакции нет.
   Future<void> _addWord() async {
     final outcome = await showDialog<AddWordOutcome>(
       context: context,
@@ -98,13 +99,8 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     if (!mounted || outcome == null) {
       return;
     }
-    switch (outcome) {
-      case AddWordOutcome.added:
-        ref.invalidate(dictionaryEntriesProvider);
-        _showMessage('Добавлено');
-      case AddWordOutcome.duplicate:
-        _showMessage('Слово уже есть в словаре');
-    }
+    ref.invalidate(dictionaryEntriesProvider);
+    _showMessage('Добавлено');
   }
 
   void _showMessage(String text) =>

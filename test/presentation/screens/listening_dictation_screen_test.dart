@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../core/fakes/fake_crash_reporter.dart';
 import '../../core/tts/fake_tts_service.dart';
+import '../../domain/usecases/fakes/fake_daily_challenge_repository.dart';
 import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_review_log_repository.dart';
@@ -74,6 +76,10 @@ final class Harness {
           srs: const FakeSrsCalculator(),
           nextLogId: () => ReviewLogId(_nextId++),
           clock: () => now,
+          challengeProgress: UpdateChallengeProgress(
+            repo: FakeDailyChallengeRepository(),
+            clock: () => now,
+          ),
         ),
       ),
     ],

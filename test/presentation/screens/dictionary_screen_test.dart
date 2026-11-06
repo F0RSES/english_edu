@@ -112,6 +112,35 @@ List<Word> leveledWords() => [
 ];
 
 void main() {
+  testWidgets('displays two words with same term if different senses', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        words: [
+          const Word(
+            id: WordId(1),
+            term: 'apple',
+            translation: 'яблоко',
+            partOfSpeech: 'noun',
+          ),
+          const Word(
+            id: WordId(2),
+            term: 'apple',
+            translation: 'компания',
+            partOfSpeech: 'noun',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Гомонимы видны оба, а часть речи отличает их друг от друга (ADR-031).
+    expect(find.text('apple'), findsNWidgets(2));
+    expect(find.text('яблоко (noun)'), findsOneWidget);
+    expect(find.text('компания (noun)'), findsOneWidget);
+  });
+
   testWidgets('shows every word on the all tab', (tester) async {
     await tester.pumpWidget(
       host(words: sampleWords(), progress: sampleProgress()),

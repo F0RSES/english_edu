@@ -5,10 +5,12 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/get_smart_review_queue.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -22,6 +24,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../core/fakes/fake_crash_reporter.dart';
+import '../domain/usecases/fakes/fake_daily_challenge_repository.dart';
 import '../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../domain/usecases/fakes/fake_progress_repository.dart';
 import '../domain/usecases/fakes/fake_review_log_repository.dart';
@@ -108,6 +111,13 @@ final class Harness {
       getWeakWordsQueueProvider.overrideWithValue(
         GetWeakWordsQueue(words: wordRepo, progress: progressRepo),
       ),
+      getSmartReviewQueueProvider.overrideWithValue(
+        GetSmartReviewQueue(
+          words: wordRepo,
+          progress: progressRepo,
+          clock: () => now,
+        ),
+      ),
       recordReviewProvider.overrideWithValue(
         RecordReview(
           progress: progressRepo,
@@ -117,6 +127,10 @@ final class Harness {
           srs: srs,
           nextLogId: () => ReviewLogId(_nextId++),
           clock: () => now,
+          challengeProgress: UpdateChallengeProgress(
+            repo: FakeDailyChallengeRepository(),
+            clock: () => now,
+          ),
         ),
       ),
       undoLastReviewProvider.overrideWithValue(
@@ -461,5 +475,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Сложные слова'), findsOneWidget);
+  });
+
+  testWidgets('smart mode uses the smart review queue', (tester) async {
+    final harness = Harness(words: [word(1)], progress: [weak(1)]);
+
+    await tester.pumpWidget(
+      harness.app(home: const LessonScreen(mode: LessonMode.smart)),
+    );
+    await tester.pumpAndSettle();
+
+    // Слово с провалами попало в ранжированную очередь, а не в очередь дня.
+    expect(find.text('term1'), findsOneWidget);
+  });
+
+  testWidgets('smart mode uses its own title', (tester) async {
+    final harness = Harness(words: [word(1)], progress: [weak(1)]);
+
+    await tester.pumpWidget(
+      harness.app(home: const LessonScreen(mode: LessonMode.smart)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Умное повторение'), findsOneWidget);
   });
 }

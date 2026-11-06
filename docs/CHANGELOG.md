@@ -7,6 +7,16 @@
 ## [Unreleased]
 
 ### Added
+- **Smart Review (Phase 15e, ADR-033, BL-70 закрыт):** `SmartReviewItem` (VO: слово + прогресс + score + причина), `GetSmartReviewQueue` (score = `lapses*10 + daysSinceReview + (2.5-ease)*20`, порог давности 7 дней, `maxItems=20`, `mastered` исключён, только чтение), провайдеры `getSmartReviewQueueProvider` / `smartReviewQueueProvider` / `smartReviewCountProvider` / `smartReviewTodayQueueProvider`, `LessonMode.smart` с заголовком «Умное повторение», маршрут `/smart-review`, фиолетовая кнопка «Умное повторение (N)» на главной.
+- ADR-033 «Smart Review», BL-78 (Smart Review v2 с `grade` из review log).
+- **Challenge Streak (Phase 15d, ADR-032, BL-75 закрыт):** таблица `challenge_streaks` (**schema v8 → v9**, singleton `CHECK (id = 1)`), VO `ChallengeStreak` (non-const, UTC-валидация), контракт `ChallengeStreakRepository` + `DriftChallengeStreakRepository`, use case `UpdateChallengeStreak` (пропуск дня → `current = 1`, `best` только растёт, шаг идемпотентен по дню), обновление серии в `ClaimDailyChallenge`, бейдж «Серия: N дней · Лучший: M» на `DailyChallengeCard`.
+- ADR-032 «Challenge Streak», BL-77 (достижения за серию 7/30/100, Phase 16).
+- **Гомонимы (Phase 15c, ADR-031, BL-69 закрыт):** `WordRepository.findAllByTerm` + `DriftWordRepository.findAllByTerm` (без `limit(1)`, показывает все senses одного термина); `AddWordDialog` при существующем `term` предлагает «Добавить ещё одно значение?» со списком переводов и частями речи и создаёт вторую карточку с новым `id`; `WordListItem` выводит `partOfSpeech` рядом с переводом. Схема БД не менялась (v8).
+- ADR-031 «Homonyms via duplicate terms», BL-76 (объединить senses в одной карточке, Phase 16).
+- **Daily Challenge (Phase 15b, ADR-030):** таблица `daily_challenges` (**schema v7 → v8**), `DailyChallengeType` (review20 / streak10 / new5 / noMistakes), VO `DailyChallenge` (non-const, UTC-валидация), контракт `DailyChallengeRepository` + `DriftDailyChallengeRepository`, use cases `GetOrCreateDailyChallenge`, `UpdateChallengeProgress`, `ClaimDailyChallenge`, виджет `DailyChallengeCard` на главном экране после `DailyGoalCard`. Прогресс двигается внутри `RecordReview` (все пути ответа: урок, weak, диктант, scramble); ошибка задания не откатывает ответ. Награда выдаётся use case'ом, XP пишется в `DailyStats`.
+- ADR-030 «Daily Challenge», BL-75 (Streak of challenges).
+- ADR-029 «UI dependencies»: `google_fonts`, `flutter_animate`, `smooth_page_indicator` зафиксированы решением (нарушение `40-forbidden.md` п.11 закрыто). Шрифты Inter работают офлайн — статические TTF в `assets/google_fonts/`, runtime fetching отключён.
+- BL-74 (P3, Phase 16): оценить Lottie для сложных анимаций (confetti при завершении сессии, transition между экранами).
 - `.gitignore` — артефакты сборки и IDE, `pubspec.lock` намеренно не игнорируется.
 - Seed-пайплайн: `assets/seed/words_v1.json` (20 слов), `tools/validate_seed_lib.dart`, `tools/validate_seed.dart`, `docs/SEED_FORMAT.md`, BL-21.
 - `tools/generate_seed.dart` — генератор контента через DeepSeek; `docs/LICENSE_CONTENT.md`; поле `autoTranslated`; BL-24, BL-25.
@@ -108,6 +118,12 @@
 - **BL-38 закрыт**, BL-53 (exact alarms, P3).
 
 ### Fixed
+- 15a-fix-3: остаточные дрейфы документации — раздел Verification в ARCHITECTURE (`dart analyze`/`dart test` → `flutter analyze`/`flutter test`), PROJECT_CONTEXT о миграциях (v1→v8, forward-only).
+- ADR-016: дата `2026-11-13` → `2026-11-06` (стояла впереди текущей даты и ломала хронологию реестра).
+- BACKLOG: BL-01/02/04/05/06/07 → `Done` — Phase 1–6 закрыты (теги `phase-1.1a.1` … `phase-6-mvp`).
+- PROJECT_CONTEXT: поле `## Phase` показывало «2 — Application shell» вместо фактической Phase 14.
+- ADR-023: утверждение «уровень не входит в export/import» противоречило ADR-005 v4/v5 и закрытым BL-67/BL-68.
+- ARCHITECTURE: раздел Data заявлял «схема v6 — семь таблиц» и «версия схемы: 1» при фактических v7 и восьми таблицах.
 - Очередь дня строилась только от `WordProgress`, поэтому слова без прогресса (seed и `AddWordDialog`) не попадали в сессию и экран показывал «на сегодня всё» при непустом словаре. `GetTodayQueue` теперь сопоставляет все слова с прогрессом: newWords = слова без прогресса или со статусом `newWord`, due = прогресс с наступившим `dueAt` вне `newWord`.
 - README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
 - Дубликаты слов: `apple` и `Apple` больше не две карточки, а импорт старого снимка с дублями проходит без нарушения внешнего ключа.
@@ -135,6 +151,11 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- `AddWordOutcome.duplicate` удалён: с ADR-031 исход «такое уже есть» недостижим (отмена выражается `null`), а `DictionaryScreen` больше не различает два успешных исхода — всегда «Добавлено».
+- ARCHITECTURE: раздел Verification приведён к Phase 14 — `flutter analyze` / `flutter test`, `bash scripts/ci.sh` как локальная проверка (format + analyze + test).
+- PROJECT_CONTEXT: миграции v1→v8 покрыты тестами, откат (даунгрейд) не поддерживается — БД forward-only.
+- ARCHITECTURE синхронизирован с кодом: схема **v7** и **восемь** таблиц (добавлена `cloze_tasks`), `ExportPayload.currentSchemaVersion = 5` (читаются 1–5), `Версия схемы: 7` в разделе Data, добавлен раздел «История версий схемы» (v1–v7).
+- ARCHITECTURE Non-goals: облако и аккаунты больше не заявлены как отсутствующие — Supabase (ADR-022) описан как opt-in, локальная БД — источник истины.
 - TTS: `flutter_tts 4.2.5` → `stts 1.3.4` (`SttsTtsService`, `ttsProvider`); скорость пересчитывается ×2 в rate платформы. Интерфейс `TtsService` не менялся. ADR-018, **BL-54 закрыт**; предупреждение сборки про Kotlin Gradle Plugin исчезло.
 - Android: `compileSdk = 36` литералом (было `flutter.compileSdkVersion`), включены `isCoreLibraryDesugaringEnabled` + `desugar_jdk_libs 2.1.4` и `multiDexEnabled`.
 - Манифест: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`); `SCHEDULE_EXACT_ALARM` намеренно не добавлен.

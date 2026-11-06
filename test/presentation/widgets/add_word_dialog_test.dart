@@ -138,9 +138,20 @@ void main() {
     expect((await repo.getAll()).single.level, CefrLevel.a1);
   });
 
-  testWidgets('shows error dialog when word already exists', (tester) async {
+  testWidgets('shows all existing senses when homonyms exist', (tester) async {
     final repo = FakeWordRepository([
-      const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+      const Word(
+        id: WordId(1),
+        term: 'apple',
+        translation: 'яблоко',
+        partOfSpeech: 'noun',
+      ),
+      const Word(
+        id: WordId(2),
+        term: 'apple',
+        translation: 'компания',
+        partOfSpeech: 'noun',
+      ),
     ]);
     await tester.pumpWidget(host(repo));
     await openDialog(tester);
@@ -150,46 +161,77 @@ void main() {
     await tester.tap(find.text('Добавить'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Слово уже есть'), findsOneWidget);
-    expect(find.textContaining('Перейти к нему?'), findsOneWidget);
+    expect(find.text('«apple» уже есть в словаре'), findsOneWidget);
+    expect(find.text('Существующие значения:'), findsOneWidget);
+    expect(find.text('• яблоко (noun)'), findsOneWidget);
+    expect(find.text('• компания (noun)'), findsOneWidget);
+    expect(find.text('Добавить ещё одно значение?'), findsOneWidget);
   });
 
-  testWidgets('does not save duplicate', (tester) async {
+  testWidgets('adds a second sense with a different id', (tester) async {
     final repo = FakeWordRepository([
-      const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
-    ]);
-    await tester.pumpWidget(host(repo));
-    await openDialog(tester);
-
-    await tester.enterText(find.byType(TextField).at(0), 'apple');
-    await tester.enterText(find.byType(TextField).at(1), 'яблоко');
-    await tester.tap(find.text('Добавить'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Перейти'));
-    await tester.pumpAndSettle();
-
-    expect(await repo.count(), 1);
-    expect(find.byType(AddWordDialog), findsNothing);
-  });
-
-  testWidgets('treats Apple and apple as duplicates', (tester) async {
-    final repo = FakeWordRepository([
-      const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+      const Word(
+        id: WordId(1),
+        term: 'apple',
+        translation: 'яблоко',
+        partOfSpeech: 'noun',
+      ),
     ]);
     await tester.pumpWidget(host(repo));
     await openDialog(tester);
 
     await tester.enterText(find.byType(TextField).at(0), 'Apple');
+    await tester.enterText(find.byType(TextField).at(1), 'компания');
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Добавить как новое'));
+    await tester.pumpAndSettle();
+
+    final all = await repo.getAll();
+    expect(all, hasLength(2));
+    expect(all.map((word) => word.term), everyElement('apple'));
+    expect(all.map((word) => word.id.value), containsAll([1, 2]));
+    expect(find.byType(AddWordDialog), findsNothing);
+  });
+
+  testWidgets('cancel prevents adding a homonym', (tester) async {
+    final repo = FakeWordRepository([
+      const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+    ]);
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'apple');
+    await tester.enterText(find.byType(TextField).at(1), 'компания');
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    // Две кнопки «Отмена»: в форме и в диалоге гомонима. Последняя — диалог.
+    await tester.tap(find.text('Отмена').last);
+    await tester.pumpAndSettle();
+
+    expect(await repo.count(), 1);
+    expect(find.byType(AddWordDialog), findsOneWidget);
+  });
+
+  testWidgets('does not show the homonym dialog when the term is new', (
+    tester,
+  ) async {
+    final repo = FakeWordRepository();
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'apple');
     await tester.enterText(find.byType(TextField).at(1), 'яблоко');
     await tester.tap(find.text('Добавить'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Слово уже есть'), findsOneWidget);
+    expect(find.textContaining('уже есть в словаре'), findsNothing);
     expect(await repo.count(), 1);
   });
 
-  testWidgets('cancelling the duplicate dialog keeps the form open', (
+  testWidgets('shows the homonym dialog for a single existing sense', (
     tester,
   ) async {
     final repo = FakeWordRepository([
@@ -199,16 +241,16 @@ void main() {
     await openDialog(tester);
 
     await tester.enterText(find.byType(TextField).at(0), 'apple');
-    await tester.enterText(find.byType(TextField).at(1), 'яблоко');
+    await tester.enterText(find.byType(TextField).at(1), 'компания');
     await tester.tap(find.text('Добавить'));
     await tester.pumpAndSettle();
 
-    // Две кнопки «Отмена»: в форме и в диалоге дубликата. Верхняя — диалог.
-    await tester.tap(find.text('Отмена').last);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(AddWordDialog), findsOneWidget);
-    expect(await repo.count(), 1);
+    expect(find.text('Добавить как новое'), findsOneWidget);
+    expect(
+      await repo.count(),
+      1,
+      reason: 'до подтверждения ничего не сохраняется',
+    );
   });
 
   testWidgets('trims whitespace before saving', (tester) async {

@@ -5,13 +5,13 @@
 
 | ID | Приоритет | Задача | Критерий приёмки | Статус |
 |---|---|---|---|---|
-| BL-01 | P0 | Phase 1 — Архитектура: слои, контракты domain, ADR-002 (Drift vs Isar) | ARCHITECTURE.md committed; lib/domain/ содержит контракты; dart analyze = 0; dart test test/domain/ зелёный | In progress |
-| BL-02 | P0 | Phase 1 — Контент-пайплайн: схема seed, скрипт валидации, 300–500 слов с лицензиями | Seed проходит валидацию без ошибок, у каждого слова есть источник и лицензия, объём в диапазоне 300–500 | In progress |
+| BL-01 | P0 | Phase 1 — Архитектура: слои, контракты domain, ADR-002 (Drift vs Isar) | ARCHITECTURE.md committed; lib/domain/ содержит контракты; dart analyze = 0; dart test test/domain/ зелёный | Done |
+| BL-02 | P0 | Phase 1 — Контент-пайплайн: схема seed, скрипт валидации, 300–500 слов с лицензиями | Seed проходит валидацию без ошибок, у каждого слова есть источник и лицензия, объём в диапазоне 300–500 | Done |
 | BL-03 | P0 | Phase 2 — Каркас + Drift schema v1 + миграции + репозитории + export/import JSON | Приложение запускается, схема v1 создаётся с нуля и мигрирует на тестовой базе, export→import возвращает идентичные данные | Done |
-| BL-04 | P0 | Phase 3 — Ядро: SM-2 + review log + due-очередь + LessonScreen + TTS + undo + session complete | Урок пишет review log, пересчитывает интервалы по SM-2 и завершается экраном итогов; undo возвращает предыдущее состояние карточки | In progress |
-| BL-05 | P0 | Phase 4 — DictionaryScreen + Settings + onboarding + empty states + daily goal | Новый пользователь проходит onboarding, видит словарь и настройки, у каждого пустого экрана есть empty state, дневная цель сохраняется и отображается | In progress |
-| BL-06 | P0 | Phase 5 — Streak (local TZ) + XP + локальные уведомления + accessibility | Streak считается по локальной полуночи и покрыт тестами на смену TZ, уведомление приходит в заданное локальное время, экраны проходят проверку screen reader | Todo |
-| BL-07 | P0 | Phase 6 — Бета: TestFlight/Internal Testing, Sentry, CI, smoke-тесты | Сборка уходит в TestFlight и Google Internal Testing, CI гоняет analyze и test на каждый PR, Sentry работает без PII, DSN только через --dart-define | Todo |
+| BL-04 | P0 | Phase 3 — Ядро: SM-2 + review log + due-очередь + LessonScreen + TTS + undo + session complete | Урок пишет review log, пересчитывает интервалы по SM-2 и завершается экраном итогов; undo возвращает предыдущее состояние карточки | Done |
+| BL-05 | P0 | Phase 4 — DictionaryScreen + Settings + onboarding + empty states + daily goal | Новый пользователь проходит onboarding, видит словарь и настройки, у каждого пустого экрана есть empty state, дневная цель сохраняется и отображается | Done |
+| BL-06 | P0 | Phase 5 — Streak (local TZ) + XP + локальные уведомления + accessibility | Streak считается по локальной полуночи и покрыт тестами на смену TZ, уведомление приходит в заданное локальное время, экраны проходят проверку screen reader | Done |
+| BL-07 | P0 | Phase 6 — Бета: TestFlight/Internal Testing, Sentry, CI, smoke-тесты | Сборка уходит в TestFlight и Google Internal Testing, CI гоняет analyze и test на каждый PR, Sentry работает без PII, DSN только через --dart-define | Done |
 | BL-08 | P1 | Phase 7 — Публикация: store listing, privacy policy, support email | Листинги опубликованы в обоих сторах, privacy policy доступна по публичному URL, support email отвечает | Todo |
 | BL-09 | P2 | Phase 8 — AI-прокси (post-launch) | AI-функции вызываются только через прокси, ключи отсутствуют в клиенте, решение зафиксировано отдельным ADR | Todo |
 | BL-10 | P2 | Phase 2 — переименовать PROJECT_CONTEXT/Known issues в Environment; вынести туда факты окружения | PROJECT_CONTEXT без Known issues; факты в Environment; analyze=0 | Todo |
@@ -69,10 +69,15 @@
 | BL-66 | P3 | Phase 13c — UI/text polish: типографика, переносы длинных слов в карточке, контраст в тёмной теме (бейдж уровня на `teal`/`lightGreen` фоне) | единый типографический масштаб, проверка контраста WCAG AA, golden-тесты на тёмную тему | Todo |
 | BL-67 | P2 | Export/import теряет `Word.level`: `ExportPayloadCodec` пишет поля до v3 включительно, уровень в снимке отсутствует | `level` в JSON снимка + round-trip тест, при необходимости payload schema v4 и ADR | Done |
 | BL-68 | P3 | Снимок v4 переносит `Word.level`, но не `UserSettings.preferredLevel`: после импорта на новом устройстве уровень пользователя откатывается к A1 | `preferredLevel` в `settings` снимка (payload v5) + тест на round-trip | Done |
-| BL-69 | P3 | Phase 14 — гомонимы: `apple` (яблоко) и `Apple` (компания) нельзя завести разными словами — `findByTerm` считает их одним (ADR-024) | `Word.senses` (список значений с переводом и примером), UI выбора значения, миграция схемы; UNIQUE-индекс по `term` | Todo |
-| BL-70 | P3 | Phase 15 — Smart review: очередь повторения выбирается алгоритмом (пропущенные дни, трудные слова, давно не виденные), а не только `dueAt` (ADR-026) | формула приоритета + тесты на порядок, настройка вкл/выкл | Todo |
+| BL-69 | P3 | Phase 14 — гомонимы: `apple` (яблоко) и `Apple` (компания) нельзя завести разными словами — `findByTerm` считает их одним (ADR-024) | ADR-031: разные `Word` с одним `term` и разными `id`; `findAllByTerm`; диалог «Добавить ещё одно значение»; `partOfSpeech` в UI. `Word.senses` и UNIQUE-индекс — BL-76 | Done |
+| BL-70 | P3 | Phase 15 — Smart review: очередь повторения выбирается алгоритмом (пропущенные дни, трудные слова, давно не виденные), а не только `dueAt` (ADR-026) | ADR-033: `SmartReviewItem` + `GetSmartReviewQueue` (score = lapses\*10 + давность + ease), `LessonMode.smart`, кнопка «Умное повторение (N)» на главной | Done |
 | BL-71 | P3 | Phase 15 — записывать `RecordReview` после игр Word Scramble / диктанта, чтобы ответы влияли на SRS | вызов `RecordReview` после сессии с градацией «верно / неверно», тест на изменение `dueAt` | Done |
 | BL-72 | P3 | Phase 15 — Error Hunter не пишет в SRS: игра про грамматику, а `RecordReview` меняет `dueAt` слова (ADR-028) | решить, что записывать: слово из задания или ничего, + тест | Todo |
+| BL-74 | P3 | Phase 16 — оценить Lottie для сложных анимаций (confetti при завершении сессии, transition между экранами) | ADR keep/replace по `flutter_animate`; perf-замер на устройстве; при отказе от Lottie — запись решения в ADR-029 | Todo |
+| BL-75 | P3 | Phase 16 — Streak of challenges (серия дней с выполненным ежедневным заданием) | ADR-032: таблица `challenge_streaks` (v9), `ChallengeStreak` + `UpdateChallengeStreak`, обновление при `ClaimDailyChallenge`, бейдж на карточке | Done |
+| BL-76 | P3 | Phase 16 — объединить гомонимы в одной карточке (`Word.senses: List<Translation>`) | миграция v9→v10, все экраны обновлены, экспорт переносит senses, тест на round-trip | Todo |
+| BL-77 | P3 | Phase 16 — достижения за challenge streak (7 / 30 / 100 дней) | набор достижений в domain + хранение разблокированных, UI-бейдж на карточке, тест на разблокировку и на повтор | Todo |
+| BL-78 | P3 | Phase 16 — Smart Review v2: учитывать `grade` из review log (`last grade = again` → boost) | join с `review_logs` в `GetSmartReviewQueue` (или отдельный репозиторный метод), тест на boost и на отсутствие лога | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

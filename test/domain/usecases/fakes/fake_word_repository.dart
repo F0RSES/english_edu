@@ -60,6 +60,18 @@ final class FakeWordRepository implements WordRepository {
   }
 
   @override
+  Future<List<Word>> findAllByTerm(String term) async {
+    final normalized = term.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return const [];
+    }
+    return [
+      for (final word in _byId.values)
+        if (word.term.trim().toLowerCase() == normalized) word,
+    ];
+  }
+
+  @override
   Future<List<Word>> search(String query) async {
     final needle = query.trim().toLowerCase();
     return [

@@ -170,4 +170,41 @@ void main() {
     // Подстрока не должна блокировать добавление другого слова.
     expect(await repo.findByTerm('apple'), isNull);
   });
+
+  test('findAllByTerm returns multiple if homonyms exist', () async {
+    await repo.insertMany([
+      const domain.Word(
+        id: WordId(1),
+        term: 'apple',
+        translation: 'яблоко',
+        partOfSpeech: 'noun',
+      ),
+      const domain.Word(
+        id: WordId(2),
+        term: 'apple',
+        translation: 'компания',
+        partOfSpeech: 'noun',
+      ),
+    ]);
+
+    final found = await repo.findAllByTerm('Apple');
+
+    expect(found, hasLength(2));
+    expect(found.map((word) => word.translation), containsAll(<String>[
+      'яблоко',
+      'компания',
+    ]));
+  });
+
+  test('findAllByTerm returns empty for missing', () async {
+    await repo.upsert(word(1, 'apple'));
+
+    expect(await repo.findAllByTerm('banana'), isEmpty);
+  });
+
+  test('findAllByTerm returns 1 for unique term', () async {
+    await repo.upsert(word(1, 'apple'));
+
+    expect(await repo.findAllByTerm('  APPLE  '), hasLength(1));
+  });
 }

@@ -40,6 +40,15 @@ abstract interface class WordRepository {
   /// Нужен, чтобы не создать вторую карточку для `apple` при вводе `Apple`.
   Future<Word?> findByTerm(String term);
 
+  /// Возвращает все слова с этим [term] (trim + нижний регистр).
+  ///
+  /// Нужен для гомонимов (ADR-031): `apple` — фрукт и `apple` — компания живут
+  /// разными карточками с разными id. Не путать с [findByTerm]: тот отдаёт одно
+  /// слово и используется проверками seed/import.
+  ///
+  /// Пустой список означает, что слова с таким term нет.
+  Future<List<Word>> findAllByTerm(String term);
+
   /// Returns words matching [query] by term or translation.
   ///
   /// Matching is a case-insensitive substring search over term OR

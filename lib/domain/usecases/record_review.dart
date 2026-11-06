@@ -6,6 +6,7 @@ import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -26,6 +27,10 @@ const _masteryIntervalDays = 21;
 /// Атомарность (progress + log + stats в одной транзакции) — ответственность
 /// реализации репозитория в Phase 2. Use case не транзакционный: каждый вызов
 /// выполняется отдельно.
+///
+/// После основной записи двигает прогресс ежедневного задания (ADR-030).
+/// Сбой этого шага не меняет исход ответа: `UpdateChallengeProgress` не
+/// бросает наружу.
 final class RecordReview {
   /// Creates the use case.
   const RecordReview({
@@ -36,13 +41,15 @@ final class RecordReview {
     required SrsCalculator srs,
     required ReviewLogId Function() nextLogId,
     required DateTime Function() clock,
+    required UpdateChallengeProgress challengeProgress,
   }) : _progress = progress,
        _reviewLog = reviewLog,
        _stats = stats,
        _words = words,
        _srs = srs,
        _nextLogId = nextLogId,
-       _clock = clock;
+       _clock = clock,
+       _challengeProgress = challengeProgress;
 
   final ProgressRepository _progress;
   final ReviewLogRepository _reviewLog;
@@ -51,6 +58,7 @@ final class RecordReview {
   final SrsCalculator _srs;
   final ReviewLogId Function() _nextLogId;
   final DateTime Function() _clock;
+  final UpdateChallengeProgress _challengeProgress;
 
   /// Records the answer of [grade] for [wordId].
   ///
@@ -86,6 +94,14 @@ final class RecordReview {
     final xpGained = XpRules.forGrade(grade);
     final isCorrect = XpRules.isCorrect(grade);
     await _bumpStats(now, xpGained, isCorrect);
+
+    // Задание дня двигается после основной записи: слово уже отвечено, лог и
+    // статистика записаны. `existing == null` — первый ответ по слову (new5).
+    await _challengeProgress(
+      grade: grade,
+      isFirstResponse: existing == null,
+    );
+
     return ReviewOutcome(
       newCardState: next,
       xpGained: xpGained,

@@ -292,3 +292,69 @@ class FrozenDays extends Table {
   @override
   Set<Column> get primaryKey => {dateEpochDays};
 }
+
+/// Ежедневное задание (Phase 15b, ADR-030). Одна запись на локальный день.
+///
+/// Тип хранится именем значения enum (`review20`, `streak10`, `new5`,
+/// `noMistakes`), а не индексом: порядок значений в коде может измениться, и
+/// числовой снимок стал бы неоднозначным (та же причина, что у `words.level`).
+@DataClassName('DailyChallengeRow')
+class DailyChallenges extends Table {
+  @override
+  String get tableName => 'daily_challenges';
+
+  /// День в локальной TZ как число дней от эпохи.
+  IntColumn get dateEpochDays => integer()();
+
+  /// Тип задания: имя значения `DailyChallengeType`.
+  TextColumn get goalType => text()();
+
+  /// Сколько единиц нужно набрать.
+  IntColumn get goalValue => integer()();
+
+  /// Текущий прогресс. Может уменьшаться: серийные задания сбрасываются.
+  IntColumn get progress => integer().withDefault(const Constant(0))();
+
+  /// Момент выполнения, миллисекунды UTC; null — ещё не выполнено.
+  IntColumn get completedAtUtc => integer().nullable()();
+
+  /// Момент получения награды, миллисекунды UTC; null — не забрана.
+  IntColumn get claimedAtUtc => integer().nullable()();
+
+  /// Сколько XP начисляется за награду.
+  IntColumn get xpReward => integer()();
+
+  @override
+  Set<Column> get primaryKey => {dateEpochDays};
+}
+
+/// Серия дней с выполненным ежедневным заданием (Phase 15d, ADR-032).
+///
+/// Синглтон: серия одна на устройство, поэтому `CHECK (id = 1)` отвергает
+/// вторую строку на уровне SQLite (как у `user_settings`).
+@DataClassName('ChallengeStreakRow')
+class ChallengeStreaks extends Table {
+  @override
+  String get tableName => 'challenge_streaks';
+
+  /// Всегда 1 — синглтон обеспечивается CHECK-констрейнтом.
+  IntColumn get id => integer()();
+
+  /// Текущая серия дней подряд.
+  IntColumn get currentStreak => integer().withDefault(const Constant(0))();
+
+  /// Лучшая серия за всё время; не уменьшается.
+  IntColumn get bestStreak => integer().withDefault(const Constant(0))();
+
+  /// День последнего выполненного задания; null — ещё ни одного.
+  IntColumn get lastCompletedDateEpochDays => integer().nullable()();
+
+  /// Момент последнего изменения, миллисекунды UTC.
+  IntColumn get updatedAtUtc => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => ['CHECK (id = 1)'];
+}

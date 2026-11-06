@@ -85,6 +85,22 @@ final class DriftWordRepository implements WordRepository {
     return row == null ? null : WordMapper.toDomain(row);
   }
 
+  /// Все слова с тем же term (ADR-031).
+  ///
+  /// Без `limit(1)`: гомонимы — это несколько строк с одинаковым term и
+  /// разными id, и диалог добавления должен показать их все.
+  @override
+  Future<List<domain.Word>> findAllByTerm(String term) async {
+    final normalized = term.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return const [];
+    }
+    final rows = await (_db.select(
+      _db.words,
+    )..where((t) => t.term.equals(normalized))).get();
+    return rows.map(WordMapper.toDomain).toList();
+  }
+
   /// Ищет по term ИЛИ translation без учёта регистра.
   ///
   /// Фильтрация в Dart, а не в SQL: `LIKE` в SQLite регистронезависим только

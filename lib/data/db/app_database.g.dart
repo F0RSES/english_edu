@@ -3963,6 +3963,883 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
   }
 }
 
+class $DailyChallengesTable extends DailyChallenges
+    with TableInfo<$DailyChallengesTable, DailyChallengeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyChallengesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dateEpochDaysMeta = const VerificationMeta(
+    'dateEpochDays',
+  );
+  @override
+  late final GeneratedColumn<int> dateEpochDays = GeneratedColumn<int>(
+    'date_epoch_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _goalTypeMeta = const VerificationMeta(
+    'goalType',
+  );
+  @override
+  late final GeneratedColumn<String> goalType = GeneratedColumn<String>(
+    'goal_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _goalValueMeta = const VerificationMeta(
+    'goalValue',
+  );
+  @override
+  late final GeneratedColumn<int> goalValue = GeneratedColumn<int>(
+    'goal_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressMeta = const VerificationMeta(
+    'progress',
+  );
+  @override
+  late final GeneratedColumn<int> progress = GeneratedColumn<int>(
+    'progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _completedAtUtcMeta = const VerificationMeta(
+    'completedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> completedAtUtc = GeneratedColumn<int>(
+    'completed_at_utc',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _claimedAtUtcMeta = const VerificationMeta(
+    'claimedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> claimedAtUtc = GeneratedColumn<int>(
+    'claimed_at_utc',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _xpRewardMeta = const VerificationMeta(
+    'xpReward',
+  );
+  @override
+  late final GeneratedColumn<int> xpReward = GeneratedColumn<int>(
+    'xp_reward',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    dateEpochDays,
+    goalType,
+    goalValue,
+    progress,
+    completedAtUtc,
+    claimedAtUtc,
+    xpReward,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_challenges';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyChallengeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('date_epoch_days')) {
+      context.handle(
+        _dateEpochDaysMeta,
+        dateEpochDays.isAcceptableOrUnknown(
+          data['date_epoch_days']!,
+          _dateEpochDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('goal_type')) {
+      context.handle(
+        _goalTypeMeta,
+        goalType.isAcceptableOrUnknown(data['goal_type']!, _goalTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_goalTypeMeta);
+    }
+    if (data.containsKey('goal_value')) {
+      context.handle(
+        _goalValueMeta,
+        goalValue.isAcceptableOrUnknown(data['goal_value']!, _goalValueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_goalValueMeta);
+    }
+    if (data.containsKey('progress')) {
+      context.handle(
+        _progressMeta,
+        progress.isAcceptableOrUnknown(data['progress']!, _progressMeta),
+      );
+    }
+    if (data.containsKey('completed_at_utc')) {
+      context.handle(
+        _completedAtUtcMeta,
+        completedAtUtc.isAcceptableOrUnknown(
+          data['completed_at_utc']!,
+          _completedAtUtcMeta,
+        ),
+      );
+    }
+    if (data.containsKey('claimed_at_utc')) {
+      context.handle(
+        _claimedAtUtcMeta,
+        claimedAtUtc.isAcceptableOrUnknown(
+          data['claimed_at_utc']!,
+          _claimedAtUtcMeta,
+        ),
+      );
+    }
+    if (data.containsKey('xp_reward')) {
+      context.handle(
+        _xpRewardMeta,
+        xpReward.isAcceptableOrUnknown(data['xp_reward']!, _xpRewardMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_xpRewardMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dateEpochDays};
+  @override
+  DailyChallengeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyChallengeRow(
+      dateEpochDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}date_epoch_days'],
+      )!,
+      goalType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}goal_type'],
+      )!,
+      goalValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}goal_value'],
+      )!,
+      progress: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}progress'],
+      )!,
+      completedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}completed_at_utc'],
+      ),
+      claimedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}claimed_at_utc'],
+      ),
+      xpReward: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp_reward'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyChallengesTable createAlias(String alias) {
+    return $DailyChallengesTable(attachedDatabase, alias);
+  }
+}
+
+class DailyChallengeRow extends DataClass
+    implements Insertable<DailyChallengeRow> {
+  /// День в локальной TZ как число дней от эпохи.
+  final int dateEpochDays;
+
+  /// Тип задания: имя значения `DailyChallengeType`.
+  final String goalType;
+
+  /// Сколько единиц нужно набрать.
+  final int goalValue;
+
+  /// Текущий прогресс. Может уменьшаться: серийные задания сбрасываются.
+  final int progress;
+
+  /// Момент выполнения, миллисекунды UTC; null — ещё не выполнено.
+  final int? completedAtUtc;
+
+  /// Момент получения награды, миллисекунды UTC; null — не забрана.
+  final int? claimedAtUtc;
+
+  /// Сколько XP начисляется за награду.
+  final int xpReward;
+  const DailyChallengeRow({
+    required this.dateEpochDays,
+    required this.goalType,
+    required this.goalValue,
+    required this.progress,
+    this.completedAtUtc,
+    this.claimedAtUtc,
+    required this.xpReward,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['date_epoch_days'] = Variable<int>(dateEpochDays);
+    map['goal_type'] = Variable<String>(goalType);
+    map['goal_value'] = Variable<int>(goalValue);
+    map['progress'] = Variable<int>(progress);
+    if (!nullToAbsent || completedAtUtc != null) {
+      map['completed_at_utc'] = Variable<int>(completedAtUtc);
+    }
+    if (!nullToAbsent || claimedAtUtc != null) {
+      map['claimed_at_utc'] = Variable<int>(claimedAtUtc);
+    }
+    map['xp_reward'] = Variable<int>(xpReward);
+    return map;
+  }
+
+  DailyChallengesCompanion toCompanion(bool nullToAbsent) {
+    return DailyChallengesCompanion(
+      dateEpochDays: Value(dateEpochDays),
+      goalType: Value(goalType),
+      goalValue: Value(goalValue),
+      progress: Value(progress),
+      completedAtUtc: completedAtUtc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAtUtc),
+      claimedAtUtc: claimedAtUtc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(claimedAtUtc),
+      xpReward: Value(xpReward),
+    );
+  }
+
+  factory DailyChallengeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyChallengeRow(
+      dateEpochDays: serializer.fromJson<int>(json['dateEpochDays']),
+      goalType: serializer.fromJson<String>(json['goalType']),
+      goalValue: serializer.fromJson<int>(json['goalValue']),
+      progress: serializer.fromJson<int>(json['progress']),
+      completedAtUtc: serializer.fromJson<int?>(json['completedAtUtc']),
+      claimedAtUtc: serializer.fromJson<int?>(json['claimedAtUtc']),
+      xpReward: serializer.fromJson<int>(json['xpReward']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dateEpochDays': serializer.toJson<int>(dateEpochDays),
+      'goalType': serializer.toJson<String>(goalType),
+      'goalValue': serializer.toJson<int>(goalValue),
+      'progress': serializer.toJson<int>(progress),
+      'completedAtUtc': serializer.toJson<int?>(completedAtUtc),
+      'claimedAtUtc': serializer.toJson<int?>(claimedAtUtc),
+      'xpReward': serializer.toJson<int>(xpReward),
+    };
+  }
+
+  DailyChallengeRow copyWith({
+    int? dateEpochDays,
+    String? goalType,
+    int? goalValue,
+    int? progress,
+    Value<int?> completedAtUtc = const Value.absent(),
+    Value<int?> claimedAtUtc = const Value.absent(),
+    int? xpReward,
+  }) => DailyChallengeRow(
+    dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+    goalType: goalType ?? this.goalType,
+    goalValue: goalValue ?? this.goalValue,
+    progress: progress ?? this.progress,
+    completedAtUtc: completedAtUtc.present
+        ? completedAtUtc.value
+        : this.completedAtUtc,
+    claimedAtUtc: claimedAtUtc.present ? claimedAtUtc.value : this.claimedAtUtc,
+    xpReward: xpReward ?? this.xpReward,
+  );
+  DailyChallengeRow copyWithCompanion(DailyChallengesCompanion data) {
+    return DailyChallengeRow(
+      dateEpochDays: data.dateEpochDays.present
+          ? data.dateEpochDays.value
+          : this.dateEpochDays,
+      goalType: data.goalType.present ? data.goalType.value : this.goalType,
+      goalValue: data.goalValue.present ? data.goalValue.value : this.goalValue,
+      progress: data.progress.present ? data.progress.value : this.progress,
+      completedAtUtc: data.completedAtUtc.present
+          ? data.completedAtUtc.value
+          : this.completedAtUtc,
+      claimedAtUtc: data.claimedAtUtc.present
+          ? data.claimedAtUtc.value
+          : this.claimedAtUtc,
+      xpReward: data.xpReward.present ? data.xpReward.value : this.xpReward,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyChallengeRow(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('goalType: $goalType, ')
+          ..write('goalValue: $goalValue, ')
+          ..write('progress: $progress, ')
+          ..write('completedAtUtc: $completedAtUtc, ')
+          ..write('claimedAtUtc: $claimedAtUtc, ')
+          ..write('xpReward: $xpReward')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    dateEpochDays,
+    goalType,
+    goalValue,
+    progress,
+    completedAtUtc,
+    claimedAtUtc,
+    xpReward,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyChallengeRow &&
+          other.dateEpochDays == this.dateEpochDays &&
+          other.goalType == this.goalType &&
+          other.goalValue == this.goalValue &&
+          other.progress == this.progress &&
+          other.completedAtUtc == this.completedAtUtc &&
+          other.claimedAtUtc == this.claimedAtUtc &&
+          other.xpReward == this.xpReward);
+}
+
+class DailyChallengesCompanion extends UpdateCompanion<DailyChallengeRow> {
+  final Value<int> dateEpochDays;
+  final Value<String> goalType;
+  final Value<int> goalValue;
+  final Value<int> progress;
+  final Value<int?> completedAtUtc;
+  final Value<int?> claimedAtUtc;
+  final Value<int> xpReward;
+  const DailyChallengesCompanion({
+    this.dateEpochDays = const Value.absent(),
+    this.goalType = const Value.absent(),
+    this.goalValue = const Value.absent(),
+    this.progress = const Value.absent(),
+    this.completedAtUtc = const Value.absent(),
+    this.claimedAtUtc = const Value.absent(),
+    this.xpReward = const Value.absent(),
+  });
+  DailyChallengesCompanion.insert({
+    this.dateEpochDays = const Value.absent(),
+    required String goalType,
+    required int goalValue,
+    this.progress = const Value.absent(),
+    this.completedAtUtc = const Value.absent(),
+    this.claimedAtUtc = const Value.absent(),
+    required int xpReward,
+  }) : goalType = Value(goalType),
+       goalValue = Value(goalValue),
+       xpReward = Value(xpReward);
+  static Insertable<DailyChallengeRow> custom({
+    Expression<int>? dateEpochDays,
+    Expression<String>? goalType,
+    Expression<int>? goalValue,
+    Expression<int>? progress,
+    Expression<int>? completedAtUtc,
+    Expression<int>? claimedAtUtc,
+    Expression<int>? xpReward,
+  }) {
+    return RawValuesInsertable({
+      if (dateEpochDays != null) 'date_epoch_days': dateEpochDays,
+      if (goalType != null) 'goal_type': goalType,
+      if (goalValue != null) 'goal_value': goalValue,
+      if (progress != null) 'progress': progress,
+      if (completedAtUtc != null) 'completed_at_utc': completedAtUtc,
+      if (claimedAtUtc != null) 'claimed_at_utc': claimedAtUtc,
+      if (xpReward != null) 'xp_reward': xpReward,
+    });
+  }
+
+  DailyChallengesCompanion copyWith({
+    Value<int>? dateEpochDays,
+    Value<String>? goalType,
+    Value<int>? goalValue,
+    Value<int>? progress,
+    Value<int?>? completedAtUtc,
+    Value<int?>? claimedAtUtc,
+    Value<int>? xpReward,
+  }) {
+    return DailyChallengesCompanion(
+      dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+      goalType: goalType ?? this.goalType,
+      goalValue: goalValue ?? this.goalValue,
+      progress: progress ?? this.progress,
+      completedAtUtc: completedAtUtc ?? this.completedAtUtc,
+      claimedAtUtc: claimedAtUtc ?? this.claimedAtUtc,
+      xpReward: xpReward ?? this.xpReward,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dateEpochDays.present) {
+      map['date_epoch_days'] = Variable<int>(dateEpochDays.value);
+    }
+    if (goalType.present) {
+      map['goal_type'] = Variable<String>(goalType.value);
+    }
+    if (goalValue.present) {
+      map['goal_value'] = Variable<int>(goalValue.value);
+    }
+    if (progress.present) {
+      map['progress'] = Variable<int>(progress.value);
+    }
+    if (completedAtUtc.present) {
+      map['completed_at_utc'] = Variable<int>(completedAtUtc.value);
+    }
+    if (claimedAtUtc.present) {
+      map['claimed_at_utc'] = Variable<int>(claimedAtUtc.value);
+    }
+    if (xpReward.present) {
+      map['xp_reward'] = Variable<int>(xpReward.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyChallengesCompanion(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('goalType: $goalType, ')
+          ..write('goalValue: $goalValue, ')
+          ..write('progress: $progress, ')
+          ..write('completedAtUtc: $completedAtUtc, ')
+          ..write('claimedAtUtc: $claimedAtUtc, ')
+          ..write('xpReward: $xpReward')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChallengeStreaksTable extends ChallengeStreaks
+    with TableInfo<$ChallengeStreaksTable, ChallengeStreakRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChallengeStreaksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentStreakMeta = const VerificationMeta(
+    'currentStreak',
+  );
+  @override
+  late final GeneratedColumn<int> currentStreak = GeneratedColumn<int>(
+    'current_streak',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _bestStreakMeta = const VerificationMeta(
+    'bestStreak',
+  );
+  @override
+  late final GeneratedColumn<int> bestStreak = GeneratedColumn<int>(
+    'best_streak',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastCompletedDateEpochDaysMeta =
+      const VerificationMeta('lastCompletedDateEpochDays');
+  @override
+  late final GeneratedColumn<int> lastCompletedDateEpochDays =
+      GeneratedColumn<int>(
+        'last_completed_date_epoch_days',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
+    'updatedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtUtc = GeneratedColumn<int>(
+    'updated_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    currentStreak,
+    bestStreak,
+    lastCompletedDateEpochDays,
+    updatedAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'challenge_streaks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChallengeStreakRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('current_streak')) {
+      context.handle(
+        _currentStreakMeta,
+        currentStreak.isAcceptableOrUnknown(
+          data['current_streak']!,
+          _currentStreakMeta,
+        ),
+      );
+    }
+    if (data.containsKey('best_streak')) {
+      context.handle(
+        _bestStreakMeta,
+        bestStreak.isAcceptableOrUnknown(data['best_streak']!, _bestStreakMeta),
+      );
+    }
+    if (data.containsKey('last_completed_date_epoch_days')) {
+      context.handle(
+        _lastCompletedDateEpochDaysMeta,
+        lastCompletedDateEpochDays.isAcceptableOrUnknown(
+          data['last_completed_date_epoch_days']!,
+          _lastCompletedDateEpochDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at_utc')) {
+      context.handle(
+        _updatedAtUtcMeta,
+        updatedAtUtc.isAcceptableOrUnknown(
+          data['updated_at_utc']!,
+          _updatedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChallengeStreakRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChallengeStreakRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      currentStreak: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_streak'],
+      )!,
+      bestStreak: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}best_streak'],
+      )!,
+      lastCompletedDateEpochDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_completed_date_epoch_days'],
+      ),
+      updatedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $ChallengeStreaksTable createAlias(String alias) {
+    return $ChallengeStreaksTable(attachedDatabase, alias);
+  }
+}
+
+class ChallengeStreakRow extends DataClass
+    implements Insertable<ChallengeStreakRow> {
+  /// Всегда 1 — синглтон обеспечивается CHECK-констрейнтом.
+  final int id;
+
+  /// Текущая серия дней подряд.
+  final int currentStreak;
+
+  /// Лучшая серия за всё время; не уменьшается.
+  final int bestStreak;
+
+  /// День последнего выполненного задания; null — ещё ни одного.
+  final int? lastCompletedDateEpochDays;
+
+  /// Момент последнего изменения, миллисекунды UTC.
+  final int updatedAtUtc;
+  const ChallengeStreakRow({
+    required this.id,
+    required this.currentStreak,
+    required this.bestStreak,
+    this.lastCompletedDateEpochDays,
+    required this.updatedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['current_streak'] = Variable<int>(currentStreak);
+    map['best_streak'] = Variable<int>(bestStreak);
+    if (!nullToAbsent || lastCompletedDateEpochDays != null) {
+      map['last_completed_date_epoch_days'] = Variable<int>(
+        lastCompletedDateEpochDays,
+      );
+    }
+    map['updated_at_utc'] = Variable<int>(updatedAtUtc);
+    return map;
+  }
+
+  ChallengeStreaksCompanion toCompanion(bool nullToAbsent) {
+    return ChallengeStreaksCompanion(
+      id: Value(id),
+      currentStreak: Value(currentStreak),
+      bestStreak: Value(bestStreak),
+      lastCompletedDateEpochDays:
+          lastCompletedDateEpochDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastCompletedDateEpochDays),
+      updatedAtUtc: Value(updatedAtUtc),
+    );
+  }
+
+  factory ChallengeStreakRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChallengeStreakRow(
+      id: serializer.fromJson<int>(json['id']),
+      currentStreak: serializer.fromJson<int>(json['currentStreak']),
+      bestStreak: serializer.fromJson<int>(json['bestStreak']),
+      lastCompletedDateEpochDays: serializer.fromJson<int?>(
+        json['lastCompletedDateEpochDays'],
+      ),
+      updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'currentStreak': serializer.toJson<int>(currentStreak),
+      'bestStreak': serializer.toJson<int>(bestStreak),
+      'lastCompletedDateEpochDays': serializer.toJson<int?>(
+        lastCompletedDateEpochDays,
+      ),
+      'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
+    };
+  }
+
+  ChallengeStreakRow copyWith({
+    int? id,
+    int? currentStreak,
+    int? bestStreak,
+    Value<int?> lastCompletedDateEpochDays = const Value.absent(),
+    int? updatedAtUtc,
+  }) => ChallengeStreakRow(
+    id: id ?? this.id,
+    currentStreak: currentStreak ?? this.currentStreak,
+    bestStreak: bestStreak ?? this.bestStreak,
+    lastCompletedDateEpochDays: lastCompletedDateEpochDays.present
+        ? lastCompletedDateEpochDays.value
+        : this.lastCompletedDateEpochDays,
+    updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
+  );
+  ChallengeStreakRow copyWithCompanion(ChallengeStreaksCompanion data) {
+    return ChallengeStreakRow(
+      id: data.id.present ? data.id.value : this.id,
+      currentStreak: data.currentStreak.present
+          ? data.currentStreak.value
+          : this.currentStreak,
+      bestStreak: data.bestStreak.present
+          ? data.bestStreak.value
+          : this.bestStreak,
+      lastCompletedDateEpochDays: data.lastCompletedDateEpochDays.present
+          ? data.lastCompletedDateEpochDays.value
+          : this.lastCompletedDateEpochDays,
+      updatedAtUtc: data.updatedAtUtc.present
+          ? data.updatedAtUtc.value
+          : this.updatedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChallengeStreakRow(')
+          ..write('id: $id, ')
+          ..write('currentStreak: $currentStreak, ')
+          ..write('bestStreak: $bestStreak, ')
+          ..write('lastCompletedDateEpochDays: $lastCompletedDateEpochDays, ')
+          ..write('updatedAtUtc: $updatedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    currentStreak,
+    bestStreak,
+    lastCompletedDateEpochDays,
+    updatedAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChallengeStreakRow &&
+          other.id == this.id &&
+          other.currentStreak == this.currentStreak &&
+          other.bestStreak == this.bestStreak &&
+          other.lastCompletedDateEpochDays == this.lastCompletedDateEpochDays &&
+          other.updatedAtUtc == this.updatedAtUtc);
+}
+
+class ChallengeStreaksCompanion extends UpdateCompanion<ChallengeStreakRow> {
+  final Value<int> id;
+  final Value<int> currentStreak;
+  final Value<int> bestStreak;
+  final Value<int?> lastCompletedDateEpochDays;
+  final Value<int> updatedAtUtc;
+  const ChallengeStreaksCompanion({
+    this.id = const Value.absent(),
+    this.currentStreak = const Value.absent(),
+    this.bestStreak = const Value.absent(),
+    this.lastCompletedDateEpochDays = const Value.absent(),
+    this.updatedAtUtc = const Value.absent(),
+  });
+  ChallengeStreaksCompanion.insert({
+    this.id = const Value.absent(),
+    this.currentStreak = const Value.absent(),
+    this.bestStreak = const Value.absent(),
+    this.lastCompletedDateEpochDays = const Value.absent(),
+    required int updatedAtUtc,
+  }) : updatedAtUtc = Value(updatedAtUtc);
+  static Insertable<ChallengeStreakRow> custom({
+    Expression<int>? id,
+    Expression<int>? currentStreak,
+    Expression<int>? bestStreak,
+    Expression<int>? lastCompletedDateEpochDays,
+    Expression<int>? updatedAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currentStreak != null) 'current_streak': currentStreak,
+      if (bestStreak != null) 'best_streak': bestStreak,
+      if (lastCompletedDateEpochDays != null)
+        'last_completed_date_epoch_days': lastCompletedDateEpochDays,
+      if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
+    });
+  }
+
+  ChallengeStreaksCompanion copyWith({
+    Value<int>? id,
+    Value<int>? currentStreak,
+    Value<int>? bestStreak,
+    Value<int?>? lastCompletedDateEpochDays,
+    Value<int>? updatedAtUtc,
+  }) {
+    return ChallengeStreaksCompanion(
+      id: id ?? this.id,
+      currentStreak: currentStreak ?? this.currentStreak,
+      bestStreak: bestStreak ?? this.bestStreak,
+      lastCompletedDateEpochDays:
+          lastCompletedDateEpochDays ?? this.lastCompletedDateEpochDays,
+      updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (currentStreak.present) {
+      map['current_streak'] = Variable<int>(currentStreak.value);
+    }
+    if (bestStreak.present) {
+      map['best_streak'] = Variable<int>(bestStreak.value);
+    }
+    if (lastCompletedDateEpochDays.present) {
+      map['last_completed_date_epoch_days'] = Variable<int>(
+        lastCompletedDateEpochDays.value,
+      );
+    }
+    if (updatedAtUtc.present) {
+      map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChallengeStreaksCompanion(')
+          ..write('id: $id, ')
+          ..write('currentStreak: $currentStreak, ')
+          ..write('bestStreak: $bestStreak, ')
+          ..write('lastCompletedDateEpochDays: $lastCompletedDateEpochDays, ')
+          ..write('updatedAtUtc: $updatedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3977,6 +4854,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $FrozenDaysTable frozenDays = $FrozenDaysTable(this);
   late final $WordHintsTable wordHints = $WordHintsTable(this);
   late final $ClozeTasksTable clozeTasks = $ClozeTasksTable(this);
+  late final $DailyChallengesTable dailyChallenges = $DailyChallengesTable(
+    this,
+  );
+  late final $ChallengeStreaksTable challengeStreaks = $ChallengeStreaksTable(
+    this,
+  );
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -4010,6 +4893,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     frozenDays,
     wordHints,
     clozeTasks,
+    dailyChallenges,
+    challengeStreaks,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -6689,6 +7574,482 @@ typedef $$ClozeTasksTableProcessedTableManager =
       ClozeTaskRow,
       PrefetchHooks Function({bool wordId})
     >;
+typedef $$DailyChallengesTableCreateCompanionBuilder =
+    DailyChallengesCompanion Function({
+      Value<int> dateEpochDays,
+      required String goalType,
+      required int goalValue,
+      Value<int> progress,
+      Value<int?> completedAtUtc,
+      Value<int?> claimedAtUtc,
+      required int xpReward,
+    });
+typedef $$DailyChallengesTableUpdateCompanionBuilder =
+    DailyChallengesCompanion Function({
+      Value<int> dateEpochDays,
+      Value<String> goalType,
+      Value<int> goalValue,
+      Value<int> progress,
+      Value<int?> completedAtUtc,
+      Value<int?> claimedAtUtc,
+      Value<int> xpReward,
+    });
+
+class $$DailyChallengesTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyChallengesTable> {
+  $$DailyChallengesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get goalType => $composableBuilder(
+    column: $table.goalType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get goalValue => $composableBuilder(
+    column: $table.goalValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get completedAtUtc => $composableBuilder(
+    column: $table.completedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get claimedAtUtc => $composableBuilder(
+    column: $table.claimedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xpReward => $composableBuilder(
+    column: $table.xpReward,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyChallengesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyChallengesTable> {
+  $$DailyChallengesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get goalType => $composableBuilder(
+    column: $table.goalType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get goalValue => $composableBuilder(
+    column: $table.goalValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get progress => $composableBuilder(
+    column: $table.progress,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get completedAtUtc => $composableBuilder(
+    column: $table.completedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get claimedAtUtc => $composableBuilder(
+    column: $table.claimedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xpReward => $composableBuilder(
+    column: $table.xpReward,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyChallengesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyChallengesTable> {
+  $$DailyChallengesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get goalType =>
+      $composableBuilder(column: $table.goalType, builder: (column) => column);
+
+  GeneratedColumn<int> get goalValue =>
+      $composableBuilder(column: $table.goalValue, builder: (column) => column);
+
+  GeneratedColumn<int> get progress =>
+      $composableBuilder(column: $table.progress, builder: (column) => column);
+
+  GeneratedColumn<int> get completedAtUtc => $composableBuilder(
+    column: $table.completedAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get claimedAtUtc => $composableBuilder(
+    column: $table.claimedAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get xpReward =>
+      $composableBuilder(column: $table.xpReward, builder: (column) => column);
+}
+
+class $$DailyChallengesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyChallengesTable,
+          DailyChallengeRow,
+          $$DailyChallengesTableFilterComposer,
+          $$DailyChallengesTableOrderingComposer,
+          $$DailyChallengesTableAnnotationComposer,
+          $$DailyChallengesTableCreateCompanionBuilder,
+          $$DailyChallengesTableUpdateCompanionBuilder,
+          (
+            DailyChallengeRow,
+            BaseReferences<
+              _$AppDatabase,
+              $DailyChallengesTable,
+              DailyChallengeRow
+            >,
+          ),
+          DailyChallengeRow,
+          PrefetchHooks Function()
+        > {
+  $$DailyChallengesTableTableManager(
+    _$AppDatabase db,
+    $DailyChallengesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyChallengesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyChallengesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyChallengesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                Value<String> goalType = const Value.absent(),
+                Value<int> goalValue = const Value.absent(),
+                Value<int> progress = const Value.absent(),
+                Value<int?> completedAtUtc = const Value.absent(),
+                Value<int?> claimedAtUtc = const Value.absent(),
+                Value<int> xpReward = const Value.absent(),
+              }) => DailyChallengesCompanion(
+                dateEpochDays: dateEpochDays,
+                goalType: goalType,
+                goalValue: goalValue,
+                progress: progress,
+                completedAtUtc: completedAtUtc,
+                claimedAtUtc: claimedAtUtc,
+                xpReward: xpReward,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                required String goalType,
+                required int goalValue,
+                Value<int> progress = const Value.absent(),
+                Value<int?> completedAtUtc = const Value.absent(),
+                Value<int?> claimedAtUtc = const Value.absent(),
+                required int xpReward,
+              }) => DailyChallengesCompanion.insert(
+                dateEpochDays: dateEpochDays,
+                goalType: goalType,
+                goalValue: goalValue,
+                progress: progress,
+                completedAtUtc: completedAtUtc,
+                claimedAtUtc: claimedAtUtc,
+                xpReward: xpReward,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DailyChallengesTable, DailyChallengeRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DailyChallengesTable,
+                    DailyChallengeRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyChallengesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyChallengesTable,
+      DailyChallengeRow,
+      $$DailyChallengesTableFilterComposer,
+      $$DailyChallengesTableOrderingComposer,
+      $$DailyChallengesTableAnnotationComposer,
+      $$DailyChallengesTableCreateCompanionBuilder,
+      $$DailyChallengesTableUpdateCompanionBuilder,
+      (
+        DailyChallengeRow,
+        BaseReferences<_$AppDatabase, $DailyChallengesTable, DailyChallengeRow>,
+      ),
+      DailyChallengeRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ChallengeStreaksTableCreateCompanionBuilder =
+    ChallengeStreaksCompanion Function({
+      Value<int> id,
+      Value<int> currentStreak,
+      Value<int> bestStreak,
+      Value<int?> lastCompletedDateEpochDays,
+      required int updatedAtUtc,
+    });
+typedef $$ChallengeStreaksTableUpdateCompanionBuilder =
+    ChallengeStreaksCompanion Function({
+      Value<int> id,
+      Value<int> currentStreak,
+      Value<int> bestStreak,
+      Value<int?> lastCompletedDateEpochDays,
+      Value<int> updatedAtUtc,
+    });
+
+class $$ChallengeStreaksTableFilterComposer
+    extends Composer<_$AppDatabase, $ChallengeStreaksTable> {
+  $$ChallengeStreaksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastCompletedDateEpochDays => $composableBuilder(
+    column: $table.lastCompletedDateEpochDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChallengeStreaksTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChallengeStreaksTable> {
+  $$ChallengeStreaksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastCompletedDateEpochDays => $composableBuilder(
+    column: $table.lastCompletedDateEpochDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ChallengeStreaksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChallengeStreaksTable> {
+  $$ChallengeStreaksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get bestStreak => $composableBuilder(
+    column: $table.bestStreak,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastCompletedDateEpochDays => $composableBuilder(
+    column: $table.lastCompletedDateEpochDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$ChallengeStreaksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ChallengeStreaksTable,
+          ChallengeStreakRow,
+          $$ChallengeStreaksTableFilterComposer,
+          $$ChallengeStreaksTableOrderingComposer,
+          $$ChallengeStreaksTableAnnotationComposer,
+          $$ChallengeStreaksTableCreateCompanionBuilder,
+          $$ChallengeStreaksTableUpdateCompanionBuilder,
+          (
+            ChallengeStreakRow,
+            BaseReferences<
+              _$AppDatabase,
+              $ChallengeStreaksTable,
+              ChallengeStreakRow
+            >,
+          ),
+          ChallengeStreakRow,
+          PrefetchHooks Function()
+        > {
+  $$ChallengeStreaksTableTableManager(
+    _$AppDatabase db,
+    $ChallengeStreaksTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChallengeStreaksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChallengeStreaksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChallengeStreaksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> currentStreak = const Value.absent(),
+                Value<int> bestStreak = const Value.absent(),
+                Value<int?> lastCompletedDateEpochDays = const Value.absent(),
+                Value<int> updatedAtUtc = const Value.absent(),
+              }) => ChallengeStreaksCompanion(
+                id: id,
+                currentStreak: currentStreak,
+                bestStreak: bestStreak,
+                lastCompletedDateEpochDays: lastCompletedDateEpochDays,
+                updatedAtUtc: updatedAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> currentStreak = const Value.absent(),
+                Value<int> bestStreak = const Value.absent(),
+                Value<int?> lastCompletedDateEpochDays = const Value.absent(),
+                required int updatedAtUtc,
+              }) => ChallengeStreaksCompanion.insert(
+                id: id,
+                currentStreak: currentStreak,
+                bestStreak: bestStreak,
+                lastCompletedDateEpochDays: lastCompletedDateEpochDays,
+                updatedAtUtc: updatedAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ChallengeStreaksTable, ChallengeStreakRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ChallengeStreaksTable,
+                    ChallengeStreakRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ChallengeStreaksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ChallengeStreaksTable,
+      ChallengeStreakRow,
+      $$ChallengeStreaksTableFilterComposer,
+      $$ChallengeStreaksTableOrderingComposer,
+      $$ChallengeStreaksTableAnnotationComposer,
+      $$ChallengeStreaksTableCreateCompanionBuilder,
+      $$ChallengeStreaksTableUpdateCompanionBuilder,
+      (
+        ChallengeStreakRow,
+        BaseReferences<
+          _$AppDatabase,
+          $ChallengeStreaksTable,
+          ChallengeStreakRow
+        >,
+      ),
+      ChallengeStreakRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6709,4 +8070,8 @@ class $AppDatabaseManager {
       $$WordHintsTableTableManager(_db, _db.wordHints);
   $$ClozeTasksTableTableManager get clozeTasks =>
       $$ClozeTasksTableTableManager(_db, _db.clozeTasks);
+  $$DailyChallengesTableTableManager get dailyChallenges =>
+      $$DailyChallengesTableTableManager(_db, _db.dailyChallenges);
+  $$ChallengeStreaksTableTableManager get challengeStreaks =>
+      $$ChallengeStreaksTableTableManager(_db, _db.challengeStreaks);
 }

@@ -4,6 +4,7 @@ import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/presentation/widgets/daily_challenge_card.dart';
 import 'package:english_edu/presentation/widgets/daily_goal_card.dart';
 import 'package:english_edu/presentation/widgets/streak_card.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,8 @@ class HomeScreen extends ConsumerWidget {
                   error: (error, stack) =>
                       DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
                 ),
+            const SizedBox(height: 12),
+            const DailyChallengeCard(),
             const SizedBox(height: 24),
             ref
                 .watch(getTodayQueueProvider)
@@ -125,6 +128,32 @@ class HomeScreen extends ConsumerWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.orange,
                               side: const BorderSide(color: Colors.orange),
+                            ),
+                          ),
+                        ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (error, stack) => const SizedBox.shrink(),
+                ),
+            // Умное повторение: ранжированная очередь по приоритету (ADR-033).
+            // Кнопка появляется только когда есть что повторять, иначе вела бы
+            // на пустой экран.
+            ref
+                .watch(smartReviewCountProvider)
+                .when(
+                  data: (count) => count == 0
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: OutlinedButton.icon(
+                            onPressed: () => context.push('/smart-review'),
+                            icon: const Icon(
+                              Icons.auto_awesome,
+                              color: Colors.purple,
+                            ),
+                            label: Text('Умное повторение ($count)'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.purple,
+                              side: const BorderSide(color: Colors.purple),
                             ),
                           ),
                         ),

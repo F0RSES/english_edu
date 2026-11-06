@@ -21,20 +21,20 @@ const _partOfSpeechOptions = <String>[
 
 /// Чем закончилось добавление слова.
 ///
-/// Отдельный тип вместо `bool`: экрану нужно отличать «сохранил» от «такое
-/// слово уже есть», чтобы показать разный SnackBar (ADR-024).
+/// Отдельный тип вместо `bool`: `null` означает «пользователь отменил», и это
+/// надо отличать от сохранения. Значение одно, потому что с ADR-031 гомонимы
+/// разрешены: отказ от добавления теперь выражается отменой диалога, а не
+/// отдельным исходом «такое уже есть».
 enum AddWordOutcome {
-  /// Слово сохранено.
+  /// Слово сохранено, в том числе как ещё одно значение гомонима.
   added,
-
-  /// Слово с таким `term` уже было; вторая карточка не создавалась.
-  duplicate,
 }
 
 /// Диалог добавления слова в словарь.
 ///
 /// Возвращает [AddWordOutcome] через `Navigator.pop`: `added` — слово
-/// сохранено, `duplicate` — такое уже есть, `null` — пользователь отменил.
+/// сохранено, `null` — пользователь отменил. Если слово с таким `term` уже
+/// есть, диалог предлагает добавить ещё одно значение (ADR-031).
 class AddWordDialog extends ConsumerStatefulWidget {
   /// Создаёт диалог.
   const AddWordDialog({super.key});
@@ -64,18 +64,29 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
     super.dispose();
   }
 
-  /// Спрашивает, что делать с уже существующим [existing].
+  /// Спрашивает, добавить ли ещё одно значение для того же [term] (ADR-031).
   ///
-  /// `true` — пользователь хочет перейти к слову; второй карточки не будет
-  /// ни при каком ответе (ADR-024).
-  Future<bool> _confirmDuplicate(Word existing) async {
+  /// `true` — пользователь хочет отдельную карточку-гомоним, `false` — отмена
+  /// (форма остаётся открытой, слово не сохраняется).
+  Future<bool> _confirmHomonym(String term, List<Word> existing) async {
     final answer = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Слово уже есть'),
-        content: Text(
-          'Слово уже есть: «${existing.term}» — ${existing.translation}. '
-          'Перейти к нему?',
+        title: Text('«$term» уже есть в словаре'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Существующие значения:'),
+            const SizedBox(height: 8),
+            for (final word in existing)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(_senseLabel(word)),
+              ),
+            const SizedBox(height: 12),
+            const Text('Добавить ещё одно значение?'),
+          ],
         ),
         actions: [
           TextButton(
@@ -84,12 +95,23 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Перейти'),
+            child: const Text('Добавить как новое'),
           ),
         ],
       ),
     );
     return answer ?? false;
+  }
+
+  /// Подпись значения для списка существующих senses.
+  ///
+  /// Часть речи — единственное, что отличает гомонимы друг от друга на глаз
+  /// («яблоко (noun)» против «компания (proper noun)»).
+  static String _senseLabel(Word word) {
+    final partOfSpeech = word.partOfSpeech;
+    return partOfSpeech == null
+        ? '• ${word.translation}'
+        : '• ${word.translation} ($partOfSpeech)';
   }
 
   Future<void> _submit() async {
@@ -106,19 +128,18 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
 
     final repo = ref.read(wordRepositoryProvider);
     try {
-      // Точный поиск, а не подстрока: `search('apple')` нашёл бы и «apple pie»,
-      // и блокировал бы добавление из-за другого слова.
-      final existing = await repo.findByTerm(term);
-      if (existing != null) {
-        final goToWord = await _confirmDuplicate(existing);
+      // Все senses, а не один: гомонимы — это разные карточки с одним term
+      // (ADR-031), и пользователю нужно увидеть, с чем он столкнулся.
+      final existing = await repo.findAllByTerm(term);
+      if (existing.isNotEmpty) {
+        final addAsNew = await _confirmHomonym(term, existing);
         if (!mounted) {
           return;
         }
         // «Отмена» оставляет форму открытой — пользователь поправит слово.
-        if (goToWord) {
-          Navigator.of(context).pop(AddWordOutcome.duplicate);
+        if (!addAsNew) {
+          return;
         }
-        return;
       }
 
       final id = await repo.nextId();

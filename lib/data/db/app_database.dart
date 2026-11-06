@@ -5,12 +5,12 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v7: кэш заданий «Заполни пропуск» (ADR-025).
+/// Schema v9: серия выполненных заданий дня (ADR-032).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
 /// v6 — `words.level` и `user_settings.preferred_level`,
-/// v7 — `cloze_tasks`.
+/// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -23,6 +23,8 @@ part 'app_database.g.dart';
     FrozenDays,
     WordHints,
     ClozeTasks,
+    DailyChallenges,
+    ChallengeStreaks,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -33,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +63,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await m.createTable(clozeTasks);
+      }
+      if (from < 8) {
+        await m.createTable(dailyChallenges);
+      }
+      if (from < 9) {
+        await m.createTable(challengeStreaks);
       }
     },
     // SQLite не проверяет внешние ключи, пока их не включат явно.

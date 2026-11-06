@@ -9,6 +9,7 @@ const _model = 'deepseek-chat';
 const _maxWords = 100;
 const _requestDelay = Duration(milliseconds: 200);
 const _autoSourceId = 'ngsl-auto';
+const _levelFlag = '--level=';
 const _autoSourceName = 'NGSL terms, auto-translated';
 const _autoSourceLicense =
     'CC BY-SA 4.0 (NGSL terms); '
@@ -19,18 +20,25 @@ const _attempts = 2;
 
 /// Читает TSV/CSV с частотным списком и дополняет seed переводами.
 ///
-/// Запуск: `dart run tools/generate_seed.dart <ngsl.csv> <output.json>`.
+/// Запуск:
+/// `dart run tools/generate_seed.dart <ngsl.csv> <output.json> [--level=A1]`.
 /// Требует переменную окружения `DEEPSEEK_API_KEY`; сеть нужна только этому
 /// скрипту, приложение остаётся офлайновым.
 ///
 /// Timeouts: connect 30s, idle 60s. Exceptions не логируют auth headers —
 /// в сообщение попадают только статус и первые 200 символов ответа.
 Future<void> main(List<String> args) async {
-  if (args.length != 2) {
+  if (args.length < 2 || args.length > 3) {
     stderr.writeln(
       'ERROR: usage: dart run tools/generate_seed.dart <ngsl.csv> '
-      '<output.json>',
+      '<output.json> [--level=A1]',
     );
+    exitCode = 1;
+    return;
+  }
+
+  final level = _parseLevel(args.length == 3 ? args[2] : null);
+  if (level == null) {
     exitCode = 1;
     return;
   }
@@ -79,7 +87,7 @@ Future<void> main(List<String> args) async {
   try {
     for (var index = 0; index < candidates.length; index++) {
       final entry = candidates[index];
-      final fields = await _translate(client, apiKey, entry.term);
+      final fields = await _translate(client, apiKey, entry.term, level);
       if (fields == null) {
         warnings.add('${entry.term}: skipped, translation failed');
         continue;
@@ -94,6 +102,7 @@ Future<void> main(List<String> args) async {
         'sourceId': _autoSourceId,
         'frequencyRank': entry.rank,
         'autoTranslated': true,
+        'level': _normalizeLevel(fields['level'], level, entry.term, warnings),
       });
       stdout.writeln(
         'Word ${index + 1}/${candidates.length}: '
@@ -193,6 +202,52 @@ List<RankedTerm> _readRankedTerms(File file) {
   return terms;
 }
 
+/// Разбирает `--level=A1`; null — ошибка уже напечатана.
+///
+/// Отсутствие флага даёт A1: пачка без указанного уровня не должна молча
+/// размечаться как A1 «по факту», поэтому дефолт явный и документирован.
+String? _parseLevel(String? raw) {
+  if (raw == null) {
+    return 'A1';
+  }
+  if (!raw.startsWith(_levelFlag)) {
+    stderr.writeln('ERROR: unknown option $raw, expected ${_levelFlag}A1');
+    return null;
+  }
+  final value = raw.substring(_levelFlag.length).trim().toUpperCase();
+  if (!allowedCefrLevels.contains(value)) {
+    stderr.writeln(
+      'ERROR: unknown level "$value", expected one of '
+      '${(allowedCefrLevels.toList()..sort()).join(', ')}',
+    );
+    return null;
+  }
+  return value;
+}
+
+/// Уровень из ответа модели; неизвестная метка заменяется на [fallback].
+///
+/// Модель иногда отвечает не тем уровнем, который просили. Слово с чужим
+/// уровнем исказило бы очередь дня (ADR-023), поэтому метка нормализуется, а
+/// расхождение попадает в предупреждения.
+String _normalizeLevel(
+  Object? raw,
+  String fallback,
+  String term,
+  List<String> warnings,
+) {
+  if (raw is! String) {
+    warnings.add('$term: no level in response, using $fallback');
+    return fallback;
+  }
+  final normalized = raw.trim().toUpperCase();
+  if (!allowedCefrLevels.contains(normalized)) {
+    warnings.add('$term: unknown level "$raw", using $fallback');
+    return fallback;
+  }
+  return normalized;
+}
+
 Map<String, Object?> _merge(
   Map<String, Object?> base,
   List<Map<String, Object?>> generated,
@@ -212,6 +267,8 @@ Map<String, Object?> _merge(
   return <String, Object?>{
     'schemaVersion': base['schemaVersion'],
     'sources': sources,
+    // Слова базового файла переносятся как есть: их `level` (если размечен)
+    // сохраняется, генератор дописывает только новые слова.
     'words': [...base['words']! as List<Object?>, ...generated],
   };
 }
@@ -220,10 +277,11 @@ Future<Map<String, Object?>?> _translate(
   HttpClient client,
   String apiKey,
   String term,
+  String level,
 ) async {
   for (var attempt = 0; attempt < _attempts; attempt++) {
     try {
-      return await _requestTranslation(client, apiKey, term);
+      return await _requestTranslation(client, apiKey, term, level);
     } on Object catch (error) {
       if (attempt == _attempts - 1) {
         stderr.writeln('WARNING: $term: $error');
@@ -237,6 +295,7 @@ Future<Map<String, Object?>> _requestTranslation(
   HttpClient client,
   String apiKey,
   String term,
+  String level,
 ) async {
   final request = await client.postUrl(Uri.parse(_apiUrl));
   request.headers.contentType = ContentType.json;
@@ -245,7 +304,7 @@ Future<Map<String, Object?>> _requestTranslation(
     jsonEncode(<String, Object?>{
       'model': _model,
       'messages': [
-        <String, Object?>{'role': 'user', 'content': _promptFor(term)},
+        <String, Object?>{'role': 'user', 'content': _promptFor(term, level)},
       ],
     }),
   );
@@ -267,11 +326,13 @@ Future<Map<String, Object?>> _requestTranslation(
   return jsonDecode(_stripFences(content)) as Map<String, Object?>;
 }
 
-String _promptFor(String term) =>
-    'For English word "$term", return strict JSON: '
+String _promptFor(String term, String level) =>
+    'For the English word "$term" at CEFR level $level, return strict JSON: '
     '{"translation": "<russian>", "transcription": "/<IPA>/", '
     '"partOfSpeech": "<${allowedPartsOfSpeech.join('|')}>", '
-    '"exampleSentence": "<one English sentence>"}. '
+    '"exampleSentence": "<one English sentence>", '
+    '"level": "$level"}. '
+    'Use simple vocabulary and grammar that match $level. '
     'No markdown, no code fences, only JSON.';
 
 /// Убирает markdown-обёртку, если модель её всё же добавила.

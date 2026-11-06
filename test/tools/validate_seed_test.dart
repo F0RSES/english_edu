@@ -22,6 +22,8 @@ Map<String, Object?> word({
   Object? sourceId = 'manual-mvp',
   Object? frequencyRank = 1,
   Object? autoTranslated,
+  // null — поле отсутствует (как в seed v1), иначе значение как есть.
+  Object? level = 'A1',
 }) {
   final result = <String, Object?>{
     'id': id,
@@ -35,6 +37,9 @@ Map<String, Object?> word({
   };
   if (autoTranslated != null) {
     result['autoTranslated'] = autoTranslated;
+  }
+  if (level != null) {
+    result['level'] = level;
   }
   return result;
 }
@@ -60,7 +65,12 @@ void main() {
       expect(result.isValid, isTrue, reason: result.errors.join('; '));
       expect(result.wordCount, 20);
       expect(result.sourceCount, 1);
-      expect(result.warnings, isEmpty);
+      // seed v1 уровня не содержит: каждое слово получает warning и A1.
+      expect(result.warnings, hasLength(20));
+      expect(
+        result.warnings.every((warning) => warning.contains('defaults to A1')),
+        isTrue,
+      );
     });
 
     test('rejects an unknown schema version', () {
@@ -133,6 +143,41 @@ void main() {
 
       expect(result.isValid, isFalse);
       expect(result.errors.single, contains('autoTranslated'));
+    });
+
+    test('accepts valid cefr level', () {
+      final result = validateSeed(seed(words: [word(level: 'B2')]));
+
+      expect(result.isValid, isTrue, reason: result.errors.join('; '));
+      expect(result.warnings, isEmpty);
+    });
+
+    test('accepts a lower-case level', () {
+      final result = validateSeed(seed(words: [word(level: 'c1')]));
+
+      expect(result.isValid, isTrue, reason: result.errors.join('; '));
+      expect(result.warnings, isEmpty);
+    });
+
+    test('warns on missing level', () {
+      final result = validateSeed(seed(words: [word(level: null)]));
+
+      expect(result.isValid, isTrue);
+      expect(result.warnings.single, contains('defaults to A1'));
+    });
+
+    test('rejects invalid level', () {
+      final result = validateSeed(seed(words: [word(level: 'D1')]));
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.single, contains('level'));
+    });
+
+    test('rejects a non-string level', () {
+      final result = validateSeed(seed(words: [word(level: 3)]));
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.single, contains('level'));
     });
 
     test('allows the same rank across different sources', () {

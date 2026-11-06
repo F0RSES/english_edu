@@ -12,6 +12,13 @@ const allowedPartsOfSpeech = <String>{
   'numeral',
 };
 
+/// Уровни CEFR, допустимые в seed-файле (ADR-023).
+///
+/// Список дублирует `CefrLevel.label` из приложения: tools не импортируют
+/// `lib/`, иначе валидатор тянул бы за собой domain ради семи строк. Расхождение
+/// ловится тестом на shipped-файл.
+const allowedCefrLevels = <String>{'A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'};
+
 /// Результат проверки seed-файла.
 final class SeedValidationResult {
   /// Создаёт результат проверки.
@@ -195,6 +202,17 @@ void _validateWord(
     errors.add('$path.autoTranslated must be a boolean');
   } else if (autoTranslated == true) {
     warnings.add('$path.autoTranslated is true: pending review');
+  }
+
+  final level = word['level'];
+  if (level == null) {
+    // A1 — дефолт приложения, а не ошибка формата: предупреждаем, чтобы автор
+    // контента видел неразмеченные слова (Phase 13b, BL-65).
+    warnings.add('$path.level is missing: defaults to A1');
+  } else if (level is! String) {
+    errors.add('$path.level must be a string: $level');
+  } else if (!allowedCefrLevels.contains(level.toUpperCase())) {
+    errors.add('$path.level is not a valid CEFR level: $level');
   }
 
   final example = word['exampleSentence'];

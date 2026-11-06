@@ -34,6 +34,7 @@
 | sourceId | `string` | да | Должен существовать в `sources` |
 | frequencyRank | `int?` | нет | Неотрицательный; повторение даёт warning |
 | autoTranslated | `bool?` | нет | `true` — машинный перевод, не проходил ревью; даёт warning |
+| level | `string?` | нет | Уровень CEFR: `A0`, `A1`, `A2`, `B1`, `B2`, `C1`, `C2` (регистр не важен). Отсутствие — warning, приложение читает слово как A1 (ADR-023) |
 
 ## Что считается ошибкой
 
@@ -48,6 +49,7 @@
 - `partOfSpeech` вне списка.
 - `transcription` без `/` по краям.
 - Пустой `exampleSentence`, если поле указано.
+- `level` не строка или не входит в `A0`…`C2`.
 
 ## frequencyRank
 
@@ -62,6 +64,7 @@
 - Дубликат `term`.
 - Дубликат `frequencyRank`.
 - `autoTranslated: true` — контент не проходил ревью.
+- `level` отсутствует — слово читается как A1. Warning, а не ошибка: так живёт seed v1, разметка контента — Phase 13b (BL-65).
 
 Warning не блокирует приём файла, но попадает в вывод.
 
@@ -89,7 +92,7 @@ Warning не блокирует приём файла, но попадает в 
 dart run tools/validate_seed.dart assets/seed/words_v1.json
 ```
 
-Успех: `OK: 20 words, 1 source, 0 warnings`, код возврата 0.
+Успех: `OK: 20 words, 1 source, 20 warnings`, код возврата 0 — предупреждения не блокируют приём. Сейчас их ровно 20: seed v1 без поля `level`, каждое слово читается как A1.
 Ошибка: строки `ERROR: …` в stderr, код возврата 1.
 
 Логика проверки живёт в `tools/validate_seed_lib.dart` (чистая функция `validateSeed`), CLI — тонкая обёртка.

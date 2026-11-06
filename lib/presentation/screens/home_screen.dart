@@ -38,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
             tooltip: 'Настройки',
             // push: экран открывается поверх главной, поэтому в AppBar
             // появляется кнопка «Назад» (Phase 17).
-            onPressed: () => context.push('/profile'),
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),

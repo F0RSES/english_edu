@@ -108,7 +108,9 @@ class _WordCardState extends ConsumerState<WordCard> {
                         child: Text(
                           word.term,
                           style: theme.textTheme.displaySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontSize: 42,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -1,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -125,6 +127,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                     Text(
                       word.transcription!,
                       style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 18,
                         fontStyle: FontStyle.italic,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

@@ -338,7 +338,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 11 экранов; `lib/presentation/widgets/` — 14 виджетов
+- `lib/presentation/screens/` — 12 экранов; `lib/presentation/widgets/` — 14 виджетов
 - `lib/presentation/router.dart` — GoRouter, 10 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
 - `test/` — 92 файла тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 3 скрипта + 2 библиотеки: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart` + `validate_seed_lib.dart`, `review_seed.dart` + `review_seed_lib.dart`

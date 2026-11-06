@@ -136,6 +136,11 @@ Widget app({
             const Scaffold(body: Text('экран сложных слов')),
       ),
       GoRoute(
+        path: '/settings',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран настроек')),
+      ),
+      GoRoute(
         path: '/smart-review',
         builder: (context, state) =>
             const Scaffold(body: Text('экран умного повторения')),
@@ -304,6 +309,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('экран сложных слов'), findsOneWidget);
+  });
+
+  testWidgets('settings button opens the settings screen', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Настройки'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('экран настроек'), findsOneWidget);
   });
 
   testWidgets('shows smart review button when count > 0', (tester) async {

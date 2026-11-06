@@ -20,7 +20,7 @@ class WordListItem extends StatelessWidget {
       child: ListTile(
         title: Text(
           word.term,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,6 +31,7 @@ class WordListItem extends StatelessWidget {
               word.partOfSpeech == null
                   ? word.translation
                   : '${word.translation} (${word.partOfSpeech})',
+              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
             ),
             if (word.transcription != null)
               Text(

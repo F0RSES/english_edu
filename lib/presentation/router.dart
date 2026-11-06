@@ -8,6 +8,7 @@ import 'package:english_edu/presentation/screens/lesson_screen.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
+import 'package:english_edu/presentation/screens/settings_screen.dart';
 import 'package:english_edu/presentation/screens/word_match_screen.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
 import 'package:flutter/material.dart';
@@ -95,6 +96,11 @@ final routerProvider = Provider<GoRouter>(
         path: '/dictionary',
         pageBuilder: (context, state) =>
             _fadePage(state, const DictionaryScreen()),
+      ),
+      GoRoute(
+        path: '/settings',
+        pageBuilder: (context, state) =>
+            _fadePage(state, const SettingsScreen()),
       ),
       GoRoute(
         path: '/profile',

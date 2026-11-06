@@ -205,8 +205,9 @@ void main() {
     // SnackBar живёт 4 с и перекрывает нижнюю навигацию: даём ему уйти.
     await tester.pumpAndSettle();
 
-    // 8. Профиль: диалог экспорта собирает JSON из текущего состояния.
-    await tester.tap(find.text('Профиль'));
+    // 8. Настройки: диалог экспорта собирает JSON из текущего состояния
+    // (Phase 20: экспорт переехал из профиля в настройки).
+    await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(find.text('Экспорт'), 200);

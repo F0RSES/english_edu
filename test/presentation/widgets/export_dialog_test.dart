@@ -46,7 +46,7 @@ void main() {
         .data;
 
     expect(json, isNotNull);
-    expect(json, contains('"schemaVersion":3'));
+    expect(json, contains('"schemaVersion":4'));
     expect(json, contains('"term":"hello"'));
   });
 

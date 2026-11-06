@@ -5,6 +5,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -23,11 +24,12 @@ import 'fakes/fake_word_repository.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-Word word(int id, {String? category}) => Word(
+Word word(int id, {String? category, CefrLevel level = CefrLevel.a1}) => Word(
   id: WordId(id),
   term: 'term$id',
   translation: 'перевод$id',
   category: category,
+  level: level,
 );
 
 WordProgress progressOf(int id, WordStatus status) => WordProgress(
@@ -125,6 +127,20 @@ void main() {
           .call();
 
       expect(payload.words.single.category, 'Бизнес');
+    });
+
+    test('export includes cefr levels', () async {
+      final payload = await exportOf(
+        seedWords: [
+          word(1, level: CefrLevel.a0),
+          word(2, level: CefrLevel.c1),
+        ],
+      ).call();
+
+      expect(
+        [for (final item in payload.words) item.level],
+        [CefrLevel.a0, CefrLevel.c1],
+      );
     });
 
     test('stamps exportedAt in UTC', () async {

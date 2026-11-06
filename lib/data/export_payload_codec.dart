@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -19,7 +20,22 @@ const _frozenDaysSinceVersion = 2;
 /// Первая версия снимка, в которой появился `Word.category`.
 const _categorySinceVersion = 3;
 
-/// JSON-представление снимка состояния, схема v3 (v1 и v2 читаются).
+/// Первая версия снимка, в которой появился `Word.level` (ADR-023).
+const _levelSinceVersion = 4;
+
+/// JSON-представление снимка состояния, схема v4 (v1–v3 читаются).
+///
+/// Версии и поля слов:
+///
+/// | Версия | Что появилось |
+/// |---|---|
+/// | v1 | базовая схема |
+/// | v2 | `frozenDays` |
+/// | v3 | `Word.category` |
+/// | v4 | `Word.level` |
+///
+/// Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null,
+/// `level` A1.
 ///
 /// Формат принадлежит data-слою (см. `ExportPayload`): домен знает только
 /// структуру, а сериализация живёт рядом с остальными преобразованиями.
@@ -66,6 +82,9 @@ final class ExportPayloadCodec {
     'exampleSentence': word.exampleSentence,
     // В снимках v1/v2 поля не было: не пишем его и для обратной совместимости.
     if (version >= _categorySinceVersion) 'category': word.category,
+    // Метка, а не индекс enum: снимок должен читаться после перестановки
+    // значений в коде (ADR-023).
+    if (version >= _levelSinceVersion) 'level': word.level.label,
   };
 
   Map<String, Object?> _progressToJson(WordProgress progress) => {
@@ -105,7 +124,8 @@ final class ExportPayloadCodec {
   ///
   /// Бросает [FormatException], если структура не соответствует схеме или
   /// версия неизвестна: диалог импорта показывает текст ошибки, а не stack
-  /// trace. Обратная совместимость: снимок v1 читается с пустым `frozenDays`.
+  /// trace. Обратная совместимость: снимок v1 читается с пустым `frozenDays`,
+  /// v1–v3 — со всеми словами уровня A1.
   ExportPayload decode(String source) {
     final Object? raw;
     try {
@@ -174,7 +194,25 @@ final class ExportPayloadCodec {
     category: version >= _categorySinceVersion
         ? _strOrNull(map, 'category')
         : null,
+    level: _levelFromJson(map, version),
   );
+
+  /// Уровень слова из снимка; в v1–v3 поля не было — получаем A1.
+  ///
+  /// Неизвестная метка — [FormatException], а не `ArgumentError` из
+  /// `CefrLevel.fromLabel`: импорт сообщает о плохом файле, а не падает.
+  CefrLevel _levelFromJson(Map<String, Object?> map, int version) {
+    if (version < _levelSinceVersion) {
+      return CefrLevel.a1;
+    }
+    final label = _str(map, 'level');
+    for (final level in CefrLevel.values) {
+      if (level.label.toLowerCase() == label.toLowerCase()) {
+        return level;
+      }
+    }
+    throw FormatException('level: неизвестное значение $label');
+  }
 
   WordProgress _progressFromJson(Map<String, Object?> map) => WordProgress(
     wordId: WordId(_int(map, 'wordId')),

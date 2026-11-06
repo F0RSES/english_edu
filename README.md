@@ -6,7 +6,7 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
-Roadmap ниже). 534 теста, analyze=0.
+Roadmap ниже). 544 теста, analyze=0.
 
 ## Features
 
@@ -32,7 +32,7 @@ Roadmap ниже). 534 теста, analyze=0.
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 534 passed
+    flutter test               # 544 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)

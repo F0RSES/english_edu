@@ -112,14 +112,16 @@ Dart-код в документе не приводится: сигнатуры 
 | frozenDates | `Set<LocalDate>` | Даты, уже покрытые заморозкой |
 
 ### ExportPayload
-Снимок полного состояния для бэкапа. Не `const`: списки и множество копируются в unmodifiable. Валидация (поддерживаемые версии `1..2`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе. `ExportPayload.currentSchemaVersion = 2`.
+Снимок полного состояния для бэкапа. Не `const`: списки и множество копируются в unmodifiable. Валидация (поддерживаемые версии `1..4`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе. `ExportPayload.currentSchemaVersion = 4`.
+
+Версии снимка: v1 — базовая, v2 — `frozenDays`, v3 — `Word.category`, v4 — `Word.level` (ADR-023). Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null, `level` A1.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| schemaVersion | `int` | Версия схемы: 1 и 2 читаются, 3+ отклоняется |
+| schemaVersion | `int` | Версия схемы: 1–4 читаются, 5+ отклоняется |
 | exportedAt | `DateTime` | Момент снимка, UTC |
 | settings | `UserSettings` | Настройки на момент экспорта |
-| words | `List<Word>` | Словарь |
+| words | `List<Word>` | Словарь; `category` с v3, `level` с v4 |
 | progress | `List<WordProgress>` | Прогресс |
 | logs | `List<ReviewLog>` | Журнал ответов |
 | stats | `List<DailyStats>` | Дневная статистика |

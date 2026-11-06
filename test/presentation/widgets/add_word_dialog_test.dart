@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
 import 'package:english_edu/presentation/widgets/word_categories.dart';
@@ -104,6 +105,37 @@ void main() {
     await tester.pumpAndSettle();
 
     expect((await repo.getAll()).single.category, isNull);
+  });
+
+  testWidgets('saves word with selected level', (tester) async {
+    final repo = FakeWordRepository();
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'ubiquitous');
+    await tester.enterText(find.byType(TextField).at(1), 'вездесущий');
+    // Уровень — единственный дропдаун с non-nullable CefrLevel.
+    await tester.tap(find.byType(DropdownButtonFormField<CefrLevel>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.textContaining('C1').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    expect((await repo.getAll()).single.level, CefrLevel.c1);
+  });
+
+  testWidgets('defaults to A1', (tester) async {
+    final repo = FakeWordRepository();
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'book');
+    await tester.enterText(find.byType(TextField).at(1), 'книга');
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    expect((await repo.getAll()).single.level, CefrLevel.a1);
   });
 
   testWidgets('warns about an existing term', (tester) async {

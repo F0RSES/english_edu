@@ -4,6 +4,7 @@ import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
@@ -21,11 +22,21 @@ import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-ExportPayload payload({int schemaVersion = 1}) => ExportPayload(
+ExportPayload payload({
+  int schemaVersion = 1,
+  CefrLevel level = CefrLevel.a1,
+}) => ExportPayload(
   schemaVersion: schemaVersion,
   exportedAt: now,
   settings: UserSettings.defaults(),
-  words: const [Word(id: WordId(1), term: 'hello', translation: 'привет')],
+  words: [
+    Word(
+      id: const WordId(1),
+      term: 'hello',
+      translation: 'привет',
+      level: level,
+    ),
+  ],
   progress: const [],
   logs: const [],
   stats: const [],
@@ -120,13 +131,13 @@ void main() {
 
     await _paste(
       tester,
-      const ExportPayloadCodec().encode(payload(schemaVersion: 4)),
+      const ExportPayloadCodec().encode(payload(schemaVersion: 5)),
     );
 
     // Версия отсекается уже на разборе JSON: импорт не должен читать формат,
     // которого не знает.
     expect(find.textContaining('Невалидный JSON'), findsOneWidget);
-    expect(find.textContaining('неподдерживаемая версия 4'), findsOneWidget);
+    expect(find.textContaining('неподдерживаемая версия 5'), findsOneWidget);
   });
 
   testWidgets('a v1 snapshot imports with empty frozen days', (tester) async {
@@ -157,6 +168,24 @@ void main() {
     final imported = await harness.words.getById(const WordId(1));
     expect(imported, isNotNull);
     expect(imported!.category, isNull);
+  });
+
+  testWidgets('a v3 snapshot imports every word as A1', (tester) async {
+    final harness = Harness();
+    await _open(tester, harness);
+
+    await _paste(
+      tester,
+      const ExportPayloadCodec().encode(
+        payload(schemaVersion: 3, level: CefrLevel.c2),
+      ),
+    );
+    await tester.tap(find.text('Продолжить'));
+    await tester.pumpAndSettle();
+
+    // v3 поля level не знал: кодек его не пишет, импорт получает A1.
+    final imported = await harness.words.getById(const WordId(1));
+    expect(imported?.level, CefrLevel.a1);
   });
 
   testWidgets('valid JSON asks for confirmation', (tester) async {

@@ -31,10 +31,11 @@ final class ExportPayload {
 
   /// Версия схемы, которую пишет приложение.
   ///
-  /// v2: `+ frozenDays`; v3: `+ Word.category`. Старшие снимки совместимы:
-  /// отсутствующее поле приходит пустым (`category = null`), версии выше
-  /// текущей отклоняются импортом как неизвестный более новый формат.
-  static const int currentSchemaVersion = 3;
+  /// v2: `+ frozenDays`; v3: `+ Word.category`; v4: `+ Word.level`. Старшие
+  /// снимки совместимы: отсутствующее поле приходит значением по умолчанию
+  /// (`category = null`, `level = A1`), версии выше текущей отклоняются
+  /// импортом как неизвестный более новый формат.
+  static const int currentSchemaVersion = 4;
 
   /// Version of the export schema; 1 and 2 are supported on import.
   final int schemaVersion;

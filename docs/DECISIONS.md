@@ -106,7 +106,8 @@ Architecture Decision Records: один ADR — одно решение.
   - Отказаться от REPLACE в пользу merge — отложено до Phase 5, требует отдельного ADR.
 - **Consequences:** Четыре репозитория получают `replaceAll`; `getAll` добавлен в progress/log/stats для экспорта; экспорт больше не зависит от перечисления `WordStatus` и диапазонов дат.
   - v2: `+ frozenDays`. v1 импортируется с пустым `frozenDays` (backward compat).
-  - v3: `+ Word.category` (BL-57). Снимки v1/v2 читаются с `category = null`; `ExportPayload.currentSchemaVersion = 3`; будущие изменения — v4.
+  - v3: `+ Word.category` (BL-57). Снимки v1/v2 читаются с `category = null`.
+  - v4: `+ Word.level` (BL-67, ADR-023). Снимки v1/v2/v3 читаются с `level = A1`: формат уровня в них не было, а A1 — безопасный дефолт словаря. `ExportPayload.currentSchemaVersion = 4`.
 - **Open questions:** межрепозиторная атомарность (транзакция на все пять шагов) — Phase 2.
 
 ### ADR-006: Flutter bootstrap

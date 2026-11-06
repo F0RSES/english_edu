@@ -39,6 +39,7 @@ import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
+import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/get_word_hint.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
 import 'package:english_edu/domain/usecases/mark_missed_day.dart';
@@ -265,6 +266,27 @@ final recordReviewProvider = Provider<RecordReview>(
     nextLogId: ref.watch(nextReviewLogIdProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Проблемные слова для отдельного повторения (ADR-026).
+final getWeakWordsQueueProvider = Provider<GetWeakWordsQueue>(
+  (ref) => GetWeakWordsQueue(
+    words: ref.watch(wordRepositoryProvider),
+    progress: ref.watch(progressRepositoryProvider),
+  ),
+);
+
+/// Очередь проблемных слов как async-данные урока.
+///
+/// `FutureProvider`, а не future из `build`: экран урока читает `.future`,
+/// а `ref.invalidate` после сессии пересчитывает её.
+final weakWordsQueueProvider = FutureProvider<TodayQueue>(
+  (ref) => ref.watch(getWeakWordsQueueProvider)(),
+);
+
+/// Количество проблемных слов для бейджа на кнопке (ADR-026).
+final weakWordsCountProvider = FutureProvider<int>(
+  (ref) async => (await ref.watch(weakWordsQueueProvider.future)).due.length,
 );
 
 /// Сводка для экрана аналитики (ADR-021).

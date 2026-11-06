@@ -14,10 +14,27 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// Режим урока (ADR-026).
+///
+/// Один экран на два сценария: обычная очередь дня и «добить проблемные
+/// слова». Дублировать экран ради другого источника очереди — разъезжаться
+/// в поведении карточки и отката, поэтому различие сведено к источнику данных
+/// и заголовку.
+enum LessonMode {
+  /// Очередь дня: новые слова и повторения по расписанию SM-2.
+  normal,
+
+  /// Только проблемные слова: проваливали или просел ease (ADR-026).
+  weak,
+}
+
 /// Экран урока: очередь карточек, оценка ответов, итоги.
 class LessonScreen extends ConsumerStatefulWidget {
-  /// Создаёт экран.
-  const LessonScreen({super.key});
+  /// Создаёт экран с очередью дня или с проблемными словами.
+  const LessonScreen({super.key, this.mode = LessonMode.normal});
+
+  /// Что показывать: обычную очередь или только проблемные слова.
+  final LessonMode mode;
 
   @override
   ConsumerState<LessonScreen> createState() => _LessonScreenState();
@@ -38,15 +55,26 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     super.initState();
     // Очередь фиксируется на входе в урок: инвалидация провайдера во время
     // сессии не должна подменять карточки под пользователем.
-    _queue = ref.read(getTodayQueueProvider.future);
+    _queue = widget.mode == LessonMode.weak
+        ? ref.read(weakWordsQueueProvider.future)
+        : ref.read(getTodayQueueProvider.future);
   }
 
   /// Сбрасывает кэш главного экрана: после ответов изменились серия, прогресс
   /// и дневная цель.
+  ///
+  /// Работает и в режиме [LessonMode.weak]: ответы пишутся тем же
+  /// `RecordReview`, а он поднимает `DailyStats` — значит дневная цель и серия
+  /// действительно меняются, и оставлять их устаревшими нельзя.
+  ///
+  /// `weakWordsQueueProvider` сбрасывается в обоих режимах: после ответов
+  /// ease и `lapses` изменились, и счётчик на кнопке «Повторить сложные»
+  /// должен пересчитаться, иначе бейдж живёт своей жизнью.
   void _invalidateHome() {
     ref
       ..invalidate(computeStreakProvider)
       ..invalidate(getTodayQueueProvider)
+      ..invalidate(weakWordsQueueProvider)
       ..invalidate(dailyGoalProvider);
   }
 
@@ -126,6 +154,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     });
   }
 
+  /// Заголовок экрана: в режиме проблемных слов своя подпись.
+  String get _title =>
+      widget.mode == LessonMode.weak ? 'Сложные слова' : 'Урок';
+
   /// Идёт ли сессия: есть ответы или уже показан итог.
   ///
   /// Нужно для `PopScope`: пока сессия не начата, выход не требует вопроса.
@@ -180,24 +212,24 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return _scaffold(
-            'Урок',
+            _title,
             const Center(child: CircularProgressIndicator()),
           );
         }
         if (snapshot.hasError) {
           return _scaffold(
-            'Урок',
+            _title,
             const Center(child: Text('Не удалось загрузить очередь')),
           );
         }
         final queue = snapshot.data;
         if (queue == null || queue.all.isEmpty) {
-          return _scaffold('Урок', const Center(child: Text('На сегодня всё')));
+          return _scaffold(_title, const Center(child: Text('На сегодня всё')));
         }
         final words = queue.all;
         if (_finished) {
           return _scaffold(
-            'Урок',
+            _title,
             Center(
               child: SessionSummary(
                 actualXp: _sessionXp,
@@ -208,7 +240,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           );
         }
         return _scaffold(
-          '${_index + 1}/${words.length}',
+          // В режиме сложных слов счётчик не показывается: заголовок задаёт
+          // режим, а прогресс виден по карточкам (ADR-026).
+          widget.mode == LessonMode.weak
+              ? _title
+              : '${_index + 1}/${words.length}',
           _card(words[_index], words.length),
         );
       },

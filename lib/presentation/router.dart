@@ -43,6 +43,11 @@ final routerProvider = Provider<GoRouter>(
             _slideUpPage(state, const LessonScreen()),
       ),
       GoRoute(
+        path: '/weak-words',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const LessonScreen(mode: LessonMode.weak)),
+      ),
+      GoRoute(
         path: '/error-hunter',
         pageBuilder: (context, state) =>
             _fadeScalePage(state, const ErrorHunterScreen()),

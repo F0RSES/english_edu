@@ -93,6 +93,28 @@ class HomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.text_fields),
               label: const Text('Заполни пропуск'),
             ),
+            // Бейдж проблемных слов: кнопка появляется только когда есть что
+            // повторять, иначе вела бы на пустой экран (ADR-026).
+            ref
+                .watch(weakWordsCountProvider)
+                .when(
+                  data: (count) => count == 0
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: OutlinedButton.icon(
+                            onPressed: () => context.push('/weak-words'),
+                            icon: const Icon(Icons.bolt, color: Colors.orange),
+                            label: Text('Повторить сложные ($count)'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange,
+                              side: const BorderSide(color: Colors.orange),
+                            ),
+                          ),
+                        ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (error, stack) => const SizedBox.shrink(),
+                ),
           ],
         ),
       ),

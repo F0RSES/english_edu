@@ -33,6 +33,20 @@ WordProgress fresh(int id) => WordProgress(
   firstSeenAt: now,
 );
 
+/// Слово с провалом: попадает в очередь «сложных» (ADR-026).
+WordProgress weak(int id) => WordProgress(
+  wordId: WordId(id),
+  cardState: CardState(
+    easePermille: 1700,
+    intervalDays: 2,
+    repetitions: 1,
+    lapses: 2,
+    dueAt: now.add(const Duration(days: 2)),
+  ),
+  status: WordStatus.learning,
+  firstSeenAt: now.subtract(const Duration(days: 7)),
+);
+
 /// Пять активных дней подряд, сегодня — пять ответов.
 List<DailyStats> fiveDayStreak() => [
   DailyStats(
@@ -115,6 +129,11 @@ Widget app({
         path: '/dictionary',
         builder: (context, state) =>
             const Scaffold(body: Text('экран словаря')),
+      ),
+      GoRoute(
+        path: '/weak-words',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран сложных слов')),
       ),
       GoRoute(
         path: '/profile',
@@ -249,5 +268,33 @@ void main() {
     // по умолчанию, а старт урока остаётся доступным.
     expect(find.text('0 / 60 слов сегодня'), findsOneWidget);
     expect(find.text('Все слова изучены'), findsOneWidget);
+  });
+
+  testWidgets('shows weak words button when count > 0', (tester) async {
+    await tester.pumpWidget(
+      app(words: [word(1)], progress: FakeProgressRepository([weak(1)])),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Повторить сложные (1)'), findsOneWidget);
+  });
+
+  testWidgets('hides weak words button when count == 0', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Повторить сложные'), findsNothing);
+  });
+
+  testWidgets('tapping weak words navigates to /weak-words', (tester) async {
+    await tester.pumpWidget(
+      app(words: [word(1)], progress: FakeProgressRepository([weak(1)])),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Повторить сложные (1)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('экран сложных слов'), findsOneWidget);
   });
 }

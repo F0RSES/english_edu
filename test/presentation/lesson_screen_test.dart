@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
+import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
@@ -37,6 +38,20 @@ Word word(int id) =>
 WordProgress due(int id) => WordProgress(
   wordId: WordId(id),
   cardState: CardState.initial(now),
+  status: WordStatus.learning,
+  firstSeenAt: now,
+);
+
+/// Проблемное слово: провал, из-за которого оно попадает в weak-очередь.
+WordProgress weak(int id) => WordProgress(
+  wordId: WordId(id),
+  cardState: CardState(
+    easePermille: 1700,
+    intervalDays: 2,
+    repetitions: 1,
+    lapses: 3,
+    dueAt: now.add(const Duration(days: 2)),
+  ),
   status: WordStatus.learning,
   firstSeenAt: now,
 );
@@ -89,6 +104,9 @@ final class Harness {
           settings: settingsRepo,
           clock: () => now,
         ),
+      ),
+      getWeakWordsQueueProvider.overrideWithValue(
+        GetWeakWordsQueue(words: wordRepo, progress: progressRepo),
       ),
       recordReviewProvider.overrideWithValue(
         RecordReview(
@@ -416,5 +434,32 @@ void main() {
     expect(harness.crashReporter.captured, hasLength(1));
     expect(harness.crashReporter.captured.single.context, 'record_review');
     expect(find.text('Не удалось сохранить ответ'), findsOneWidget);
+  });
+
+  testWidgets('weak mode shows only weak words', (tester) async {
+    final harness = Harness(
+      words: [word(1), word(2)],
+      progress: [weak(1), due(2)],
+    );
+
+    await tester.pumpWidget(
+      harness.app(home: const LessonScreen(mode: LessonMode.weak)),
+    );
+    await tester.pumpAndSettle();
+
+    // Здоровое слово со сроком в weak-режим не попадает.
+    expect(find.text('term1'), findsOneWidget);
+    expect(find.text('term2'), findsNothing);
+  });
+
+  testWidgets('weak mode uses its own title', (tester) async {
+    final harness = Harness(words: [word(1)], progress: [weak(1)]);
+
+    await tester.pumpWidget(
+      harness.app(home: const LessonScreen(mode: LessonMode.weak)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Сложные слова'), findsOneWidget);
   });
 }

@@ -5486,6 +5486,957 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
   }
 }
 
+class $TypingRecordsTable extends TypingRecords
+    with TableInfo<$TypingRecordsTable, TypingRecordRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TypingRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _wordsCountMeta = const VerificationMeta(
+    'wordsCount',
+  );
+  @override
+  late final GeneratedColumn<int> wordsCount = GeneratedColumn<int>(
+    'words_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _correctCountMeta = const VerificationMeta(
+    'correctCount',
+  );
+  @override
+  late final GeneratedColumn<int> correctCount = GeneratedColumn<int>(
+    'correct_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationSecondsMeta = const VerificationMeta(
+    'durationSeconds',
+  );
+  @override
+  late final GeneratedColumn<int> durationSeconds = GeneratedColumn<int>(
+    'duration_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _wpmMeta = const VerificationMeta('wpm');
+  @override
+  late final GeneratedColumn<int> wpm = GeneratedColumn<int>(
+    'wpm',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accuracyPercentMeta = const VerificationMeta(
+    'accuracyPercent',
+  );
+  @override
+  late final GeneratedColumn<int> accuracyPercent = GeneratedColumn<int>(
+    'accuracy_percent',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scoreMeta = const VerificationMeta('score');
+  @override
+  late final GeneratedColumn<int> score = GeneratedColumn<int>(
+    'score',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    wordsCount,
+    correctCount,
+    durationSeconds,
+    wpm,
+    accuracyPercent,
+    score,
+    createdAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'typing_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TypingRecordRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('words_count')) {
+      context.handle(
+        _wordsCountMeta,
+        wordsCount.isAcceptableOrUnknown(data['words_count']!, _wordsCountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordsCountMeta);
+    }
+    if (data.containsKey('correct_count')) {
+      context.handle(
+        _correctCountMeta,
+        correctCount.isAcceptableOrUnknown(
+          data['correct_count']!,
+          _correctCountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_correctCountMeta);
+    }
+    if (data.containsKey('duration_seconds')) {
+      context.handle(
+        _durationSecondsMeta,
+        durationSeconds.isAcceptableOrUnknown(
+          data['duration_seconds']!,
+          _durationSecondsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_durationSecondsMeta);
+    }
+    if (data.containsKey('wpm')) {
+      context.handle(
+        _wpmMeta,
+        wpm.isAcceptableOrUnknown(data['wpm']!, _wpmMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wpmMeta);
+    }
+    if (data.containsKey('accuracy_percent')) {
+      context.handle(
+        _accuracyPercentMeta,
+        accuracyPercent.isAcceptableOrUnknown(
+          data['accuracy_percent']!,
+          _accuracyPercentMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accuracyPercentMeta);
+    }
+    if (data.containsKey('score')) {
+      context.handle(
+        _scoreMeta,
+        score.isAcceptableOrUnknown(data['score']!, _scoreMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_scoreMeta);
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TypingRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TypingRecordRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      wordsCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}words_count'],
+      )!,
+      correctCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}correct_count'],
+      )!,
+      durationSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_seconds'],
+      )!,
+      wpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}wpm'],
+      )!,
+      accuracyPercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}accuracy_percent'],
+      )!,
+      score: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}score'],
+      )!,
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $TypingRecordsTable createAlias(String alias) {
+    return $TypingRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class TypingRecordRow extends DataClass implements Insertable<TypingRecordRow> {
+  /// Автоинкремент: записи только добавляются.
+  final int id;
+
+  /// Сколько слов было в сессии.
+  final int wordsCount;
+
+  /// Сколько набрано верно.
+  final int correctCount;
+
+  /// Длительность сессии в секундах.
+  final int durationSeconds;
+
+  /// Слов в минуту.
+  final int wpm;
+
+  /// Точность в процентах, 0..100.
+  final int accuracyPercent;
+
+  /// Итоговые очки: WPM, взвешенный точностью.
+  final int score;
+
+  /// Момент завершения, миллисекунды UTC.
+  final int createdAtUtc;
+  const TypingRecordRow({
+    required this.id,
+    required this.wordsCount,
+    required this.correctCount,
+    required this.durationSeconds,
+    required this.wpm,
+    required this.accuracyPercent,
+    required this.score,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['words_count'] = Variable<int>(wordsCount);
+    map['correct_count'] = Variable<int>(correctCount);
+    map['duration_seconds'] = Variable<int>(durationSeconds);
+    map['wpm'] = Variable<int>(wpm);
+    map['accuracy_percent'] = Variable<int>(accuracyPercent);
+    map['score'] = Variable<int>(score);
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  TypingRecordsCompanion toCompanion(bool nullToAbsent) {
+    return TypingRecordsCompanion(
+      id: Value(id),
+      wordsCount: Value(wordsCount),
+      correctCount: Value(correctCount),
+      durationSeconds: Value(durationSeconds),
+      wpm: Value(wpm),
+      accuracyPercent: Value(accuracyPercent),
+      score: Value(score),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory TypingRecordRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TypingRecordRow(
+      id: serializer.fromJson<int>(json['id']),
+      wordsCount: serializer.fromJson<int>(json['wordsCount']),
+      correctCount: serializer.fromJson<int>(json['correctCount']),
+      durationSeconds: serializer.fromJson<int>(json['durationSeconds']),
+      wpm: serializer.fromJson<int>(json['wpm']),
+      accuracyPercent: serializer.fromJson<int>(json['accuracyPercent']),
+      score: serializer.fromJson<int>(json['score']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'wordsCount': serializer.toJson<int>(wordsCount),
+      'correctCount': serializer.toJson<int>(correctCount),
+      'durationSeconds': serializer.toJson<int>(durationSeconds),
+      'wpm': serializer.toJson<int>(wpm),
+      'accuracyPercent': serializer.toJson<int>(accuracyPercent),
+      'score': serializer.toJson<int>(score),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  TypingRecordRow copyWith({
+    int? id,
+    int? wordsCount,
+    int? correctCount,
+    int? durationSeconds,
+    int? wpm,
+    int? accuracyPercent,
+    int? score,
+    int? createdAtUtc,
+  }) => TypingRecordRow(
+    id: id ?? this.id,
+    wordsCount: wordsCount ?? this.wordsCount,
+    correctCount: correctCount ?? this.correctCount,
+    durationSeconds: durationSeconds ?? this.durationSeconds,
+    wpm: wpm ?? this.wpm,
+    accuracyPercent: accuracyPercent ?? this.accuracyPercent,
+    score: score ?? this.score,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  TypingRecordRow copyWithCompanion(TypingRecordsCompanion data) {
+    return TypingRecordRow(
+      id: data.id.present ? data.id.value : this.id,
+      wordsCount: data.wordsCount.present
+          ? data.wordsCount.value
+          : this.wordsCount,
+      correctCount: data.correctCount.present
+          ? data.correctCount.value
+          : this.correctCount,
+      durationSeconds: data.durationSeconds.present
+          ? data.durationSeconds.value
+          : this.durationSeconds,
+      wpm: data.wpm.present ? data.wpm.value : this.wpm,
+      accuracyPercent: data.accuracyPercent.present
+          ? data.accuracyPercent.value
+          : this.accuracyPercent,
+      score: data.score.present ? data.score.value : this.score,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TypingRecordRow(')
+          ..write('id: $id, ')
+          ..write('wordsCount: $wordsCount, ')
+          ..write('correctCount: $correctCount, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('wpm: $wpm, ')
+          ..write('accuracyPercent: $accuracyPercent, ')
+          ..write('score: $score, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    wordsCount,
+    correctCount,
+    durationSeconds,
+    wpm,
+    accuracyPercent,
+    score,
+    createdAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TypingRecordRow &&
+          other.id == this.id &&
+          other.wordsCount == this.wordsCount &&
+          other.correctCount == this.correctCount &&
+          other.durationSeconds == this.durationSeconds &&
+          other.wpm == this.wpm &&
+          other.accuracyPercent == this.accuracyPercent &&
+          other.score == this.score &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class TypingRecordsCompanion extends UpdateCompanion<TypingRecordRow> {
+  final Value<int> id;
+  final Value<int> wordsCount;
+  final Value<int> correctCount;
+  final Value<int> durationSeconds;
+  final Value<int> wpm;
+  final Value<int> accuracyPercent;
+  final Value<int> score;
+  final Value<int> createdAtUtc;
+  const TypingRecordsCompanion({
+    this.id = const Value.absent(),
+    this.wordsCount = const Value.absent(),
+    this.correctCount = const Value.absent(),
+    this.durationSeconds = const Value.absent(),
+    this.wpm = const Value.absent(),
+    this.accuracyPercent = const Value.absent(),
+    this.score = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  TypingRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    required int wordsCount,
+    required int correctCount,
+    required int durationSeconds,
+    required int wpm,
+    required int accuracyPercent,
+    required int score,
+    required int createdAtUtc,
+  }) : wordsCount = Value(wordsCount),
+       correctCount = Value(correctCount),
+       durationSeconds = Value(durationSeconds),
+       wpm = Value(wpm),
+       accuracyPercent = Value(accuracyPercent),
+       score = Value(score),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<TypingRecordRow> custom({
+    Expression<int>? id,
+    Expression<int>? wordsCount,
+    Expression<int>? correctCount,
+    Expression<int>? durationSeconds,
+    Expression<int>? wpm,
+    Expression<int>? accuracyPercent,
+    Expression<int>? score,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (wordsCount != null) 'words_count': wordsCount,
+      if (correctCount != null) 'correct_count': correctCount,
+      if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (wpm != null) 'wpm': wpm,
+      if (accuracyPercent != null) 'accuracy_percent': accuracyPercent,
+      if (score != null) 'score': score,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  TypingRecordsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? wordsCount,
+    Value<int>? correctCount,
+    Value<int>? durationSeconds,
+    Value<int>? wpm,
+    Value<int>? accuracyPercent,
+    Value<int>? score,
+    Value<int>? createdAtUtc,
+  }) {
+    return TypingRecordsCompanion(
+      id: id ?? this.id,
+      wordsCount: wordsCount ?? this.wordsCount,
+      correctCount: correctCount ?? this.correctCount,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+      wpm: wpm ?? this.wpm,
+      accuracyPercent: accuracyPercent ?? this.accuracyPercent,
+      score: score ?? this.score,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (wordsCount.present) {
+      map['words_count'] = Variable<int>(wordsCount.value);
+    }
+    if (correctCount.present) {
+      map['correct_count'] = Variable<int>(correctCount.value);
+    }
+    if (durationSeconds.present) {
+      map['duration_seconds'] = Variable<int>(durationSeconds.value);
+    }
+    if (wpm.present) {
+      map['wpm'] = Variable<int>(wpm.value);
+    }
+    if (accuracyPercent.present) {
+      map['accuracy_percent'] = Variable<int>(accuracyPercent.value);
+    }
+    if (score.present) {
+      map['score'] = Variable<int>(score.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TypingRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('wordsCount: $wordsCount, ')
+          ..write('correctCount: $correctCount, ')
+          ..write('durationSeconds: $durationSeconds, ')
+          ..write('wpm: $wpm, ')
+          ..write('accuracyPercent: $accuracyPercent, ')
+          ..write('score: $score, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PhrasesTable extends Phrases with TableInfo<$PhrasesTable, PhraseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PhrasesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _phraseMeta = const VerificationMeta('phrase');
+  @override
+  late final GeneratedColumn<String> phrase = GeneratedColumn<String>(
+    'phrase',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _translationMeta = const VerificationMeta(
+    'translation',
+  );
+  @override
+  late final GeneratedColumn<String> translation = GeneratedColumn<String>(
+    'translation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<String> level = GeneratedColumn<String>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    phrase,
+    translation,
+    category,
+    level,
+    createdAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'phrases';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PhraseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('phrase')) {
+      context.handle(
+        _phraseMeta,
+        phrase.isAcceptableOrUnknown(data['phrase']!, _phraseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phraseMeta);
+    }
+    if (data.containsKey('translation')) {
+      context.handle(
+        _translationMeta,
+        translation.isAcceptableOrUnknown(
+          data['translation']!,
+          _translationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_translationMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PhraseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PhraseRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      phrase: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phrase'],
+      )!,
+      translation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}translation'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}level'],
+      )!,
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $PhrasesTable createAlias(String alias) {
+    return $PhrasesTable(attachedDatabase, alias);
+  }
+}
+
+class PhraseRow extends DataClass implements Insertable<PhraseRow> {
+  /// Автоинкремент: контент только добавляется.
+  final int id;
+
+  /// Английская фраза.
+  final String phrase;
+
+  /// Русский перевод.
+  final String translation;
+
+  /// Тема: «Приветствия», «Аэропорт», «Идиомы».
+  final String category;
+
+  /// Уровень CEFR меткой: a1…c2.
+  final String level;
+
+  /// Момент загрузки, миллисекунды UTC.
+  final int createdAtUtc;
+  const PhraseRow({
+    required this.id,
+    required this.phrase,
+    required this.translation,
+    required this.category,
+    required this.level,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['phrase'] = Variable<String>(phrase);
+    map['translation'] = Variable<String>(translation);
+    map['category'] = Variable<String>(category);
+    map['level'] = Variable<String>(level);
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  PhrasesCompanion toCompanion(bool nullToAbsent) {
+    return PhrasesCompanion(
+      id: Value(id),
+      phrase: Value(phrase),
+      translation: Value(translation),
+      category: Value(category),
+      level: Value(level),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory PhraseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PhraseRow(
+      id: serializer.fromJson<int>(json['id']),
+      phrase: serializer.fromJson<String>(json['phrase']),
+      translation: serializer.fromJson<String>(json['translation']),
+      category: serializer.fromJson<String>(json['category']),
+      level: serializer.fromJson<String>(json['level']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'phrase': serializer.toJson<String>(phrase),
+      'translation': serializer.toJson<String>(translation),
+      'category': serializer.toJson<String>(category),
+      'level': serializer.toJson<String>(level),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  PhraseRow copyWith({
+    int? id,
+    String? phrase,
+    String? translation,
+    String? category,
+    String? level,
+    int? createdAtUtc,
+  }) => PhraseRow(
+    id: id ?? this.id,
+    phrase: phrase ?? this.phrase,
+    translation: translation ?? this.translation,
+    category: category ?? this.category,
+    level: level ?? this.level,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  PhraseRow copyWithCompanion(PhrasesCompanion data) {
+    return PhraseRow(
+      id: data.id.present ? data.id.value : this.id,
+      phrase: data.phrase.present ? data.phrase.value : this.phrase,
+      translation: data.translation.present
+          ? data.translation.value
+          : this.translation,
+      category: data.category.present ? data.category.value : this.category,
+      level: data.level.present ? data.level.value : this.level,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PhraseRow(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('translation: $translation, ')
+          ..write('category: $category, ')
+          ..write('level: $level, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, phrase, translation, category, level, createdAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PhraseRow &&
+          other.id == this.id &&
+          other.phrase == this.phrase &&
+          other.translation == this.translation &&
+          other.category == this.category &&
+          other.level == this.level &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class PhrasesCompanion extends UpdateCompanion<PhraseRow> {
+  final Value<int> id;
+  final Value<String> phrase;
+  final Value<String> translation;
+  final Value<String> category;
+  final Value<String> level;
+  final Value<int> createdAtUtc;
+  const PhrasesCompanion({
+    this.id = const Value.absent(),
+    this.phrase = const Value.absent(),
+    this.translation = const Value.absent(),
+    this.category = const Value.absent(),
+    this.level = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  PhrasesCompanion.insert({
+    this.id = const Value.absent(),
+    required String phrase,
+    required String translation,
+    required String category,
+    required String level,
+    required int createdAtUtc,
+  }) : phrase = Value(phrase),
+       translation = Value(translation),
+       category = Value(category),
+       level = Value(level),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<PhraseRow> custom({
+    Expression<int>? id,
+    Expression<String>? phrase,
+    Expression<String>? translation,
+    Expression<String>? category,
+    Expression<String>? level,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (phrase != null) 'phrase': phrase,
+      if (translation != null) 'translation': translation,
+      if (category != null) 'category': category,
+      if (level != null) 'level': level,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  PhrasesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? phrase,
+    Value<String>? translation,
+    Value<String>? category,
+    Value<String>? level,
+    Value<int>? createdAtUtc,
+  }) {
+    return PhrasesCompanion(
+      id: id ?? this.id,
+      phrase: phrase ?? this.phrase,
+      translation: translation ?? this.translation,
+      category: category ?? this.category,
+      level: level ?? this.level,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (phrase.present) {
+      map['phrase'] = Variable<String>(phrase.value);
+    }
+    if (translation.present) {
+      map['translation'] = Variable<String>(translation.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<String>(level.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PhrasesCompanion(')
+          ..write('id: $id, ')
+          ..write('phrase: $phrase, ')
+          ..write('translation: $translation, ')
+          ..write('category: $category, ')
+          ..write('level: $level, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5508,6 +6459,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $UserCategoriesTable userCategories = $UserCategoriesTable(this);
   late final $AchievementsTable achievements = $AchievementsTable(this);
+  late final $TypingRecordsTable typingRecords = $TypingRecordsTable(this);
+  late final $PhrasesTable phrases = $PhrasesTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -5545,6 +6498,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     challengeStreaks,
     userCategories,
     achievements,
+    typingRecords,
+    phrases,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -9086,6 +10041,494 @@ typedef $$AchievementsTableProcessedTableManager =
       AchievementRow,
       PrefetchHooks Function()
     >;
+typedef $$TypingRecordsTableCreateCompanionBuilder =
+    TypingRecordsCompanion Function({
+      Value<int> id,
+      required int wordsCount,
+      required int correctCount,
+      required int durationSeconds,
+      required int wpm,
+      required int accuracyPercent,
+      required int score,
+      required int createdAtUtc,
+    });
+typedef $$TypingRecordsTableUpdateCompanionBuilder =
+    TypingRecordsCompanion Function({
+      Value<int> id,
+      Value<int> wordsCount,
+      Value<int> correctCount,
+      Value<int> durationSeconds,
+      Value<int> wpm,
+      Value<int> accuracyPercent,
+      Value<int> score,
+      Value<int> createdAtUtc,
+    });
+
+class $$TypingRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $TypingRecordsTable> {
+  $$TypingRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get wordsCount => $composableBuilder(
+    column: $table.wordsCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get correctCount => $composableBuilder(
+    column: $table.correctCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get wpm => $composableBuilder(
+    column: $table.wpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get accuracyPercent => $composableBuilder(
+    column: $table.accuracyPercent,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TypingRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TypingRecordsTable> {
+  $$TypingRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get wordsCount => $composableBuilder(
+    column: $table.wordsCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get correctCount => $composableBuilder(
+    column: $table.correctCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get wpm => $composableBuilder(
+    column: $table.wpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get accuracyPercent => $composableBuilder(
+    column: $table.accuracyPercent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get score => $composableBuilder(
+    column: $table.score,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TypingRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TypingRecordsTable> {
+  $$TypingRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get wordsCount => $composableBuilder(
+    column: $table.wordsCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get correctCount => $composableBuilder(
+    column: $table.correctCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get durationSeconds => $composableBuilder(
+    column: $table.durationSeconds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get wpm =>
+      $composableBuilder(column: $table.wpm, builder: (column) => column);
+
+  GeneratedColumn<int> get accuracyPercent => $composableBuilder(
+    column: $table.accuracyPercent,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get score =>
+      $composableBuilder(column: $table.score, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$TypingRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TypingRecordsTable,
+          TypingRecordRow,
+          $$TypingRecordsTableFilterComposer,
+          $$TypingRecordsTableOrderingComposer,
+          $$TypingRecordsTableAnnotationComposer,
+          $$TypingRecordsTableCreateCompanionBuilder,
+          $$TypingRecordsTableUpdateCompanionBuilder,
+          (
+            TypingRecordRow,
+            BaseReferences<_$AppDatabase, $TypingRecordsTable, TypingRecordRow>,
+          ),
+          TypingRecordRow,
+          PrefetchHooks Function()
+        > {
+  $$TypingRecordsTableTableManager(_$AppDatabase db, $TypingRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TypingRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TypingRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TypingRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> wordsCount = const Value.absent(),
+                Value<int> correctCount = const Value.absent(),
+                Value<int> durationSeconds = const Value.absent(),
+                Value<int> wpm = const Value.absent(),
+                Value<int> accuracyPercent = const Value.absent(),
+                Value<int> score = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => TypingRecordsCompanion(
+                id: id,
+                wordsCount: wordsCount,
+                correctCount: correctCount,
+                durationSeconds: durationSeconds,
+                wpm: wpm,
+                accuracyPercent: accuracyPercent,
+                score: score,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int wordsCount,
+                required int correctCount,
+                required int durationSeconds,
+                required int wpm,
+                required int accuracyPercent,
+                required int score,
+                required int createdAtUtc,
+              }) => TypingRecordsCompanion.insert(
+                id: id,
+                wordsCount: wordsCount,
+                correctCount: correctCount,
+                durationSeconds: durationSeconds,
+                wpm: wpm,
+                accuracyPercent: accuracyPercent,
+                score: score,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$TypingRecordsTable, TypingRecordRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $TypingRecordsTable,
+                    TypingRecordRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TypingRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TypingRecordsTable,
+      TypingRecordRow,
+      $$TypingRecordsTableFilterComposer,
+      $$TypingRecordsTableOrderingComposer,
+      $$TypingRecordsTableAnnotationComposer,
+      $$TypingRecordsTableCreateCompanionBuilder,
+      $$TypingRecordsTableUpdateCompanionBuilder,
+      (
+        TypingRecordRow,
+        BaseReferences<_$AppDatabase, $TypingRecordsTable, TypingRecordRow>,
+      ),
+      TypingRecordRow,
+      PrefetchHooks Function()
+    >;
+typedef $$PhrasesTableCreateCompanionBuilder = PhrasesCompanion Function({
+  Value<int> id,
+  required String phrase,
+  required String translation,
+  required String category,
+  required String level,
+  required int createdAtUtc,
+});
+typedef $$PhrasesTableUpdateCompanionBuilder = PhrasesCompanion Function({
+  Value<int> id,
+  Value<String> phrase,
+  Value<String> translation,
+  Value<String> category,
+  Value<String> level,
+  Value<int> createdAtUtc,
+});
+
+class $$PhrasesTableFilterComposer
+    extends Composer<_$AppDatabase, $PhrasesTable> {
+  $$PhrasesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PhrasesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PhrasesTable> {
+  $$PhrasesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phrase => $composableBuilder(
+    column: $table.phrase,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PhrasesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PhrasesTable> {
+  $$PhrasesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get phrase =>
+      $composableBuilder(column: $table.phrase, builder: (column) => column);
+
+  GeneratedColumn<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$PhrasesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PhrasesTable,
+          PhraseRow,
+          $$PhrasesTableFilterComposer,
+          $$PhrasesTableOrderingComposer,
+          $$PhrasesTableAnnotationComposer,
+          $$PhrasesTableCreateCompanionBuilder,
+          $$PhrasesTableUpdateCompanionBuilder,
+          (PhraseRow, BaseReferences<_$AppDatabase, $PhrasesTable, PhraseRow>),
+          PhraseRow,
+          PrefetchHooks Function()
+        > {
+  $$PhrasesTableTableManager(_$AppDatabase db, $PhrasesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PhrasesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PhrasesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PhrasesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> phrase = const Value.absent(),
+                Value<String> translation = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> level = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => PhrasesCompanion(
+                id: id,
+                phrase: phrase,
+                translation: translation,
+                category: category,
+                level: level,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String phrase,
+                required String translation,
+                required String category,
+                required String level,
+                required int createdAtUtc,
+              }) => PhrasesCompanion.insert(
+                id: id,
+                phrase: phrase,
+                translation: translation,
+                category: category,
+                level: level,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PhrasesTable, PhraseRow>(table),
+                  BaseReferences<_$AppDatabase, $PhrasesTable, PhraseRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PhrasesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PhrasesTable,
+      PhraseRow,
+      $$PhrasesTableFilterComposer,
+      $$PhrasesTableOrderingComposer,
+      $$PhrasesTableAnnotationComposer,
+      $$PhrasesTableCreateCompanionBuilder,
+      $$PhrasesTableUpdateCompanionBuilder,
+      (PhraseRow, BaseReferences<_$AppDatabase, $PhrasesTable, PhraseRow>),
+      PhraseRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9114,4 +10557,8 @@ class $AppDatabaseManager {
       $$UserCategoriesTableTableManager(_db, _db.userCategories);
   $$AchievementsTableTableManager get achievements =>
       $$AchievementsTableTableManager(_db, _db.achievements);
+  $$TypingRecordsTableTableManager get typingRecords =>
+      $$TypingRecordsTableTableManager(_db, _db.typingRecords);
+  $$PhrasesTableTableManager get phrases =>
+      $$PhrasesTableTableManager(_db, _db.phrases);
 }

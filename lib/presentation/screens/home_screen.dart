@@ -162,7 +162,7 @@ class HomeScreen extends ConsumerWidget {
       );
 
   Widget _buildGames(BuildContext context) => GridView.count(
-    crossAxisCount: 2,
+    crossAxisCount: 3,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     mainAxisSpacing: 12,
@@ -196,6 +196,20 @@ class HomeScreen extends ConsumerWidget {
         color: Colors.indigo,
         onTap: () =>
             _openGame(context, '/word-match', HapticFeedback.selectionClick),
+      ),
+      _GameCard(
+        title: 'Typing',
+        icon: Icons.keyboard,
+        color: Colors.cyan,
+        onTap: () =>
+            _openGame(context, '/typing-speed', HapticFeedback.selectionClick),
+      ),
+      _GameCard(
+        title: 'Разговорник',
+        icon: Icons.forum,
+        color: Colors.teal,
+        onTap: () =>
+            _openGame(context, '/phrasebook', HapticFeedback.selectionClick),
       ),
       _GameCard(
         title: 'Диктант',

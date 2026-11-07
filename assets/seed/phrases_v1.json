@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "phrases": [
+    {"phrase": "How are you?", "translation": "Как дела?", "category": "Приветствия", "level": "a1"},
+    {"phrase": "Nice to meet you", "translation": "Приятно познакомиться", "category": "Приветствия", "level": "a1"},
+    {"phrase": "See you later", "translation": "Увидимся позже", "category": "Приветствия", "level": "a1"},
+    {"phrase": "Where is the gate?", "translation": "Где выход на посадку?", "category": "Аэропорт", "level": "a2"},
+    {"phrase": "I have a connecting flight", "translation": "У меня стыковочный рейс", "category": "Аэропорт", "level": "a2"},
+    {"phrase": "Could you repeat that, please?", "translation": "Не могли бы вы повторить?", "category": "Аэропорт", "level": "a2"},
+    {"phrase": "How much does it cost?", "translation": "Сколько это стоит?", "category": "Покупки", "level": "a1"},
+    {"phrase": "I would like a coffee, please", "translation": "Я бы хотел кофе, пожалуйста", "category": "Покупки", "level": "a2"},
+    {"phrase": "It's raining cats and dogs", "translation": "Льёт как из ведра", "category": "Идиомы", "level": "b1"},
+    {"phrase": "Break a leg", "translation": "Ни пуха ни пера", "category": "Идиомы", "level": "b1"},
+    {"phrase": "Once in a blue moon", "translation": "Раз в сто лет", "category": "Идиомы", "level": "b1"},
+    {"phrase": "Under the weather", "translation": "Неважно себя чувствовать", "category": "Идиомы", "level": "b1"}
+  ]
+}

@@ -43,3 +43,4 @@ flutter:
     # Только слитый словарь: words_v1/words_<level>.json — входные файлы
     # tools/merge_seeds.dart, в APK им делать нечего (~1 МБ).
     - assets/seed/words_v2.json
+    - assets/seed/phrases_v1.json

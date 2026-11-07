@@ -407,3 +407,65 @@ class Achievements extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+/// Рекорды игры «Typing Speed» (Phase 21a, ADR-037).
+///
+/// Строка — одна завершённая сессия. Хранить их выгоднее, чем один счётчик:
+/// экран показывает топ-10 и лучший результат, а история не теряется.
+@DataClassName('TypingRecordRow')
+class TypingRecords extends Table {
+  @override
+  String get tableName => 'typing_records';
+
+  /// Автоинкремент: записи только добавляются.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Сколько слов было в сессии.
+  IntColumn get wordsCount => integer()();
+
+  /// Сколько набрано верно.
+  IntColumn get correctCount => integer()();
+
+  /// Длительность сессии в секундах.
+  IntColumn get durationSeconds => integer()();
+
+  /// Слов в минуту.
+  IntColumn get wpm => integer()();
+
+  /// Точность в процентах, 0..100.
+  IntColumn get accuracyPercent => integer()();
+
+  /// Итоговые очки: WPM, взвешенный точностью.
+  IntColumn get score => integer()();
+
+  /// Момент завершения, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+}
+
+/// Фразы разговорника (Phase 22, ADR-038).
+///
+/// Отдельная таблица, а не `words`: у фразы нет SM-2, прогресса и статуса —
+/// это справочник, а не учебная карточка.
+@DataClassName('PhraseRow')
+class Phrases extends Table {
+  @override
+  String get tableName => 'phrases';
+
+  /// Автоинкремент: контент только добавляется.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Английская фраза.
+  TextColumn get phrase => text()();
+
+  /// Русский перевод.
+  TextColumn get translation => text()();
+
+  /// Тема: «Приветствия», «Аэропорт», «Идиомы».
+  TextColumn get category => text()();
+
+  /// Уровень CEFR меткой: a1…c2.
+  TextColumn get level => text()();
+
+  /// Момент загрузки, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+}

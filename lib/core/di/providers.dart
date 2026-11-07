@@ -6,16 +6,19 @@ import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/data/db/phrase_seed_loader.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/data/repositories/drift_achievement_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
 import 'package:english_edu/data/repositories/drift_daily_challenge_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
+import 'package:english_edu/data/repositories/drift_phrase_repository.dart';
 import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_settings_repository.dart';
 import 'package:english_edu/data/repositories/drift_stats_repository.dart';
+import 'package:english_edu/data/repositories/drift_typing_record_repository.dart';
 import 'package:english_edu/data/repositories/drift_user_category_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
@@ -24,16 +27,19 @@ import 'package:english_edu/data/sync/supabase_cloud_auth_service.dart';
 import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
+import 'package:english_edu/domain/entities/phrase.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
 import 'package:english_edu/domain/repositories/daily_challenge_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
+import 'package:english_edu/domain/repositories/phrase_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/repositories/user_category_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
@@ -53,6 +59,7 @@ import 'package:english_edu/domain/usecases/flip_memory_card.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
+import 'package:english_edu/domain/usecases/generate_typing_session.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/usecases/get_or_create_daily_challenge.dart';
@@ -65,6 +72,8 @@ import 'package:english_edu/domain/usecases/import_progress.dart';
 import 'package:english_edu/domain/usecases/mark_missed_day.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/reset_progress.dart';
+import 'package:english_edu/domain/usecases/save_typing_record.dart';
+import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
@@ -79,6 +88,7 @@ import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/smart_review_item.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -560,6 +570,57 @@ final generateMemoryGameProvider = Provider<GenerateMemoryGame>(
 /// Правило хода в «Memory»: чистая функция, состояние приходит снаружи.
 final flipMemoryCardProvider = Provider<FlipMemoryCard>(
   (ref) => const FlipMemoryCard(),
+);
+
+/// Справочник фраз (ADR-038, schema v13).
+final phraseRepositoryProvider = Provider<PhraseRepository>(
+  (ref) => DriftPhraseRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Загрузчик фраз из ассетов.
+final phraseSeedLoaderProvider = Provider<PhraseSeedLoader>(
+  (ref) => PhraseSeedLoader(
+    phrases: ref.watch(phraseRepositoryProvider),
+    bundle: ref.watch(assetBundleProvider),
+  ),
+);
+
+/// Фразы для экрана; при первом обращении таблица наполняется из ассетов.
+final phrasesProvider = FutureProvider<List<Phrase>>((ref) async {
+  final repo = ref.watch(phraseRepositoryProvider);
+  await ref.watch(phraseSeedLoaderProvider).load();
+  return await repo.getAll();
+});
+
+/// Хранилище рекордов «Typing Speed» (ADR-037, schema v12).
+final typingRecordRepositoryProvider = Provider<TypingRecordRepository>(
+  (ref) => DriftTypingRecordRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Сборка заезда: 10 случайных слов.
+final generateTypingSessionProvider = Provider<GenerateTypingSession>(
+  (ref) => GenerateTypingSession(
+    words: ref.watch(wordRepositoryProvider),
+    random: Random(),
+  ),
+);
+
+/// Проверка ввода: чистая функция.
+final submitTypingAnswerProvider = Provider<SubmitTypingAnswer>(
+  (ref) => const SubmitTypingAnswer(),
+);
+
+/// Сохранение результата заезда.
+final saveTypingRecordProvider = Provider<SaveTypingRecord>(
+  (ref) => SaveTypingRecord(
+    records: ref.watch(typingRecordRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Лучший результат для AppBar.
+final bestTypingRecordProvider = FutureProvider<TypingRecord?>(
+  (ref) => ref.watch(typingRecordRepositoryProvider).getBest(),
 );
 
 /// Хранилище достижений (ADR-035, schema v11).

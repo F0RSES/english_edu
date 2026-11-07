@@ -311,7 +311,39 @@ void main() {
     expect(await v11.select(v11.achievements).get(), isEmpty);
   });
 
-  test('creates all twelve tables on open', () async {
+  test('migration v11 to v12 creates typing_records', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_v12');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    final v11 = AppDatabase.forTesting(NativeDatabase(file));
+    await v11.customStatement('DROP TABLE typing_records');
+    await v11.customStatement('PRAGMA user_version = 11');
+    await v11.close();
+
+    final v12 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v12.close);
+
+    expect(await v12.select(v12.typingRecords).get(), isEmpty);
+  });
+
+  test('migration v12 to v13 creates phrases', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_v13');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    final v12 = AppDatabase.forTesting(NativeDatabase(file));
+    await v12.customStatement('DROP TABLE phrases');
+    await v12.customStatement('PRAGMA user_version = 12');
+    await v12.close();
+
+    final v13 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v13.close);
+
+    expect(await v13.select(v13.phrases).get(), isEmpty);
+  });
+
+  test('creates all fourteen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -324,6 +356,8 @@ void main() {
     expect(await db.select(db.challengeStreaks).get(), isEmpty);
     expect(await db.select(db.userCategories).get(), isEmpty);
     expect(await db.select(db.achievements).get(), isEmpty);
+    expect(await db.select(db.typingRecords).get(), isEmpty);
+    expect(await db.select(db.phrases).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

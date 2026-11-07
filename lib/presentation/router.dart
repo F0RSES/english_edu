@@ -7,8 +7,10 @@ import 'package:english_edu/presentation/screens/home_screen.dart';
 import 'package:english_edu/presentation/screens/lesson_screen.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
+import 'package:english_edu/presentation/screens/phrasebook_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
 import 'package:english_edu/presentation/screens/settings_screen.dart';
+import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
 import 'package:english_edu/presentation/screens/word_match_screen.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +53,16 @@ final routerProvider = Provider<GoRouter>(
         path: '/word-match',
         pageBuilder: (context, state) =>
             _fadeScalePage(state, const WordMatchScreen()),
+      ),
+      GoRoute(
+        path: '/phrasebook',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const PhrasebookScreen()),
+      ),
+      GoRoute(
+        path: '/typing-speed',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const TypingSpeedScreen()),
       ),
       GoRoute(
         path: '/listening',

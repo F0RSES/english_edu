@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "phrases": [
+    {
+      "phrase": "A table for two, please.",
+      "translation": "Столик на двоих, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Do you have a reservation?",
+      "translation": "У вас есть бронь?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I have a reservation.",
+      "translation": "У меня есть бронь.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I see the menu, please?",
+      "translation": "Можно посмотреть меню, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can we sit by the window?",
+      "translation": "Можно сесть у окна?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is this table free?",
+      "translation": "Этот столик свободен?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "We are ready to order.",
+      "translation": "Мы готовы сделать заказ.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "What do you recommend?",
+      "translation": "Что вы рекомендуете?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "What is the dish of the day?",
+      "translation": "Какое сегодня блюдо дня?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I would like a steak, please.",
+      "translation": "Я хотел бы стейк, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I'll have the chicken.",
+      "translation": "Я возьму курицу.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I have the same, please?",
+      "translation": "Можно мне то же самое, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "No onions, please.",
+      "translation": "Без лука, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I am allergic to nuts.",
+      "translation": "У меня аллергия на орехи.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is this dish spicy?",
+      "translation": "Это блюдо острое?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is this dish vegetarian?",
+      "translation": "Это блюдо вегетарианское?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Does it contain meat?",
+      "translation": "В нём есть мясо?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I don't eat pork.",
+      "translation": "Я не ем свинину.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could I have some water, please?",
+      "translation": "Можно мне воды, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Still or sparkling water?",
+      "translation": "Вода без газа или с газом?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "A glass of red wine, please.",
+      "translation": "Бокал красного вина, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "A cup of coffee, please.",
+      "translation": "Чашку кофе, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could we have some bread, please?",
+      "translation": "Можно нам хлеба, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I have some more, please?",
+      "translation": "Можно мне ещё немного, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "This is not what I ordered.",
+      "translation": "Это не то, что я заказывал.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "My food is cold.",
+      "translation": "Моя еда холодная.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could you bring me a fork, please?",
+      "translation": "Не могли бы вы принести мне вилку, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "We need another chair.",
+      "translation": "Нам нужен ещё один стул.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could you pass the salt, please?",
+      "translation": "Не могли бы вы передать соль, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "The food is delicious.",
+      "translation": "Еда очень вкусная.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Everything was great, thank you.",
+      "translation": "Всё было отлично, спасибо.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could we have the bill, please?",
+      "translation": "Можно счёт, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can we pay together?",
+      "translation": "Мы можем заплатить вместе?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can we pay separately?",
+      "translation": "Мы можем заплатить отдельно?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Do you accept credit cards?",
+      "translation": "Вы принимаете кредитные карты?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I pay by card?",
+      "translation": "Можно оплатить картой?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Keep the change.",
+      "translation": "Сдачу оставьте себе.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is service included?",
+      "translation": "Обслуживание включено в счёт?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I have a receipt, please?",
+      "translation": "Можно мне чек, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I take this away?",
+      "translation": "Можно это забрать с собой?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "I'd like to order takeaway.",
+      "translation": "Я хотел бы заказать еду с собой.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is there a table outside?",
+      "translation": "Есть столик на улице?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "How long is the wait?",
+      "translation": "Сколько ждать?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "We are a party of four.",
+      "translation": "Нас четверо.",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could we have a high chair for the baby?",
+      "translation": "Можно детский стульчик для малыша?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the restroom?",
+      "translation": "Где туалет?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could you call a taxi for us?",
+      "translation": "Не могли бы вы вызвать нам такси?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Excuse me, waiter!",
+      "translation": "Извините, официант!",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Could you turn down the music, please?",
+      "translation": "Не могли бы вы сделать музыку потише, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2"
+    },
+    {
+      "phrase": "Thank you, we had a lovely evening.",
+      "translation": "Спасибо, мы прекрасно провели вечер.",
+      "category": "Ресторан",
+      "level": "a2"
+    }
+  ]
+}

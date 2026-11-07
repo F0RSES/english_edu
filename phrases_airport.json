@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "phrases": [
+    {
+      "phrase": "Where is the check-in desk?",
+      "translation": "Где стойка регистрации?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I would like to check in for my flight.",
+      "translation": "Я хотел бы зарегистрироваться на рейс.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I see your passport, please?",
+      "translation": "Можно посмотреть ваш паспорт?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Here is my passport and ticket.",
+      "translation": "Вот мой паспорт и билет.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "How many bags do you have?",
+      "translation": "Сколько у вас сумок?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I have one suitcase and one carry-on bag.",
+      "translation": "У меня один чемодан и одна ручная кладь.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is this bag too heavy?",
+      "translation": "Эта сумка слишком тяжёлая?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Please put your bag on the scale.",
+      "translation": "Пожалуйста, поставьте сумку на весы.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I need to pay for extra luggage.",
+      "translation": "Мне нужно оплатить дополнительный багаж.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where can I get a luggage tag?",
+      "translation": "Где можно взять багажную бирку?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "What is the gate number?",
+      "translation": "Какой номер выхода на посадку?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Which gate does flight BA 205 leave from?",
+      "translation": "С какого выхода отправляется рейс BA 205?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is gate 12?",
+      "translation": "Где выход номер 12?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "How do I get to the gate?",
+      "translation": "Как пройти к выходу на посадку?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "What time is boarding?",
+      "translation": "Во сколько посадка?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "When does boarding start?",
+      "translation": "Когда начинается посадка?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is the flight delayed?",
+      "translation": "Рейс задержан?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "The flight is on time.",
+      "translation": "Рейс по расписанию.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "The flight is delayed by one hour.",
+      "translation": "Рейс задержан на один час.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Has the flight been cancelled?",
+      "translation": "Рейс отменили?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the departure lounge?",
+      "translation": "Где зал ожидания вылета?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the information desk?",
+      "translation": "Где справочная стойка?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can you help me, please?",
+      "translation": "Вы можете мне помочь, пожалуйста?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I am looking for my gate.",
+      "translation": "Я ищу свой выход на посадку.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the security check?",
+      "translation": "Где проверка безопасности?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Please take off your shoes and belt.",
+      "translation": "Пожалуйста, снимите обувь и ремень.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Put your laptop in the tray.",
+      "translation": "Положите ноутбук в лоток.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Do I need to take out my liquids?",
+      "translation": "Нужно достать жидкости?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is there a café near the gate?",
+      "translation": "Есть ли кафе рядом с выходом?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the nearest toilet?",
+      "translation": "Где ближайший туалет?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the duty-free shop?",
+      "translation": "Где магазин беспошлинной торговли?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I would like a window seat.",
+      "translation": "Я хотел бы место у окна.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I would like an aisle seat.",
+      "translation": "Я хотел бы место у прохода.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Can I change my seat?",
+      "translation": "Можно поменять место?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is this seat taken?",
+      "translation": "Это место занято?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where can I charge my phone?",
+      "translation": "Где можно зарядить телефон?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is there free Wi-Fi here?",
+      "translation": "Здесь есть бесплатный Wi-Fi?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "What is the password for the Wi-Fi?",
+      "translation": "Какой пароль от Wi-Fi?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "My flight is boarding now.",
+      "translation": "Мой рейс сейчас на посадке.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where do I show my boarding pass?",
+      "translation": "Где показать посадочный талон?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Here is my boarding pass.",
+      "translation": "Вот мой посадочный талон.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I have lost my boarding pass.",
+      "translation": "Я потерял посадочный талон.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "My luggage has not arrived.",
+      "translation": "Мой багаж не пришёл.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where is the baggage claim?",
+      "translation": "Где выдача багажа?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Which carousel is for flight SU 210?",
+      "translation": "На какой ленте багаж рейса SU 210?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "I need to report a missing bag.",
+      "translation": "Мне нужно сообщить о пропавшей сумке.",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Where can I get a taxi?",
+      "translation": "Где можно взять такси?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Is there a bus to the city centre?",
+      "translation": "Есть ли автобус до центра города?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "How much is a ticket to the city?",
+      "translation": "Сколько стоит билет до города?",
+      "category": "Аэропорт",
+      "level": "a2"
+    },
+    {
+      "phrase": "Thank you for your help.",
+      "translation": "Спасибо за помощь.",
+      "category": "Аэропорт",
+      "level": "a2"
+    }
+  ]
+}

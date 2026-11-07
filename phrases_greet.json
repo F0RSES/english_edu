@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "phrases": [
+    {
+      "phrase": "Hi!",
+      "translation": "Привет!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hello!",
+      "translation": "Здравствуйте!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hey!",
+      "translation": "Эй! / Привет!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good morning!",
+      "translation": "Доброе утро!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good afternoon!",
+      "translation": "Добрый день!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good evening!",
+      "translation": "Добрый вечер!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good to see you!",
+      "translation": "Рад вас видеть!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Nice to see you!",
+      "translation": "Приятно вас видеть!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Nice to meet you!",
+      "translation": "Приятно познакомиться!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Pleased to meet you!",
+      "translation": "Рад познакомиться!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How are you?",
+      "translation": "Как дела?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How are you doing?",
+      "translation": "Как поживаете?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How is it going?",
+      "translation": "Как идут дела?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How have you been?",
+      "translation": "Как вы поживали?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "What's up?",
+      "translation": "Как дела? / Что нового?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How's everything?",
+      "translation": "Как всё?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Long time no see!",
+      "translation": "Давно не виделись!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "It's been a while!",
+      "translation": "Сколько лет, сколько зим!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "I'm fine, thank you.",
+      "translation": "У меня всё хорошо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "I'm good, thanks.",
+      "translation": "Всё хорошо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Not bad, thanks.",
+      "translation": "Неплохо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Pretty good.",
+      "translation": "Довольно хорошо.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "So-so.",
+      "translation": "Так себе.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "And you?",
+      "translation": "А у вас?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "How about you?",
+      "translation": "А как насчёт вас?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "What about you?",
+      "translation": "А вы как?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good to meet you too.",
+      "translation": "Мне тоже приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Welcome!",
+      "translation": "Добро пожаловать!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Welcome back!",
+      "translation": "С возвращением!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good to have you here.",
+      "translation": "Рады, что вы здесь.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Say hello to your family.",
+      "translation": "Передавайте привет вашей семье.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Give my regards to your parents.",
+      "translation": "Передайте привет вашим родителям.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Please say hi to Anna for me.",
+      "translation": "Пожалуйста, передай привет Анне от меня.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Greetings!",
+      "translation": "Приветствую!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Morning!",
+      "translation": "Утро! / Доброе утро!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Evening!",
+      "translation": "Добрый вечер!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hi there!",
+      "translation": "Привет там!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hello there!",
+      "translation": "Здравствуйте!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hey there!",
+      "translation": "Привет!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hi, everyone!",
+      "translation": "Привет всем!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hello, everybody!",
+      "translation": "Здравствуйте все!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good morning, everyone!",
+      "translation": "Доброе утро всем!",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hi, how are you?",
+      "translation": "Привет, как дела?",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hello, nice to meet you.",
+      "translation": "Здравствуйте, приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Hi, I'm glad to see you.",
+      "translation": "Привет, я рад тебя видеть.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Good to see you again.",
+      "translation": "Рад снова вас видеть.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Nice to see you again.",
+      "translation": "Приятно снова вас видеть.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "It's nice to meet you.",
+      "translation": "Приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "I'm happy to meet you.",
+      "translation": "Я рад познакомиться с вами.",
+      "category": "Приветствия",
+      "level": "a2"
+    },
+    {
+      "phrase": "Have a nice day!",
+      "translation": "Хорошего дня!",
+      "category": "Приветствия",
+      "level": "a2"
+    }
+  ]
+}

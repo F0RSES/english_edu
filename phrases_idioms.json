@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "phrases": [
+    {
+      "phrase": "break the ice",
+      "translation": "растопить лёд, начать общение",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "hit the nail on the head",
+      "translation": "попасть в точку",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "once in a blue moon",
+      "translation": "очень редко, раз в сто лет",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "piece of cake",
+      "translation": "проще простого",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "let the cat out of the bag",
+      "translation": "проболтаться, выдать секрет",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "under the weather",
+      "translation": "неважно себя чувствовать",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "cost an arm and a leg",
+      "translation": "стоить очень дорого",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "beat around the bush",
+      "translation": "ходить вокруг да около",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "kill two birds with one stone",
+      "translation": "убить двух зайцев одним выстрелом",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "the ball is in your court",
+      "translation": "теперь твой ход, решение за тобой",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "bite the bullet",
+      "translation": "стиснуть зубы, перетерпеть",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "spill the beans",
+      "translation": "выдать секрет, разболтать",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "on the same page",
+      "translation": "одинаково понимать ситуацию, быть заодно",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "pull someone's leg",
+      "translation": "разыгрывать кого-то, подшучивать",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "a blessing in disguise",
+      "translation": "неприятность, обернувшаяся благом",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "burn the midnight oil",
+      "translation": "работать допоздна, засиживаться до ночи",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "hit the books",
+      "translation": "засесть за учёбу",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "in hot water",
+      "translation": "в неприятностях, в беде",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "jump on the bandwagon",
+      "translation": "присоединиться к большинству, следовать моде",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "keep an eye on",
+      "translation": "присматривать за, следить за",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "let someone off the hook",
+      "translation": "снять с кого-то ответственность, выпустить из затруднения",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "miss the boat",
+      "translation": "упустить возможность, опоздать",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "no pain, no gain",
+      "translation": "без труда не выловишь и рыбку из пруда",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "out of the blue",
+      "translation": "внезапно, как гром среди ясного неба",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "pull yourself together",
+      "translation": "взять себя в руки",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "rain cats and dogs",
+      "translation": "лить как из ведра",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "see eye to eye",
+      "translation": "сходиться во взглядах, находить общий язык",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "sit on the fence",
+      "translation": "занимать выжидательную позицию",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "take it easy",
+      "translation": "не принимать близко к сердцу, расслабиться",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "the last straw",
+      "translation": "последняя капля",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "throw in the towel",
+      "translation": "сдаться, признать поражение",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "time flies",
+      "translation": "время летит",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "under the table",
+      "translation": "неофициально, втайне, из-под полы",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "up in the air",
+      "translation": "нерешённый, под вопросом",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "when pigs fly",
+      "translation": "когда рак на горе свистнет",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "a piece of the pie",
+      "translation": "доля, часть прибыли",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "back to square one",
+      "translation": "вернуться к исходной точке",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "call it a day",
+      "translation": "закончить на сегодня, закруглиться",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "cut corners",
+      "translation": "срезать углы, делать на скорую руку",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "get cold feet",
+      "translation": "струсить, занервничать в последний момент",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "give someone the benefit of the doubt",
+      "translation": "поверить на слово, истолковать в пользу кого-то",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "go the extra mile",
+      "translation": "приложить дополнительные усилия",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "in the same boat",
+      "translation": "в одинаковом положении",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "it's not rocket science",
+      "translation": "это не бином Ньютона, ничего сложного",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "keep your fingers crossed",
+      "translation": "держать кулачки, надеяться на удачу",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "lose your touch",
+      "translation": "потерять хватку, утратить мастерство",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "make ends meet",
+      "translation": "сводить концы с концами",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "on cloud nine",
+      "translation": "на седьмом небе от счастья",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "play it by ear",
+      "translation": "действовать по обстоятельствам",
+      "category": "Идиомы",
+      "level": "b2"
+    },
+    {
+      "phrase": "the best of both worlds",
+      "translation": "лучшее из двух миров, и то и другое сразу",
+      "category": "Идиомы",
+      "level": "b2"
+    }
+  ]
+}

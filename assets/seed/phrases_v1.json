@@ -1,17 +1,1468 @@
 {
   "schemaVersion": 1,
   "phrases": [
-    {"phrase": "How are you?", "translation": "Как дела?", "category": "Приветствия", "level": "a1"},
-    {"phrase": "Nice to meet you", "translation": "Приятно познакомиться", "category": "Приветствия", "level": "a1"},
-    {"phrase": "See you later", "translation": "Увидимся позже", "category": "Приветствия", "level": "a1"},
-    {"phrase": "Where is the gate?", "translation": "Где выход на посадку?", "category": "Аэропорт", "level": "a2"},
-    {"phrase": "I have a connecting flight", "translation": "У меня стыковочный рейс", "category": "Аэропорт", "level": "a2"},
-    {"phrase": "Could you repeat that, please?", "translation": "Не могли бы вы повторить?", "category": "Аэропорт", "level": "a2"},
-    {"phrase": "How much does it cost?", "translation": "Сколько это стоит?", "category": "Покупки", "level": "a1"},
-    {"phrase": "I would like a coffee, please", "translation": "Я бы хотел кофе, пожалуйста", "category": "Покупки", "level": "a2"},
-    {"phrase": "It's raining cats and dogs", "translation": "Льёт как из ведра", "category": "Идиомы", "level": "b1"},
-    {"phrase": "Break a leg", "translation": "Ни пуха ни пера", "category": "Идиомы", "level": "b1"},
-    {"phrase": "Once in a blue moon", "translation": "Раз в сто лет", "category": "Идиомы", "level": "b1"},
-    {"phrase": "Under the weather", "translation": "Неважно себя чувствовать", "category": "Идиомы", "level": "b1"}
+    {
+      "phrase": "How are you?",
+      "translation": "Как дела?",
+      "category": "Приветствия",
+      "level": "a1",
+      "id": 1
+    },
+    {
+      "phrase": "Nice to meet you",
+      "translation": "Приятно познакомиться",
+      "category": "Приветствия",
+      "level": "a1",
+      "id": 2
+    },
+    {
+      "phrase": "See you later",
+      "translation": "Увидимся позже",
+      "category": "Приветствия",
+      "level": "a1",
+      "id": 3
+    },
+    {
+      "phrase": "Where is the gate?",
+      "translation": "Где выход на посадку?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 4
+    },
+    {
+      "phrase": "I have a connecting flight",
+      "translation": "У меня стыковочный рейс",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 5
+    },
+    {
+      "phrase": "Could you repeat that, please?",
+      "translation": "Не могли бы вы повторить?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 6
+    },
+    {
+      "phrase": "How much does it cost?",
+      "translation": "Сколько это стоит?",
+      "category": "Покупки",
+      "level": "a1",
+      "id": 7
+    },
+    {
+      "phrase": "I would like a coffee, please",
+      "translation": "Я бы хотел кофе, пожалуйста",
+      "category": "Покупки",
+      "level": "a2",
+      "id": 8
+    },
+    {
+      "phrase": "It's raining cats and dogs",
+      "translation": "Льёт как из ведра",
+      "category": "Идиомы",
+      "level": "b1",
+      "id": 9
+    },
+    {
+      "phrase": "Break a leg",
+      "translation": "Ни пуха ни пера",
+      "category": "Идиомы",
+      "level": "b1",
+      "id": 10
+    },
+    {
+      "phrase": "Once in a blue moon",
+      "translation": "Раз в сто лет",
+      "category": "Идиомы",
+      "level": "b1",
+      "id": 11
+    },
+    {
+      "phrase": "Under the weather",
+      "translation": "Неважно себя чувствовать",
+      "category": "Идиомы",
+      "level": "b1",
+      "id": 12
+    },
+    {
+      "phrase": "Hi!",
+      "translation": "Привет!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 13
+    },
+    {
+      "phrase": "Hello!",
+      "translation": "Здравствуйте!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 14
+    },
+    {
+      "phrase": "Hey!",
+      "translation": "Эй! / Привет!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 15
+    },
+    {
+      "phrase": "Good morning!",
+      "translation": "Доброе утро!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 16
+    },
+    {
+      "phrase": "Good afternoon!",
+      "translation": "Добрый день!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 17
+    },
+    {
+      "phrase": "Good evening!",
+      "translation": "Добрый вечер!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 18
+    },
+    {
+      "phrase": "Good to see you!",
+      "translation": "Рад вас видеть!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 19
+    },
+    {
+      "phrase": "Nice to see you!",
+      "translation": "Приятно вас видеть!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 20
+    },
+    {
+      "phrase": "Nice to meet you!",
+      "translation": "Приятно познакомиться!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 21
+    },
+    {
+      "phrase": "Pleased to meet you!",
+      "translation": "Рад познакомиться!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 22
+    },
+    {
+      "phrase": "How are you doing?",
+      "translation": "Как поживаете?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 23
+    },
+    {
+      "phrase": "How is it going?",
+      "translation": "Как идут дела?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 24
+    },
+    {
+      "phrase": "How have you been?",
+      "translation": "Как вы поживали?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 25
+    },
+    {
+      "phrase": "What's up?",
+      "translation": "Как дела? / Что нового?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 26
+    },
+    {
+      "phrase": "How's everything?",
+      "translation": "Как всё?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 27
+    },
+    {
+      "phrase": "Long time no see!",
+      "translation": "Давно не виделись!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 28
+    },
+    {
+      "phrase": "It's been a while!",
+      "translation": "Сколько лет, сколько зим!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 29
+    },
+    {
+      "phrase": "I'm fine, thank you.",
+      "translation": "У меня всё хорошо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 30
+    },
+    {
+      "phrase": "I'm good, thanks.",
+      "translation": "Всё хорошо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 31
+    },
+    {
+      "phrase": "Not bad, thanks.",
+      "translation": "Неплохо, спасибо.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 32
+    },
+    {
+      "phrase": "Pretty good.",
+      "translation": "Довольно хорошо.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 33
+    },
+    {
+      "phrase": "So-so.",
+      "translation": "Так себе.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 34
+    },
+    {
+      "phrase": "And you?",
+      "translation": "А у вас?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 35
+    },
+    {
+      "phrase": "How about you?",
+      "translation": "А как насчёт вас?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 36
+    },
+    {
+      "phrase": "What about you?",
+      "translation": "А вы как?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 37
+    },
+    {
+      "phrase": "Good to meet you too.",
+      "translation": "Мне тоже приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 38
+    },
+    {
+      "phrase": "Welcome!",
+      "translation": "Добро пожаловать!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 39
+    },
+    {
+      "phrase": "Welcome back!",
+      "translation": "С возвращением!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 40
+    },
+    {
+      "phrase": "Good to have you here.",
+      "translation": "Рады, что вы здесь.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 41
+    },
+    {
+      "phrase": "Say hello to your family.",
+      "translation": "Передавайте привет вашей семье.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 42
+    },
+    {
+      "phrase": "Give my regards to your parents.",
+      "translation": "Передайте привет вашим родителям.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 43
+    },
+    {
+      "phrase": "Please say hi to Anna for me.",
+      "translation": "Пожалуйста, передай привет Анне от меня.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 44
+    },
+    {
+      "phrase": "Greetings!",
+      "translation": "Приветствую!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 45
+    },
+    {
+      "phrase": "Morning!",
+      "translation": "Утро! / Доброе утро!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 46
+    },
+    {
+      "phrase": "Evening!",
+      "translation": "Добрый вечер!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 47
+    },
+    {
+      "phrase": "Hi there!",
+      "translation": "Привет там!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 48
+    },
+    {
+      "phrase": "Hello there!",
+      "translation": "Здравствуйте!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 49
+    },
+    {
+      "phrase": "Hey there!",
+      "translation": "Привет!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 50
+    },
+    {
+      "phrase": "Hi, everyone!",
+      "translation": "Привет всем!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 51
+    },
+    {
+      "phrase": "Hello, everybody!",
+      "translation": "Здравствуйте все!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 52
+    },
+    {
+      "phrase": "Good morning, everyone!",
+      "translation": "Доброе утро всем!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 53
+    },
+    {
+      "phrase": "Hi, how are you?",
+      "translation": "Привет, как дела?",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 54
+    },
+    {
+      "phrase": "Hello, nice to meet you.",
+      "translation": "Здравствуйте, приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 55
+    },
+    {
+      "phrase": "Hi, I'm glad to see you.",
+      "translation": "Привет, я рад тебя видеть.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 56
+    },
+    {
+      "phrase": "Good to see you again.",
+      "translation": "Рад снова вас видеть.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 57
+    },
+    {
+      "phrase": "Nice to see you again.",
+      "translation": "Приятно снова вас видеть.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 58
+    },
+    {
+      "phrase": "It's nice to meet you.",
+      "translation": "Приятно познакомиться.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 59
+    },
+    {
+      "phrase": "I'm happy to meet you.",
+      "translation": "Я рад познакомиться с вами.",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 60
+    },
+    {
+      "phrase": "Have a nice day!",
+      "translation": "Хорошего дня!",
+      "category": "Приветствия",
+      "level": "a2",
+      "id": 61
+    },
+    {
+      "phrase": "Where is the check-in desk?",
+      "translation": "Где стойка регистрации?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 62
+    },
+    {
+      "phrase": "I would like to check in for my flight.",
+      "translation": "Я хотел бы зарегистрироваться на рейс.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 63
+    },
+    {
+      "phrase": "Can I see your passport, please?",
+      "translation": "Можно посмотреть ваш паспорт?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 64
+    },
+    {
+      "phrase": "Here is my passport and ticket.",
+      "translation": "Вот мой паспорт и билет.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 65
+    },
+    {
+      "phrase": "How many bags do you have?",
+      "translation": "Сколько у вас сумок?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 66
+    },
+    {
+      "phrase": "I have one suitcase and one carry-on bag.",
+      "translation": "У меня один чемодан и одна ручная кладь.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 67
+    },
+    {
+      "phrase": "Is this bag too heavy?",
+      "translation": "Эта сумка слишком тяжёлая?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 68
+    },
+    {
+      "phrase": "Please put your bag on the scale.",
+      "translation": "Пожалуйста, поставьте сумку на весы.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 69
+    },
+    {
+      "phrase": "I need to pay for extra luggage.",
+      "translation": "Мне нужно оплатить дополнительный багаж.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 70
+    },
+    {
+      "phrase": "Where can I get a luggage tag?",
+      "translation": "Где можно взять багажную бирку?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 71
+    },
+    {
+      "phrase": "What is the gate number?",
+      "translation": "Какой номер выхода на посадку?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 72
+    },
+    {
+      "phrase": "Which gate does flight BA 205 leave from?",
+      "translation": "С какого выхода отправляется рейс BA 205?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 73
+    },
+    {
+      "phrase": "Where is gate 12?",
+      "translation": "Где выход номер 12?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 74
+    },
+    {
+      "phrase": "How do I get to the gate?",
+      "translation": "Как пройти к выходу на посадку?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 75
+    },
+    {
+      "phrase": "What time is boarding?",
+      "translation": "Во сколько посадка?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 76
+    },
+    {
+      "phrase": "When does boarding start?",
+      "translation": "Когда начинается посадка?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 77
+    },
+    {
+      "phrase": "Is the flight delayed?",
+      "translation": "Рейс задержан?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 78
+    },
+    {
+      "phrase": "The flight is on time.",
+      "translation": "Рейс по расписанию.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 79
+    },
+    {
+      "phrase": "The flight is delayed by one hour.",
+      "translation": "Рейс задержан на один час.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 80
+    },
+    {
+      "phrase": "Has the flight been cancelled?",
+      "translation": "Рейс отменили?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 81
+    },
+    {
+      "phrase": "Where is the departure lounge?",
+      "translation": "Где зал ожидания вылета?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 82
+    },
+    {
+      "phrase": "Where is the information desk?",
+      "translation": "Где справочная стойка?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 83
+    },
+    {
+      "phrase": "Can you help me, please?",
+      "translation": "Вы можете мне помочь, пожалуйста?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 84
+    },
+    {
+      "phrase": "I am looking for my gate.",
+      "translation": "Я ищу свой выход на посадку.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 85
+    },
+    {
+      "phrase": "Where is the security check?",
+      "translation": "Где проверка безопасности?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 86
+    },
+    {
+      "phrase": "Please take off your shoes and belt.",
+      "translation": "Пожалуйста, снимите обувь и ремень.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 87
+    },
+    {
+      "phrase": "Put your laptop in the tray.",
+      "translation": "Положите ноутбук в лоток.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 88
+    },
+    {
+      "phrase": "Do I need to take out my liquids?",
+      "translation": "Нужно достать жидкости?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 89
+    },
+    {
+      "phrase": "Is there a café near the gate?",
+      "translation": "Есть ли кафе рядом с выходом?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 90
+    },
+    {
+      "phrase": "Where is the nearest toilet?",
+      "translation": "Где ближайший туалет?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 91
+    },
+    {
+      "phrase": "Where is the duty-free shop?",
+      "translation": "Где магазин беспошлинной торговли?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 92
+    },
+    {
+      "phrase": "I would like a window seat.",
+      "translation": "Я хотел бы место у окна.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 93
+    },
+    {
+      "phrase": "I would like an aisle seat.",
+      "translation": "Я хотел бы место у прохода.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 94
+    },
+    {
+      "phrase": "Can I change my seat?",
+      "translation": "Можно поменять место?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 95
+    },
+    {
+      "phrase": "Is this seat taken?",
+      "translation": "Это место занято?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 96
+    },
+    {
+      "phrase": "Where can I charge my phone?",
+      "translation": "Где можно зарядить телефон?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 97
+    },
+    {
+      "phrase": "Is there free Wi-Fi here?",
+      "translation": "Здесь есть бесплатный Wi-Fi?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 98
+    },
+    {
+      "phrase": "What is the password for the Wi-Fi?",
+      "translation": "Какой пароль от Wi-Fi?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 99
+    },
+    {
+      "phrase": "My flight is boarding now.",
+      "translation": "Мой рейс сейчас на посадке.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 100
+    },
+    {
+      "phrase": "Where do I show my boarding pass?",
+      "translation": "Где показать посадочный талон?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 101
+    },
+    {
+      "phrase": "Here is my boarding pass.",
+      "translation": "Вот мой посадочный талон.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 102
+    },
+    {
+      "phrase": "I have lost my boarding pass.",
+      "translation": "Я потерял посадочный талон.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 103
+    },
+    {
+      "phrase": "My luggage has not arrived.",
+      "translation": "Мой багаж не пришёл.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 104
+    },
+    {
+      "phrase": "Where is the baggage claim?",
+      "translation": "Где выдача багажа?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 105
+    },
+    {
+      "phrase": "Which carousel is for flight SU 210?",
+      "translation": "На какой ленте багаж рейса SU 210?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 106
+    },
+    {
+      "phrase": "I need to report a missing bag.",
+      "translation": "Мне нужно сообщить о пропавшей сумке.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 107
+    },
+    {
+      "phrase": "Where can I get a taxi?",
+      "translation": "Где можно взять такси?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 108
+    },
+    {
+      "phrase": "Is there a bus to the city centre?",
+      "translation": "Есть ли автобус до центра города?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 109
+    },
+    {
+      "phrase": "How much is a ticket to the city?",
+      "translation": "Сколько стоит билет до города?",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 110
+    },
+    {
+      "phrase": "Thank you for your help.",
+      "translation": "Спасибо за помощь.",
+      "category": "Аэропорт",
+      "level": "a2",
+      "id": 111
+    },
+    {
+      "phrase": "A table for two, please.",
+      "translation": "Столик на двоих, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 112
+    },
+    {
+      "phrase": "Do you have a reservation?",
+      "translation": "У вас есть бронь?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 113
+    },
+    {
+      "phrase": "I have a reservation.",
+      "translation": "У меня есть бронь.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 114
+    },
+    {
+      "phrase": "Can I see the menu, please?",
+      "translation": "Можно посмотреть меню, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 115
+    },
+    {
+      "phrase": "Can we sit by the window?",
+      "translation": "Можно сесть у окна?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 116
+    },
+    {
+      "phrase": "Is this table free?",
+      "translation": "Этот столик свободен?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 117
+    },
+    {
+      "phrase": "We are ready to order.",
+      "translation": "Мы готовы сделать заказ.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 118
+    },
+    {
+      "phrase": "What do you recommend?",
+      "translation": "Что вы рекомендуете?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 119
+    },
+    {
+      "phrase": "What is the dish of the day?",
+      "translation": "Какое сегодня блюдо дня?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 120
+    },
+    {
+      "phrase": "I would like a steak, please.",
+      "translation": "Я хотел бы стейк, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 121
+    },
+    {
+      "phrase": "I'll have the chicken.",
+      "translation": "Я возьму курицу.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 122
+    },
+    {
+      "phrase": "Can I have the same, please?",
+      "translation": "Можно мне то же самое, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 123
+    },
+    {
+      "phrase": "No onions, please.",
+      "translation": "Без лука, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 124
+    },
+    {
+      "phrase": "I am allergic to nuts.",
+      "translation": "У меня аллергия на орехи.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 125
+    },
+    {
+      "phrase": "Is this dish spicy?",
+      "translation": "Это блюдо острое?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 126
+    },
+    {
+      "phrase": "Is this dish vegetarian?",
+      "translation": "Это блюдо вегетарианское?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 127
+    },
+    {
+      "phrase": "Does it contain meat?",
+      "translation": "В нём есть мясо?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 128
+    },
+    {
+      "phrase": "I don't eat pork.",
+      "translation": "Я не ем свинину.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 129
+    },
+    {
+      "phrase": "Could I have some water, please?",
+      "translation": "Можно мне воды, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 130
+    },
+    {
+      "phrase": "Still or sparkling water?",
+      "translation": "Вода без газа или с газом?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 131
+    },
+    {
+      "phrase": "A glass of red wine, please.",
+      "translation": "Бокал красного вина, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 132
+    },
+    {
+      "phrase": "A cup of coffee, please.",
+      "translation": "Чашку кофе, пожалуйста.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 133
+    },
+    {
+      "phrase": "Could we have some bread, please?",
+      "translation": "Можно нам хлеба, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 134
+    },
+    {
+      "phrase": "Can I have some more, please?",
+      "translation": "Можно мне ещё немного, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 135
+    },
+    {
+      "phrase": "This is not what I ordered.",
+      "translation": "Это не то, что я заказывал.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 136
+    },
+    {
+      "phrase": "My food is cold.",
+      "translation": "Моя еда холодная.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 137
+    },
+    {
+      "phrase": "Could you bring me a fork, please?",
+      "translation": "Не могли бы вы принести мне вилку, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 138
+    },
+    {
+      "phrase": "We need another chair.",
+      "translation": "Нам нужен ещё один стул.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 139
+    },
+    {
+      "phrase": "Could you pass the salt, please?",
+      "translation": "Не могли бы вы передать соль, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 140
+    },
+    {
+      "phrase": "The food is delicious.",
+      "translation": "Еда очень вкусная.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 141
+    },
+    {
+      "phrase": "Everything was great, thank you.",
+      "translation": "Всё было отлично, спасибо.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 142
+    },
+    {
+      "phrase": "Could we have the bill, please?",
+      "translation": "Можно счёт, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 143
+    },
+    {
+      "phrase": "Can we pay together?",
+      "translation": "Мы можем заплатить вместе?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 144
+    },
+    {
+      "phrase": "Can we pay separately?",
+      "translation": "Мы можем заплатить отдельно?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 145
+    },
+    {
+      "phrase": "Do you accept credit cards?",
+      "translation": "Вы принимаете кредитные карты?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 146
+    },
+    {
+      "phrase": "Can I pay by card?",
+      "translation": "Можно оплатить картой?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 147
+    },
+    {
+      "phrase": "Keep the change.",
+      "translation": "Сдачу оставьте себе.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 148
+    },
+    {
+      "phrase": "Is service included?",
+      "translation": "Обслуживание включено в счёт?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 149
+    },
+    {
+      "phrase": "Can I have a receipt, please?",
+      "translation": "Можно мне чек, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 150
+    },
+    {
+      "phrase": "Can I take this away?",
+      "translation": "Можно это забрать с собой?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 151
+    },
+    {
+      "phrase": "I'd like to order takeaway.",
+      "translation": "Я хотел бы заказать еду с собой.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 152
+    },
+    {
+      "phrase": "Is there a table outside?",
+      "translation": "Есть столик на улице?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 153
+    },
+    {
+      "phrase": "How long is the wait?",
+      "translation": "Сколько ждать?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 154
+    },
+    {
+      "phrase": "We are a party of four.",
+      "translation": "Нас четверо.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 155
+    },
+    {
+      "phrase": "Could we have a high chair for the baby?",
+      "translation": "Можно детский стульчик для малыша?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 156
+    },
+    {
+      "phrase": "Where is the restroom?",
+      "translation": "Где туалет?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 157
+    },
+    {
+      "phrase": "Could you call a taxi for us?",
+      "translation": "Не могли бы вы вызвать нам такси?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 158
+    },
+    {
+      "phrase": "Excuse me, waiter!",
+      "translation": "Извините, официант!",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 159
+    },
+    {
+      "phrase": "Could you turn down the music, please?",
+      "translation": "Не могли бы вы сделать музыку потише, пожалуйста?",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 160
+    },
+    {
+      "phrase": "Thank you, we had a lovely evening.",
+      "translation": "Спасибо, мы прекрасно провели вечер.",
+      "category": "Ресторан",
+      "level": "a2",
+      "id": 161
+    },
+    {
+      "phrase": "break the ice",
+      "translation": "растопить лёд, начать общение",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 162
+    },
+    {
+      "phrase": "hit the nail on the head",
+      "translation": "попасть в точку",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 163
+    },
+    {
+      "phrase": "piece of cake",
+      "translation": "проще простого",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 164
+    },
+    {
+      "phrase": "let the cat out of the bag",
+      "translation": "проболтаться, выдать секрет",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 165
+    },
+    {
+      "phrase": "cost an arm and a leg",
+      "translation": "стоить очень дорого",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 166
+    },
+    {
+      "phrase": "beat around the bush",
+      "translation": "ходить вокруг да около",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 167
+    },
+    {
+      "phrase": "kill two birds with one stone",
+      "translation": "убить двух зайцев одним выстрелом",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 168
+    },
+    {
+      "phrase": "the ball is in your court",
+      "translation": "теперь твой ход, решение за тобой",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 169
+    },
+    {
+      "phrase": "bite the bullet",
+      "translation": "стиснуть зубы, перетерпеть",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 170
+    },
+    {
+      "phrase": "spill the beans",
+      "translation": "выдать секрет, разболтать",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 171
+    },
+    {
+      "phrase": "on the same page",
+      "translation": "одинаково понимать ситуацию, быть заодно",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 172
+    },
+    {
+      "phrase": "pull someone's leg",
+      "translation": "разыгрывать кого-то, подшучивать",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 173
+    },
+    {
+      "phrase": "a blessing in disguise",
+      "translation": "неприятность, обернувшаяся благом",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 174
+    },
+    {
+      "phrase": "burn the midnight oil",
+      "translation": "работать допоздна, засиживаться до ночи",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 175
+    },
+    {
+      "phrase": "hit the books",
+      "translation": "засесть за учёбу",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 176
+    },
+    {
+      "phrase": "in hot water",
+      "translation": "в неприятностях, в беде",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 177
+    },
+    {
+      "phrase": "jump on the bandwagon",
+      "translation": "присоединиться к большинству, следовать моде",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 178
+    },
+    {
+      "phrase": "keep an eye on",
+      "translation": "присматривать за, следить за",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 179
+    },
+    {
+      "phrase": "let someone off the hook",
+      "translation": "снять с кого-то ответственность, выпустить из затруднения",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 180
+    },
+    {
+      "phrase": "miss the boat",
+      "translation": "упустить возможность, опоздать",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 181
+    },
+    {
+      "phrase": "no pain, no gain",
+      "translation": "без труда не выловишь и рыбку из пруда",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 182
+    },
+    {
+      "phrase": "out of the blue",
+      "translation": "внезапно, как гром среди ясного неба",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 183
+    },
+    {
+      "phrase": "pull yourself together",
+      "translation": "взять себя в руки",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 184
+    },
+    {
+      "phrase": "rain cats and dogs",
+      "translation": "лить как из ведра",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 185
+    },
+    {
+      "phrase": "see eye to eye",
+      "translation": "сходиться во взглядах, находить общий язык",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 186
+    },
+    {
+      "phrase": "sit on the fence",
+      "translation": "занимать выжидательную позицию",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 187
+    },
+    {
+      "phrase": "take it easy",
+      "translation": "не принимать близко к сердцу, расслабиться",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 188
+    },
+    {
+      "phrase": "the last straw",
+      "translation": "последняя капля",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 189
+    },
+    {
+      "phrase": "throw in the towel",
+      "translation": "сдаться, признать поражение",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 190
+    },
+    {
+      "phrase": "time flies",
+      "translation": "время летит",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 191
+    },
+    {
+      "phrase": "under the table",
+      "translation": "неофициально, втайне, из-под полы",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 192
+    },
+    {
+      "phrase": "up in the air",
+      "translation": "нерешённый, под вопросом",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 193
+    },
+    {
+      "phrase": "when pigs fly",
+      "translation": "когда рак на горе свистнет",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 194
+    },
+    {
+      "phrase": "a piece of the pie",
+      "translation": "доля, часть прибыли",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 195
+    },
+    {
+      "phrase": "back to square one",
+      "translation": "вернуться к исходной точке",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 196
+    },
+    {
+      "phrase": "call it a day",
+      "translation": "закончить на сегодня, закруглиться",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 197
+    },
+    {
+      "phrase": "cut corners",
+      "translation": "срезать углы, делать на скорую руку",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 198
+    },
+    {
+      "phrase": "get cold feet",
+      "translation": "струсить, занервничать в последний момент",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 199
+    },
+    {
+      "phrase": "give someone the benefit of the doubt",
+      "translation": "поверить на слово, истолковать в пользу кого-то",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 200
+    },
+    {
+      "phrase": "go the extra mile",
+      "translation": "приложить дополнительные усилия",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 201
+    },
+    {
+      "phrase": "in the same boat",
+      "translation": "в одинаковом положении",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 202
+    },
+    {
+      "phrase": "it's not rocket science",
+      "translation": "это не бином Ньютона, ничего сложного",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 203
+    },
+    {
+      "phrase": "keep your fingers crossed",
+      "translation": "держать кулачки, надеяться на удачу",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 204
+    },
+    {
+      "phrase": "lose your touch",
+      "translation": "потерять хватку, утратить мастерство",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 205
+    },
+    {
+      "phrase": "make ends meet",
+      "translation": "сводить концы с концами",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 206
+    },
+    {
+      "phrase": "on cloud nine",
+      "translation": "на седьмом небе от счастья",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 207
+    },
+    {
+      "phrase": "play it by ear",
+      "translation": "действовать по обстоятельствам",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 208
+    },
+    {
+      "phrase": "the best of both worlds",
+      "translation": "лучшее из двух миров, и то и другое сразу",
+      "category": "Идиомы",
+      "level": "b2",
+      "id": 209
+    }
   ]
 }

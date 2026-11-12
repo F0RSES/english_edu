@@ -5,8 +5,8 @@ Offline-first мобильное приложение для изучения а
 
 ## Status
 
-**Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
-Roadmap ниже). 643 теста, analyze=0.
+**Phase 23 — Reading Mode** (6 игр + разговорник + чтение; 2071 слово,
+209 фраз, 34 рассказа). APK собирается, iOS — нет. 818 тестов, analyze=0.
 
 ## Features
 
@@ -19,6 +19,13 @@ Roadmap ниже). 643 теста, analyze=0.
 - Crash reporting (Sentry, опционально)
 - Ежедневные локальные напоминания (точность ±5–15 минут)
 - Уровень пользователя: новые слова подбираются не выше выбранного A0–C2
+- Reading Mode: 34 рассказа A1/A2/B1, перевод по кнопке, незнакомые слова — в словарь
+- Phrasebook: 209 фраз по категориям, поиск
+- Typing Speed: тренировка печати, WPM и точность, локальные рекорды
+- Achievements: 9 достижений за прогресс
+- Daily Challenge: ежедневное задание и серия челленджей
+- Smart Review: умное повторение трудных и давно не виденных слов
+- Cloud Sync: Supabase, opt-in, ручной push/pull прогресса
 - Полностью offline-first
 
 ## Environment
@@ -33,7 +40,7 @@ Roadmap ниже). 643 теста, analyze=0.
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 643 passed
+    flutter test               # 818 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -189,7 +196,7 @@ flutter build apk --debug \
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 28 ADR + архитектурные решения — docs/DECISIONS.md
+- 39 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 

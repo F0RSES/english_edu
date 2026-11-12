@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v13 — четырнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038) — существующие таблицы и данные не пересоздаются.
+Схема v14 — пятнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -220,6 +220,10 @@ Dart-код в документе не приводится: сигнатуры 
 | `daily_challenges` | `DailyChallengeRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`); колонки `goalType` (имя `DailyChallengeType`), `goalValue`, `progress`, `completedAtUtc`, `claimedAtUtc`, `xpReward`; схема v8 | нет |
 | `challenge_streaks` | `ChallengeStreakRow` | `id` + `CHECK (id = 1)`; колонки `currentStreak`, `bestStreak`, `lastCompletedDateEpochDays`, `updatedAtUtc`; схема v9 | нет |
 | `user_categories` | `UserCategoryRow` | `id` (autoIncrement), `name` (`UNIQUE`); колонки `colorHex`, `createdAtUtc`; схема v10 | unique(`name`) |
+| `achievements` | `AchievementRow` | `id` (строковый `AchievementType.key`); колонки `unlockedAtUtc` (nullable), `progress`, `lastUpdatedAtUtc`; схема v11 | нет |
+| `typing_records` | `TypingRecordRow` | `id` (autoIncrement); колонки `wordsCount`, `correctCount`, `durationSeconds`, `wpm`, `accuracyPercent`, `score`, `createdAtUtc`; схема v12 | нет |
+| `phrases` | `PhraseRow` | `id` (autoIncrement); колонки `phrase`, `translation`, `category`, `level`, `createdAtUtc`; схема v13 | нет |
+| `stories` | `StoryRow` | `id` (autoIncrement); колонки `title`, `text` (getter `content`), `translation`, `level`, `createdAtUtc`; схема v14 | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -227,7 +231,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 **`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
 
-**Версия схемы: 13.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+**Версия схемы: 14.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
 
 Инициализация из `assets/seed/` — 2a.2 (BL-29).
 
@@ -321,35 +325,35 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 
 ## File layout
 
-Текущее дерево (Phase 14):
+Текущее дерево (Phase 23):
 
 - `lib/main.dart` — точка входа: `bootstrapApp` (crash reporting → seed → покрытие пропущенного дня → настройки → напоминания), `ProviderScope`, `MaterialApp.router`
 - `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `text/plural.dart`
 - `lib/core/di/providers.dart` — Riverpod-провайдеры (63), без codegen (BL-26)
-- `lib/domain/entities/` — 5 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`
-- `lib/domain/value_objects/` — 24 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`
-- `lib/domain/repositories/` — 10 контрактов репозиториев
+- `lib/domain/entities/` — 7 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`
+- `lib/domain/value_objects/` — 31 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`
+- `lib/domain/repositories/` — 15 контрактов репозиториев
 - `lib/domain/services/` — 5 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — 25 use case
-- `lib/data/db/` — Drift: 10 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v9, `app_database.g.dart` коммитится (ADR-008)
+- `lib/domain/usecases/` — 28 use case
+- `lib/data/db/` — Drift: 15 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v14, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
-- `lib/data/repositories/` — 10 Drift-реализаций контрактов
+- `lib/data/repositories/` — 15 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 14 экранов; `lib/presentation/widgets/` — 14 виджетов
-- `lib/presentation/router.dart` — GoRouter, 10 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 92 файла тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
-- `tools/` — 3 скрипта + 2 библиотеки: `generate_seed.dart`, `merge_seeds.dart`, `validate_seed.dart` + `validate_seed_lib.dart`, `review_seed.dart` + `review_seed_lib.dart`
-- `assets/seed/` — `words_v2.json` (2071 слово); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
+- `lib/presentation/screens/` — 16 экранов; `lib/presentation/widgets/` — 15 виджетов
+- `lib/presentation/router.dart` — GoRouter, 18 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
+- `test/` — 113 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `tools/` — 8 скриптов + 2 библиотеки: `generate_seed.dart`, `generate_phrases.dart`, `generate_stories.dart`, `merge_seeds.dart`, `merge_phrases.dart`, `merge_stories.dart`, `validate_seed.dart`, `review_seed.dart` + `validate_seed_lib.dart`, `review_seed_lib.dart`; `manual_review_overrides.json` — данные ручного ревью переводов
+- `assets/seed/` — `words_v2.json` (2071 слово), `phrases_v1.json` (209 фраз), `stories_v1.json` (34 рассказа); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
 Правила: один публичный тип на файл, имена файлов в snake_case, импорт через полный путь пакета.
 
 ## Verification
 
 - `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
-- `flutter test` — зелёный (643+ тестов на Phase 15a).
+- `flutter test` — зелёный (818 тестов: 608 `test()` + 210 `testWidgets()`, 113 файлов).
 - Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
 - Покрытие domain ≥ 80% — с момента появления реализаций.
 - `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).
@@ -380,3 +384,4 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v11 | `achievements` | ADR-035 |
 | v12 | `typing_records` | ADR-037 |
 | v13 | `phrases` | ADR-038 |
+| v14 | `stories` | ADR-039 |

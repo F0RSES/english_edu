@@ -720,7 +720,7 @@ Architecture Decision Records: один ADR — одно решение.
 - **Open questions:** озвучка фраз через TTS; избранное и повторение фраз; связь фраз с уровнем пользователя (сейчас просто метка).
 
 ### ADR-039: Reading Mode
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-12
 - **Context:** Нужна механика погружения (implicit learning): короткие рассказы на уровне пользователя дают естественное повторение уже известных слов и контекст для новых. Карточки учат слова изолированно; связный текст показывает, как они живут в речи.
 - **Decision:**
@@ -734,7 +734,7 @@ Architecture Decision Records: один ADR — одно решение.
   - (B) Генерировать рассказы на лету через AI — отклонено: оффлайн-требование учебного цикла.
 - **Consequences:**
   - Восьмая карточка на главной («Чтение»); чтение не влияет на SRS, XP и статистику.
-  - Демо-рассказы в seed: 4 (A1, A2×2, B1), написаны вручную, не через LLM. Пользователь расширяет через generate_stories.dart + merge_stories.dart.
+  - Демо-рассказы в seed: 4, плюс 30 сгенерированных через tools/generate_stories.dart (итого 34: A1×11, A2×12, B1×11). Уровни добавлены вручную после ревью. Пользователь расширяет через generate_stories.dart + merge_stories.dart.
   - Добавленные незнакомые слова попадают в очередь дня как новые (уровень рассказа).
 - **Open questions:** озвучка рассказа через TTS (BL-87).
 
@@ -780,4 +780,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-036 | Word Match (memory game) | Accepted |
 | ADR-037 | Typing Speed | Accepted |
 | ADR-038 | Phrasebook | Accepted |
-| ADR-039 | Reading Mode | Proposed |
+| ADR-039 | Reading Mode | Accepted |

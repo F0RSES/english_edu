@@ -719,6 +719,33 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** седьмая тренировка на главной (сетка три колонки). Контент расширяется скриптом и ревью, без релиза приложения — только пересборкой ассета.
 - **Open questions:** озвучка фраз через TTS; избранное и повторение фраз; связь фраз с уровнем пользователя (сейчас просто метка).
 
+### ADR-040: AI provider migration — DeepSeek → Qwen (DashScope)
+- **Status:** Proposed
+- **Date:** 2026-11-12
+- **Context:** ADR-019 закрепил архитектуру «приложение → Cloudflare Workers → провайдер модели»; провайдером за прокси был DeepSeek, на него же ссылались dev-скрипты (`generate_seed`, `generate_phrases`, `review_seed`) и Privacy Policy. Владелец вручную переключил воркер `english-edu-ai` на Qwen до записи этого ADR — в репозитории смена зафиксирована не была. Номер 040 зарезервирован владельцем; ADR-039 не заводился.
+- **Decision:**
+  - Провайдер AI — Qwen, model ID `qwen4-max-preview`, через DashScope OpenAI-compatible API. Регион международный (Сингапур): ключ создан в международном аккаунте DashScope.
+  - Приложение ходит только через прокси — ADR-019 не переопределяется: URL `https://english-edu-ai.forses17.workers.dev/` и контракты ответов (`association`, `error_hunter`, `cloze_test`) не меняются. Клиент провайдер-агностичен, правок в `lib/` нет.
+  - Dev-скрипты мигрируются на `https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions`, model `qwen4-max-preview`, ключ из `DASHSCOPE_API_KEY` вместо `DEEPSEEK_API_KEY`. Реализация — отдельная задача после этого ADR. Ключи региональны: 401 на intl-endpoint означает ключ из Пекина (тогда `https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions`).
+  - `response_format: {'type': 'json_object'}` в `review_seed.dart` сохраняется: парсер `parseReviewVerdict` терпим к обёрткам; удаление — только при подтверждённом 400 и по решению владельца.
+  - Ключ модели живёт только на воркере, dev-ключ — только в переменной окружения (`40-forbidden.md` п.1); прямые вызовы провайдера из приложения запрещены (п.20).
+  - Privacy Policy: получатель изучаемого слова — «Alibaba Cloud Qwen (DashScope)» вместо DeepSeek (EN и RU); строка провайдера в `.clinerules/10-project.md` приведена к факту.
+- **Alternatives considered:**
+  - Оставить DeepSeek — отклонено владельцем: переключение воркера уже выполнено.
+  - Прямой вызов DashScope из приложения — отклонено: ключ попал бы в артефакт и его нельзя отозвать без релиза (ADR-019).
+  - Пускать dev-скрипты через прокси приложения — отклонено: прокси рассчитан на контракты приложения (`word`, `type`), скриптам нужны произвольные промпты; dev-тулинг ходит в API напрямую (прецедент ADR-019/038).
+  - Workspace-домены `{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com` (рекомендация docs Model Studio) — отложены: legacy `dashscope-intl.aliyuncs.com` остаётся поддерживаемым, WorkspaceId в репозитории не хранится.
+- **Consequences:**
+  - `lib/` и тесты не меняются: смена провайдера невидима для клиента, набор тестов остаётся зелёным.
+  - Контракты воркера после ручной смены проверяются только живым прогоном (тесты приложения используют MockClient): подсказка, Error Hunter и Cloze на устройстве — зона владельца.
+  - После миграции скриптов `DEEPSEEK_API_KEY` больше не используется; стоимость и лимиты — по тарифам DashScope, долларовые оценки в `REVIEW_TRANSLATIONS.md` убираются в задаче миграции.
+  - Происхождение существующего контента не переписывается: 2045 слов с `autoTranslated: true` переведены DeepSeek — `LICENSE_CONTENT.md`, исторические записи CHANGELOG и тела ADR-019/038 остаются как есть.
+  - Устаревшие упоминания провайдера в README/ARCHITECTURE/PROJECT_CONTEXT — отдельная задача docs-долга после миграции (решение владельца).
+- **Open questions:**
+  - Живая проверка (владелец): dry-run скриптов с реальным ключом после задачи миграции; AI-подсказка и игры в приложении после смены воркера.
+  - Поддержка `response_format: json_object` моделью `qwen4-max-preview` подтверждается dry-run; при 400 владелец решает удаление.
+  - Accepted — владелец после проверки (как ADR-003/012).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -761,3 +788,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-036 | Word Match (memory game) | Accepted |
 | ADR-037 | Typing Speed | Accepted |
 | ADR-038 | Phrasebook | Accepted |
+| ADR-040 | AI provider migration: DeepSeek → Qwen (DashScope) | Proposed |

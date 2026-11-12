@@ -1,7 +1,7 @@
 # Privacy Policy / Политика конфиденциальности
 
 **English Edu** — offline-first приложение для изучения английского.
-Last updated / Обновлено: 2026-11-06.
+Last updated / Обновлено: 2026-11-12.
 
 ---
 
@@ -20,8 +20,8 @@ Last updated / Обновлено: 2026-11-06.
 - **AI associations (optional, opt-in by tap).** When you press the
   "Подсказка" (hint) button on a card, **the single word being studied** is sent
   to our proxy (`english-edu-ai.forses17.workers.dev`), which forwards it to the
-  DeepSeek model API to generate a mnemonic association. Nothing else is sent:
-  no progress, no answers, no statistics, no identifiers.
+  Alibaba Cloud Qwen (DashScope) model API to generate a mnemonic association.
+  Nothing else is sent: no progress, no answers, no statistics, no identifiers.
   The generated association is cached locally. The proxy does not keep a
   permanent copy of the word or the answer; the model provider processes the
   request under its own terms.
@@ -69,9 +69,10 @@ Questions about privacy: see the contact listed in the store page.
 
 - **AI-ассоциации (по желанию, по нажатию).** При нажатии кнопки «Подсказка»
   на карточке **единственное изучаемое слово** отправляется на наш прокси
-  (`english-edu-ai.forses17.workers.dev`), который передаёт его модели DeepSeek
-  для генерации мнемонической ассоциации. Больше ничего не отправляется: ни
-  прогресс, ни ответы, ни статистика, ни идентификаторы.
+  (`english-edu-ai.forses17.workers.dev`), который передаёт его модели
+  Alibaba Cloud Qwen (DashScope) для генерации мнемонической ассоциации.
+  Больше ничего не отправляется: ни прогресс, ни ответы, ни статистика,
+  ни идентификаторы.
   Полученная ассоциация кэшируется локально. Прокси не хранит слово и ответ
   постоянно; обработка запроса у провайдера модели идёт по его правилам.
 - **Игра «Охота на ошибки» (по желанию, при открытии экрана).** То же самое:

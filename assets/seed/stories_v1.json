@@ -2,32 +2,242 @@
   "schemaVersion": 1,
   "stories": [
     {
-      "id": 1,
       "title": "My Morning",
       "text": "I wake up at seven o'clock. I brush my teeth and wash my face. Then I eat breakfast. I usually have eggs and toast. I drink a cup of coffee. After breakfast, I get dressed and go to work. I like my morning routine.",
       "translation": "Я просыпаюсь в семь часов. Я чищу зубы и умываюсь. Потом я завтракаю. Обычно я ем яйца и тосты. Я выпиваю чашку кофе. После завтрака я одеваюсь и иду на работу. Мне нравится моё утреннее расписание.",
-      "level": "a1"
+      "level": "a1",
+      "id": 1
     },
     {
-      "id": 2,
       "title": "At the Airport",
       "text": "Sarah arrived at the airport two hours before her flight. She checked in her luggage and got her boarding pass. The security line was long, so she waited patiently. After security, she found her gate and bought a coffee. Her flight was on time, and she boarded the plane feeling excited about her trip to Paris.",
       "translation": "Сара приехала в аэропорт за два часа до своего рейса. Она сдала багаж и получила посадочный талон. Очередь на досмотр была длинной, поэтому она терпеливо ждала. После досмотра она нашла свой выход и купила кофе. Её рейс был вовремя, и она села в самолёт, с волнением ожидая поездки в Париж.",
-      "level": "a2"
+      "level": "a2",
+      "id": 2
     },
     {
-      "id": 3,
       "title": "The Lost Wallet",
       "text": "When Mark realized his wallet was missing, his heart sank. He had been at the park with his dog, and somewhere between the bench and the parking lot, he must have dropped it. He retraced his steps carefully, scanning the grass. Just as he was about to give up, a stranger approached him with a friendly smile. She held out a brown leather wallet. Mark couldn't believe his luck. He thanked her repeatedly, relieved that there were still honest people in the world.",
       "translation": "Когда Марк понял, что его кошелёк пропал, сердце у него упало. Он был в парке с собакой, и где-то между скамейкой и парковкой он, должно быть, выронил его. Он тщательно прошёл свой путь обратно, осматривая траву. Как только он собирался сдаться, к нему подошла незнакомая женщина с дружелюбной улыбкой. Она протянула ему коричневый кожаный кошелёк. Марк не мог поверить своей удаче. Он многократно благодарил её, испытывая облегчение от того, что в мире всё ещё есть честные люди.",
-      "level": "b1"
+      "level": "b1",
+      "id": 3
     },
     {
-      "id": 4,
       "title": "A Day at the Beach",
       "text": "Last summer, my family and I went to the beach. The sun was shining brightly, and the water was warm. We built sandcastles and collected seashells. My little brother learned how to swim. In the afternoon, we had a picnic with sandwiches and fruit. It was a perfect day. I hope we can go back next year.",
       "translation": "Прошлым летом мы с семьёй поехали на пляж. Солнце ярко светило, а вода была тёплой. Мы строили замки из песка и собирали ракушки. Мой младший брат научился плавать. Днём мы устроили пикник с бутербродами и фруктами. Это был идеальный день. Надеюсь, мы сможем вернуться в следующем году.",
-      "level": "a2"
+      "level": "a2",
+      "id": 4
+    },
+    {
+      "title": "My Morning",
+      "text": "I wake up at seven o'clock. I wash my face and brush my teeth. Then I eat breakfast. I like bread and eggs. I drink a cup of tea. After breakfast, I put on my clothes. I take my bag and go to work. I walk to the bus stop. The bus comes at eight o'clock. I am never late.",
+      "translation": "Я просыпаюсь в семь часов. Я умываюсь и чищу зубы. Потом я завтракаю. Я люблю хлеб и яйца. Я пью чашку чая. После завтрака я надеваю одежду. Я беру сумку и иду на работу. Я иду пешком до автобусной остановки. Автобус приходит в восемь часов. Я никогда не опаздываю.",
+      "level": "a1",
+      "id": 5
+    },
+    {
+      "title": "At the Supermarket",
+      "text": "On Saturday I go to the supermarket. I need milk, bread, and apples. The supermarket is big and clean. I take a shopping cart. First, I go to the fruit section. The apples are red and green. I buy six apples. Then I buy milk and bread. I pay at the cash desk. The food is not very expensive. I go home happy.",
+      "translation": "В субботу я иду в супермаркет. Мне нужны молоко, хлеб и яблоки. Супермаркет большой и чистый. Я беру тележку для покупок. Сначала я иду в отдел фруктов. Яблоки красные и зелёные. Я покупаю шесть яблок. Потом я покупаю молоко и хлеб. Я плачу на кассе. Еда не очень дорогая. Я иду домой счастливый.",
+      "level": "a1",
+      "id": 6
+    },
+    {
+      "title": "A Trip to the Sea",
+      "text": "Last summer my family went to the sea. We traveled by train. The train was fast and comfortable. We stayed in a small hotel near the beach. Every day we swam in the sea. The water was warm and blue. I built sandcastles with my sister. In the evening we ate fish and ice cream. We took many photos. It was a wonderful trip.",
+      "translation": "Прошлым летом моя семья поехала на море. Мы ехали на поезде. Поезд был быстрый и удобный. Мы жили в маленьком отеле рядом с пляжем. Каждый день мы плавали в море. Вода была тёплая и синяя. Я строил песочные замки с сестрой. Вечером мы ели рыбу и мороженое. Мы сделали много фотографий. Это была замечательная поездка.",
+      "level": "a1",
+      "id": 7
+    },
+    {
+      "title": "My Favorite Food",
+      "text": "My favorite food is pizza. I love pizza with cheese and tomatoes. On Fridays my family makes pizza at home. My mother makes the dough. My father cuts the cheese. I put tomatoes on top. We bake the pizza in the oven for twenty minutes. The kitchen smells very good. We eat pizza together and talk. It is my favorite day of the week.",
+      "translation": "Моя любимая еда — пицца. Я люблю пиццу с сыром и помидорами. По пятницам моя семья делает пиццу дома. Мама делает тесто. Папа режет сыр. Я кладу сверху помидоры. Мы печём пиццу в духовке двадцать минут. На кухне очень хорошо пахнет. Мы едим пиццу вместе и разговариваем. Это мой любимый день недели.",
+      "level": "a1",
+      "id": 8
+    },
+    {
+      "title": "My Hobby Is Reading",
+      "text": "My hobby is reading books. I read every evening before bed. I like adventure stories and funny books. My favorite place is the library near my house. It is quiet there. I take two or three books every month. Reading helps me learn new words. Sometimes I read to my little brother. He likes stories about animals. Books are my best friends.",
+      "translation": "Моё хобби — читать книги. Я читаю каждый вечер перед сном. Я люблю приключенческие истории и весёлые книги. Моё любимое место — библиотека рядом с домом. Там тихо. Я беру две или три книги каждый месяц. Чтение помогает мне учить новые слова. Иногда я читаю своему младшему брату. Ему нравятся истории о животных. Книги — мои лучшие друзья.",
+      "level": "a1",
+      "id": 9
+    },
+    {
+      "title": "A Walk in the Park",
+      "text": "On Sunday I walk in the park. The park is near my house. There are many trees and flowers. I see birds and dogs. Children play football on the grass. I sit on a bench and eat an apple. The sun is warm. I listen to music on my phone. After one hour I go home. I like this quiet walk very much.",
+      "translation": "В воскресенье я гуляю в парке. Парк рядом с моим домом. Там много деревьев и цветов. Я вижу птиц и собак. Дети играют в футбол на траве. Я сижу на скамейке и ем яблоко. Солнце тёплое. Я слушаю музыку на телефоне. Через час я иду домой. Мне очень нравится эта тихая прогулка.",
+      "level": "a1",
+      "id": 10
+    },
+    {
+      "title": "My New Bicycle",
+      "text": "I have a new bicycle. It is blue and very fast. I ride my bicycle every day after school. I ride to the park with my friend Tom. We ride for one hour. The roads are good and flat. I wear a helmet on my head. My mother says it is safe. Riding a bicycle is my favorite hobby. I am very happy with my new bike.",
+      "translation": "У меня есть новый велосипед. Он синий и очень быстрый. Я катаюсь на велосипеде каждый день после школы. Я езжу в парк с моим другом Томом. Мы катаемся один час. Дороги хорошие и ровные. Я ношу шлем на голове. Мама говорит, что это безопасно. Катание на велосипеде — моё любимое хобби. Я очень рад своему новому велосипеду.",
+      "level": "a1",
+      "id": 11
+    },
+    {
+      "title": "A Letter to a Friend",
+      "text": "Hello, Anna! How are you? I am fine. I want to tell you about my week. On Monday I went to the cinema. The film was funny. On Wednesday I cooked soup with my mother. It was very tasty. On Friday I played tennis with my friends. Now I am at home and I am reading a book. Write to me soon. Your friend, Kate.",
+      "translation": "Привет, Анна! Как дела? У меня всё хорошо. Я хочу рассказать тебе о своей неделе. В понедельник я ходила в кино. Фильм был смешной. В среду я готовила суп с мамой. Он был очень вкусный. В пятницу я играла в теннис с друзьями. Сейчас я дома и читаю книгу. Напиши мне скоро. Твоя подруга Кейт.",
+      "level": "a1",
+      "id": 12
+    },
+    {
+      "title": "Breakfast at a Cafe",
+      "text": "Yesterday I had breakfast at a small cafe. I ordered a sandwich and orange juice. The cafe was warm and nice. A friendly woman worked there. She brought my food in five minutes. The sandwich was fresh and very good. I looked out the window and watched people. Then I paid and left. I want to go to this cafe again.",
+      "translation": "Вчера я завтракал в маленьком кафе. Я заказал сэндвич и апельсиновый сок. В кафе было тепло и уютно. Там работала приветливая женщина. Она принесла мою еду через пять минут. Сэндвич был свежий и очень вкусный. Я смотрел в окно и наблюдал за людьми. Потом я заплатил и ушёл. Я хочу снова пойти в это кафе.",
+      "level": "a1",
+      "id": 13
+    },
+    {
+      "title": "A Rainy Day",
+      "text": "Today it is raining. I cannot go outside. I stay at home and drink hot tea. I watch the rain from the window. The streets are wet and grey. I listen to music and draw pictures. My cat sleeps on the sofa. In the afternoon the rain stops. The sun comes out. I put on my shoes and go for a short walk. The air is fresh and clean.",
+      "translation": "Сегодня идёт дождь. Я не могу выйти на улицу. Я остаюсь дома и пью горячий чай. Я смотрю на дождь из окна. Улицы мокрые и серые. Я слушаю музыку и рисую картинки. Моя кошка спит на диване. Днём дождь прекращается. Выходит солнце. Я надеваю обувь и иду на короткую прогулку. Воздух свежий и чистый.",
+      "level": "a1",
+      "id": 14
+    },
+    {
+      "title": "A Normal Morning",
+      "text": "Tom wakes up at seven o'clock every day. He makes coffee and eats bread with cheese. Then he takes a shower and gets dressed. He walks to the bus stop near his house. The bus comes at eight. Tom likes this quiet time in the morning. He listens to music on the bus and looks out the window. At half past eight, he is at work. He says hello to his colleagues and starts his day.",
+      "translation": "Том просыпается в семь часов каждый день. Он варит кофе и ест хлеб с сыром. Потом он принимает душ и одевается. Он идёт пешком до автобусной остановки рядом с домом. Автобус приходит в восемь. Тому нравится это тихое время утром. В автобусе он слушает музыку и смотрит в окно. В половине девятого он на работе. Он здоровается с коллегами и начинает свой день.",
+      "level": "a2",
+      "id": 15
+    },
+    {
+      "title": "The Lost Ticket",
+      "text": "Anna is going to Paris by train. She is very happy because it is her first trip alone. At the station, she buys a coffee and a sandwich. Then she looks for her ticket in her bag. But the ticket is not there! Anna is worried. She checks her pockets and her jacket. Finally, she finds the ticket in her book. She laughs and runs to the train. The trip is wonderful.",
+      "translation": "Анна едет в Париж на поезде. Она очень счастлива, потому что это её первая поездка одна. На вокзале она покупает кофе и бутерброд. Потом она ищет свой билет в сумке. Но билета там нет! Анна волнуется. Она проверяет карманы и куртку. Наконец она находит билет в своей книге. Она смеётся и бежит к поезду. Поездка чудесная.",
+      "level": "a2",
+      "id": 16
+    },
+    {
+      "title": "Pasta for Dinner",
+      "text": "Maria wants to cook pasta for dinner. She goes to the shop and buys tomatoes, onions and cheese. At home, she cuts the vegetables and cooks them in a pan. The kitchen smells very good. She adds salt and pepper. Then she cooks the pasta for ten minutes. Maria puts everything on a plate and eats with her family. Everyone says the food is delicious. Maria is very happy.",
+      "translation": "Мария хочет приготовить пасту на ужин. Она идёт в магазин и покупает помидоры, лук и сыр. Дома она режет овощи и готовит их на сковороде. На кухне очень вкусно пахнет. Она добавляет соль и перец. Потом она варит пасту десять минут. Мария кладёт всё на тарелку и ест вместе с семьёй. Все говорят, что еда очень вкусная. Мария очень счастлива.",
+      "level": "a2",
+      "id": 17
+    },
+    {
+      "title": "My New Hobby",
+      "text": "Last month, Jack started a new hobby. He learns to play the guitar. He watches videos on the internet and practises every evening. At first, it is difficult for him. His fingers hurt and the sounds are strange. But Jack does not stop. After two weeks, he can play a simple song. His sister claps her hands. Now Jack plays the guitar every day and he loves it.",
+      "translation": "В прошлом месяце Джек начал новое хобби. Он учится играть на гитаре. Он смотрит видео в интернете и занимается каждый вечер. Сначала ему трудно. У него болят пальцы, а звуки странные. Но Джек не останавливается. Через две недели он может сыграть простую песню. Его сестра хлопает в ладоши. Теперь Джек играет на гитаре каждый день, и ему это очень нравится.",
+      "level": "a2",
+      "id": 18
+    },
+    {
+      "title": "A Weekend in the Mountains",
+      "text": "Last weekend, Kate and her friends went to the mountains. They took a bus early in the morning. The weather was sunny and warm. They walked for three hours and took many photos. For lunch, they ate sandwiches near a small river. In the evening, they stayed in a little hotel. Kate looked at the stars before bed. It was a perfect weekend, and she wants to go again.",
+      "translation": "В прошлые выходные Кейт и её друзья поехали в горы. Они сели на автобус рано утром. Погода была солнечная и тёплая. Они гуляли три часа и сделали много фотографий. На обед они ели бутерброды у маленькой реки. Вечером они остановились в маленьком отеле. Перед сном Кейт смотрела на звёзды. Это были идеальные выходные, и она хочет поехать снова.",
+      "level": "a2",
+      "id": 19
+    },
+    {
+      "title": "The Supermarket List",
+      "text": "Peter goes to the supermarket after work. He has a small list in his hand: milk, eggs, apples and rice. He walks between the shelves and puts things in his basket. Then he sees chocolate. He loves chocolate, so he takes two bars. At the checkout, he pays and goes home. When he opens his bag, he remembers the milk. Oh no! He forgot the milk again. He laughs and drinks tea without milk.",
+      "translation": "Питер идёт в супермаркет после работы. У него в руке маленький список: молоко, яйца, яблоки и рис. Он ходит между полками и кладёт вещи в корзину. Потом он видит шоколад. Он любит шоколад, поэтому берёт две плитки. На кассе он платит и идёт домой. Когда он открывает сумку, он вспоминает про молоко. О нет! Он снова забыл молоко. Он смеётся и пьёт чай без молока.",
+      "level": "a2",
+      "id": 20
+    },
+    {
+      "title": "A Trip to the Sea",
+      "text": "In July, Ben's family went to the sea. They travelled by car for six hours. The hotel was near the beach. Every morning, Ben swam in the sea and played with a ball on the sand. His mother read a book under an umbrella. In the evening, they ate fish in a small restaurant. Ben made a friend from another city. They wrote letters to each other after the holiday. It was a great summer.",
+      "translation": "В июле семья Бена поехала на море. Они ехали на машине шесть часов. Отель был рядом с пляжем. Каждое утро Бен плавал в море и играл с мячом на песке. Его мама читала книгу под зонтом. Вечером они ели рыбу в маленьком ресторане. Бен познакомился с другом из другого города. После отпуска они писали друг другу письма. Это было прекрасное лето.",
+      "level": "a2",
+      "id": 21
+    },
+    {
+      "title": "Bread and Jam",
+      "text": "Every Sunday, Lucy makes bread with her grandmother. They get up early and mix flour, water and salt. Lucy likes to put her hands in the dough. It is soft and cold. They wait for two hours, and then they put the bread in the oven. The house smells wonderful. For breakfast, they eat warm bread with butter and jam. Lucy's grandmother tells funny stories. Lucy loves these Sundays very much.",
+      "translation": "Каждое воскресенье Люси печёт хлеб со своей бабушкой. Они встают рано и смешивают муку, воду и соль. Люси нравится класть руки в тесто. Оно мягкое и холодное. Они ждут два часа, а потом ставят хлеб в печь. В доме чудесный запах. На завтрак они едят тёплый хлеб с маслом и вареньем. Бабушка Люси рассказывает смешные истории. Люси очень любит эти воскресенья.",
+      "level": "a2",
+      "id": 22
+    },
+    {
+      "title": "Learning to Swim",
+      "text": "Sam is twelve years old, and he cannot swim. This summer, he goes to the pool every Tuesday. His teacher is a kind woman named Helen. First, Sam is afraid of the water. He holds the side of the pool. Helen teaches him to move his arms and legs. After five lessons, Sam can swim a little. He is very proud. Now he wants to swim in the sea with his friends next year.",
+      "translation": "Сэму двенадцать лет, и он не умеет плавать. Этим летом он ходит в бассейн каждый вторник. Его учительница — добрая женщина по имени Хелен. Сначала Сэм боится воды. Он держится за бортик бассейна. Хелен учит его двигать руками и ногами. После пяти занятий Сэм уже немного умеет плавать. Он очень гордится собой. Теперь он хочет в следующем году плавать в море с друзьями.",
+      "level": "a2",
+      "id": 23
+    },
+    {
+      "title": "The Rainy Day",
+      "text": "It is raining hard today. Emma cannot go to the park, so she stays at home. She makes a big cup of tea and reads a detective book. Outside, the sky is grey and the windows are wet. In the afternoon, she calls her friend and they talk for an hour. Then Emma cooks soup with vegetables. In the evening, the rain stops and a rainbow appears. Emma smiles and opens the window.",
+      "translation": "Сегодня сильный дождь. Эмма не может пойти в парк, поэтому остаётся дома. Она делает большую чашку чая и читает детектив. На улице серое небо, а окна мокрые. Днём она звонит подруге, и они разговаривают целый час. Потом Эмма варит суп с овощами. Вечером дождь заканчивается, и появляется радуга. Эмма улыбается и открывает окно.",
+      "level": "a2",
+      "id": 24
+    },
+    {
+      "title": "A Rainy Morning",
+      "text": "Anna woke up late on Monday. It was raining hard outside, so she decided to take the bus to work. She made a quick cup of coffee and ran to the stop. The bus was crowded, and she stood near the door. At the office, her boss smiled and said the meeting was moved to the afternoon. Anna felt happy. She sat at her desk, opened her laptop, and started working calmly.",
+      "translation": "Дождливое утро. В понедельник Анна проснулась поздно. На улице шёл сильный дождь, поэтому она решила поехать на работу на автобусе. Она быстро сделала чашку кофе и побежала на остановку. Автобус был переполнен, и она стояла у двери. В офисе начальник улыбнулся и сказал, что совещание перенесли на вторую половину дня. Анна обрадовалась. Она села за стол, открыла ноутбук и спокойно начала работать.",
+      "level": "b1",
+      "id": 25
+    },
+    {
+      "title": "Dinner with Friends",
+      "text": "On Friday evening, Mark invited two friends for dinner. He cooked pasta with vegetables and made a simple salad. His friends brought bread and a bottle of juice. They sat in the kitchen, talked about their week, and laughed a lot. After dinner, they washed the dishes together. Mark felt tired but happy. He loves these quiet evenings at home. They are simple, warm, and full of good conversations.",
+      "translation": "Ужин с друзьями. В пятницу вечером Марк пригласил двух друзей на ужин. Он приготовил пасту с овощами и сделал простой салат. Друзья принесли хлеб и бутылку сока. Они сидели на кухне, говорили о своей неделе и много смеялись. После ужина они вместе помыли посуду. Марк чувствовал усталость, но был счастлив. Он любит такие тихие вечера дома. Они простые, тёплые и полны хороших разговоров.",
+      "level": "b1",
+      "id": 26
+    },
+    {
+      "title": "A Weekend in the Mountains",
+      "text": "Last month, Kate and her brother spent a weekend in the mountains. They took a train early on Saturday morning. The weather was cold but sunny. They walked along a small river and took many photos. In the evening, they stayed in a little guesthouse and ate hot soup. On Sunday, they climbed a hill and saw a beautiful view. Kate said it was the best weekend of the year.",
+      "translation": "Выходные в горах. В прошлом месяце Кейт и её брат провели выходные в горах. В субботу утром они рано сели на поезд. Погода была холодная, но солнечная. Они гуляли вдоль небольшой реки и сделали много фотографий. Вечером они остановились в маленьком гостевом доме и поели горячего супа. В воскресенье они поднялись на холм и увидели красивый вид. Кейт сказала, что это были лучшие выходные в году.",
+      "level": "b1",
+      "id": 27
+    },
+    {
+      "title": "The Lost Ticket",
+      "text": "Tom was travelling to another city by train. At the station, he bought a ticket and put it in his pocket. Ten minutes later, he could not find it. He looked in his bag, his jacket, and even under the bench. He felt worried. Then a woman tapped his shoulder. She was holding his ticket. It had fallen on the floor near the café. Tom thanked her many times and caught his train just in time.",
+      "translation": "Потерянный билет. Том ехал в другой город на поезде. На вокзале он купил билет и положил его в карман. Через десять минут он не смог его найти. Он искал в сумке, в куртке и даже под скамейкой. Он волновался. Тут женщина похлопала его по плечу. В руке она держала его билет. Он упал на пол возле кафе. Том много раз поблагодарил её и успел на свой поезд как раз вовремя.",
+      "level": "b1",
+      "id": 28
+    },
+    {
+      "title": "Grandma's Soup",
+      "text": "Every Sunday, Lucy visits her grandmother. Her grandmother always makes vegetable soup. The recipe is old and simple: carrots, potatoes, onions, and a little salt. Lucy helps cut the vegetables. While the soup cooks, they talk about school, work, and old family stories. The kitchen smells wonderful. For Lucy, this soup is not just food. It is a warm memory of her childhood and a special time with her grandmother.",
+      "translation": "Бабушкин суп. Каждое воскресенье Люси навещает бабушку. Бабушка всегда готовит овощной суп. Рецепт старый и простой: морковь, картофель, лук и немного соли. Люси помогает резать овощи. Пока суп варится, они говорят о школе, работе и старых семейных историях. На кухне чудесно пахнет. Для Люси этот суп — не просто еда. Это тёплое воспоминание о детстве и особенное время с бабушкой.",
+      "level": "b1",
+      "id": 29
+    },
+    {
+      "title": "A New Café",
+      "text": "A new café opened near Ben's house last week. On Saturday, he decided to try it. The café was small and bright, with wooden tables and green plants. Ben ordered a cheese sandwich and a cup of tea. The sandwich was fresh and tasty. The owner, a friendly young woman, asked him how he liked the food. Ben said everything was great. Now he goes there every weekend to read and relax.",
+      "translation": "Новое кафе. На прошлой неделе рядом с домом Бена открылось новое кафе. В субботу он решил его попробовать. Кафе было маленьким и светлым, с деревянными столами и зелёными растениями. Бен заказал сэндвич с сыром и чашку чая. Сэндвич был свежим и вкусным. Хозяйка, приветливая молодая женщина, спросила, нравится ли ему еда. Бен сказал, что всё отлично. Теперь он ходит туда каждые выходные, чтобы читать и отдыхать.",
+      "level": "b1",
+      "id": 30
+    },
+    {
+      "title": "Learning to Play Guitar",
+      "text": "David started learning to play the guitar three months ago. He watches short lessons online and practises for twenty minutes every evening. At first, his fingers hurt and the sounds were strange. But he did not stop. Now he can play a few simple songs. His sister sometimes sings while he plays. David is proud of his progress. He says music helps him relax after a long day at work.",
+      "translation": "Учится играть на гитаре. Дэвид начал учиться играть на гитаре три месяца назад. Он смотрит короткие уроки онлайн и занимается по двадцать минут каждый вечер. Сначала пальцы болели, а звуки были странными. Но он не остановился. Теперь он умеет играть несколько простых песен. Его сестра иногда поёт, пока он играет. Дэвид гордится своим прогрессом. Он говорит, что музыка помогает ему расслабляться после долгого рабочего дня.",
+      "level": "b1",
+      "id": 31
+    },
+    {
+      "title": "The Photography Walk",
+      "text": "Emma loves photography. On Sunday, she took her camera and walked around the old part of the city. She photographed colourful doors, small streets, and people in the park. She does not take perfect pictures, but she enjoys the process. She likes to notice small details that other people miss. In the evening, she looked at her photos and chose three favourites. One day, she hopes to show her work at a small exhibition.",
+      "translation": "Фотопрогулка. Эмма любит фотографию. В воскресенье она взяла камеру и погуляла по старой части города. Она фотографировала colourful двери, маленькие улочки и людей в парке. У неё не всегда получаются идеальные снимки, но ей нравится сам процесс. Ей нравится замечать мелкие детали, которые другие пропускают. Вечером она посмотрела свои фотографии и выбрала три любимые. Однажды она надеется показать свои работы на небольшой выставке.",
+      "level": "b1",
+      "id": 32
+    },
+    {
+      "title": "A Trip to the Seaside",
+      "text": "Peter and his family went to the seaside for three days. They stayed in a small hotel near the beach. The children swam in the sea and built sandcastles. Peter read a book under an umbrella. In the evening, they walked along the beach and ate fish and chips. The weather was warm and sunny. On the last day, they bought some souvenirs. Everyone was sad to go home, but they took many happy memories with them.",
+      "translation": "Поездка на море. Питер и его семья поехали на море на три дня. Они остановились в маленьком отеле у пляжа. Дети купались в море и строили замки из песка. Питер читал книгу под зонтом. Вечером они гуляли по пляжу и ели рыбу с картошкой. Погода была тёплой и солнечной. В последний день они купили сувениры. Всем было грустно уезжать домой, но они увезли с собой много счастливых воспоминаний.",
+      "level": "b1",
+      "id": 33
+    },
+    {
+      "title": "The Baking Challenge",
+      "text": "Sarah decided to bake a cake for her friend's birthday. She found a simple recipe online and bought all the ingredients. The first cake was too dry, so she tried again. The second one looked better, but the cream was too sweet. On her third try, everything worked well. The cake was soft and beautiful. At the party, everyone asked for the recipe. Sarah smiled and said it was a secret, but really she was just happy she did not give up.",
+      "translation": "Кулинарный вызов. Сара решила испечь торт на день рождения подруги. Она нашла простой рецепт в интернете и купила все ингредиенты. Первый торт получился слишком сухим, поэтому она попробовала снова. Второй выглядел лучше, но крем был слишком сладким. С третьей попытки всё получилось хорошо. Торт был мягким и красивым. На вечеринке все просили рецепт. Сара улыбнулась и сказала, что это секрет, но на самом деле она просто радовалась, что не сдалась.",
+      "level": "b1",
+      "id": 34
     }
   ]
 }

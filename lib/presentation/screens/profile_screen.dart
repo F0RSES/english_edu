@@ -112,11 +112,7 @@ class _Identity extends StatelessWidget {
 
 /// Три метрики в тонированных карточках.
 class _Stats extends StatelessWidget {
-  const _Stats({
-    required this.streak,
-    required this.words,
-    required this.xp,
-  });
+  const _Stats({required this.streak, required this.words, required this.xp});
 
   final AsyncValue<StreakInfo> streak;
   final AsyncValue<List<Object?>> words;
@@ -184,7 +180,10 @@ class _Achievements extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final items = achievements.value ?? const <Achievement>[];
-    final unlocked = [for (final item in items) if (item.isUnlocked) item];
+    final unlocked = [
+      for (final item in items)
+        if (item.isUnlocked) item,
+    ];
     final total = items.isEmpty ? 9 : items.length;
 
     return Card(

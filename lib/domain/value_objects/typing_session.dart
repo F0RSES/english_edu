@@ -5,11 +5,8 @@ import 'package:meta/meta.dart';
 @immutable
 final class TypingSession {
   /// Создаёт сессию с защитной копией списка слов.
-  TypingSession({
-    required List<Word> words,
-    this.index = 0,
-    this.correct = 0,
-  }) : words = List.unmodifiable(words);
+  TypingSession({required List<Word> words, this.index = 0, this.correct = 0})
+    : words = List.unmodifiable(words);
 
   /// Слова заезда в порядке показа.
   final List<Word> words;

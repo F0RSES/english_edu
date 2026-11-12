@@ -102,10 +102,7 @@ final class RecordReview {
 
     // Задание дня двигается после основной записи: слово уже отвечено, лог и
     // статистика записаны. `existing == null` — первый ответ по слову (new5).
-    await _challengeProgress(
-      grade: grade,
-      isFirstResponse: existing == null,
-    );
+    await _challengeProgress(grade: grade, isFirstResponse: existing == null);
 
     // Достижения — вспомогательный слой: сбой не откатывает записанный ответ.
     var unlocked = const <Achievement>[];

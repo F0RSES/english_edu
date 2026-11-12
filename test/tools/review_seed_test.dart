@@ -91,10 +91,7 @@ void main() {
 
       expect(selected, hasLength(2));
       // Выборка берётся из отфильтрованного набора, а не из всего файла.
-      expect(
-        selectWords(sample(), levels: {'B1'}, sample: 5),
-        hasLength(2),
-      );
+      expect(selectWords(sample(), levels: {'B1'}, sample: 5), hasLength(2));
     });
   });
 

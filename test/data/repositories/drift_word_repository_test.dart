@@ -190,10 +190,10 @@ void main() {
     final found = await repo.findAllByTerm('Apple');
 
     expect(found, hasLength(2));
-    expect(found.map((word) => word.translation), containsAll(<String>[
-      'яблоко',
-      'компания',
-    ]));
+    expect(
+      found.map((word) => word.translation),
+      containsAll(<String>['яблоко', 'компания']),
+    );
   });
 
   test('findAllByTerm returns empty for missing', () async {

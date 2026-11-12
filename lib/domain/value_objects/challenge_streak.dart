@@ -78,8 +78,7 @@ final class ChallengeStreak {
           updatedAt == other.updatedAt;
 
   @override
-  int get hashCode =>
-      Object.hash(current, best, lastCompletedDate, updatedAt);
+  int get hashCode => Object.hash(current, best, lastCompletedDate, updatedAt);
 
   @override
   String toString() =>

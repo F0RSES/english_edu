@@ -52,9 +52,7 @@ ThemeData _buildTheme(Brightness brightness) {
         // (Size.fromHeight) выглядела как полоса.
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         // Из textTheme, а не из голого TextStyle: иначе кнопка выпадает с
         // Inter на системный шрифт.
         textStyle: textTheme.labelLarge?.copyWith(

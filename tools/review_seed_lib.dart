@@ -15,10 +15,8 @@ class ReviewVerdict {
   });
 
   /// Проблема разбора: ответ не удалось прочитать как JSON нужной формы.
-  factory ReviewVerdict.unparsable(String reason) => ReviewVerdict(
-    isCorrect: false,
-    issues: ['parse error: $reason'],
-  );
+  factory ReviewVerdict.unparsable(String reason) =>
+      ReviewVerdict(isCorrect: false, issues: ['parse error: $reason']);
 
   /// Считает ли модель слово и перевод корректными.
   final bool isCorrect;
@@ -203,7 +201,6 @@ List<String> _stringList(Object? value) => [
     for (final item in value)
       if (item is String && item.trim().isNotEmpty) item.trim(),
 ];
-
 
 /// Результат применения ручных правок к словарю.
 class OverrideResult {

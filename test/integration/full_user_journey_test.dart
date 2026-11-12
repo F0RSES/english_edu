@@ -27,11 +27,8 @@ import 'package:flutter_test/flutter_test.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-domain.Word word(int id) => domain.Word(
-  id: WordId(id),
-  term: 'term$id',
-  translation: 'перевод$id',
-);
+domain.Word word(int id) =>
+    domain.Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 /// Приложение целиком: тот же `EnglishEduApp`, что и в `main`.
 ///
@@ -132,9 +129,7 @@ void main() {
     expect(find.text('2 / 60 слов сегодня'), findsOneWidget);
   });
 
-  testWidgets('journey: adding a word through the dictionary', (
-    tester,
-  ) async {
+  testWidgets('journey: adding a word through the dictionary', (tester) async {
     final db = await seededDb([word(1)]);
     addTearDown(db.close);
 

@@ -27,11 +27,8 @@ final now = DateTime.utc(2024, 5, 15, 12);
 const wordCount = 2071;
 const progressCount = 500;
 
-domain.Word word(int id) => domain.Word(
-  id: WordId(id),
-  term: 'word$id',
-  translation: 'перевод$id',
-);
+domain.Word word(int id) =>
+    domain.Word(id: WordId(id), term: 'word$id', translation: 'перевод$id');
 
 WordProgress progress(int id) => WordProgress(
   wordId: WordId(id),
@@ -48,15 +45,14 @@ WordProgress progress(int id) => WordProgress(
 
 Future<AppDatabase> seededDb() async {
   final db = AppDatabase.forTesting(NativeDatabase.memory());
-  await DriftWordRepository(
+  await DriftWordRepository(db)
+      .insertMany([for (var id = 1; id <= wordCount; id++) word(id)]);
+  await DriftProgressRepository(db)
+      .replaceAll([for (var id = 1; id <= progressCount; id++) progress(id)]);
+  await DriftSettingsRepository(
     db,
-  ).insertMany([for (var id = 1; id <= wordCount; id++) word(id)]);
-  await DriftProgressRepository(
-    db,
-  ).replaceAll([for (var id = 1; id <= progressCount; id++) progress(id)]);
-  await DriftSettingsRepository(db, clock: () => now).save(
-    UserSettings.defaults(),
-  );
+    clock: () => now,
+  ).save(UserSettings.defaults());
   return db;
 }
 

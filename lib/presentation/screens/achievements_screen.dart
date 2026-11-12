@@ -23,8 +23,14 @@ class AchievementsScreen extends ConsumerWidget {
   }
 
   Widget _buildBody(BuildContext context, List<Achievement> items) {
-    final unlocked = [for (final item in items) if (item.isUnlocked) item];
-    final inProgress = [for (final item in items) if (!item.isUnlocked) item];
+    final unlocked = [
+      for (final item in items)
+        if (item.isUnlocked) item,
+    ];
+    final inProgress = [
+      for (final item in items)
+        if (!item.isUnlocked) item,
+    ];
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -68,9 +74,8 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
     title,
-    style: Theme.of(
-      context,
-    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    style: Theme.of(context).textTheme.titleMedium
+        ?.copyWith(fontWeight: FontWeight.bold),
   );
 }
 

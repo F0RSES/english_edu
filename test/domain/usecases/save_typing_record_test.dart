@@ -19,8 +19,7 @@ final class _FakeRecords implements TypingRecordRepository {
   }
 }
 
-SaveTypingRecord useCase(TypingRecordRepository records) =>
-    SaveTypingRecord(
+SaveTypingRecord useCase(TypingRecordRepository records) => SaveTypingRecord(
   records: records,
   clock: () => DateTime.utc(2024, 5, 15, 12),
 );

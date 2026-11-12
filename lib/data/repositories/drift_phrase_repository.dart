@@ -20,19 +20,20 @@ final class DriftPhraseRepository implements PhraseRepository {
 
   @override
   Future<List<Phrase>> getByCategory(String category) async {
-    final rows = await (_db.select(_db.phrases)
-          ..where((t) => t.category.equals(category))
-          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
-        .get();
+    final rows =
+        await (_db.select(_db.phrases)
+              ..where((t) => t.category.equals(category))
+              ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+            .get();
     return [for (final row in rows) _toDomain(row)];
   }
 
   @override
   Future<int> count() {
     final total = _db.phrases.id.count();
-    return (_db.selectOnly(_db.phrases)..addColumns([total]))
-        .getSingle()
-        .then((row) => row.read(total) ?? 0);
+    return (_db.selectOnly(
+      _db.phrases,
+    )..addColumns([total])).getSingle().then((row) => row.read(total) ?? 0);
   }
 
   @override

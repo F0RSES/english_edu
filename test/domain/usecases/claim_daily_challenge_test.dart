@@ -88,11 +88,7 @@ void main() {
 
     expect(await claim(), 0);
     expect(await stats.getForDate(today), isNull);
-    expect(
-      streaks.saveCount,
-      0,
-      reason: 'повторная награда не двигает серию',
-    );
+    expect(streaks.saveCount, 0, reason: 'повторная награда не двигает серию');
   });
 
   test('should_update_streak_on_claim', () async {

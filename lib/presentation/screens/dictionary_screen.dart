@@ -107,8 +107,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   ///
   /// Пока список читается из БД, показывается базовый набор: фильтр не должен
   /// исчезать и «прыгать» при каждом открытии экрана.
-  List<String> _categoryNames(WidgetRef ref) =>
-      ref.watch(userCategoriesProvider).when(
+  List<String> _categoryNames(WidgetRef ref) => ref
+      .watch(userCategoriesProvider)
+      .when(
         data: (categories) => [for (final item in categories) item.name],
         loading: () => wordCategories,
         error: (error, stack) => wordCategories,
@@ -149,10 +150,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              for (final category in <String?>[
-                null,
-                ..._categoryNames(ref),
-              ])
+              for (final category in <String?>[null, ..._categoryNames(ref)])
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(

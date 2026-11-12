@@ -424,10 +424,7 @@ void main() {
       // Ответ записан полностью: сбой задания дня проглочен внутри
       // UpdateChallengeProgress и не откатывает SRS.
       expect(outcome.xpGained, XpRules.forGrade(ReviewGrade.good));
-      expect(
-        await harness.progress.getByWordId(const WordId(1)),
-        isNotNull,
-      );
+      expect(await harness.progress.getByWordId(const WordId(1)), isNotNull);
     });
   });
 }

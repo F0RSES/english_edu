@@ -90,13 +90,9 @@ Future<void> main() async {
     phrases[index]['id'] = index + 1;
   }
 
-  final output = <String, Object?>{
-    'schemaVersion': 1,
-    'phrases': phrases,
-  };
-  await File(
-    _outputPath,
-  ).writeAsString('${const JsonEncoder.withIndent('  ').convert(output)}\n');
+  final output = <String, Object?>{'schemaVersion': 1, 'phrases': phrases};
+  await File(_outputPath)
+      .writeAsString('${const JsonEncoder.withIndent('  ').convert(output)}\n');
 
   final categories = {for (final item in phrases) item['category']};
   stdout

@@ -17,11 +17,7 @@ Widget host({int wordCount = 2}) => ProviderScope(
       GenerateMemoryGame(
         words: FakeWordRepository([
           for (var id = 1; id <= wordCount; id++)
-            Word(
-              id: WordId(id),
-              term: 'term$id',
-              translation: 'перевод$id',
-            ),
+            Word(id: WordId(id), term: 'term$id', translation: 'перевод$id'),
         ]),
         random: Random(3),
         pairsCount: wordCount,
@@ -54,10 +50,7 @@ void main() {
 
     // Карточка 0 — английская сторона первой пары.
     final tile = find.byKey(const ValueKey('memory-card-0'));
-    expect(
-      find.descendant(of: tile, matching: find.text('?')),
-      findsOneWidget,
-    );
+    expect(find.descendant(of: tile, matching: find.text('?')), findsOneWidget);
 
     await tester.tap(tile);
     await tester.pump(const Duration(milliseconds: 100));
@@ -78,10 +71,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     final second = find.byKey(const ValueKey('memory-card-2'));
-    expect(
-      find.descendant(of: second, matching: find.text('?')),
-      findsNothing,
-    );
+    expect(find.descendant(of: second, matching: find.text('?')), findsNothing);
 
     // UI закрывает несовпавшие через 800 мс.
     await tester.pump(const Duration(milliseconds: 900));

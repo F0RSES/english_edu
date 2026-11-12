@@ -14,8 +14,7 @@ class TypingSpeedScreen extends ConsumerStatefulWidget {
   const TypingSpeedScreen({super.key});
 
   @override
-  ConsumerState<TypingSpeedScreen> createState() =>
-      _TypingSpeedScreenState();
+  ConsumerState<TypingSpeedScreen> createState() => _TypingSpeedScreenState();
 }
 
 class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {

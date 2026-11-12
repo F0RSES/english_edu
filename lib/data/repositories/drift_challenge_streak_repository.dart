@@ -18,8 +18,9 @@ final class DriftChallengeStreakRepository
 
   @override
   Future<ChallengeStreak?> get() async {
-    final row =
-        await (_db.select(_db.challengeStreaks)..limit(1)).getSingleOrNull();
+    final row = await (_db.select(
+      _db.challengeStreaks,
+    )..limit(1)).getSingleOrNull();
     if (row == null) {
       return null;
     }

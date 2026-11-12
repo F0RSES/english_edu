@@ -48,8 +48,7 @@ final class DriftAchievementRepository implements AchievementRepository {
           AchievementsCompanion.insert(
             id: achievement.type.key,
             progress: Value(achievement.progress),
-            lastUpdatedAtUtc:
-                achievement.lastUpdatedAt.millisecondsSinceEpoch,
+            lastUpdatedAtUtc: achievement.lastUpdatedAt.millisecondsSinceEpoch,
             unlockedAtUtc: Value(
               achievement.unlockedAt?.millisecondsSinceEpoch,
             ),

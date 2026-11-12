@@ -17,9 +17,8 @@ final class PhraseSeedLoader {
   const PhraseSeedLoader({
     required PhraseRepository phrases,
     required AssetBundle bundle,
-  })
-    : _phrases = phrases,
-      _bundle = bundle;
+  }) : _phrases = phrases,
+       _bundle = bundle;
 
   final PhraseRepository _phrases;
   final AssetBundle _bundle;

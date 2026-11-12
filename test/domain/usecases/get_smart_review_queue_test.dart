@@ -134,9 +134,7 @@ void main() {
   });
 
   test('should_skip_progress_without_a_word', () async {
-    final queue = await useCase(
-      progressItems: [progress(1, lapses: 2)],
-    )();
+    final queue = await useCase(progressItems: [progress(1, lapses: 2)])();
 
     expect(queue, isEmpty);
   });

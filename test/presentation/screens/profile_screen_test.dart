@@ -10,9 +10,7 @@ import '../../domain/usecases/fakes/fake_settings_repository.dart';
 
 Widget host() => ProviderScope(
   overrides: [
-    settingsRepositoryProvider.overrideWithValue(
-      FakeSettingsRepository(),
-    ),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
     computeStreakProvider.overrideWith(
       (ref) async => const StreakInfo(count: 5),
     ),

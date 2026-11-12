@@ -23,11 +23,8 @@ import 'package:flutter_test/flutter_test.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 var _logId = 1;
 
-domain.Word word(int id) => domain.Word(
-  id: WordId(id),
-  term: 'term$id',
-  translation: 'перевод$id',
-);
+domain.Word word(int id) =>
+    domain.Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 Widget app(AppDatabase db, {bool onboardingSeen = true}) => ProviderScope(
   overrides: [
@@ -93,5 +90,4 @@ void main() {
 
     expect(failure?.message, contains('неподдерживаемая версия'));
   });
-
 }

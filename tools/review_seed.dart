@@ -66,11 +66,15 @@ Future<void> main(List<String> args) async {
       final number = index + 1;
 
       if (verdict.isCorrect) {
-        stdout.writeln('Word $number/${selected.length}: '
-            '${word['term']} → OK');
+        stdout.writeln(
+          'Word $number/${selected.length}: '
+          '${word['term']} → OK',
+        );
       } else {
-        stdout.writeln('Word $number/${selected.length}: '
-            '${word['term']} → PROBLEM (${verdict.issues.join('; ')})');
+        stdout.writeln(
+          'Word $number/${selected.length}: '
+          '${word['term']} → PROBLEM (${verdict.issues.join('; ')})',
+        );
         problems.add(_toProblem(word, verdict));
       }
 
@@ -88,9 +92,8 @@ Future<void> main(List<String> args) async {
     checkedCount: selected.length,
     problems: problems,
   );
-  await File(outputPath).writeAsString(
-    '${const JsonEncoder.withIndent('  ').convert(report)}\n',
-  );
+  await File(outputPath)
+      .writeAsString('${const JsonEncoder.withIndent('  ').convert(report)}\n');
 
   stdout
     ..writeln(
@@ -148,11 +151,7 @@ Future<ReviewVerdict> _review(
   return ReviewVerdict.unparsable('request failed: $lastError');
 }
 
-Future<String> _post(
-  HttpClient client,
-  String apiKey,
-  String prompt,
-) async {
+Future<String> _post(HttpClient client, String apiKey, String prompt) async {
   final request = await client.postUrl(Uri.parse(_apiUrl));
   request.headers
     ..contentType = ContentType.json
@@ -168,9 +167,7 @@ Future<String> _post(
     }),
   );
 
-  final response = await request.close().timeout(
-    const Duration(seconds: 60),
-  );
+  final response = await request.close().timeout(const Duration(seconds: 60));
   final body = await response.transform(utf8.decoder).join();
   if (response.statusCode != 200) {
     final head = body.length > 200 ? body.substring(0, 200) : body;

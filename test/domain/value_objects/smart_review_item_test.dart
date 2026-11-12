@@ -8,8 +8,7 @@ import 'package:test/test.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word() =>
-    const Word(id: WordId(1), term: 'apple', translation: 'яблоко');
+Word word() => const Word(id: WordId(1), term: 'apple', translation: 'яблоко');
 
 WordProgress progress() => WordProgress(
   wordId: const WordId(1),

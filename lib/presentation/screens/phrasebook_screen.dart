@@ -106,12 +106,10 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
                 _PhraseList(items: _visible(widget.phrases)),
                 for (final category in categories)
                   _PhraseList(
-                    items: _visible(
-                      [
-                        for (final item in widget.phrases)
-                          if (item.category == category) item,
-                      ],
-                    ),
+                    items: _visible([
+                      for (final item in widget.phrases)
+                        if (item.category == category) item,
+                    ]),
                   ),
               ],
             ),

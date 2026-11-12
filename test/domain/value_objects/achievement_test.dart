@@ -4,15 +4,13 @@ import 'package:test/test.dart';
 
 final moment = DateTime.utc(2024, 5, 15, 12);
 
-Achievement achievement({
-  int progress = 3,
-  DateTime? unlockedAt,
-}) => Achievement(
-  type: AchievementType.streak7,
-  progress: progress,
-  unlockedAt: unlockedAt,
-  lastUpdatedAt: moment,
-);
+Achievement achievement({int progress = 3, DateTime? unlockedAt}) =>
+    Achievement(
+      type: AchievementType.streak7,
+      progress: progress,
+      unlockedAt: unlockedAt,
+      lastUpdatedAt: moment,
+    );
 
 void main() {
   test('should_be_locked_without_unlocked_at', () {

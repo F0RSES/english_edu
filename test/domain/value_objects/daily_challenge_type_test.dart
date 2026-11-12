@@ -30,9 +30,6 @@ void main() {
   });
 
   test('should_throw_when_name_is_unknown', () {
-    expect(
-      () => DailyChallengeType.fromName('weekly5'),
-      throwsArgumentError,
-    );
+    expect(() => DailyChallengeType.fromName('weekly5'), throwsArgumentError);
   });
 }

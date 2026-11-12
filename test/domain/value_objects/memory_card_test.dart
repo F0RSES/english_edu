@@ -2,13 +2,7 @@ import 'package:english_edu/domain/value_objects/memory_card.dart';
 import 'package:test/test.dart';
 
 MemoryCard card({MemoryCardState state = MemoryCardState.hidden}) =>
-    MemoryCard(
-      id: 1,
-      pairId: 0,
-      text: 'apple',
-      isEnglish: true,
-      state: state,
-    );
+    MemoryCard(id: 1, pairId: 0, text: 'apple', isEnglish: true, state: state);
 
 void main() {
   test('should_copy_with_new_state', () {
@@ -22,9 +16,6 @@ void main() {
   test('should_be_equal_when_all_fields_match', () {
     expect(card(), card());
     expect(card().hashCode, card().hashCode);
-    expect(
-      card(),
-      isNot(card(state: MemoryCardState.matched)),
-    );
+    expect(card(), isNot(card(state: MemoryCardState.matched)));
   });
 }

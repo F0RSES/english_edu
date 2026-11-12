@@ -47,10 +47,13 @@ void main() {
     final game = await useCase(20)();
 
     // Неотсортированный порядок: пары не идут строго друг за другом.
-    final pairedOrder = [
-      for (final card in game.cards) card.pairId,
-    ];
-    expect(pairedOrder, isNot([for (var i = 0; i < 8; i++) ...[i, i]]));
+    final pairedOrder = [for (final card in game.cards) card.pairId];
+    expect(
+      pairedOrder,
+      isNot([
+        for (var i = 0; i < 8; i++) ...[i, i],
+      ]),
+    );
   });
 
   test('should_fall_back_to_available_words', () async {

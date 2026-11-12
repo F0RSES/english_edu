@@ -89,18 +89,18 @@ class HomeScreen extends ConsumerWidget {
               ],
               Text(
                 'Тренировки',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
               const SizedBox(height: 12),
               _buildGames(context)
                   .animate()
                   .fadeIn(delay: 300.ms, duration: 300.ms),
               const SizedBox(height: 24),
-              const DailyChallengeCard()
-                  .animate()
-                  .fadeIn(delay: 350.ms, duration: 300.ms),
+              const DailyChallengeCard().animate().fadeIn(
+                delay: 350.ms,
+                duration: 300.ms,
+              ),
             ],
           ),
         ),
@@ -129,8 +129,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   /// Компактная карточка серии: пока данные грузятся, показываем нулевую.
-  Widget _buildStreak(WidgetRef ref, LocalDate today) =>
-      ref.watch(computeStreakProvider).when(
+  Widget _buildStreak(WidgetRef ref, LocalDate today) => ref
+      .watch(computeStreakProvider)
+      .when(
         data: (streak) => StreakCard(streak: streak, today: today),
         loading: () =>
             StreakCard(streak: const StreakInfo(count: 0), today: today),
@@ -138,20 +139,24 @@ class HomeScreen extends ConsumerWidget {
             StreakCard(streak: const StreakInfo(count: 0), today: today),
       );
 
-  Widget _buildGoal(WidgetRef ref) => ref.watch(dailyGoalProvider).when(
-    data: (goal) =>
-        DailyGoalCard(stats: goal.stats, totalTarget: goal.target),
-    loading: () => DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
-    error: (error, stack) =>
-        DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
-  );
+  Widget _buildGoal(WidgetRef ref) => ref
+      .watch(dailyGoalProvider)
+      .when(
+        data: (goal) =>
+            DailyGoalCard(stats: goal.stats, totalTarget: goal.target),
+        loading: () => DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
+        error: (error, stack) =>
+            DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
+      );
 
   /// Hero-кнопка урока: активность решает очередь дня.
-  Widget _buildHero(BuildContext context, WidgetRef ref) =>
-      ref.watch(getTodayQueueProvider).when(
+  Widget _buildHero(BuildContext context, WidgetRef ref) => ref
+      .watch(getTodayQueueProvider)
+      .when(
         data: (queue) => _HeroStartButton(
           queue: queue,
-          onTap: () => _openGame(context, '/lesson', HapticFeedback.mediumImpact),
+          onTap: () =>
+              _openGame(context, '/lesson', HapticFeedback.mediumImpact),
         ),
         loading: () => const _HeroStartButton(queue: null, onTap: null),
         error: (error, stack) => OutlinedButton.icon(
@@ -331,10 +336,7 @@ class _HeroStartButton extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         _subtitle,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: scheme.onPrimary,
-                        ),
+                        style: TextStyle(fontSize: 14, color: scheme.onPrimary),
                       ),
                     ],
                   ),
@@ -373,9 +375,7 @@ class _PillButton extends StatelessWidget {
     ),
     style: OutlinedButton.styleFrom(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       side: BorderSide(color: color.withAlpha(128)),
     ),
   );

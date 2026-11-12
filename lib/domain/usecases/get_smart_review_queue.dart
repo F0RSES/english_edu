@@ -92,10 +92,7 @@ final class GetSmartReviewQueue {
   }
 
   /// Считает score и причину; null — слово сегодня не приоритетно.
-  ({double score, String reason})? _score(
-    WordProgress progress,
-    DateTime now,
-  ) {
+  ({double score, String reason})? _score(WordProgress progress, DateTime now) {
     var score = 0.0;
     final reasons = <String>[];
 

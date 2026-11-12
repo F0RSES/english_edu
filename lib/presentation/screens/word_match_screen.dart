@@ -120,13 +120,12 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
           : Padding(
               padding: const EdgeInsets.all(16),
               child: GridView.builder(
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 0.85,
-                    ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                  childAspectRatio: 0.85,
+                ),
                 itemCount: game.cards.length,
                 itemBuilder: (context, index) => _MemoryTile(
                   // Ключ по id карточки, а не по позиции: расклад тасуется,

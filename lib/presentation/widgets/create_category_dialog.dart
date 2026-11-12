@@ -73,9 +73,8 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
       return;
     }
     setState(() => _busy = false);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -107,8 +106,8 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: parseCategoryColor(hex) ??
-                          theme.colorScheme.primary,
+                      color:
+                          parseCategoryColor(hex) ?? theme.colorScheme.primary,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: hex == _colorHex

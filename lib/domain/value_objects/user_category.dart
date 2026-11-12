@@ -46,9 +46,7 @@ final class UserCategory {
   }) => UserCategory(
     id: id ?? this.id,
     name: name ?? this.name,
-    colorHex: identical(colorHex, _unset)
-        ? this.colorHex
-        : colorHex as String?,
+    colorHex: identical(colorHex, _unset) ? this.colorHex : colorHex as String?,
     createdAtUtc: createdAtUtc ?? this.createdAtUtc,
   );
 

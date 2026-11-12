@@ -39,13 +39,10 @@ Future<void> main(List<String> args) async {
   final client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
   try {
     final phrases = await _generate(client, apiKey, category, level, limit);
-    final payload = {
-      'schemaVersion': 1,
-      'phrases': phrases,
-    };
-    await File(output).writeAsString(
-      '${const JsonEncoder.withIndent('  ').convert(payload)}\n',
-    );
+    final payload = {'schemaVersion': 1, 'phrases': phrases};
+    await File(
+      output,
+    ).writeAsString('${const JsonEncoder.withIndent('  ').convert(payload)}\n');
     stdout.writeln('Wrote ${phrases.length} phrases to $output');
   } finally {
     client.close(force: true);
@@ -76,11 +73,7 @@ Future<List<Map<String, Object?>>> _generate(
   throw HttpException('generation failed: $lastError');
 }
 
-Future<String> _post(
-  HttpClient client,
-  String apiKey,
-  String prompt,
-) async {
+Future<String> _post(HttpClient client, String apiKey, String prompt) async {
   final request = await client.postUrl(Uri.parse(_apiUrl));
   request.headers
     ..contentType = ContentType.json

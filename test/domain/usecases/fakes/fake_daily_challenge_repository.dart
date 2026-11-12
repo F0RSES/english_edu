@@ -6,8 +6,7 @@ import 'package:english_edu/domain/value_objects/local_date.dart';
 ///
 /// Позволяет подсунуть сбой чтения или записи: так проверяется, что ответ
 /// записывается даже при поломанном хранилище задания (ADR-030).
-final class FakeDailyChallengeRepository
-    implements DailyChallengeRepository {
+final class FakeDailyChallengeRepository implements DailyChallengeRepository {
   /// Создаёт репозиторий; [seed] сразу становится заданием своего дня.
   FakeDailyChallengeRepository([DailyChallenge? seed])
     : _byDate = {if (seed != null) seed.date: seed};

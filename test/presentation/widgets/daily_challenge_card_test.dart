@@ -44,9 +44,7 @@ void main() {
     expect(find.text('3/20'), findsOneWidget);
     expect(
       tester
-          .widget<LinearProgressIndicator>(
-            find.byType(LinearProgressIndicator),
-          )
+          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
           .value,
       0.15,
     );

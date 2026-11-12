@@ -22,10 +22,11 @@ final class DriftTypingRecordRepository implements TypingRecordRepository {
 
   @override
   Future<List<TypingRecord>> getTop({int limit = 10}) async {
-    final rows = await (_db.select(_db.typingRecords)
-          ..orderBy([(t) => OrderingTerm.desc(t.score)])
-          ..limit(limit))
-        .get();
+    final rows =
+        await (_db.select(_db.typingRecords)
+              ..orderBy([(t) => OrderingTerm.desc(t.score)])
+              ..limit(limit))
+            .get();
     return [for (final row in rows) _toDomain(row)];
   }
 

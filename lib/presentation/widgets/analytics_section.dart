@@ -156,9 +156,8 @@ class _WeekChart extends StatelessWidget {
   }
 
   String _labelFor(DailyStats day) {
-    final date = DateTime.utc(
-      1970,
-    ).add(Duration(days: day.date.daysSinceEpoch));
+    final date = DateTime.utc(1970)
+        .add(Duration(days: day.date.daysSinceEpoch));
     return _labels[date.weekday - 1];
   }
 

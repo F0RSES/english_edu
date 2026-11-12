@@ -44,3 +44,4 @@ flutter:
     # tools/merge_seeds.dart, в APK им делать нечего (~1 МБ).
     - assets/seed/words_v2.json
     - assets/seed/phrases_v1.json
+    - assets/seed/stories_v1.json

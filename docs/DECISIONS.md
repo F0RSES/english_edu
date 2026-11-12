@@ -719,6 +719,25 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** седьмая тренировка на главной (сетка три колонки). Контент расширяется скриптом и ревью, без релиза приложения — только пересборкой ассета.
 - **Open questions:** озвучка фраз через TTS; избранное и повторение фраз; связь фраз с уровнем пользователя (сейчас просто метка).
 
+### ADR-039: Reading Mode
+- **Status:** Proposed
+- **Date:** 2026-11-12
+- **Context:** Нужна механика погружения (implicit learning): короткие рассказы на уровне пользователя дают естественное повторение уже известных слов и контекст для новых. Карточки учат слова изолированно; связный текст показывает, как они живут в речи.
+- **Decision:**
+  - Сущность `Story` (id, title, text, translation, level: `CefrLevel`) и таблица `stories` (**schema v13 → v14**) — отдельно от `words` и `phrases`.
+  - Ленивый `StorySeedLoader`: наполняет таблицу из `assets/seed/stories_v1.json` при первом открытии экрана, не при старте.
+  - `ExtractUnknownWords`: очистка текста регекспом + сравнение со словарём; незнакомые слова добавляются в словарь с `translation: '?'` — пользователь редактирует вручную.
+  - Экраны `/reading` (список с CEFR-фильтром A1–C1, дефолт — `preferredLevel`) и `/reading/:id` (текст, перевод по кнопке, диалог незнакомых слов).
+  - Контент генерируется dev-скриптом `tools/generate_stories.dart` (DeepSeek) и сливается `tools/merge_stories.dart`; в APK попадает только проверенный `stories_v1.json`.
+- **Alternatives considered:**
+  - (A) Вставить рассказы в `words` (term = весь текст) — отклонено: сломает SM-2, дубли и mastery.
+  - (B) Генерировать рассказы на лету через AI — отклонено: оффлайн-требование учебного цикла.
+- **Consequences:**
+  - Восьмая карточка на главной («Чтение»); чтение не влияет на SRS, XP и статистику.
+  - Демо-рассказы в seed: 4 (A1, A2×2, B1), написаны вручную, не через LLM. Пользователь расширяет через generate_stories.dart + merge_stories.dart.
+  - Добавленные незнакомые слова попадают в очередь дня как новые (уровень рассказа).
+- **Open questions:** озвучка рассказа через TTS (BL-87).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -761,3 +780,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-036 | Word Match (memory game) | Accepted |
 | ADR-037 | Typing Speed | Accepted |
 | ADR-038 | Phrasebook | Accepted |
+| ADR-039 | Reading Mode | Proposed |

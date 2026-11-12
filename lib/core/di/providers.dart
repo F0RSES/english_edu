@@ -7,6 +7,7 @@ import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/db/phrase_seed_loader.dart';
+import 'package:english_edu/data/db/story_seed_loader.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/data/repositories/drift_achievement_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
@@ -18,6 +19,7 @@ import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_settings_repository.dart';
 import 'package:english_edu/data/repositories/drift_stats_repository.dart';
+import 'package:english_edu/data/repositories/drift_story_repository.dart';
 import 'package:english_edu/data/repositories/drift_typing_record_repository.dart';
 import 'package:english_edu/data/repositories/drift_user_category_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
@@ -28,6 +30,7 @@ import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/phrase.dart';
+import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
@@ -39,6 +42,7 @@ import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/repositories/story_repository.dart';
 import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/repositories/user_category_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
@@ -55,6 +59,7 @@ import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/create_user_category.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
+import 'package:english_edu/domain/usecases/extract_unknown_words.dart';
 import 'package:english_edu/domain/usecases/flip_memory_card.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
@@ -79,6 +84,7 @@ import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/daily_challenge.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
@@ -92,6 +98,7 @@ import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:http/http.dart' as http;
 import 'package:stts/stts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -591,6 +598,37 @@ final phrasesProvider = FutureProvider<List<Phrase>>((ref) async {
   await ref.watch(phraseSeedLoaderProvider).load();
   return await repo.getAll();
 });
+
+/// Рассказы для чтения (ADR-039, schema v14).
+final storyRepositoryProvider = Provider<StoryRepository>(
+  (ref) => DriftStoryRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Загрузчик рассказов из ассетов.
+final storySeedLoaderProvider = Provider<StorySeedLoader>(
+  (ref) => StorySeedLoader(
+    stories: ref.watch(storyRepositoryProvider),
+    bundle: ref.watch(assetBundleProvider),
+  ),
+);
+
+/// Рассказы для экрана; при первом обращении таблица наполняется из ассетов.
+final storiesProvider = FutureProvider<List<Story>>((ref) async {
+  await ref.watch(storySeedLoaderProvider).loadIfEmpty();
+  return await ref.watch(storyRepositoryProvider).getAll();
+});
+
+/// Рассказы одного уровня CEFR.
+final FutureProviderFamily<List<Story>, CefrLevel> storiesByLevelProvider =
+    FutureProvider.family<List<Story>, CefrLevel>((ref, level) async {
+      await ref.watch(storySeedLoaderProvider).loadIfEmpty();
+      return await ref.watch(storyRepositoryProvider).getByLevel(level);
+    });
+
+/// Незнакомые слова текста рассказа (ADR-039).
+final extractUnknownWordsProvider = Provider<ExtractUnknownWords>(
+  (ref) => ExtractUnknownWords(words: ref.watch(wordRepositoryProvider)),
+);
 
 /// Хранилище рекордов «Typing Speed» (ADR-037, schema v12).
 final typingRecordRepositoryProvider = Provider<TypingRecordRepository>(

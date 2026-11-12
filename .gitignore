@@ -32,3 +32,6 @@ android/key.properties
 review_*.json
 phrases_*.json
 generate_*.json
+
+# Dev artifacts of generate_stories.dart
+/stories_gen_*.json

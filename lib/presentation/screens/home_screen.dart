@@ -223,6 +223,13 @@ class HomeScreen extends ConsumerWidget {
         onTap: () =>
             _openGame(context, '/listening', HapticFeedback.selectionClick),
       ),
+      _GameCard(
+        title: 'Чтение',
+        icon: Icons.book,
+        color: Colors.deepPurple,
+        onTap: () =>
+            _openGame(context, '/reading', HapticFeedback.selectionClick),
+      ),
     ],
   );
 

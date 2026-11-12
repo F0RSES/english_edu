@@ -1,4 +1,5 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/presentation/screens/achievements_screen.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/screens/dictionary_screen.dart';
@@ -9,6 +10,8 @@ import 'package:english_edu/presentation/screens/listening_dictation_screen.dart
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:english_edu/presentation/screens/phrasebook_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
+import 'package:english_edu/presentation/screens/reading_list_screen.dart';
+import 'package:english_edu/presentation/screens/reading_screen.dart';
 import 'package:english_edu/presentation/screens/settings_screen.dart';
 import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
 import 'package:english_edu/presentation/screens/word_match_screen.dart';
@@ -58,6 +61,20 @@ final routerProvider = Provider<GoRouter>(
         path: '/phrasebook',
         pageBuilder: (context, state) =>
             _slideUpPage(state, const PhrasebookScreen()),
+      ),
+      GoRoute(
+        path: '/reading',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const ReadingListScreen()),
+      ),
+      GoRoute(
+        path: '/reading/:id',
+        pageBuilder: (context, state) => _slideUpPage(
+          state,
+          _ReadingStoryRoute(
+            storyId: int.tryParse(state.pathParameters['id'] ?? ''),
+          ),
+        ),
       ),
       GoRoute(
         path: '/typing-speed',
@@ -174,3 +191,37 @@ CustomTransitionPage<void> _fadeScalePage(GoRouterState state, Widget child) =>
         );
       },
     );
+
+/// Резолвит рассказ по id из маршрута: список может ещё грузиться,
+/// а deep-link обязан работать без `extra`.
+class _ReadingStoryRoute extends ConsumerWidget {
+  const _ReadingStoryRoute({required this.storyId});
+
+  final int? storyId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => ref
+      .watch(storiesProvider)
+      .when(
+        data: (stories) {
+          Story? found;
+          for (final story in stories) {
+            if (story.id == storyId) {
+              found = story;
+              break;
+            }
+          }
+          if (found == null) {
+            return const Scaffold(
+              body: Center(child: Text('Рассказ не найден')),
+            );
+          }
+          return ReadingScreen(story: found);
+        },
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (error, stack) => const Scaffold(
+          body: Center(child: Text('Не удалось загрузить рассказы')),
+        ),
+      );
+}

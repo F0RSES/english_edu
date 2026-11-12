@@ -343,7 +343,23 @@ void main() {
     expect(await v13.select(v13.phrases).get(), isEmpty);
   });
 
-  test('creates all fourteen tables on open', () async {
+  test('migration v13 to v14 creates stories', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_v14');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    final v13 = AppDatabase.forTesting(NativeDatabase(file));
+    await v13.customStatement('DROP TABLE stories');
+    await v13.customStatement('PRAGMA user_version = 13');
+    await v13.close();
+
+    final v14 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v14.close);
+
+    expect(await v14.select(v14.stories).get(), isEmpty);
+  });
+
+  test('creates all fifteen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -358,6 +374,7 @@ void main() {
     expect(await db.select(db.achievements).get(), isEmpty);
     expect(await db.select(db.typingRecords).get(), isEmpty);
     expect(await db.select(db.phrases).get(), isEmpty);
+    expect(await db.select(db.stories).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

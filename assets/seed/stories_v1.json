@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "stories": [
+    {
+      "id": 1,
+      "title": "My Morning",
+      "text": "I wake up at seven o'clock. I brush my teeth and wash my face. Then I eat breakfast. I usually have eggs and toast. I drink a cup of coffee. After breakfast, I get dressed and go to work. I like my morning routine.",
+      "translation": "Я просыпаюсь в семь часов. Я чищу зубы и умываюсь. Потом я завтракаю. Обычно я ем яйца и тосты. Я выпиваю чашку кофе. После завтрака я одеваюсь и иду на работу. Мне нравится моё утреннее расписание.",
+      "level": "a1"
+    },
+    {
+      "id": 2,
+      "title": "At the Airport",
+      "text": "Sarah arrived at the airport two hours before her flight. She checked in her luggage and got her boarding pass. The security line was long, so she waited patiently. After security, she found her gate and bought a coffee. Her flight was on time, and she boarded the plane feeling excited about her trip to Paris.",
+      "translation": "Сара приехала в аэропорт за два часа до своего рейса. Она сдала багаж и получила посадочный талон. Очередь на досмотр была длинной, поэтому она терпеливо ждала. После досмотра она нашла свой выход и купила кофе. Её рейс был вовремя, и она села в самолёт, с волнением ожидая поездки в Париж.",
+      "level": "a2"
+    },
+    {
+      "id": 3,
+      "title": "The Lost Wallet",
+      "text": "When Mark realized his wallet was missing, his heart sank. He had been at the park with his dog, and somewhere between the bench and the parking lot, he must have dropped it. He retraced his steps carefully, scanning the grass. Just as he was about to give up, a stranger approached him with a friendly smile. She held out a brown leather wallet. Mark couldn't believe his luck. He thanked her repeatedly, relieved that there were still honest people in the world.",
+      "translation": "Когда Марк понял, что его кошелёк пропал, сердце у него упало. Он был в парке с собакой, и где-то между скамейкой и парковкой он, должно быть, выронил его. Он тщательно прошёл свой путь обратно, осматривая траву. Как только он собирался сдаться, к нему подошла незнакомая женщина с дружелюбной улыбкой. Она протянула ему коричневый кожаный кошелёк. Марк не мог поверить своей удаче. Он многократно благодарил её, испытывая облегчение от того, что в мире всё ещё есть честные люди.",
+      "level": "b1"
+    },
+    {
+      "id": 4,
+      "title": "A Day at the Beach",
+      "text": "Last summer, my family and I went to the beach. The sun was shining brightly, and the water was warm. We built sandcastles and collected seashells. My little brother learned how to swim. In the afternoon, we had a picnic with sandwiches and fruit. It was a perfect day. I hope we can go back next year.",
+      "translation": "Прошлым летом мы с семьёй поехали на пляж. Солнце ярко светило, а вода была тёплой. Мы строили замки из песка и собирали ракушки. Мой младший брат научился плавать. Днём мы устроили пикник с бутербродами и фруктами. Это был идеальный день. Надеюсь, мы сможем вернуться в следующем году.",
+      "level": "a2"
+    }
+  ]
+}

@@ -469,3 +469,35 @@ class Phrases extends Table {
   /// Момент загрузки, миллисекунды UTC.
   IntColumn get createdAtUtc => integer()();
 }
+
+/// Рассказы для Reading Mode (Phase 23, ADR-039).
+///
+/// Отдельная таблица, а не `words`: рассказ — связный текст для чтения,
+/// у него нет SM-2-прогресса и статуса учебной карточки.
+@DataClassName('StoryRow')
+class Stories extends Table {
+  @override
+  String get tableName => 'stories';
+
+  /// Автоинкремент: контент только добавляется.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Заголовок рассказа.
+  TextColumn get title => text()();
+
+  /// Английский текст.
+  ///
+  /// Getter не может называться `text`: Dart запрещает одноимённые getter и
+  /// унаследованный метод `Table.text()`. SQL-имя колонки остаётся `text`
+  /// через `.named()`.
+  TextColumn get content => text().named('text')();
+
+  /// Русский перевод.
+  TextColumn get translation => text()();
+
+  /// Уровень CEFR меткой: a1…c1.
+  TextColumn get level => text()();
+
+  /// Момент загрузки, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+}

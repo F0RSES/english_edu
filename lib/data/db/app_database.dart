@@ -5,14 +5,14 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v13: разговорник (ADR-038).
+/// Schema v14: рассказы (ADR-039).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
 /// v6 — `words.level` и `user_settings.preferred_level`,
 /// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
 /// v10 — `user_categories`, v11 — `achievements`, v12 — `typing_records`,
-/// v13 — `phrases`.
+/// v13 — `phrases`, v14 — `stories`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -31,6 +31,7 @@ part 'app_database.g.dart';
     Achievements,
     TypingRecords,
     Phrases,
+    Stories,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -41,7 +42,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -78,6 +79,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 13) {
         await m.createTable(phrases);
+      }
+      if (from < 14) {
+        await m.createTable(stories);
       }
       if (from < 12) {
         await m.createTable(typingRecords);

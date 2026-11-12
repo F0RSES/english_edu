@@ -6437,6 +6437,426 @@ class PhrasesCompanion extends UpdateCompanion<PhraseRow> {
   }
 }
 
+class $StoriesTable extends Stories with TableInfo<$StoriesTable, StoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _translationMeta = const VerificationMeta(
+    'translation',
+  );
+  @override
+  late final GeneratedColumn<String> translation = GeneratedColumn<String>(
+    'translation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _levelMeta = const VerificationMeta('level');
+  @override
+  late final GeneratedColumn<String> level = GeneratedColumn<String>(
+    'level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    content,
+    translation,
+    level,
+    createdAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('text')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['text']!, _contentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('translation')) {
+      context.handle(
+        _translationMeta,
+        translation.isAcceptableOrUnknown(
+          data['translation']!,
+          _translationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_translationMeta);
+    }
+    if (data.containsKey('level')) {
+      context.handle(
+        _levelMeta,
+        level.isAcceptableOrUnknown(data['level']!, _levelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_levelMeta);
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}text'],
+      )!,
+      translation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}translation'],
+      )!,
+      level: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}level'],
+      )!,
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $StoriesTable createAlias(String alias) {
+    return $StoriesTable(attachedDatabase, alias);
+  }
+}
+
+class StoryRow extends DataClass implements Insertable<StoryRow> {
+  /// Автоинкремент: контент только добавляется.
+  final int id;
+
+  /// Заголовок рассказа.
+  final String title;
+
+  /// Английский текст.
+  ///
+  /// Getter не может называться `text`: Dart запрещает одноимённые getter и
+  /// унаследованный метод `Table.text()`. SQL-имя колонки остаётся `text`
+  /// через `.named()`.
+  final String content;
+
+  /// Русский перевод.
+  final String translation;
+
+  /// Уровень CEFR меткой: a1…c1.
+  final String level;
+
+  /// Момент загрузки, миллисекунды UTC.
+  final int createdAtUtc;
+  const StoryRow({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.translation,
+    required this.level,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['text'] = Variable<String>(content);
+    map['translation'] = Variable<String>(translation);
+    map['level'] = Variable<String>(level);
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  StoriesCompanion toCompanion(bool nullToAbsent) {
+    return StoriesCompanion(
+      id: Value(id),
+      title: Value(title),
+      content: Value(content),
+      translation: Value(translation),
+      level: Value(level),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory StoryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoryRow(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      content: serializer.fromJson<String>(json['content']),
+      translation: serializer.fromJson<String>(json['translation']),
+      level: serializer.fromJson<String>(json['level']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'content': serializer.toJson<String>(content),
+      'translation': serializer.toJson<String>(translation),
+      'level': serializer.toJson<String>(level),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  StoryRow copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? translation,
+    String? level,
+    int? createdAtUtc,
+  }) => StoryRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    content: content ?? this.content,
+    translation: translation ?? this.translation,
+    level: level ?? this.level,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  StoryRow copyWithCompanion(StoriesCompanion data) {
+    return StoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      content: data.content.present ? data.content.value : this.content,
+      translation: data.translation.present
+          ? data.translation.value
+          : this.translation,
+      level: data.level.present ? data.level.value : this.level,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoryRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('content: $content, ')
+          ..write('translation: $translation, ')
+          ..write('level: $level, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, content, translation, level, createdAtUtc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoryRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.content == this.content &&
+          other.translation == this.translation &&
+          other.level == this.level &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class StoriesCompanion extends UpdateCompanion<StoryRow> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<String> content;
+  final Value<String> translation;
+  final Value<String> level;
+  final Value<int> createdAtUtc;
+  const StoriesCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.content = const Value.absent(),
+    this.translation = const Value.absent(),
+    this.level = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+  });
+  StoriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required String content,
+    required String translation,
+    required String level,
+    required int createdAtUtc,
+  }) : title = Value(title),
+       content = Value(content),
+       translation = Value(translation),
+       level = Value(level),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<StoryRow> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<String>? content,
+    Expression<String>? translation,
+    Expression<String>? level,
+    Expression<int>? createdAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (content != null) 'text': content,
+      if (translation != null) 'translation': translation,
+      if (level != null) 'level': level,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+    });
+  }
+
+  StoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? title,
+    Value<String>? content,
+    Value<String>? translation,
+    Value<String>? level,
+    Value<int>? createdAtUtc,
+  }) {
+    return StoriesCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      translation: translation ?? this.translation,
+      level: level ?? this.level,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (content.present) {
+      map['text'] = Variable<String>(content.value);
+    }
+    if (translation.present) {
+      map['translation'] = Variable<String>(translation.value);
+    }
+    if (level.present) {
+      map['level'] = Variable<String>(level.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('content: $content, ')
+          ..write('translation: $translation, ')
+          ..write('level: $level, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6461,6 +6881,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AchievementsTable achievements = $AchievementsTable(this);
   late final $TypingRecordsTable typingRecords = $TypingRecordsTable(this);
   late final $PhrasesTable phrases = $PhrasesTable(this);
+  late final $StoriesTable stories = $StoriesTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -6500,6 +6921,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     achievements,
     typingRecords,
     phrases,
+    stories,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -10529,6 +10951,224 @@ typedef $$PhrasesTableProcessedTableManager =
       PhraseRow,
       PrefetchHooks Function()
     >;
+typedef $$StoriesTableCreateCompanionBuilder = StoriesCompanion Function({
+  Value<int> id,
+  required String title,
+  required String content,
+  required String translation,
+  required String level,
+  required int createdAtUtc,
+});
+typedef $$StoriesTableUpdateCompanionBuilder = StoriesCompanion Function({
+  Value<int> id,
+  Value<String> title,
+  Value<String> content,
+  Value<String> translation,
+  Value<String> level,
+  Value<int> createdAtUtc,
+});
+
+class $$StoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $StoriesTable> {
+  $$StoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $StoriesTable> {
+  $$StoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get level => $composableBuilder(
+    column: $table.level,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StoriesTable> {
+  $$StoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get level =>
+      $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$StoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoriesTable,
+          StoryRow,
+          $$StoriesTableFilterComposer,
+          $$StoriesTableOrderingComposer,
+          $$StoriesTableAnnotationComposer,
+          $$StoriesTableCreateCompanionBuilder,
+          $$StoriesTableUpdateCompanionBuilder,
+          (StoryRow, BaseReferences<_$AppDatabase, $StoriesTable, StoryRow>),
+          StoryRow,
+          PrefetchHooks Function()
+        > {
+  $$StoriesTableTableManager(_$AppDatabase db, $StoriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<String> translation = const Value.absent(),
+                Value<String> level = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+              }) => StoriesCompanion(
+                id: id,
+                title: title,
+                content: content,
+                translation: translation,
+                level: level,
+                createdAtUtc: createdAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String title,
+                required String content,
+                required String translation,
+                required String level,
+                required int createdAtUtc,
+              }) => StoriesCompanion.insert(
+                id: id,
+                title: title,
+                content: content,
+                translation: translation,
+                level: level,
+                createdAtUtc: createdAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoriesTable, StoryRow>(table),
+                  BaseReferences<_$AppDatabase, $StoriesTable, StoryRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoriesTable,
+      StoryRow,
+      $$StoriesTableFilterComposer,
+      $$StoriesTableOrderingComposer,
+      $$StoriesTableAnnotationComposer,
+      $$StoriesTableCreateCompanionBuilder,
+      $$StoriesTableUpdateCompanionBuilder,
+      (StoryRow, BaseReferences<_$AppDatabase, $StoriesTable, StoryRow>),
+      StoryRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10561,4 +11201,6 @@ class $AppDatabaseManager {
       $$TypingRecordsTableTableManager(_db, _db.typingRecords);
   $$PhrasesTableTableManager get phrases =>
       $$PhrasesTableTableManager(_db, _db.phrases);
+  $$StoriesTableTableManager get stories =>
+      $$StoriesTableTableManager(_db, _db.stories);
 }

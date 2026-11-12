@@ -27,3 +27,8 @@ ios/Flutter/ephemeral/
 android/key.properties
 *.jks
 *.keystore
+
+# Артефакты dev-скриптов (tools/): отчёты ревью и машинная генерация не коммитятся.
+review_*.json
+phrases_*.json
+generate_*.json

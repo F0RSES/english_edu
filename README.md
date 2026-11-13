@@ -43,7 +43,7 @@ IP-адрес: отключить в Sentry Project Settings → Security & Priv
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 6 ADR + архитектурные решения — docs/DECISIONS.md
+- 16 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 

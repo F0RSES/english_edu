@@ -39,6 +39,7 @@
 - BL-49 (P3): защита UI от падения `captureException`.
 
 ### Fixed
+- README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
 - BL-41: `computeStreakProvider` / `getTodayQueueProvider` переведены в `FutureProvider` (UseCase-провайдеры переименованы в `computeStreakUseCaseProvider` / `getTodayQueueUseCaseProvider`). `HomeScreen` использует `AsyncValue.when` вместо `FutureBuilder`, `LessonScreen` инвалидирует серию, очередь и цель после сессии и при закрытии — главный экран видит прогресс сразу после урока.
 - ADR-001 «Core stack» — Accepted.
 - ADR-002 «Persistence: Drift vs Isar» — Accepted.

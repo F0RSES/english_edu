@@ -11,6 +11,7 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -235,5 +236,19 @@ void main() {
 
     expect(find.text('Сессия завершена'), findsOneWidget);
     expect(find.text('Верно: 1 из 1'), findsOneWidget);
+  });
+
+  testWidgets('robot icon appears after a wrong answer', (tester) async {
+    final harness = Harness();
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsNothing);
+
+    await typeAndCheck(tester, 'aple');
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
+
+    await tester.pumpAndSettle();
   });
 }

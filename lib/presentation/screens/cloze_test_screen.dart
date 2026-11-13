@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -112,21 +113,23 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
   /// SnackBar подписано «Далее»: два одинаковых ярлыка на одном экране
   /// сбивали бы с толку.
   void _showFeedback({required bool correct}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(correct ? 'Верно!' : 'Неверно'),
-          backgroundColor: correct ? Colors.green : Colors.red,
-          action: correct
-              ? SnackBarAction(
-                  label: 'Далее',
-                  textColor: Colors.white,
-                  onPressed: () => unawaited(_load()),
-                )
-              : null,
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    if (!correct) {
+      // Неверный ответ показывает persistent-карточка под полем: SnackBar
+      // исчезает, а объяснение нужно позже (ADR-042).
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: const Text('Верно!'),
+        backgroundColor: Colors.green,
+        action: SnackBarAction(
+          label: 'Далее',
+          textColor: Colors.white,
+          onPressed: () => unawaited(_load()),
         ),
-      );
+      ),
+    );
   }
 
   /// Регистр и пробелы по краям не важны; пунктуация внутри ответа — тоже.
@@ -225,6 +228,10 @@ class _TaskView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _animatedField(context),
+            if (hasError && !solved) ...[
+              const SizedBox(height: 12),
+              _errorCard(context),
+            ],
             const SizedBox(height: 20),
             FilledButton(
               onPressed: solved ? onNext : onCheck,
@@ -243,6 +250,36 @@ class _TaskView extends StatelessWidget {
           ],
         ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
       ],
+    );
+  }
+
+  /// Карточка ошибки с кнопкой помощника: живёт, пока пользователь не исправит
+  /// ввод (ADR-042).
+  Widget _errorCard(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Неверно',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+          ErrorHelperButton(
+            gameType: 'cloze_test',
+            context:
+                'Предложение: "${task.sentence}". '
+                'Пользователь ответил: "${controller.text}". '
+                'Правильный ответ: "${task.answer}".',
+          ),
+        ],
+      ),
     );
   }
 

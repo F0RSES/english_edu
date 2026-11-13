@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -262,6 +263,42 @@ class _OptionsSheetState extends State<_OptionsSheet> {
                   amount: option == _wrongOption ? 6 : 0,
                   duration: 300.ms,
                 ),
+          if (_wrongOption != null) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _errorCard(context),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Карточка ошибки с кнопкой помощника внутри листа вариантов (ADR-042).
+  Widget _errorCard(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Неверно',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+          ErrorHelperButton(
+            gameType: 'error_hunter',
+            context:
+                'Предложение: "${widget.task.sentence}". '
+                'Пользователь выбрал: "$_wrongOption". '
+                'Правильный ответ: "${widget.task.correctWord}".',
+          ),
         ],
       ),
     );

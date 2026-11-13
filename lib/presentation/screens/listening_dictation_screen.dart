@@ -4,6 +4,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -164,7 +165,8 @@ class _ListeningDictationScreenState
       _shakeKey++;
       _revealed = true;
     });
-    _showMessage('Неверно', correct: false);
+    // «Неверно» показывает persistent-карточка рядом с раскрытым ответом:
+    // SnackBar исчезает, а объяснение нужно позже (ADR-042).
     await _record(word.id, ReviewGrade.again);
   }
 
@@ -361,6 +363,8 @@ class _DictationView extends StatelessWidget {
         if (revealed) ...[
           const SizedBox(height: 16),
           _RevealedAnswer(word: word),
+          const SizedBox(height: 12),
+          _errorCard(context),
         ],
         const SizedBox(height: 16),
         FilledButton(
@@ -378,6 +382,34 @@ class _DictationView extends StatelessWidget {
           child: Text(revealed ? 'Следующее слово' : 'Проверить'),
         ),
       ],
+    );
+  }
+
+  /// Карточка ошибки с кнопкой помощника: живёт до следующего слова (ADR-042).
+  Widget _errorCard(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Неверно',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+          ErrorHelperButton(
+            gameType: 'listening',
+            context:
+                'Слово: "${word.term}". '
+                'Пользователь ввёл: "${controller.text}".',
+          ),
+        ],
+      ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
+import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
@@ -32,6 +33,12 @@ const _chatType = 'chat';
 
 /// Таймаут чата: ответ по контексту длиннее, чем подсказка к одному слову.
 const _chatTimeout = Duration(seconds: 30);
+
+/// Значение поля `type` для объяснения ошибки в игре (ADR-042).
+const _explainType = 'explain_error';
+
+/// Таймаут объяснения: модель разбирает контекст ошибки, ответ не мгновенный.
+const _explainTimeout = Duration(seconds: 30);
 
 /// Ошибка AI-подсказки: сеть, статус ответа или неожиданный формат.
 ///
@@ -63,7 +70,8 @@ final class AiClient
         HintGenerator,
         ErrorTaskGenerator,
         ClozeGenerator,
-        ChatGenerator {
+        ChatGenerator,
+        ErrorExplainer {
   /// Создаёт клиент поверх переданного `http.Client`: тесты подставляют
   /// `MockClient`, приложение — реальный клиент.
   AiClient(this._client);
@@ -227,5 +235,48 @@ final class AiClient
       throw const AiException('AI proxy returned no chat message');
     }
     return message;
+  }
+
+  /// Объясняет ошибку в мини-игре (контракт [ErrorExplainer], ADR-042).
+  ///
+  /// [gameType] в payload отдельно не уходит: use case уже включает игру
+  /// в [context], а прокси принимает только поле `word`.
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустой
+  /// ответ; таймаут пробрасывается как [TimeoutException].
+  @override
+  Future<String> explain({
+    required String gameType,
+    required String context,
+  }) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'type': _explainType, 'word': context}),
+        )
+        .timeout(_explainTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final explanation = decoded['explanation'];
+    if (explanation is! String || explanation.trim().isEmpty) {
+      throw const AiException('AI proxy returned no explanation');
+    }
+    return explanation;
   }
 }

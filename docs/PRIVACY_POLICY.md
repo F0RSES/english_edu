@@ -32,6 +32,10 @@ Last updated / Обновлено: 2026-11-13.
   DeepSeek API to generate a reply. The last 10 messages and your CEFR level
   are sent as context. Chat history is stored only on your device and is never
   synced to the cloud.
+- **Error Helper in games (optional, opt-in by tap).** When you tap the robot
+  icon after a wrong answer in a mini-game, the sentence/word, your answer and
+  the correct answer are sent to our proxy, which forwards them to the DeepSeek
+  API to explain the mistake. Nothing is sent until you tap the icon.
 - **Crash reports (optional).** If the build was configured with a Sentry DSN,
   crashes and errors are reported to Sentry. Reports contain the error, the stack
   trace and the app/platform version; `sendDefaultPii` is disabled, so no IP
@@ -86,6 +90,10 @@ Questions about privacy: see the contact listed in the store page.
   в DeepSeek API для генерации ответа. В контекст уходят последние 10 сообщений
   и ваш уровень CEFR. История чата хранится только на вашем устройстве и не
   синхронизируется в облако.
+- **Помощник при ошибке в играх (по желанию, по тапу).** При тапе на иконку
+  робота после неверного ответа в мини-игре предложение/слово, ваш ответ и
+  правильный ответ отправляются на наш прокси и передаются в DeepSeek API для
+  объяснения ошибки. До тапа ничего не отправляется.
 - **Отчёты о сбоях (опционально).** Если сборка сконфигурирована с DSN Sentry,
   падения и ошибки уходят в Sentry. В отчёте — ошибка, стектрейс и версия
   приложения/платформы; `sendDefaultPii` выключен, поэтому клиент не прикладывает

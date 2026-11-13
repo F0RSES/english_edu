@@ -4,6 +4,7 @@ import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,5 +141,18 @@ void main() {
     final field = tester.widget<TextField>(find.byType(TextField));
     final border = field.decoration!.enabledBorder! as OutlineInputBorder;
     expect(border.borderSide, BorderSide.none);
+  });
+
+  testWidgets('robot icon appears only after a wrong answer', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'drink');
+    await tester.tap(find.text('Проверить'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
   });
 }

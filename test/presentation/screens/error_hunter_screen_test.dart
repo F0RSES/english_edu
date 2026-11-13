@@ -5,6 +5,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,5 +113,19 @@ void main() {
 
     expect(find.text('Не удалось загрузить задание'), findsOneWidget);
     expect(find.text('Повторить'), findsOneWidget);
+  });
+
+  testWidgets('robot icon appears after a wrong option', (tester) async {
+    await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsNothing);
+
+    await tester.tap(find.text('has'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('had'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
   });
 }

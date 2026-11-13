@@ -134,4 +134,52 @@ void main() {
       throwsA(isA<AiException>()),
     );
   });
+
+  test('explain() posts correct payload', () async {
+    Object? capturedBody;
+    final client = AiClient(
+      MockClient((request) async {
+        capturedBody = jsonDecode(request.body);
+        return jsonResponse({
+          'explanation': 'Глагол go в Past Simple — went.',
+        }, 200);
+      }),
+    );
+
+    await client.explain(
+      gameType: 'cloze_test',
+      context: 'Игра: cloze_test. Ошибка.',
+    );
+
+    expect(capturedBody, {
+      'type': 'explain_error',
+      'word': 'Игра: cloze_test. Ошибка.',
+    });
+  });
+
+  test('explain() parses response', () async {
+    final client = AiClient(
+      MockClient(
+        (_) async => jsonResponse({'explanation': 'Объяснение ошибки'}, 200),
+      ),
+    );
+
+    final result = await client.explain(
+      gameType: 'typing',
+      context: 'контекст',
+    );
+
+    expect(result, 'Объяснение ошибки');
+  });
+
+  test('explain() throws AiException on 500', () async {
+    final client = AiClient(
+      MockClient((_) async => http.Response('boom', 500)),
+    );
+
+    await expectLater(
+      client.explain(gameType: 'listening', context: 'контекст'),
+      throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
+    );
+  });
 }

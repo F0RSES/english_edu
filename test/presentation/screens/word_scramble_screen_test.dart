@@ -10,6 +10,7 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -245,5 +246,25 @@ void main() {
 
     final log = (await harness.logs.getAll()).single;
     expect(log.grade, ReviewGrade.again);
+  });
+
+  testWidgets('robot icon appears after the first wrong attempt', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(words: [word(1, 'apple', 'яблоко')]));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsNothing);
+
+    await tapLetters(tester, 'elppa');
+    await tester.pump();
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
+
+    // Карточка переживает сброс ответа через 800 мс (ADR-042).
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
   });
 }

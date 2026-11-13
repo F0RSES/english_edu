@@ -755,6 +755,23 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +1 таблица. Токены DeepSeek тратятся на чат (~$0.0002/обмен). Лимит 10 сообщений — экономия токенов. Содержимое переписки уходит на прокси только по явной отправке; privacy policy обновлена.
 - **Open questions:** rate limiting (BL-89), оффлайн-кэш ответов (BL-90).
 
+### ADR-042: Error Helper
+- **Status:** Proposed
+- **Date:** 2026-11-13
+- **Context:** Пользователь ошибается в игре, но не понимает почему. Нужна контекстная помощь через AI, не блокирующая игру.
+- **Decision:**
+  - `ErrorExplainer` — доменный контракт объяснения ошибки (паттерн ADR-019).
+  - `AiClient.explain` через прокси: POST `{"type":"explain_error","word":context}` → `{"explanation":...}`, таймаут 30 с, `AiException` при ошибке.
+  - `ExplainError` (domain) добавляет уровень пользователя в контекст для тона объяснения.
+  - `ErrorHelperButton` — переиспользуемый виджет: иконка робота, loading, нижний лист с объяснением и кнопкой «Понятно».
+  - Показ в 5 играх: Cloze, Error Hunter, Scramble, Listening, Typing.
+  - Иконка только после неверного ответа; игра не блокируется. В Cloze/Scramble/Listening SnackBar «Неверно» заменён persistent-карточкой (SnackBar исчезает, а объяснение нужно позже); в Error Hunter карточка живёт в листе вариантов, в Typing — до следующего ответа без паузы заезда.
+- **Alternatives considered:**
+  - (A) Отдельный экран — отклонено: лишний клик.
+  - (B) Напоминание в начале игры — отклонено: отвлекает.
+- **Consequences:** +1 AI-тип в прокси (уже готов), новой таблицы нет. Токены ~$0.0003 на объяснение. По явному тапу на прокси уходят предложение/слово, ответ пользователя и правильный ответ; до тапа ничего не отправляется. Privacy Policy обновлена (EN + RU).
+- **Open questions:** rate limit (BL-92).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -799,3 +816,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-038 | Phrasebook | Accepted |
 | ADR-039 | Reading Mode | Accepted |
 | ADR-041 | Chat with AI bot | Proposed |
+| ADR-042 | Error Helper | Proposed |

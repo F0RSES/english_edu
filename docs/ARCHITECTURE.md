@@ -334,18 +334,18 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/domain/entities/` — 8 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`, `chat_message`
 - `lib/domain/value_objects/` — 32 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`
 - `lib/domain/repositories/` — 16 контрактов репозиториев
-- `lib/domain/services/` — 6 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `cloud_auth_service`, `cloud_sync_service`
+- `lib/domain/services/` — 7 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — 29 use case
+- `lib/domain/usecases/` — 30 use case
 - `lib/data/db/` — Drift: 16 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v15, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
 - `lib/data/repositories/` — 16 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 15 виджетов
+- `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 16 виджетов
 - `lib/presentation/router.dart` — GoRouter, 19 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 116 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `test/` — 118 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 8 скриптов + 2 библиотеки: `generate_seed.dart`, `generate_phrases.dart`, `generate_stories.dart`, `merge_seeds.dart`, `merge_phrases.dart`, `merge_stories.dart`, `validate_seed.dart`, `review_seed.dart` + `validate_seed_lib.dart`, `review_seed_lib.dart`; `manual_review_overrides.json` — данные ручного ревью переводов
 - `assets/seed/` — `words_v2.json` (2071 слово), `phrases_v1.json` (209 фраз), `stories_v1.json` (34 рассказа); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
@@ -354,7 +354,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 ## Verification
 
 - `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
-- `flutter test` — зелёный (836 тестов: 621 `test()` + 215 `testWidgets()`, 116 файлов).
+- `flutter test` — зелёный (850 тестов: 627 `test()` + 223 `testWidgets()`, 118 файлов).
 - Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
 - Покрытие domain ≥ 80% — с момента появления реализаций.
 - `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).

@@ -8,6 +8,7 @@ import 'package:english_edu/domain/usecases/save_typing_record.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,5 +82,44 @@ void main() {
     expect(find.text('Заезд завершён'), findsOneWidget);
     expect(records.saved, hasLength(1));
     expect(records.saved.single.correctCount, 1);
+  });
+
+  testWidgets('robot icon appears after a wrong answer', (tester) async {
+    // Два слова: после неверного ответа заезд продолжается и карточка
+    // остаётся на экране (с одним словом заезд завершился бы и карточка
+    // исчезла вместе с полем ввода).
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          generateTypingSessionProvider.overrideWithValue(
+            GenerateTypingSession(
+              words: FakeWordRepository([
+                const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+                const Word(id: WordId(2), term: 'book', translation: 'книга'),
+              ]),
+              random: Random(1),
+              wordsCount: 2,
+            ),
+          ),
+          saveTypingRecordProvider.overrideWithValue(
+            SaveTypingRecord(
+              records: _FakeRecords(),
+              clock: () => DateTime.utc(2024, 5, 15, 12),
+            ),
+          ),
+          bestTypingRecordProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(home: TypingSpeedScreen()),
+      ),
+    );
+    await settleFrames(tester);
+
+    expect(find.byType(ErrorHelperButton), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'aple');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(find.byType(ErrorHelperButton), findsOneWidget);
   });
 }

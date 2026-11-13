@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
+import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +27,11 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
   Timer? _ticker;
   int _wpm = 0;
   bool _finishing = false;
+
+  /// Последнее ошибочное слово: карточка помощника живёт до следующего
+  /// ответа и не ставит заезд на паузу (ADR-042).
+  Word? _lastWrongWord;
+  String _lastWrongInput = '';
 
   @override
   void initState() {
@@ -54,6 +61,8 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
       _session = session;
       _finishing = false;
       _wpm = 0;
+      _lastWrongWord = null;
+      _lastWrongInput = '';
     });
     _focus.requestFocus();
   }
@@ -79,6 +88,14 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     final typed = value.trim().toLowerCase();
     final expected = word.term.trim().toLowerCase();
     final wasCorrect = typed == expected;
+
+    if (wasCorrect) {
+      _lastWrongWord = null;
+      _lastWrongInput = '';
+    } else {
+      _lastWrongWord = word;
+      _lastWrongInput = value.trim();
+    }
 
     // Отклик не ожидается: на его Future нельзя завязывать переход к слову.
     unawaited(
@@ -231,9 +248,42 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                     decoration: const InputDecoration(hintText: 'слово'),
                     onSubmitted: (value) => unawaited(_submit(value)),
                   ),
+                  if (_lastWrongWord != null) ...[
+                    const SizedBox(height: 16),
+                    _errorCard(context, _lastWrongWord!, _lastWrongInput),
+                  ],
                 ],
               ),
             ),
+    );
+  }
+
+  /// Карточка ошибки с кнопкой помощника (ADR-042).
+  Widget _errorCard(BuildContext context, Word word, String input) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Неверно',
+              style: TextStyle(color: colors.onErrorContainer),
+            ),
+          ),
+          ErrorHelperButton(
+            gameType: 'typing',
+            context:
+                'Слово: "${word.term}". '
+                'Перевод: "${word.translation}". '
+                'Пользователь ввёл: "$input".',
+          ),
+        ],
+      ),
     );
   }
 }

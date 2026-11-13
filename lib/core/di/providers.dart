@@ -54,6 +54,7 @@ import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloud_auth_service.dart';
 import 'package:english_edu/domain/services/cloud_sync_service.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
+import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
@@ -62,6 +63,7 @@ import 'package:english_edu/domain/usecases/check_achievements.dart';
 import 'package:english_edu/domain/usecases/claim_daily_challenge.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/create_user_category.dart';
+import 'package:english_edu/domain/usecases/explain_error.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/extract_unknown_words.dart';
 import 'package:english_edu/domain/usecases/flip_memory_card.dart';
@@ -165,6 +167,11 @@ final clozeGeneratorProvider = Provider<ClozeGenerator>(
 
 /// Генератор ответов чата; реализация — `AiClient` (ADR-041).
 final chatGeneratorProvider = Provider<ChatGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Объяснение ошибок в играх; реализация — `AiClient` (ADR-042).
+final errorExplainerProvider = Provider<ErrorExplainer>(
   (ref) => ref.watch(aiClientProvider),
 );
 
@@ -771,6 +778,14 @@ final sendChatMessageProvider = Provider<SendChatMessage>(
 /// История чата для экрана; инвалидируется после отправки и очистки.
 final chatHistoryProvider = FutureProvider<List<ChatMessage>>(
   (ref) => ref.watch(chatRepositoryProvider).getAll(),
+);
+
+/// Объяснение ошибки с уровнем пользователя для тона (ADR-042).
+final explainErrorProvider = Provider<ExplainError>(
+  (ref) => ExplainError(
+    explainer: ref.watch(errorExplainerProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+  ),
 );
 
 /// URL проекта Supabase (`--dart-define=SUPABASE_URL=...`, ADR-022).

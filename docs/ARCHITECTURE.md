@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v15 — шестнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041) — существующие таблицы и данные не пересоздаются.
+Схема v16 — шестнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041), v15→v16 добавляет `cloze_tasks.options` (ADR-025) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -216,7 +216,7 @@ Dart-код в документе не приводится: сигнатуры 
 | `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
 | `frozen_days` | `FrozenDayRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`), схема v2 | нет |
 | `word_hints` | `WordHintRow` | `wordId` → `words.id` ON DELETE CASCADE, схема v4 | нет |
-| `cloze_tasks` | `ClozeTaskRow` | `wordId` (PK, FK → `words.id`) ON DELETE CASCADE; колонки `sentence`, `answer`, `createdAtUtc`; схема v7 | нет |
+| `cloze_tasks` | `ClozeTaskRow` | `wordId` (PK, FK → `words.id`) ON DELETE CASCADE; колонки `sentence`, `answer`, `options` (JSON, nullable, v16), `createdAtUtc`; схема v7 | нет |
 | `daily_challenges` | `DailyChallengeRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`); колонки `goalType` (имя `DailyChallengeType`), `goalValue`, `progress`, `completedAtUtc`, `claimedAtUtc`, `xpReward`; схема v8 | нет |
 | `challenge_streaks` | `ChallengeStreakRow` | `id` + `CHECK (id = 1)`; колонки `currentStreak`, `bestStreak`, `lastCompletedDateEpochDays`, `updatedAtUtc`; схема v9 | нет |
 | `user_categories` | `UserCategoryRow` | `id` (autoIncrement), `name` (`UNIQUE`); колонки `colorHex`, `createdAtUtc`; схема v10 | unique(`name`) |
@@ -232,7 +232,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 **`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
 
-**Версия схемы: 15.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+**Версия схемы: 16.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
 
 Инициализация из `assets/seed/` — 2a.2 (BL-29).
 
@@ -345,7 +345,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
 - `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 16 виджетов
 - `lib/presentation/router.dart` — GoRouter, 19 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 119 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `test/` — 120 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 8 скриптов + 2 библиотеки: `generate_seed.dart`, `generate_phrases.dart`, `generate_stories.dart`, `merge_seeds.dart`, `merge_phrases.dart`, `merge_stories.dart`, `validate_seed.dart`, `review_seed.dart` + `validate_seed_lib.dart`, `review_seed_lib.dart`; `manual_review_overrides.json` — данные ручного ревью переводов
 - `assets/seed/` — `words_v2.json` (2071 слово), `phrases_v1.json` (209 фраз), `stories_v1.json` (34 рассказа); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
@@ -354,7 +354,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 ## Verification
 
 - `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
-- `flutter test` — зелёный (859 тестов: 633 `test()` + 226 `testWidgets()`, 119 файлов).
+- `flutter test` — зелёный (869 тестов: 645 `test()` + 224 `testWidgets()`, 120 файлов).
 - Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
 - Покрытие domain ≥ 80% — с момента появления реализаций.
 - `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).
@@ -387,3 +387,4 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v13 | `phrases` | ADR-038 |
 | v14 | `stories` | ADR-039 |
 | v15 | `chat_messages` | ADR-041 |
+| v16 | `cloze_tasks.options` | ADR-025 (Phase 26b) |

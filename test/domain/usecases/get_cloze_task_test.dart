@@ -8,8 +8,16 @@ import 'fakes/fake_cloze_task_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-const _cached = ClozeTask(sentence: 'She ___ tea.', answer: 'drinks');
-const _generated = ClozeTask(sentence: 'They ___ music.', answer: 'love');
+final _cached = ClozeTask(
+  sentence: 'She ___ tea.',
+  correctWord: 'drinks',
+  options: const ['drinks', 'drink', 'drank', 'drinking', 'drunk'],
+);
+final _generated = ClozeTask(
+  sentence: 'They ___ music.',
+  correctWord: 'love',
+  options: const ['love', 'loves', 'loved', 'loving', 'lover'],
+);
 
 GetClozeTask useCaseOf({
   required FakeClozeTaskRepository tasks,

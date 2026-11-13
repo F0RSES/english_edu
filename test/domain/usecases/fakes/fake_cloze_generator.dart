@@ -7,10 +7,14 @@ import 'package:english_edu/domain/value_objects/cloze_task.dart';
 /// просто возвращает тот же текст.
 final class FakeClozeGenerator implements ClozeGenerator {
   /// Создаёт фейк; [task] — что вернуть, [error] — что бросить.
-  FakeClozeGenerator({
-    this.task = const ClozeTask(sentence: 'I ___ it.', answer: 'like'),
-    this.error,
-  });
+  FakeClozeGenerator({ClozeTask? task, this.error})
+    : task =
+          task ??
+          ClozeTask(
+            sentence: 'I ___ it.',
+            correctWord: 'like',
+            options: const ['like', 'likes', 'liked', 'liking', 'liken'],
+          );
 
   /// Задание, которое вернёт генератор.
   final ClozeTask task;

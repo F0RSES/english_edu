@@ -6,7 +6,7 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 23 — Reading Mode** (6 игр + разговорник + чтение; 2071 слово,
-209 фраз, 34 рассказа). APK собирается, iOS — нет. 859 тестов, analyze=0.
+209 фраз, 34 рассказа). APK собирается, iOS — нет. 869 тестов, analyze=0.
 
 ## Features
 
@@ -40,7 +40,7 @@ Offline-first мобильное приложение для изучения а
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 859 passed
+    flutter test               # 869 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)

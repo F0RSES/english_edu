@@ -3684,6 +3684,17 @@ class $ClozeTasksTable extends ClozeTasks
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _optionsMeta = const VerificationMeta(
+    'options',
+  );
+  @override
+  late final GeneratedColumn<String> options = GeneratedColumn<String>(
+    'options',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
     'createdAtUtc',
   );
@@ -3700,6 +3711,7 @@ class $ClozeTasksTable extends ClozeTasks
     wordId,
     sentence,
     answer,
+    options,
     createdAtUtc,
   ];
   @override
@@ -3736,6 +3748,12 @@ class $ClozeTasksTable extends ClozeTasks
     } else if (isInserting) {
       context.missing(_answerMeta);
     }
+    if (data.containsKey('options')) {
+      context.handle(
+        _optionsMeta,
+        options.isAcceptableOrUnknown(data['options']!, _optionsMeta),
+      );
+    }
     if (data.containsKey('created_at_utc')) {
       context.handle(
         _createdAtUtcMeta,
@@ -3768,6 +3786,10 @@ class $ClozeTasksTable extends ClozeTasks
         DriftSqlType.string,
         data['${effectivePrefix}answer'],
       )!,
+      options: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}options'],
+      ),
       createdAtUtc: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}created_at_utc'],
@@ -3791,12 +3813,19 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
   /// Слово-ответ.
   final String answer;
 
+  /// Варианты ответа, JSON-массив из 5 строк (schema v16, ADR-025).
+  ///
+  /// null — запись до v16: без вариантов задание неиграбельно, репозиторий
+  /// инвалидирует такой кэш и задание перегенерируется через AI.
+  final String? options;
+
   /// Момент генерации, миллисекунды UTC.
   final int createdAtUtc;
   const ClozeTaskRow({
     required this.wordId,
     required this.sentence,
     required this.answer,
+    this.options,
     required this.createdAtUtc,
   });
   @override
@@ -3805,6 +3834,9 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
     map['word_id'] = Variable<int>(wordId);
     map['sentence'] = Variable<String>(sentence);
     map['answer'] = Variable<String>(answer);
+    if (!nullToAbsent || options != null) {
+      map['options'] = Variable<String>(options);
+    }
     map['created_at_utc'] = Variable<int>(createdAtUtc);
     return map;
   }
@@ -3814,6 +3846,9 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
       wordId: Value(wordId),
       sentence: Value(sentence),
       answer: Value(answer),
+      options: options == null && nullToAbsent
+          ? const Value.absent()
+          : Value(options),
       createdAtUtc: Value(createdAtUtc),
     );
   }
@@ -3827,6 +3862,7 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
       wordId: serializer.fromJson<int>(json['wordId']),
       sentence: serializer.fromJson<String>(json['sentence']),
       answer: serializer.fromJson<String>(json['answer']),
+      options: serializer.fromJson<String?>(json['options']),
       createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
     );
   }
@@ -3837,6 +3873,7 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
       'wordId': serializer.toJson<int>(wordId),
       'sentence': serializer.toJson<String>(sentence),
       'answer': serializer.toJson<String>(answer),
+      'options': serializer.toJson<String?>(options),
       'createdAtUtc': serializer.toJson<int>(createdAtUtc),
     };
   }
@@ -3845,11 +3882,13 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
     int? wordId,
     String? sentence,
     String? answer,
+    Value<String?> options = const Value.absent(),
     int? createdAtUtc,
   }) => ClozeTaskRow(
     wordId: wordId ?? this.wordId,
     sentence: sentence ?? this.sentence,
     answer: answer ?? this.answer,
+    options: options.present ? options.value : this.options,
     createdAtUtc: createdAtUtc ?? this.createdAtUtc,
   );
   ClozeTaskRow copyWithCompanion(ClozeTasksCompanion data) {
@@ -3857,6 +3896,7 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
       wordId: data.wordId.present ? data.wordId.value : this.wordId,
       sentence: data.sentence.present ? data.sentence.value : this.sentence,
       answer: data.answer.present ? data.answer.value : this.answer,
+      options: data.options.present ? data.options.value : this.options,
       createdAtUtc: data.createdAtUtc.present
           ? data.createdAtUtc.value
           : this.createdAtUtc,
@@ -3869,13 +3909,15 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
           ..write('wordId: $wordId, ')
           ..write('sentence: $sentence, ')
           ..write('answer: $answer, ')
+          ..write('options: $options, ')
           ..write('createdAtUtc: $createdAtUtc')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(wordId, sentence, answer, createdAtUtc);
+  int get hashCode =>
+      Object.hash(wordId, sentence, answer, options, createdAtUtc);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3883,6 +3925,7 @@ class ClozeTaskRow extends DataClass implements Insertable<ClozeTaskRow> {
           other.wordId == this.wordId &&
           other.sentence == this.sentence &&
           other.answer == this.answer &&
+          other.options == this.options &&
           other.createdAtUtc == this.createdAtUtc);
 }
 
@@ -3890,17 +3933,20 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
   final Value<int> wordId;
   final Value<String> sentence;
   final Value<String> answer;
+  final Value<String?> options;
   final Value<int> createdAtUtc;
   const ClozeTasksCompanion({
     this.wordId = const Value.absent(),
     this.sentence = const Value.absent(),
     this.answer = const Value.absent(),
+    this.options = const Value.absent(),
     this.createdAtUtc = const Value.absent(),
   });
   ClozeTasksCompanion.insert({
     this.wordId = const Value.absent(),
     required String sentence,
     required String answer,
+    this.options = const Value.absent(),
     required int createdAtUtc,
   }) : sentence = Value(sentence),
        answer = Value(answer),
@@ -3909,12 +3955,14 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
     Expression<int>? wordId,
     Expression<String>? sentence,
     Expression<String>? answer,
+    Expression<String>? options,
     Expression<int>? createdAtUtc,
   }) {
     return RawValuesInsertable({
       if (wordId != null) 'word_id': wordId,
       if (sentence != null) 'sentence': sentence,
       if (answer != null) 'answer': answer,
+      if (options != null) 'options': options,
       if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
     });
   }
@@ -3923,12 +3971,14 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
     Value<int>? wordId,
     Value<String>? sentence,
     Value<String>? answer,
+    Value<String?>? options,
     Value<int>? createdAtUtc,
   }) {
     return ClozeTasksCompanion(
       wordId: wordId ?? this.wordId,
       sentence: sentence ?? this.sentence,
       answer: answer ?? this.answer,
+      options: options ?? this.options,
       createdAtUtc: createdAtUtc ?? this.createdAtUtc,
     );
   }
@@ -3945,6 +3995,9 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
     if (answer.present) {
       map['answer'] = Variable<String>(answer.value);
     }
+    if (options.present) {
+      map['options'] = Variable<String>(options.value);
+    }
     if (createdAtUtc.present) {
       map['created_at_utc'] = Variable<int>(createdAtUtc.value);
     }
@@ -3957,6 +4010,7 @@ class ClozeTasksCompanion extends UpdateCompanion<ClozeTaskRow> {
           ..write('wordId: $wordId, ')
           ..write('sentence: $sentence, ')
           ..write('answer: $answer, ')
+          ..write('options: $options, ')
           ..write('createdAtUtc: $createdAtUtc')
           ..write(')'))
         .toString();
@@ -9632,12 +9686,14 @@ typedef $$ClozeTasksTableCreateCompanionBuilder = ClozeTasksCompanion Function({
   Value<int> wordId,
   required String sentence,
   required String answer,
+  Value<String?> options,
   required int createdAtUtc,
 });
 typedef $$ClozeTasksTableUpdateCompanionBuilder = ClozeTasksCompanion Function({
   Value<int> wordId,
   Value<String> sentence,
   Value<String> answer,
+  Value<String?> options,
   Value<int> createdAtUtc,
 });
 
@@ -9679,6 +9735,11 @@ class $$ClozeTasksTableFilterComposer
 
   ColumnFilters<String> get answer => $composableBuilder(
     column: $table.answer,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get options => $composableBuilder(
+    column: $table.options,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9730,6 +9791,11 @@ class $$ClozeTasksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get options => $composableBuilder(
+    column: $table.options,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get createdAtUtc => $composableBuilder(
     column: $table.createdAtUtc,
     builder: (column) => ColumnOrderings(column),
@@ -9773,6 +9839,9 @@ class $$ClozeTasksTableAnnotationComposer
 
   GeneratedColumn<String> get answer =>
       $composableBuilder(column: $table.answer, builder: (column) => column);
+
+  GeneratedColumn<String> get options =>
+      $composableBuilder(column: $table.options, builder: (column) => column);
 
   GeneratedColumn<int> get createdAtUtc => $composableBuilder(
     column: $table.createdAtUtc,
@@ -9834,11 +9903,13 @@ class $$ClozeTasksTableTableManager
                 Value<int> wordId = const Value.absent(),
                 Value<String> sentence = const Value.absent(),
                 Value<String> answer = const Value.absent(),
+                Value<String?> options = const Value.absent(),
                 Value<int> createdAtUtc = const Value.absent(),
               }) => ClozeTasksCompanion(
                 wordId: wordId,
                 sentence: sentence,
                 answer: answer,
+                options: options,
                 createdAtUtc: createdAtUtc,
               ),
           createCompanionCallback:
@@ -9846,11 +9917,13 @@ class $$ClozeTasksTableTableManager
                 Value<int> wordId = const Value.absent(),
                 required String sentence,
                 required String answer,
+                Value<String?> options = const Value.absent(),
                 required int createdAtUtc,
               }) => ClozeTasksCompanion.insert(
                 wordId: wordId,
                 sentence: sentence,
                 answer: answer,
+                options: options,
                 createdAtUtc: createdAtUtc,
               ),
           withReferenceMapper: (p0) => p0

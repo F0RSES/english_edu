@@ -169,6 +169,7 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- **Cloze Test: выбор из 5 вариантов вместо ввода текста (Phase 26b, ADR-025).** `ClozeTask` — `correctWord` + `options` (ровно 5, валидация в `fromJson`); `ClozeTestScreen` — тап по карточкам (зелёная/красная + haptic, сброс через 500 мс), без TextField; кэш `cloze_tasks.options` (**schema v15 → v16**, JSON-массив, старые записи инвалидируются); ErrorHelperButton сохранён.
 - **QA-фиксы UI (Phase 26a):** Typing Speed — убраны placeholder поля ввода, «Best: X WPM» в AppBar и прогресс-бар (живой WPM остался); Словарь — кнопка «Назад» в AppBar (`context.go('/')`, паттерн Profile, т.к. экран открывается вкладкой через `go`); главная — FAB помощника стал обычной кнопкой с иконкой (tooltip «Помощник», цвет primaryContainer сохранён).
 - **ADR-039 → Accepted.** Docs синхронизированы с кодом (v14, 15 таблиц, 818 тестов, 39 ADR).
 - Reverted: Qwen migration for app. DeepSeek остаётся провайдером для AI-фич и dev-скриптов. Qwen используется только для Cline (написание кода).

@@ -9,11 +9,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Мини-игра «Заполни пропуск» (ADR-025).
+/// Пауза после неверного выбора: карточка красная, затем сброс (Phase 26b).
+const _wrongResetDelay = Duration(milliseconds: 500);
+
+/// Мини-игра «Заполни пропуск» (ADR-025, Phase 26b).
 ///
 /// Задание генерирует AI-прокси по случайному слову словаря и кэширует его в
 /// БД, поэтому повторный показ того же слова не ходит в сеть. Пользователь
-/// вписывает пропущенное слово: регистр и пробелы по краям не важны.
+/// выбирает пропущенное слово из 5 вариантов тапом — без ввода текста.
 class ClozeTestScreen extends ConsumerStatefulWidget {
   /// Создаёт экран.
   const ClozeTestScreen({super.key});
@@ -24,29 +27,27 @@ class ClozeTestScreen extends ConsumerStatefulWidget {
 
 class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
   final _random = Random();
-  final _answer = TextEditingController();
 
   ClozeTask? _task;
   bool _loading = true;
   bool _solved = false;
-  bool _hasError = false;
+
+  /// Выбранный неверный вариант: карточка красная до сброса через 500 мс.
+  String? _wrongOption;
+
+  /// Идёт пауза после неверного выбора: тапы заблокированы.
+  bool _waiting = false;
+
+  /// Последний неверный вариант: контекст для помощника (ADR-042).
+  String? _lastWrongOption;
 
   /// Меняется при ошибке: новый ключ перезапускает shake-анимацию.
   int _shakeKey = 0;
-
-  /// Меняется при верном ответе: новый ключ перезапускает пульс.
-  int _pulseKey = 0;
 
   @override
   void initState() {
     super.initState();
     unawaited(_load());
-  }
-
-  @override
-  void dispose() {
-    _answer.dispose();
-    super.dispose();
   }
 
   /// Берёт случайное слово словаря и задание к нему.
@@ -57,9 +58,10 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
     setState(() {
       _loading = true;
       _solved = false;
-      _hasError = false;
+      _wrongOption = null;
+      _waiting = false;
+      _lastWrongOption = null;
       _task = null;
-      _answer.clear();
     });
     try {
       final words = await ref.read(wordRepositoryProvider).getAll();
@@ -84,57 +86,56 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
     }
   }
 
-  /// Сравнивает ввод с ответом и показывает реакцию.
-  Future<void> _check(ClozeTask task) async {
-    if (_solved) {
+  /// Тап по варианту: верный закрывает задание, неверный сбрасывается.
+  Future<void> _choose(ClozeTask task, String option) async {
+    if (_solved || _waiting) {
       return;
     }
-    final correct = _normalize(_answer.text) == _normalize(task.answer);
+    final correct =
+        option.trim().toLowerCase() == task.correctWord.trim().toLowerCase();
     if (correct) {
+      unawaited(HapticFeedback.selectionClick());
       setState(() {
         _solved = true;
-        _hasError = false;
-        _pulseKey++;
+        _wrongOption = null;
+        _lastWrongOption = null;
       });
-      unawaited(HapticFeedback.selectionClick());
-    } else {
-      setState(() {
-        _hasError = true;
-        _shakeKey++;
-      });
-      unawaited(HapticFeedback.heavyImpact());
-    }
-    _showFeedback(correct: correct);
-  }
-
-  /// SnackBar с реакцией; на верном ответе сразу даёт «Далее».
-  ///
-  /// Кнопка «Следующее задание» остаётся на экране, поэтому действие в
-  /// SnackBar подписано «Далее»: два одинаковых ярлыка на одном экране
-  /// сбивали бы с толку.
-  void _showFeedback({required bool correct}) {
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    if (!correct) {
-      // Неверный ответ показывает persistent-карточка под полем: SnackBar
-      // исчезает, а объяснение нужно позже (ADR-042).
+      _showSuccess();
       return;
     }
-    messenger.showSnackBar(
-      SnackBar(
-        content: const Text('Верно!'),
-        backgroundColor: Colors.green,
-        action: SnackBarAction(
-          label: 'Далее',
-          textColor: Colors.white,
-          onPressed: () => unawaited(_load()),
-        ),
-      ),
-    );
+    unawaited(HapticFeedback.heavyImpact());
+    setState(() {
+      _wrongOption = option;
+      _lastWrongOption = option;
+      _waiting = true;
+      _shakeKey++;
+    });
+    await Future<void>.delayed(_wrongResetDelay);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _wrongOption = null;
+      _waiting = false;
+    });
   }
 
-  /// Регистр и пробелы по краям не важны; пунктуация внутри ответа — тоже.
-  String _normalize(String value) =>
-      value.trim().toLowerCase().replaceAll(RegExp('[^a-z ]'), '');
+  /// SnackBar «Верно!» с действием «Далее».
+  void _showSuccess() {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('Верно!'),
+          backgroundColor: Colors.green,
+          action: SnackBarAction(
+            label: 'Далее',
+            textColor: Colors.white,
+            onPressed: () => unawaited(_load()),
+          ),
+        ),
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,20 +150,12 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
             ? _ErrorState(onRetry: _load)
             : _TaskView(
                 task: task,
-                controller: _answer,
                 solved: _solved,
-                hasError: _hasError,
+                wrongOption: _wrongOption,
+                lastWrongOption: _lastWrongOption,
                 shakeKey: _shakeKey,
-                pulseKey: _pulseKey,
-                onCheck: () => unawaited(_check(task)),
+                onChoose: (option) => unawaited(_choose(task, option)),
                 onNext: () => unawaited(_load()),
-                onChanged: () {
-                  // Пользователь начал исправлять — красная рамка больше не
-                  // актуальна, иначе ошибка «прилипает» к полю.
-                  if (_hasError) {
-                    setState(() => _hasError = false);
-                  }
-                },
               ),
       ),
     );
@@ -172,28 +165,24 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
 class _TaskView extends StatelessWidget {
   const _TaskView({
     required this.task,
-    required this.controller,
     required this.solved,
-    required this.hasError,
+    required this.wrongOption,
+    required this.lastWrongOption,
     required this.shakeKey,
-    required this.pulseKey,
-    required this.onCheck,
+    required this.onChoose,
     required this.onNext,
-    required this.onChanged,
   });
 
   /// Пропуск в предложении, который визуально подчёркивается.
   static const _blank = '___';
 
   final ClozeTask task;
-  final TextEditingController controller;
   final bool solved;
-  final bool hasError;
+  final String? wrongOption;
+  final String? lastWrongOption;
   final int shakeKey;
-  final int pulseKey;
-  final VoidCallback onCheck;
+  final ValueChanged<String> onChoose;
   final VoidCallback onNext;
-  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -223,18 +212,36 @@ class _TaskView extends StatelessWidget {
             .fadeIn(duration: 400.ms)
             .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
         const SizedBox(height: 28),
-        // Поле и кнопка появляются с задержкой: сначала читают предложение.
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _animatedField(context),
-            if (hasError && !solved) ...[
-              const SizedBox(height: 12),
-              _errorCard(context),
+        Expanded(
+          child: ListView(
+            children: [
+              for (final option in task.options)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _OptionCard(
+                    option: option,
+                    state: solved && _isCorrect(option)
+                        ? _OptionState.correct
+                        : option == wrongOption
+                        ? _OptionState.wrong
+                        : _OptionState.idle,
+                    enabled: !solved,
+                    shakeKey: shakeKey,
+                    onTap: () => onChoose(option),
+                  ),
+                ),
+              if (lastWrongOption != null && !solved) ...[
+                const SizedBox(height: 4),
+                _errorCard(context),
+              ],
             ],
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: solved ? onNext : onCheck,
+          ),
+        ),
+        if (solved)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: FilledButton(
+              onPressed: onNext,
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
                 textStyle: const TextStyle(
@@ -245,16 +252,17 @@ class _TaskView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: Text(solved ? 'Следующее задание' : 'Проверить'),
+              child: const Text('Следующее задание'),
             ),
-          ],
-        ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
+          ),
       ],
     );
   }
 
-  /// Карточка ошибки с кнопкой помощника: живёт, пока пользователь не исправит
-  /// ввод (ADR-042).
+  bool _isCorrect(String option) =>
+      option.trim().toLowerCase() == task.correctWord.trim().toLowerCase();
+
+  /// Карточка ошибки с кнопкой помощника: живёт до следующего выбора (ADR-042).
   Widget _errorCard(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return Container(
@@ -275,72 +283,11 @@ class _TaskView extends StatelessWidget {
             gameType: 'cloze_test',
             context:
                 'Предложение: "${task.sentence}". '
-                'Пользователь ответил: "${controller.text}". '
-                'Правильный ответ: "${task.answer}".',
+                'Пользователь выбрал: "$lastWrongOption". '
+                'Правильный ответ: "${task.correctWord}".',
           ),
         ],
       ),
-    );
-  }
-
-  /// Поле ввода с двумя независимыми анимациями: shake и pulse.
-  ///
-  /// Каждая обёрнута в свой `Animate` со своим ключом: смена ключа
-  /// пересобирает виджет и проигрывает эффект заново, а `autoPlay` не даёт
-  /// тряхнуть поле при первом появлении.
-  Widget _animatedField(BuildContext context) {
-    final field = TextField(
-      controller: controller,
-      enabled: !solved,
-      autocorrect: false,
-      textInputAction: TextInputAction.done,
-      onSubmitted: (_) => onCheck(),
-      onChanged: (_) => onChanged(),
-      style: const TextStyle(fontSize: 18),
-      decoration: _decoration(context),
-    );
-
-    final pulsing = field
-        .animate(key: ValueKey('pulse-$pulseKey'), autoPlay: pulseKey > 0)
-        .scaleXY(begin: 1, end: 1.04, duration: 150.ms, curve: Curves.easeOut)
-        .then()
-        .scaleXY(end: 1, duration: 220.ms, curve: Curves.easeOutBack);
-
-    return pulsing
-        .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
-        .shakeX(amount: 10, hz: 6, duration: 400.ms);
-  }
-
-  /// Оформление поля: заливка без рамки, красная на ошибке, зелёная на успехе.
-  InputDecoration _decoration(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final outline = hasError
-        ? colors.error
-        : solved
-        ? Colors.green
-        : null;
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16),
-      borderSide: outline == null
-          ? BorderSide.none
-          : BorderSide(color: outline, width: 2),
-    );
-
-    return InputDecoration(
-      filled: true,
-      fillColor: colors.surfaceContainerHighest,
-      hintText: 'Введите слово...',
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      border: border,
-      enabledBorder: border,
-      disabledBorder: border,
-      focusedBorder: border,
-      suffixIcon: solved
-          ? const Icon(
-              Icons.check_circle,
-              color: Colors.green,
-            ).animate().scale(duration: 250.ms, curve: Curves.easeOutBack)
-          : null,
     );
   }
 
@@ -366,6 +313,79 @@ class _TaskView extends StatelessWidget {
         return spans;
       }
     }
+  }
+}
+
+/// Состояние карточки-варианта (Phase 26b).
+enum _OptionState { idle, correct, wrong }
+
+/// Карточка варианта: тап, зелёная на успех, красная + shake на ошибке.
+class _OptionCard extends StatelessWidget {
+  const _OptionCard({
+    required this.option,
+    required this.state,
+    required this.enabled,
+    required this.shakeKey,
+    required this.onTap,
+  });
+
+  final String option;
+  final _OptionState state;
+  final bool enabled;
+  final int shakeKey;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    Color background;
+    Color foreground;
+    Color? border;
+    switch (state) {
+      case _OptionState.correct:
+        background = Colors.green.shade50;
+        foreground = Colors.green.shade800;
+        border = Colors.green;
+      case _OptionState.wrong:
+        background = colors.errorContainer;
+        foreground = colors.onErrorContainer;
+        border = colors.error;
+      case _OptionState.idle:
+        background = colors.surfaceContainerHighest;
+        foreground = colors.onSurface;
+        border = null;
+    }
+    final card = Material(
+      color: background,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        key: ValueKey('option-$option'),
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: border == null ? null : Border.all(color: border, width: 2),
+          ),
+          child: Text(
+            option,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: foreground,
+            ),
+          ),
+        ),
+      ),
+    );
+    if (state == _OptionState.wrong) {
+      return card
+          .animate(key: ValueKey('shake-$shakeKey'), autoPlay: true)
+          .shakeX(amount: 8, hz: 6, duration: 400.ms);
+    }
+    return card;
   }
 }
 

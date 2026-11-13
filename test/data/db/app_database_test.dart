@@ -375,6 +375,47 @@ void main() {
     expect(await v15.select(v15.chatMessages).get(), isEmpty);
   });
 
+  test('migration v15 to v16 adds the cloze options column', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v16',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v15 = текущая схема без cloze_tasks.options.
+    final v15 = AppDatabase.forTesting(NativeDatabase(file));
+    await v15
+        .into(v15.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'eat',
+            translation: 'есть',
+          ),
+        );
+    await v15
+        .into(v15.clozeTasks)
+        .insert(
+          ClozeTasksCompanion.insert(
+            wordId: const Value(1),
+            sentence: 'I ___ apples.',
+            answer: 'eat',
+            createdAtUtc: _nowMs,
+          ),
+        );
+    await v15.customStatement('ALTER TABLE cloze_tasks DROP COLUMN options');
+    await v15.customStatement('PRAGMA user_version = 15');
+    await v15.close();
+
+    final v16 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v16.close);
+
+    final row = (await v16.select(v16.clozeTasks).get()).single;
+    // Колонка появилась миграцией; старая строка без вариантов (null).
+    expect(row.options, isNull);
+    expect(row.sentence, 'I ___ apples.');
+  });
+
   test('creates all sixteen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);

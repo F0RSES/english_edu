@@ -5,14 +5,15 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v15: чат с AI-помощником (ADR-041).
+/// Schema v16: варианты ответа в кэше cloze (ADR-025, Phase 26b).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
 /// v6 — `words.level` и `user_settings.preferred_level`,
 /// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
 /// v10 — `user_categories`, v11 — `achievements`, v12 — `typing_records`,
-/// v13 — `phrases`, v14 — `stories`, v15 — `chat_messages`.
+/// v13 — `phrases`, v14 — `stories`, v15 — `chat_messages`,
+/// v16 — `cloze_tasks.options`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -43,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +87,18 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 15) {
         await m.createTable(chatMessages);
+      }
+      if (from < 16) {
+        // addColumn не идемпотентен: createTable в ранних блоках создаёт
+        // текущую схему (с options). Проверяем, чтобы не упасть на duplicate.
+        final info = await customSelect("PRAGMA table_info('cloze_tasks')")
+            .get();
+        final hasOptions = info.any(
+          (row) => row.read<String>('name') == 'options',
+        );
+        if (!hasOptions) {
+          await m.addColumn(clozeTasks, clozeTasks.options);
+        }
       }
       if (from < 12) {
         await m.createTable(typingRecords);

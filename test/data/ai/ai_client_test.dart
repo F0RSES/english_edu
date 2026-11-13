@@ -73,7 +73,8 @@ void main() {
         capturedBody = jsonDecode(request.body);
         return jsonResponse({
           'sentence': 'I ___ apples every day.',
-          'answer': 'eat',
+          'correctWord': 'eat',
+          'options': ['eat', 'eats', 'ate', 'eating', 'eaten'],
         }, 200);
       }),
     );
@@ -82,12 +83,40 @@ void main() {
 
     expect(capturedBody, {'type': 'cloze_test', 'word': 'eat'});
     expect(task.sentence, 'I ___ apples every day.');
-    expect(task.answer, 'eat');
+    expect(task.correctWord, 'eat');
+    expect(task.options, ['eat', 'eats', 'ate', 'eating', 'eaten']);
   });
 
   test('generateCloze throws on a malformed payload', () async {
     final client = AiClient(
       MockClient((_) async => jsonResponse({'sentence': 'no answer'}, 200)),
+    );
+
+    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+  });
+
+  test('generateCloze throws AiException when options are missing', () async {
+    final client = AiClient(
+      MockClient(
+        (_) async => jsonResponse({
+          'sentence': 'I ___ apples every day.',
+          'correctWord': 'eat',
+        }, 200),
+      ),
+    );
+
+    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+  });
+
+  test('generateCloze throws AiException when options are not five', () async {
+    final client = AiClient(
+      MockClient(
+        (_) async => jsonResponse({
+          'sentence': 'I ___ apples every day.',
+          'correctWord': 'eat',
+          'options': ['eat', 'eats', 'ate'],
+        }, 200),
+      ),
     );
 
     await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));

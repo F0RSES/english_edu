@@ -85,6 +85,12 @@ class ClozeTasks extends Table {
   /// Слово-ответ.
   TextColumn get answer => text()();
 
+  /// Варианты ответа, JSON-массив из 5 строк (schema v16, ADR-025).
+  ///
+  /// null — запись до v16: без вариантов задание неиграбельно, репозиторий
+  /// инвалидирует такой кэш и задание перегенерируется через AI.
+  TextColumn get options => text().nullable()();
+
   /// Момент генерации, миллисекунды UTC.
   IntColumn get createdAtUtc => integer()();
 

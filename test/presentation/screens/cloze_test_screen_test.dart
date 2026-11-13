@@ -15,12 +15,13 @@ import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-const _task = ClozeTask(sentence: 'I ___ apples every day.', answer: 'eat');
+final _task = ClozeTask(
+  sentence: 'I ___ apples every day.',
+  correctWord: 'eat',
+  options: const ['eat', 'eats', 'ate', 'eating', 'eaten'],
+);
 
 /// Экран с фейками: словарь из одного слова, задание — из генератора.
-///
-/// `getClozeTaskProvider` собирается вручную, чтобы кэш и генератор были
-/// управляемыми: экран не должен знать, откуда пришло задание.
 Widget host({
   FakeClozeGenerator? generator,
   FakeClozeTaskRepository? tasks,
@@ -46,38 +47,54 @@ Widget host({
 );
 
 void main() {
-  testWidgets('renders sentence and input', (tester) async {
+  testWidgets('renders sentence and five options', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
     expect(find.text(_task.sentence), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
-    expect(find.text('Проверить'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    for (final option in _task.options) {
+      expect(find.text(option), findsOneWidget);
+    }
   });
 
-  testWidgets('typing correct answer shows success', (tester) async {
+  testWidgets('tapping correct option shows success', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'Eat');
-    await tester.tap(find.text('Проверить'));
+    await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Верно!'), findsOneWidget);
-    // После верного ответа ввод закрыт, доступно следующее задание.
     expect(find.text('Следующее задание'), findsOneWidget);
   });
 
-  testWidgets('wrong answer keeps the input open', (tester) async {
+  testWidgets('tapping wrong option shows error then resets', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'drink');
-    await tester.tap(find.text('Проверить'));
+    await tester.tap(find.text('eats'));
+    await tester.pump();
+
+    // Красная карточка + helper card.
+    expect(find.text('Неверно'), findsOneWidget);
+    final context = tester.element(find.text('eats'));
+    final expected = Theme.of(context).colorScheme.errorContainer;
+    final material = tester.widget<Material>(
+      find
+          .ancestor(of: find.text('eats'), matching: find.byType(Material))
+          .first,
+    );
+    expect(material.color, expected);
+
+    // Через 500 мс карточка сброшена — можно выбрать другую.
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
 
-    expect(find.text('Неверно'), findsOneWidget);
-    expect(find.text('Проверить'), findsOneWidget);
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Верно!'), findsOneWidget);
   });
 
   testWidgets('shows error state with retry when the task fails', (
@@ -99,48 +116,13 @@ void main() {
     await tester.pumpWidget(host(generator: generator, tasks: tasks));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'eat');
-    await tester.tap(find.text('Проверить'));
+    await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Следующее задание'));
     await tester.pumpAndSettle();
 
-    // Слово в словаре одно, поэтому второй показ берёт задание из кэша
-    // и не ходит в сеть повторно.
     expect(generator.calls, 1);
     expect(find.text(_task.sentence), findsOneWidget);
-  });
-
-  testWidgets('marks the field red after a wrong answer', (tester) async {
-    await tester.pumpWidget(host());
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'drink');
-    await tester.tap(find.text('Проверить'));
-    await tester.pumpAndSettle();
-
-    final field = tester.widget<TextField>(find.byType(TextField));
-    final border = field.decoration!.enabledBorder! as OutlineInputBorder;
-    expect(border.borderSide.style, BorderStyle.solid);
-    expect(border.borderSide.width, 2);
-  });
-
-  testWidgets('clears the red border when the answer is edited', (
-    tester,
-  ) async {
-    await tester.pumpWidget(host());
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'drink');
-    await tester.tap(find.text('Проверить'));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'eat');
-    await tester.pumpAndSettle();
-
-    final field = tester.widget<TextField>(find.byType(TextField));
-    final border = field.decoration!.enabledBorder! as OutlineInputBorder;
-    expect(border.borderSide, BorderSide.none);
   });
 
   testWidgets('robot icon appears only after a wrong answer', (tester) async {
@@ -149,8 +131,7 @@ void main() {
 
     expect(find.byType(ErrorHelperButton), findsNothing);
 
-    await tester.enterText(find.byType(TextField), 'drink');
-    await tester.tap(find.text('Проверить'));
+    await tester.tap(find.text('eats'));
     await tester.pumpAndSettle();
 
     expect(find.byType(ErrorHelperButton), findsOneWidget);

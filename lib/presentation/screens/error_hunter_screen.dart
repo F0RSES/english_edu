@@ -48,9 +48,7 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
         throw StateError('dictionary is empty');
       }
       final word = words[_random.nextInt(words.length)];
-      final task = await ref
-          .read(errorTaskGeneratorProvider)
-          .generateErrorTask(word.term);
+      final task = await ref.read(generateErrorTaskProvider)(word.term);
       if (!mounted) {
         return;
       }
@@ -182,7 +180,7 @@ class _ErrorState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось загрузить задание'),
+        const Text('Не удалось сгенерировать задание, попробуйте еще раз'),
         const SizedBox(height: 8),
         FilledButton(onPressed: onRetry, child: const Text('Повторить')),
       ],

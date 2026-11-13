@@ -68,6 +68,7 @@ import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/extract_unknown_words.dart';
 import 'package:english_edu/domain/usecases/flip_memory_card.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
+import 'package:english_edu/domain/usecases/generate_error_task.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/generate_typing_session.dart';
@@ -158,6 +159,11 @@ final hintGeneratorProvider = Provider<HintGenerator>(
 /// Генератор заданий мини-игры; реализация — `AiClient` (Phase 8).
 final errorTaskGeneratorProvider = Provider<ErrorTaskGenerator>(
   (ref) => ref.watch(aiClientProvider),
+);
+
+/// Задание «Охоты на ошибки» с повторными попытками (Phase 26a).
+final generateErrorTaskProvider = Provider<GenerateErrorTask>(
+  (ref) => GenerateErrorTask(generator: ref.watch(errorTaskGeneratorProvider)),
 );
 
 /// Генератор заданий «Заполни пропуск»; реализация — `AiClient` (ADR-025).

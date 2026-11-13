@@ -111,7 +111,10 @@ void main() {
     await tester.pumpWidget(host(generator));
     await tester.pumpAndSettle();
 
-    expect(find.text('Не удалось загрузить задание'), findsOneWidget);
+    expect(
+      find.text('Не удалось сгенерировать задание, попробуйте еще раз'),
+      findsOneWidget,
+    );
     expect(find.text('Повторить'), findsOneWidget);
   });
 

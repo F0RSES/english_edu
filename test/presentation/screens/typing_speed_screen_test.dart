@@ -122,4 +122,18 @@ void main() {
 
     expect(find.byType(ErrorHelperButton), findsOneWidget);
   });
+
+  testWidgets('renders without progress bar, best label and hint', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(_FakeRecords()));
+    await settleFrames(tester);
+
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.textContaining('Best:'), findsNothing);
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.decoration?.hintText, isNull);
+    // Живой WPM остаётся (ADR-037).
+    expect(find.textContaining('WPM'), findsOneWidget);
+  });
 }

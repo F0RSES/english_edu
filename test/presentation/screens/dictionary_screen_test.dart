@@ -11,6 +11,7 @@ import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
@@ -297,5 +298,38 @@ void main() {
 
     expect(find.text('server'), findsOneWidget);
     expect(find.text('invoice'), findsNothing);
+  });
+
+  testWidgets('back button returns to the home screen', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/dictionary',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: Text('главная')),
+        ),
+        GoRoute(
+          path: '/dictionary',
+          builder: (context, state) => const DictionaryScreen(),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          wordRepositoryProvider.overrideWithValue(FakeWordRepository([])),
+          progressRepositoryProvider.overrideWithValue(
+            FakeProgressRepository([]),
+          ),
+        ],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Назад'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('главная'), findsOneWidget);
   });
 }

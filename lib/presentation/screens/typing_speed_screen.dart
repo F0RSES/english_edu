@@ -192,20 +192,9 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     final theme = Theme.of(context);
     final session = _session;
     final current = session?.current;
-    final best = ref.watch(bestTypingRecordProvider).value;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Typing Speed'),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Text('Best: ${best?.wpm ?? 0} WPM'),
-            ),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Typing Speed')),
       body: session == null
           ? const Center(child: CircularProgressIndicator())
           : current == null
@@ -215,14 +204,6 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  LinearProgressIndicator(
-                    value: session.length == 0
-                        ? 0
-                        : session.index / session.length,
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  const SizedBox(height: 8),
                   Text(
                     '${session.index}/${session.length} · $_wpm WPM',
                     style: theme.textTheme.labelMedium,
@@ -245,7 +226,6 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                     autocorrect: false,
                     enableSuggestions: false,
                     style: const TextStyle(fontSize: 24),
-                    decoration: const InputDecoration(hintText: 'слово'),
                     onSubmitted: (value) => unawaited(_submit(value)),
                   ),
                   if (_lastWrongWord != null) ...[

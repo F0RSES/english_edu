@@ -78,4 +78,18 @@ void main() {
 
     expect(() => task.options.add('extra'), throwsUnsupportedError);
   });
+
+  test('rejects a task where wrongWord equals correctWord', () {
+    final json = validJson()..['correctWord'] = 'has';
+
+    expect(() => ErrorHunterTask.fromJson(json), throwsFormatException);
+  });
+
+  test('rejects wrongWord equal to correctWord ignoring case', () {
+    final json = validJson()
+      ..['wrongWord'] = 'Has'
+      ..['correctWord'] = 'has';
+
+    expect(() => ErrorHunterTask.fromJson(json), throwsFormatException);
+  });
 }

@@ -7,6 +7,7 @@ import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Вкладка слова��я.
 enum DictionaryTab {
@@ -122,6 +123,13 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
       title: const Text('Словарь'),
+      // Словарь открывается вкладкой через go: pop не сработает, возврат
+      // на главную — как в Profile.
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: 'Назад',
+        onPressed: () => context.go('/'),
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.add),

@@ -48,6 +48,13 @@ final class ErrorHunterTask {
       throw const FormatException('options: пустой список');
     }
     final correctWord = _resolveCorrectWord(json, options, wrongWord);
+    // Предложение без ошибки: ИИ иногда присылает wrongWord == correctWord.
+    // Такое задание неиграбельно — отбраковываем, вызывающий сделает retry.
+    if (wrongWord.trim().toLowerCase() == correctWord.trim().toLowerCase()) {
+      throw const FormatException(
+        'correctWord: совпадает с wrongWord — предложение без ошибки',
+      );
+    }
     return ErrorHunterTask(
       sentence: sentence,
       wrongWord: wrongWord,

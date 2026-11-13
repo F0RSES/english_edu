@@ -3,6 +3,7 @@ import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:meta/meta.dart';
 
 /// Снимок полного состояния для бэкапа и восстановления.
@@ -21,12 +22,20 @@ final class ExportPayload {
     required List<WordProgress> progress,
     required List<ReviewLog> logs,
     required List<DailyStats> stats,
+    Set<LocalDate> frozenDays = const <LocalDate>{},
   }) : words = List.unmodifiable(words),
        progress = List.unmodifiable(progress),
        logs = List.unmodifiable(logs),
-       stats = List.unmodifiable(stats);
+       stats = List.unmodifiable(stats),
+       frozenDays = Set.unmodifiable(frozenDays);
 
-  /// Version of the export schema; only 1 is supported.
+  /// Версия схемы, которую пишет приложение.
+  ///
+  /// v2: `+ frozenDays`. v1 совместим (нет поля → пустое множество), v3+
+  /// отклоняется импортом как неизвестный более новый формат.
+  static const int currentSchemaVersion = 2;
+
+  /// Version of the export schema; 1 and 2 are supported on import.
   final int schemaVersion;
 
   /// Moment the snapshot was taken, UTC.
@@ -47,6 +56,9 @@ final class ExportPayload {
   /// Per-day counters snapshot.
   final List<DailyStats> stats;
 
+  /// Замороженные дни серии (ADR-015); в v1 отсутствуют и приходят пустыми.
+  final Set<LocalDate> frozenDays;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -57,7 +69,8 @@ final class ExportPayload {
           _sameItems(words, other.words) &&
           _sameItems(progress, other.progress) &&
           _sameItems(logs, other.logs) &&
-          _sameItems(stats, other.stats);
+          _sameItems(stats, other.stats) &&
+          _sameDates(frozenDays, other.frozenDays);
 
   @override
   int get hashCode => Object.hash(
@@ -68,6 +81,8 @@ final class ExportPayload {
     Object.hashAll(progress),
     Object.hashAll(logs),
     Object.hashAll(stats),
+    // Порядок вставки не важен: множества равны независимо от него.
+    Object.hashAllUnordered(frozenDays),
   );
 
   @override
@@ -75,7 +90,12 @@ final class ExportPayload {
       'ExportPayload(v$schemaVersion, '
       'at: ${exportedAt.toIso8601String()}, '
       'words: ${words.length}, progress: ${progress.length}, '
-      'logs: ${logs.length}, stats: ${stats.length})';
+      'logs: ${logs.length}, stats: ${stats.length}, '
+      'frozen: ${frozenDays.length})';
+
+  /// Сравнивает множества без `setEquals` из Flutter: domain — pure Dart.
+  static bool _sameDates(Set<LocalDate> a, Set<LocalDate> b) =>
+      a.length == b.length && a.containsAll(b);
 }
 
 bool _sameItems<T>(List<T> left, List<T> right) {

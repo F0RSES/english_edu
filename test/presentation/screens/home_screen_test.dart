@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_stats_repository.dart';
@@ -131,6 +132,9 @@ Widget app({
       ),
       settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       statsRepositoryProvider.overrideWithValue(stats ?? FakeStatsRepository()),
+      frozenDaysRepositoryProvider.overrideWithValue(
+        FakeFrozenDaysRepository(),
+      ),
     ],
     child: MaterialApp.router(routerConfig: router),
   );

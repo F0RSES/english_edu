@@ -4,12 +4,15 @@ import 'package:english_edu/presentation/widgets/streak_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// Дата экрана для проверки «свежести» заморозки.
+const today = LocalDate(20007);
+
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: child));
 
 void main() {
   testWidgets('shows a prompt instead of a zero streak', (tester) async {
     await tester.pumpWidget(
-      _wrap(const StreakCard(streak: StreakInfo(count: 0))),
+      _wrap(const StreakCard(streak: StreakInfo(count: 0), today: today)),
     );
 
     expect(find.text('Начни серию сегодня'), findsOneWidget);
@@ -22,6 +25,7 @@ void main() {
       _wrap(
         const StreakCard(
           streak: StreakInfo(count: 5, lastActiveLocalDate: lastActive),
+          today: today,
         ),
       ),
     );
@@ -44,7 +48,12 @@ void main() {
 
     for (final form in forms.entries) {
       await tester.pumpWidget(
-        _wrap(StreakCard(streak: StreakInfo(count: form.key))),
+        _wrap(
+          StreakCard(
+            streak: StreakInfo(count: form.key),
+            today: today,
+          ),
+        ),
       );
 
       expect(
@@ -57,7 +66,7 @@ void main() {
 
   testWidgets('counts down to the first milestone', (tester) async {
     await tester.pumpWidget(
-      _wrap(const StreakCard(streak: StreakInfo(count: 5))),
+      _wrap(const StreakCard(streak: StreakInfo(count: 5), today: today)),
     );
 
     expect(find.text('До 7 дней: 2 дня'), findsOneWidget);
@@ -65,7 +74,7 @@ void main() {
 
   testWidgets('celebrates seven days', (tester) async {
     await tester.pumpWidget(
-      _wrap(const StreakCard(streak: StreakInfo(count: 7))),
+      _wrap(const StreakCard(streak: StreakInfo(count: 7), today: today)),
     );
 
     expect(find.text('🎉 7 дней! Молодец'), findsOneWidget);
@@ -73,17 +82,73 @@ void main() {
 
   testWidgets('celebrates thirty days', (tester) async {
     await tester.pumpWidget(
-      _wrap(const StreakCard(streak: StreakInfo(count: 30))),
+      _wrap(const StreakCard(streak: StreakInfo(count: 30), today: today)),
     );
 
     expect(find.text('🔥 30 дней! Огонь'), findsOneWidget);
   });
 
-  testWidgets('mentions freeze as not implemented yet', (tester) async {
+  testWidgets('shows frozenAvailable', (tester) async {
     await tester.pumpWidget(
-      _wrap(const StreakCard(streak: StreakInfo(count: 1))),
+      _wrap(
+        const StreakCard(
+          streak: StreakInfo(count: 7, frozenAvailable: 2),
+          today: today,
+        ),
+      ),
     );
 
-    expect(find.text('Freeze появится в Phase 5d'), findsOneWidget);
+    expect(find.text('🧊 2 заморозки доступно'), findsOneWidget);
+  });
+
+  testWidgets('declines the freeze noun', (tester) async {
+    const cases = <int, String>{0: 'заморозок', 1: 'заморозка', 2: 'заморозки'};
+
+    for (final item in cases.entries) {
+      await tester.pumpWidget(
+        _wrap(
+          StreakCard(
+            streak: StreakInfo(count: 7, frozenAvailable: item.key),
+            today: today,
+          ),
+        ),
+      );
+
+      expect(
+        find.text('🧊 ${item.key} ${item.value} доступно'),
+        findsOneWidget,
+        reason: 'available=${item.key} должен давать «${item.value}»',
+      );
+    }
+  });
+
+  testWidgets('shows the badge for a freeze used in the last week', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        StreakCard(
+          streak: StreakInfo(count: 3, frozenDates: {today.addDays(-1)}),
+          today: today,
+        ),
+      ),
+    );
+
+    expect(find.text('Freeze использован'), findsOneWidget);
+  });
+
+  testWidgets('hides the badge when the freeze is older than a week', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        StreakCard(
+          streak: StreakInfo(count: 3, frozenDates: {today.addDays(-10)}),
+          today: today,
+        ),
+      ),
+    );
+
+    expect(find.text('Freeze использован'), findsNothing);
   });
 }

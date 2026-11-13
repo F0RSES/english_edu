@@ -105,6 +105,7 @@ Architecture Decision Records: один ADR — одно решение.
   - Оставить `clear()` + цикл вставок — два вызова вместо одного, промежуточное пустое состояние, больше точек отказа.
   - Отказаться от REPLACE в пользу merge — отложено до Phase 5, требует отдельного ADR.
 - **Consequences:** Четыре репозитория получают `replaceAll`; `getAll` добавлен в progress/log/stats для экспорта; экспорт больше не зависит от перечисления `WordStatus` и диапазонов дат.
+  - v2: `+ frozenDays`. v1 импортируется с пустым `frozenDays` (backward compat). `ExportPayload.currentSchemaVersion = 2`; будущие изменения — v3.
 - **Open questions:** межрепозиторная атомарность (транзакция на все пять шагов) — Phase 2.
 
 ### ADR-006: Flutter bootstrap
@@ -214,16 +215,19 @@ Architecture Decision Records: один ADR — одно решение.
 - **Open questions:** файловый экспорт/импорт через `file_selector` + `share_plus` — Phase 5 (**BL-44**); слияние вместо замены — Phase 5.
 
 ### ADR-015: Streak freeze semantics
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-05
-- **Context:** Пропущенный день обрывает серию, хотя пользователь мог заболеть или не иметь доступа к телефону. Жёсткий сброс наказывает за разовую осечку и обесценивает длинную серию. Нужен механизм «заморозки», но он требует хранения состояния: сейчас `StreakInfo` — чистая производная от `DailyStats` и ничего не помнит.
-- **Decision (design only, код в Phase 5d):**
-  - `StreakInfo` расширяется: `+int frozenAvailable`, `+Set<LocalDate> frozenDates`.
-  - Freeze начисляется за вехи: первый за серию 7 дней, второй за 30 (максимум 2).
-  - `ComputeStreak` при пропуске ровно одного дня проверяет `frozenDates`: если день заморожен, серия продолжается, а заморозка считается израсходованной.
-  - UI: баннер «Freeze использован» на `HomeScreen`.
-- **Consequences:** Нужно персистентное хранилище заморозок — отдельная таблица `FrozenDays` проще, чем JSON в `UserSettings` (иначе `ImportProgress`/`ExportProgress` пришлось бы расширять ради набора дат). Появляется миграция схемы v1→v2 (ADR-002) — отдельный шаг 5b.1, не входит в 5a+5b. До реализации `StreakCard` показывает «Freeze появится в Phase 5d».
-- **Open questions:** миграция v1→v2 и её откат; правило «сколько дней подряд можно морозить»; попадают ли заморозки в экспорт (сейчас формат v1 их не описывает).
+- **Context:** Пропущенный день обрывает серию, хотя пользователь мог заболеть или не иметь доступа к телефону. Жёсткий сброс наказывает за разовую осечку и обесценивает длинную серию. Нужен механизм «заморозки», но он требует хранения состояния: `StreakInfo` — чистая производная от `DailyStats` и ничего не помнит.
+- **Decision:**
+  - Хранилище — таблица `frozen_days` (`dateEpochDays` PK, `consumedAtUtc`, `reason`); схема `schemaVersion 1 → 2`, миграция только добавляет таблицу (`onUpgrade`, без пересоздания v1).
+  - `StreakInfo` расширяется: `+int frozenAvailable`, `+Set<LocalDate> frozenDates`; оба поля участвуют в `==`/`hashCode`.
+  - Freeze начисляется за вехи: 1 за серию 7 дней, ещё 1 за 30 (максимум 2 доступных) — `StreakRule.frozenEarnedFor` + `StreakRule.maxAvailable`.
+  - `ComputeStreak` при пропуске проверяет `frozenDates`: если день заморожен, серия продолжается и день входит в счёт; `frozenAvailable = clamp(earned(count) - frozen.length, 0, 2)`.
+  - Расход заморозки — `MarkMissedDay`, вызывается из `bootstrapApp` для вчерашнего дня; условие — серия на конец дня перед пропуском уже заработала заморозку, и она не потрачена.
+  - UI: `StreakCard` показывает остаток (`frozenAvailable`) и бейдж «Freeze использован», если заморозка израсходована за последние 7 дней.
+- **Alternatives considered:** JSON-набор дат в `UserSettings` — отклонено: пришлось бы расширять формат экспорта ради одного поля, а `UserSettings` стал бы частично учебным состоянием.
+- **Consequences:** Миграция схемы v1→v2 покрыта тестом (данные v1 переживают `onUpgrade`). Заморозки **не входят** в export/import формата v1 и не очищаются `ResetProgress` — BL-51. Полная логика непрерывности и защита от ручного добавления заморозок — BL-50.
+- **Open questions:** сколько дней подряд можно морозить; попадут ли заморозки в формат экспорта v2; откат миграции при даунгрейде приложения.
 
 ### ADR-016: Sentry crash reporting
 - **Status:** Accepted
@@ -270,5 +274,5 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-012 | TTS and notifications architecture | Accepted |
 | ADR-013 | Reset progress semantics | Accepted |
 | ADR-014 | Export/Import MVP via clipboard | Accepted |
-| ADR-015 | Streak freeze semantics | Proposed |
+| ADR-015 | Streak freeze semantics | Accepted |
 | ADR-016 | Sentry crash reporting | Accepted |

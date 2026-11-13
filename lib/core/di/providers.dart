@@ -3,6 +3,7 @@ import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
+import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_settings_repository.dart';
@@ -11,6 +12,7 @@ import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
@@ -22,6 +24,7 @@ import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
+import 'package:english_edu/domain/usecases/mark_missed_day.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
@@ -114,6 +117,19 @@ final statsRepositoryProvider = Provider<StatsRepository>(
   (ref) => DriftStatsRepository(ref.watch(appDatabaseProvider)),
 );
 
+/// Доступ к заморозкам серии (ADR-015).
+final frozenDaysRepositoryProvider = Provider<FrozenDaysRepository>(
+  (ref) => DriftFrozenDaysRepository(
+    ref.watch(appDatabaseProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// Пометка пропущенного дня заморозкой (ADR-015).
+final markMissedDayProvider = Provider<MarkMissedDay>(
+  (ref) => MarkMissedDay(frozen: ref.watch(frozenDaysRepositoryProvider)),
+);
+
 /// Загрузчик seed-контента.
 final seedLoaderProvider = Provider<SeedLoader>(
   (ref) => JsonSeedLoader(
@@ -163,6 +179,7 @@ final recordReviewProvider = Provider<RecordReview>(
 final computeStreakUseCaseProvider = Provider<ComputeStreak>(
   (ref) => ComputeStreak(
     stats: ref.watch(statsRepositoryProvider),
+    frozen: ref.watch(frozenDaysRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -200,11 +217,12 @@ final exportProgressProvider = Provider<ExportProgress>(
     reviewLog: ref.watch(reviewLogRepositoryProvider),
     stats: ref.watch(statsRepositoryProvider),
     words: ref.watch(wordRepositoryProvider),
+    frozen: ref.watch(frozenDaysRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
 
-/// JSON-кодек снимка состояния (схема v1).
+/// JSON-кодек снимка состояния (схема v2; v1 читается с пустыми frozenDays).
 ///
 /// Живёт в data-слое, но экраны получают его через DI: presentation не должен
 /// импортировать data напрямую.
@@ -218,6 +236,7 @@ final resetProgressProvider = Provider<ResetProgress>(
     progress: ref.watch(progressRepositoryProvider),
     reviewLog: ref.watch(reviewLogRepositoryProvider),
     stats: ref.watch(statsRepositoryProvider),
+    frozen: ref.watch(frozenDaysRepositoryProvider),
   ),
 );
 
@@ -229,6 +248,7 @@ final importProgressProvider = Provider<ImportProgress>(
     reviewLog: ref.watch(reviewLogRepositoryProvider),
     settings: ref.watch(settingsRepositoryProvider),
     stats: ref.watch(statsRepositoryProvider),
+    frozen: ref.watch(frozenDaysRepositoryProvider),
   ),
 );
 

@@ -21,6 +21,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../core/fakes/fake_crash_reporter.dart';
+import '../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../domain/usecases/fakes/fake_progress_repository.dart';
 import '../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../domain/usecases/fakes/fake_settings_repository.dart';
@@ -110,6 +111,9 @@ final class Harness {
       // Главный экран читает серию из тех же репозиториев: без этих
       // override инвалидация нечего пересчитывать.
       statsRepositoryProvider.overrideWithValue(statsRepo),
+      frozenDaysRepositoryProvider.overrideWithValue(
+        FakeFrozenDaysRepository(),
+      ),
       clockProvider.overrideWithValue(() => now),
       crashReporterProvider.overrideWithValue(crashReporter),
     ],

@@ -3,6 +3,9 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/di/review_log_id_generator.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/domain/usecases/compute_streak.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
+import 'package:english_edu/domain/value_objects/streak_rule.dart';
 import 'package:english_edu/presentation/router.dart';
 import 'package:english_edu/presentation/theme.dart';
 import 'package:flutter/foundation.dart';
@@ -48,18 +51,8 @@ Future<BootstrapResult> bootstrapApp({
     ],
   );
   try {
-    await container.read(seedLoaderProvider).loadIfEmpty();
-  } on Object catch (error, stack) {
-    logger.warn(
-      'Seed loader failed, starting with an empty database',
-      error,
-      stack,
-    );
-    await crashReporter.captureException(
-      error,
-      stackTrace: stack,
-      context: 'bootstrap_seed',
-    );
+    await _seed(container, logger, crashReporter);
+    await _coverMissedDay(container, logger);
   } finally {
     container.dispose();
   }
@@ -86,8 +79,91 @@ Future<BootstrapResult> bootstrapApp({
   }
 }
 
-/// Выбирает отчётчик сбоев: Sentry при непустом DSN, иначе заглушку.
+/// Загружает seed в пустую базу.
 ///
+/// Падение загрузчика не блокирует запуск: база остаётся пустой, seed
+/// повторится при следующем старте.
+Future<void> _seed(
+  ProviderContainer container,
+  Logger logger,
+  CrashReporter crashReporter,
+) async {
+  try {
+    await container.read(seedLoaderProvider).loadIfEmpty();
+  } on Object catch (error, stack) {
+    logger.warn(
+      'Seed loader failed, starting with an empty database',
+      error,
+      stack,
+    );
+    await crashReporter.captureException(
+      error,
+      stackTrace: stack,
+      context: 'bootstrap_seed',
+    );
+  }
+}
+
+/// MVP: автоматически покрывает вчерашний пропуск, если есть свободный freeze.
+///
+/// Условия: вчера нет ответов и вчера ещё не заморожено; серия, какой она была
+/// к концу дня перед пропуском, уже заработала заморозку; эта заморозка ещё не
+/// потрачена.
+///
+/// Почему считается серия «до пропуска», а не текущая: `ComputeStreak`
+/// останавливается на первом пустом дне, поэтому после пропуска она всегда
+/// даёт 1 (или 0) и никогда не покажет заработанный freeze — условие
+/// «текущая серия длиннее нуля и есть запас» не сработало бы никогда.
+///
+/// Полная логика непрерывности и защита от эксплойта (ручное добавление
+/// freeze) — Phase 5e (BL-50).
+Future<void> _coverMissedDay(ProviderContainer container, Logger logger) async {
+  final stats = container.read(statsRepositoryProvider);
+  final frozen = container.read(frozenDaysRepositoryProvider);
+  final yesterday = LocalDate.fromDateTime(
+    container.read(clockProvider)().toLocal(),
+  ).addDays(-1);
+
+  try {
+    final yesterdayStats = await stats.getForDate(yesterday);
+    if ((yesterdayStats?.totalAnswers ?? 0) > 0) {
+      return;
+    }
+    final frozenDates = await frozen.getAll();
+    if (frozenDates.contains(yesterday)) {
+      return;
+    }
+
+    // Серия на конец дня перед пропуском.
+    final beforeGap = yesterday.addDays(-1);
+    final streakBeforeGap = await ComputeStreak(
+      stats: stats,
+      frozen: frozen,
+      clock: () => _localNoon(beforeGap),
+    ).call();
+
+    final earned = StreakRule.frozenEarnedFor(streakBeforeGap.count);
+    if (streakBeforeGap.count > 0 && earned > frozenDates.length) {
+      await container.read(markMissedDayProvider).call(yesterday);
+    }
+  } on Object catch (error, stack) {
+    logger.warn('Missed-day freeze skipped', error, stack);
+  }
+}
+
+/// Локальный полдень [date].
+///
+/// Полдень, а не полночь: `ComputeStreak` читает локальную дату момента, и
+/// сдвиг на границе суток/DST не должен менять календарный день.
+DateTime _localNoon(LocalDate date) {
+  final utcMidnight = DateTime.fromMillisecondsSinceEpoch(
+    date.daysSinceEpoch * Duration.millisecondsPerDay,
+    isUtc: true,
+  );
+  return DateTime(utcMidnight.year, utcMidnight.month, utcMidnight.day, 12);
+}
+
+/// Выбирает отчётчик сбоев: Sentry при непустом DSN, иначе заглушку.
 /// Сбой инициализации Sentry не должен ронять старт приложения: в этом случае
 /// сбои уходят в лог, а приложение работает без crash reporting.
 Future<CrashReporter> _initCrashReporter({

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
@@ -27,6 +28,7 @@ Widget app() => ProviderScope(
         words: FakeWordRepository([
           const Word(id: WordId(1), term: 'hello', translation: 'привет'),
         ]),
+        frozen: FakeFrozenDaysRepository(),
         clock: () => now,
       ),
     ),
@@ -44,7 +46,7 @@ void main() {
         .data;
 
     expect(json, isNotNull);
-    expect(json, contains('"schemaVersion":1'));
+    expect(json, contains('"schemaVersion":2'));
     expect(json, contains('"term":"hello"'));
   });
 

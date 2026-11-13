@@ -5,9 +5,10 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v1. Инициализация из `assets/seed/` — в 2a.2.
+/// Schema v2: добавлена `frozen_days` (ADR-015).
 ///
-/// Миграции начинаются с v2: сейчас `onCreate` просто создаёт все таблицы.
+/// `onCreate` создаёт все таблицы, `onUpgrade` только добавляет новые:
+/// существующие таблицы v1 не пересоздаются, данные переживают миграцию.
 @DriftDatabase(
   tables: [
     Words,
@@ -15,6 +16,7 @@ part 'app_database.g.dart';
     ReviewLogs,
     UserSettingsTable,
     DailyStatsTable,
+    FrozenDays,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -25,11 +27,16 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(frozenDays);
+      }
+    },
     // SQLite не проверяет внешние ключи, пока их не включат явно.
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');

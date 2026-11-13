@@ -33,6 +33,47 @@ void main() {
       expect(withDate, isNot(equals(withoutDate)));
     });
 
+    test('defaults to no freezes', () {
+      const info = StreakInfo(count: 0);
+      expect(info.frozenAvailable, 0);
+      expect(info.frozenDates, isEmpty);
+    });
+
+    test('differs when frozenAvailable differs', () {
+      const one = StreakInfo(count: 7, frozenAvailable: 1);
+      const none = StreakInfo(count: 7);
+      expect(one, isNot(equals(none)));
+    });
+
+    test('differs when frozenDates differ', () {
+      final withFreeze = StreakInfo(
+        count: 3,
+        frozenDates: {const LocalDate(1)},
+      );
+      const withoutFreeze = StreakInfo(count: 3);
+      expect(withFreeze, isNot(equals(withoutFreeze)));
+    });
+
+    test('ignores the insertion order of frozenDates', () {
+      final a = StreakInfo(
+        count: 3,
+        frozenDates: {const LocalDate(1), const LocalDate(2)},
+      );
+      final b = StreakInfo(
+        count: 3,
+        frozenDates: {const LocalDate(2), const LocalDate(1)},
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('rejects a negative frozenAvailable', () {
+      expect(
+        () => StreakInfo(count: 0, frozenAvailable: -1),
+        throwsA(isA<AssertionError>()),
+      );
+    });
+
     test('renders count and last active date', () {
       const info = StreakInfo(count: 4, lastActiveLocalDate: LocalDate(0));
       expect(info.toString(), 'StreakInfo(count: 4, lastActive: 1970-01-01)');

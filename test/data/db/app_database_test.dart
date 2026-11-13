@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
@@ -55,12 +57,39 @@ void main() {
   setUp(() => db = openDb());
   tearDown(() => db.close());
 
-  test('creates all five tables on open', () async {
+  test('creates all six tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
     expect(await db.select(db.userSettingsTable).get(), isEmpty);
     expect(await db.select(db.dailyStatsTable).get(), isEmpty);
+    expect(await db.select(db.frozenDays).get(), isEmpty);
+  });
+
+  test('migration v1 to v2 creates the frozen_days table', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v1 = полная схема без frozen_days. Создаём её через createAll и удаляем
+    // только новую таблицу: DDL остальных таблиц остаётся настоящим.
+    final v1 = AppDatabase.forTesting(NativeDatabase(file));
+    await v1.customStatement('DROP TABLE frozen_days');
+    await v1
+        .into(v1.dailyStatsTable)
+        .insert(
+          DailyStatsTableCompanion.insert(dateEpochDays: const Value(19723)),
+        );
+    await v1.customStatement('PRAGMA user_version = 1');
+    await v1.close();
+
+    final v2 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v2.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v2.select(v2.frozenDays).get(), isEmpty);
+    // Данные v1 пережили миграцию.
+    expect(await v2.select(v2.dailyStatsTable).get(), hasLength(1));
   });
 
   test('inserts and reads a word with every column', () async {

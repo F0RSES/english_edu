@@ -38,11 +38,13 @@
 - Phase 5, task 5a+5b — `PopScope` confirm (BL-43), общий `pluralize` (BL-45), визуал `StreakCard`; ADR-015 (freeze) — Proposed, без кода (347 tests).
 - Phase 6, task 6a — Sentry: `CrashReporter`/`SentryCrashReporter`/`NoOpCrashReporter`, `crashReporterProvider`, DSN через `--dart-define`, `minSdk` 24 → 26; ADR-016 Accepted (355 tests).
 - Phase 6, task 6b — `dart format` по всему репозиторию (BL-40), `scripts/ci.sh` (format + analyze + test), финальный README с инструкцией для бета-тестеров; тег `phase-6-mvp`. **Phase 6 закрыта** (без APK, iOS и reminders).
+- Phase 5, task 5d — Freeze system (ADR-015 Accepted): `frozen_days` + `schemaVersion 2` (миграция v1→v2 под тестом), `StreakRule` (7/30), `ComputeStreak` учитывает заморозки, `MarkMissedDay` в `bootstrapApp`, `StreakCard` показывает остаток и бейдж; BL-46 Done (385 tests).
 
 ## In progress
 - — (MVP ready)
 
 ## Next
+- Phase 5e — streak continuity и защита от эксплойта freeze (BL-50), заморозки в export/import и сброс (BL-51).
 - Phase 5c (notifications, нужен Android SDK) или Phase 7 (publish) — решение пользователя.
 
 ## Open questions
@@ -50,6 +52,8 @@
 - iOS build: нужен macOS; `sentry_flutter` 10.x работает через SPM, `Podfile` не создаётся.
 - License: не выбрана (BL-08); в README остался плейсхолдер `<your-email>` — заменить перед публикацией.
 - DSN для release: нужен проект в Sentry (ADR-016), без него crash reporting выключен.
+- Миграция v1→v2 покрыта тестом; откат (даунгрейд приложения на v1) не проверялся.
+- BL-51 закрыт: заморозки входят в export/import (schemaVersion 2) и очищаются сбросом прогресса; снимки v1 читаются с пустым `frozenDays`.
 
 ## Environment
 - Flutter 3.47.9 (stable), Dart 3.13.7, linux_x64.

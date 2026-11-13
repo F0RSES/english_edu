@@ -198,3 +198,26 @@ class DailyStatsTable extends Table {
   @override
   Set<Column> get primaryKey => {dateEpochDays};
 }
+
+/// Заморозки на конкретные даты. Заполняется при пропуске.
+///
+/// Первичный ключ — день: на дату приходится не больше одной заморозки.
+/// `reason` сейчас только `missedDay`; `manual` зарезервирован для ручного
+/// добавления из debug-меню (Phase 5e, BL-50).
+@DataClassName('FrozenDayRow')
+class FrozenDays extends Table {
+  @override
+  String get tableName => 'frozen_days';
+
+  /// День в локальной TZ как число дней от эпохи.
+  IntColumn get dateEpochDays => integer()();
+
+  /// Момент, когда заморозка была израсходована, миллисекунды UTC.
+  IntColumn get consumedAtUtc => integer()();
+
+  /// Причина: `missedDay` | `manual`.
+  TextColumn get reason => text()();
+
+  @override
+  Set<Column> get primaryKey => {dateEpochDays};
+}

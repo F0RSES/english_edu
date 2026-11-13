@@ -1,4 +1,5 @@
 import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:flutter/material.dart';
 
@@ -14,22 +15,42 @@ const _fireMilestone = 30;
 const _centuryMilestone = 100;
 const _yearMilestone = 365;
 
+/// Подпись бейджа «заморозка уже потрачена».
+const _freezeUsedLabel = 'Freeze использован';
+
 /// Карточка серии: сколько дней подряд были занятия.
 ///
 /// Нулевая серия — не ошибка, а приглашение начать: экран не должен выглядеть
-/// сломанным у нового пользователя. Freeze не реализован (Phase 5d, BL-46) —
-/// карточка честно сообщает об этом вместо неактивной кнопки.
+/// сломанным у нового пользователя.
+///
+/// Заморозки (ADR-015): показывает остаток `frozenAvailable` и, если одна из
+/// них израсходована за последние [_recentFreezeDays] дней, бейдж «Freeze
+/// использован». [today] нужен только для этой проверки — дату приносит экран,
+/// чтобы виджет не читал системные часы.
 class StreakCard extends StatelessWidget {
-  /// Создаёт карточку для [streak].
-  const StreakCard({required this.streak, super.key});
+  /// Создаёт карточку для [streak] на дату [today].
+  const StreakCard({required this.streak, required this.today, super.key});
 
   /// Текущая серия.
   final StreakInfo streak;
+
+  /// Локальная дата экрана: граница «недавности» заморозки.
+  final LocalDate today;
+
+  /// Окно, в котором израсходованная заморозка считается свежей.
+  static const int _recentFreezeDays = 7;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final count = streak.count;
+    final freezes = streak.frozenAvailable;
+    final freezeWord = pluralize(
+      freezes,
+      one: 'заморозка',
+      few: 'заморозки',
+      many: 'заморозок',
+    );
     final lastActive = streak.lastActiveLocalDate;
     return Card(
       child: Padding(
@@ -64,21 +85,37 @@ class StreakCard extends StatelessWidget {
             ],
             const SizedBox(height: 8),
             Text(
-              'Freeze появится в Phase 5d',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              '🧊 $freezes $freezeWord доступно',
+              style: theme.textTheme.bodyMedium,
             ),
+            if (_hasRecentFreeze) ...[
+              const SizedBox(height: 4),
+              const Chip(
+                label: Text(_freezeUsedLabel),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
+  /// Была ли заморозка израсходована в последние [_recentFreezeDays] дней.
+  ///
+  /// Смотрим назад от [today], а не «любая дата в наборе»: иначе бейдж висел
+  /// бы вечно после первого пропуска.
+  bool get _hasRecentFreeze {
+    final from = today.addDays(-_recentFreezeDays);
+    return streak.frozenDates.any(
+      (date) => date.compareTo(from) >= 0 && date.compareTo(today) <= 0,
+    );
+  }
+
   /// Что показать про вехи: поздравление или остаток до первой.
   ///
-  /// Награды за вехи появятся вместе с freeze (Phase 5d), поэтому здесь нет
-  /// состояния — сообщение целиком выводится из [count].
+  /// Сообщение целиком выводится из [count]: собственного состояния у
+  /// карточки нет.
   String _milestoneMessage(int count) {
     if (count >= _yearMilestone) {
       return '🎉 $_yearMilestone дней подряд!';

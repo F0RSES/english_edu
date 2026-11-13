@@ -91,28 +91,34 @@ Dart-код в документе не приводится: сигнатуры 
 
 Геттер `ease` возвращает `easePermille / 1000.0`.
 
+### StreakRule
+Правила выдачи заморозок (ADR-015). `StreakRule.frozenEarnedFor(streakCount)`: 0 до 7 дней, 1 на 7, 2 на 30; `StreakRule.maxAvailable = 2`. Класс статический (`abstract final`), состояния не имеет: баланс выводится из длины серии и размера `frozenDates`.
+
 ### StreakInfo
 Результат расчёта серии. Не хранится, вычисляется из логов.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| count | `int` | Длина текущей серии в локальных днях, `>= 0` |
+| count | `int` | Длина текущей серии в локальных днях, `>= 0`; замороженный день входит в счёт |
 | lastActiveLocalDate | `LocalDate?` | Последний день с активностью, null если истории нет |
+| frozenAvailable | `int` | Сколько заморозок можно потратить сейчас (заработано по вехам минус израсходовано), `0..2` |
+| frozenDates | `Set<LocalDate>` | Даты, уже покрытые заморозкой |
 
 ### ExportPayload
-Снимок полного состояния для бэкапа. Не `const`: списки копируются в unmodifiable. Валидация (`schemaVersion == 1`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе.
+Снимок полного состояния для бэкапа. Не `const`: списки и множество копируются в unmodifiable. Валидация (поддерживаемые версии `1..2`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе. `ExportPayload.currentSchemaVersion = 2`.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| schemaVersion | `int` | Версия схемы, поддерживается только 1 |
+| schemaVersion | `int` | Версия схемы: 1 и 2 читаются, 3+ отклоняется |
 | exportedAt | `DateTime` | Момент снимка, UTC |
 | settings | `UserSettings` | Настройки на момент экспорта |
 | words | `List<Word>` | Словарь |
 | progress | `List<WordProgress>` | Прогресс |
 | logs | `List<ReviewLog>` | Журнал ответов |
 | stats | `List<DailyStats>` | Дневная статистика |
+| frozenDays | `Set<LocalDate>` | Замороженные дни серии (v2; в v1 пусто) |
 
-Равенство — поэлементное по всем спискам.
+Равенство — поэлементное по всем спискам и по `frozenDays` (порядок не важен). JSON: `frozenDays` — массив `daysSinceEpoch`; снимок v1 без поля читается как пустое множество, v2 без поля — `FormatException`.
 
 ## SRS
 
@@ -178,16 +184,17 @@ Dart-код в документе не приводится: сигнатуры 
 |---|---|---|
 | GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | due по `dueAt` asc, newWords по `firstSeenAt` asc, оба обрезаны `dailyReviewLimit` / `dailyNewLimit`; слова со статусом `newWord` исключены из due |
 | RecordReview | `RecordReview({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required WordRepository words, required SrsCalculator srs, required ReviewLogId Function() nextLogId, required DateTime Function() clock})` → `Future<CardState>` | проверяет существование слова; создаёт или обновляет прогресс, пишет ReviewLog, поднимает DailyStats. Статус: mastered при `reps ≥ 5 && intervalDays ≥ 21` (Anki-style mature); `lapses` не блокирует — история провалов не мешает mastered. Иначе learning: после любого ответа слово уже видели, `newWord` только до первого ответа |
-| ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = 1` |
-| ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion == 1` и `exportedAt.isUtc`; атомарность per-repo |
-| ComputeStreak | `ComputeStreak({required StatsRepository stats, required DateTime Function() clock})` → `Future<StreakInfo>` | 2 запроса: `getLastActiveDate` + `getRange`; локальная дата `clock().toLocal()`, окно `_lookbackDays = 3650` |
-| ResetProgress | `ResetProgress({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats})` → `Future<void>` | очищает прогресс → логи → статистику; слова и настройки сохраняются (ADR-013) |
+| ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, frozen, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = ExportPayload.currentSchemaVersion` (2, есть `frozenDays`) |
+| ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats, frozen})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion in 1..2` и `exportedAt.isUtc`; порядок settings → words → progress → logs → stats → frozen; v1 приходит с пустыми заморозками; атомарность per-repo |
+| ComputeStreak | `ComputeStreak({required StatsRepository stats, required FrozenDaysRepository frozen, required DateTime Function() clock})` → `Future<StreakInfo>` | 3 запроса: `getLastActiveDate` + `getRange` + `FrozenDays.getAll`; локальная дата `clock().toLocal()`, окно `_lookbackDays = 3650`; замороженный день продолжает серию и входит в счёт; `frozenAvailable` — `StreakRule.frozenEarnedFor(count)` минус израсходованные, клампится в `[0, 2]` |
+| MarkMissedDay | `MarkMissedDay({required FrozenDaysRepository frozen})` → `Future<void>` | ставит заморозку на дату с причиной `missedDay`; вызывается из `bootstrapApp` для вчерашнего пропуска (ADR-015) |
+| ResetProgress | `ResetProgress({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required FrozenDaysRepository frozen})` → `Future<void>` | очищает прогресс → логи → статистику → заморозки; слова и настройки сохраняются (ADR-013, BL-51) |
 
 Поддерживающие типы `QueueItem`, `RecordReviewResult`, `ExportPayload`, `ImportResult`, `WordId`, `ReviewLogId`, `ReviewGrade`, `LocalDate` определяются в 1.1a вместе с сущностями.
 
 ## Data
 
-Схема v1 — пять таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC.
+Схема v2 — шесть таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` (v1→v2) только добавляет `frozen_days` — существующие таблицы не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -196,6 +203,7 @@ Dart-код в документе не приводится: сигнатуры 
 | `review_logs` | `ReviewLogRow` | `id` | `idx_review_logs_word`, `idx_review_logs_reviewed` |
 | `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |
 | `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
+| `frozen_days` | `FrozenDayRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`), схема v2 | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -239,7 +247,7 @@ Bootstrap (`bootstrapApp` в `main.dart`): `AppDatabase()` → `seedLoader.loadI
 - `lib/presentation/theme.dart` — Material 3, seed `Colors.teal`, пастельный фон.
 - `lib/presentation/router.dart` — `routerProvider` (GoRouter): `/`, `/lesson`, `/dictionary`, `/profile`.
 - `lib/presentation/screens/` — `HomeScreen` (серия, дневная цель, запуск урока, `NavigationBar`), `LessonScreen` (сессия), `DictionaryScreen` (словарь), `ProfileScreen` (настройки и скорость TTS).
-- `lib/presentation/widgets/streak_card.dart` — серия дней из `StreakInfo`: крупная цифра, остаток до вехи 7, поздравления на 7/30/100/365. Freeze не реализован — подпись «Freeze появится в Phase 5d» (ADR-015, BL-46).
+- `lib/presentation/widgets/streak_card.dart` — серия дней из `StreakInfo`: крупная цифра, остаток до вехи 7, поздравления на 7/30/100/365, остаток заморозок (`frozenAvailable`) и бейдж «Freeze использован», если заморозка израсходована за последние 7 дней (ADR-015). Дату `today` передаёт экран — виджет не читает часы сам.
 - `lib/presentation/widgets/daily_goal_card.dart` — «сделано / план» из `DailyStats.totalAnswers` и суммы `dailyNewLimit + dailyReviewLimit`; полоска обрезана на 100%, счётчик показывает факт (перебор виден как «7 / 5»).
 - `HomeScreen` не считает сам: серию берёт у `ComputeStreak`, очередь у `GetTodayQueue`, план — сумма лимитов `UserSettings`. Кнопка старта выключена при пустой очереди; ошибка очереди показывает «Повторить» и пересоздаёт репозитории через `ref.invalidate` (у `ConsumerWidget` нет `setState`).
 - `lib/presentation/widgets/` — `WordCard` (термин + транскрипция, reveal перевода и примера через `AnimatedSwitcher`), `SessionSummary` (итоги + «Готово»).

@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../core/fakes/fake_crash_reporter.dart';
+import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
@@ -51,6 +52,7 @@ final class Harness {
   final SettingsRepository settings;
 
   final FakeCrashReporter crashReporter = FakeCrashReporter();
+  final FakeFrozenDaysRepository frozen = FakeFrozenDaysRepository();
 
   Widget app() => ProviderScope(
     overrides: [
@@ -61,6 +63,7 @@ final class Harness {
           reviewLog: logs,
           settings: settings,
           stats: stats,
+          frozen: frozen,
         ),
       ),
       crashReporterProvider.overrideWithValue(crashReporter),
@@ -109,19 +112,34 @@ void main() {
     expect(await harness.words.getAll(), hasLength(1));
   });
 
-  testWidgets('unsupported schema version shows an error', (tester) async {
+  testWidgets('a snapshot from a newer schema version shows an error', (
+    tester,
+  ) async {
     final harness = Harness();
     await _open(tester, harness);
 
     await _paste(
       tester,
-      const ExportPayloadCodec().encode(payload(schemaVersion: 2)),
+      const ExportPayloadCodec().encode(payload(schemaVersion: 3)),
     );
 
-    expect(
-      find.textContaining('Неподдерживаемая версия схемы'),
-      findsOneWidget,
-    );
+    // Версия отсекается уже на разборе JSON: импорт не должен читать формат,
+    // которого не знает.
+    expect(find.textContaining('Невалидный JSON'), findsOneWidget);
+    expect(find.textContaining('неподдерживаемая версия 3'), findsOneWidget);
+  });
+
+  testWidgets('a v1 snapshot imports with empty frozen days', (tester) async {
+    final harness = Harness();
+    await _open(tester, harness);
+
+    await _paste(tester, const ExportPayloadCodec().encode(payload()));
+    await tester.tap(find.text('Продолжить'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Импорт'), findsNothing);
+    expect(await harness.words.getById(const WordId(1)), isNotNull);
+    expect(await harness.frozen.getAll(), isEmpty);
   });
 
   testWidgets('valid JSON asks for confirmation', (tester) async {

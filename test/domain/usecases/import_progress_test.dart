@@ -12,6 +12,7 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_frozen_days_repository.dart';
 import 'fakes/fake_progress_repository.dart';
 import 'fakes/fake_review_log_repository.dart';
 import 'fakes/fake_settings_repository.dart';
@@ -44,16 +45,19 @@ final class Store {
     List<ReviewLog> seedLogs = const [],
     List<DailyStats> seedStats = const [],
     UserSettings? settings,
+    Iterable<LocalDate> seedFrozen = const [],
   }) : words = FakeWordRepository(seedWords),
        progress = FakeProgressRepository(seedProgress),
        logs = FakeReviewLogRepository(seedLogs),
        stats = FakeStatsRepository(seedStats),
+       frozen = FakeFrozenDaysRepository(seedFrozen),
        settings = FakeSettingsRepository(settings);
 
   final FakeWordRepository words;
   final FakeProgressRepository progress;
   final FakeReviewLogRepository logs;
   final FakeStatsRepository stats;
+  final FakeFrozenDaysRepository frozen;
   final FakeSettingsRepository settings;
 
   ImportProgress get importUseCase => ImportProgress(
@@ -62,6 +66,7 @@ final class Store {
     reviewLog: logs,
     settings: settings,
     stats: stats,
+    frozen: frozen,
   );
 
   ExportProgress get exportUseCase => ExportProgress(
@@ -70,6 +75,7 @@ final class Store {
     reviewLog: logs,
     stats: stats,
     words: words,
+    frozen: frozen,
     clock: () => now,
   );
 }
@@ -80,6 +86,7 @@ ExportPayload payloadOf({
   List<WordProgress> progress = const [],
   List<ReviewLog> logs = const [],
   List<DailyStats> stats = const [],
+  Set<LocalDate> frozenDays = const {},
   DateTime? exportedAt,
 }) => ExportPayload(
   schemaVersion: schemaVersion,
@@ -89,15 +96,45 @@ ExportPayload payloadOf({
   progress: progress,
   logs: logs,
   stats: stats,
+  frozenDays: frozenDays,
 );
 
 void main() {
   group('ImportProgress', () {
     test('rejects an unsupported schema version', () async {
       await expectLater(
-        Store().importUseCase(payloadOf(schemaVersion: 2)),
+        Store().importUseCase(payloadOf(schemaVersion: 3)),
         throwsA(isA<ArgumentError>()),
       );
+    });
+
+    test('restores frozen days from a v2 payload', () async {
+      final store = Store();
+
+      await store.importUseCase(
+        payloadOf(schemaVersion: 2, frozenDays: {const LocalDate(19723)}),
+      );
+
+      expect(await store.frozen.getAll(), {const LocalDate(19723)});
+    });
+
+    test('leaves frozen days empty for a v1 payload', () async {
+      final store = Store(seedFrozen: const [LocalDate(19723)]);
+
+      await store.importUseCase(payloadOf());
+
+      expect(await store.frozen.getAll(), isEmpty);
+    });
+
+    test('round-trips frozen days through export and import', () async {
+      final source = Store(
+        seedFrozen: const [LocalDate(19723), LocalDate(19724)],
+      );
+      final target = Store();
+
+      await target.importUseCase(await source.exportUseCase());
+
+      expect(await target.frozen.getAll(), await source.frozen.getAll());
     });
 
     test('rejects a non-UTC exportedAt', () async {

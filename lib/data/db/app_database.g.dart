@@ -2853,6 +2853,274 @@ class DailyStatsTableCompanion extends UpdateCompanion<DailyStatsRow> {
   }
 }
 
+class $FrozenDaysTable extends FrozenDays
+    with TableInfo<$FrozenDaysTable, FrozenDayRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FrozenDaysTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dateEpochDaysMeta = const VerificationMeta(
+    'dateEpochDays',
+  );
+  @override
+  late final GeneratedColumn<int> dateEpochDays = GeneratedColumn<int>(
+    'date_epoch_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _consumedAtUtcMeta = const VerificationMeta(
+    'consumedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> consumedAtUtc = GeneratedColumn<int>(
+    'consumed_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
+  @override
+  late final GeneratedColumn<String> reason = GeneratedColumn<String>(
+    'reason',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [dateEpochDays, consumedAtUtc, reason];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'frozen_days';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FrozenDayRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('date_epoch_days')) {
+      context.handle(
+        _dateEpochDaysMeta,
+        dateEpochDays.isAcceptableOrUnknown(
+          data['date_epoch_days']!,
+          _dateEpochDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('consumed_at_utc')) {
+      context.handle(
+        _consumedAtUtcMeta,
+        consumedAtUtc.isAcceptableOrUnknown(
+          data['consumed_at_utc']!,
+          _consumedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_consumedAtUtcMeta);
+    }
+    if (data.containsKey('reason')) {
+      context.handle(
+        _reasonMeta,
+        reason.isAcceptableOrUnknown(data['reason']!, _reasonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dateEpochDays};
+  @override
+  FrozenDayRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FrozenDayRow(
+      dateEpochDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}date_epoch_days'],
+      )!,
+      consumedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}consumed_at_utc'],
+      )!,
+      reason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason'],
+      )!,
+    );
+  }
+
+  @override
+  $FrozenDaysTable createAlias(String alias) {
+    return $FrozenDaysTable(attachedDatabase, alias);
+  }
+}
+
+class FrozenDayRow extends DataClass implements Insertable<FrozenDayRow> {
+  /// День в локальной TZ как число дней от эпохи.
+  final int dateEpochDays;
+
+  /// Момент, когда заморозка была израсходована, миллисекунды UTC.
+  final int consumedAtUtc;
+
+  /// Причина: `missedDay` | `manual`.
+  final String reason;
+  const FrozenDayRow({
+    required this.dateEpochDays,
+    required this.consumedAtUtc,
+    required this.reason,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['date_epoch_days'] = Variable<int>(dateEpochDays);
+    map['consumed_at_utc'] = Variable<int>(consumedAtUtc);
+    map['reason'] = Variable<String>(reason);
+    return map;
+  }
+
+  FrozenDaysCompanion toCompanion(bool nullToAbsent) {
+    return FrozenDaysCompanion(
+      dateEpochDays: Value(dateEpochDays),
+      consumedAtUtc: Value(consumedAtUtc),
+      reason: Value(reason),
+    );
+  }
+
+  factory FrozenDayRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FrozenDayRow(
+      dateEpochDays: serializer.fromJson<int>(json['dateEpochDays']),
+      consumedAtUtc: serializer.fromJson<int>(json['consumedAtUtc']),
+      reason: serializer.fromJson<String>(json['reason']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dateEpochDays': serializer.toJson<int>(dateEpochDays),
+      'consumedAtUtc': serializer.toJson<int>(consumedAtUtc),
+      'reason': serializer.toJson<String>(reason),
+    };
+  }
+
+  FrozenDayRow copyWith({
+    int? dateEpochDays,
+    int? consumedAtUtc,
+    String? reason,
+  }) => FrozenDayRow(
+    dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+    consumedAtUtc: consumedAtUtc ?? this.consumedAtUtc,
+    reason: reason ?? this.reason,
+  );
+  FrozenDayRow copyWithCompanion(FrozenDaysCompanion data) {
+    return FrozenDayRow(
+      dateEpochDays: data.dateEpochDays.present
+          ? data.dateEpochDays.value
+          : this.dateEpochDays,
+      consumedAtUtc: data.consumedAtUtc.present
+          ? data.consumedAtUtc.value
+          : this.consumedAtUtc,
+      reason: data.reason.present ? data.reason.value : this.reason,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FrozenDayRow(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('consumedAtUtc: $consumedAtUtc, ')
+          ..write('reason: $reason')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(dateEpochDays, consumedAtUtc, reason);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FrozenDayRow &&
+          other.dateEpochDays == this.dateEpochDays &&
+          other.consumedAtUtc == this.consumedAtUtc &&
+          other.reason == this.reason);
+}
+
+class FrozenDaysCompanion extends UpdateCompanion<FrozenDayRow> {
+  final Value<int> dateEpochDays;
+  final Value<int> consumedAtUtc;
+  final Value<String> reason;
+  const FrozenDaysCompanion({
+    this.dateEpochDays = const Value.absent(),
+    this.consumedAtUtc = const Value.absent(),
+    this.reason = const Value.absent(),
+  });
+  FrozenDaysCompanion.insert({
+    this.dateEpochDays = const Value.absent(),
+    required int consumedAtUtc,
+    required String reason,
+  }) : consumedAtUtc = Value(consumedAtUtc),
+       reason = Value(reason);
+  static Insertable<FrozenDayRow> custom({
+    Expression<int>? dateEpochDays,
+    Expression<int>? consumedAtUtc,
+    Expression<String>? reason,
+  }) {
+    return RawValuesInsertable({
+      if (dateEpochDays != null) 'date_epoch_days': dateEpochDays,
+      if (consumedAtUtc != null) 'consumed_at_utc': consumedAtUtc,
+      if (reason != null) 'reason': reason,
+    });
+  }
+
+  FrozenDaysCompanion copyWith({
+    Value<int>? dateEpochDays,
+    Value<int>? consumedAtUtc,
+    Value<String>? reason,
+  }) {
+    return FrozenDaysCompanion(
+      dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+      consumedAtUtc: consumedAtUtc ?? this.consumedAtUtc,
+      reason: reason ?? this.reason,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dateEpochDays.present) {
+      map['date_epoch_days'] = Variable<int>(dateEpochDays.value);
+    }
+    if (consumedAtUtc.present) {
+      map['consumed_at_utc'] = Variable<int>(consumedAtUtc.value);
+    }
+    if (reason.present) {
+      map['reason'] = Variable<String>(reason.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FrozenDaysCompanion(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('consumedAtUtc: $consumedAtUtc, ')
+          ..write('reason: $reason')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2864,6 +3132,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DailyStatsTableTable dailyStatsTable = $DailyStatsTableTable(
     this,
   );
+  late final $FrozenDaysTable frozenDays = $FrozenDaysTable(this);
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -2894,6 +3163,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     reviewLogs,
     userSettingsTable,
     dailyStatsTable,
+    frozenDays,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -4540,6 +4810,173 @@ typedef $$DailyStatsTableTableProcessedTableManager =
       DailyStatsRow,
       PrefetchHooks Function()
     >;
+typedef $$FrozenDaysTableCreateCompanionBuilder = FrozenDaysCompanion Function({
+  Value<int> dateEpochDays,
+  required int consumedAtUtc,
+  required String reason,
+});
+typedef $$FrozenDaysTableUpdateCompanionBuilder = FrozenDaysCompanion Function({
+  Value<int> dateEpochDays,
+  Value<int> consumedAtUtc,
+  Value<String> reason,
+});
+
+class $$FrozenDaysTableFilterComposer
+    extends Composer<_$AppDatabase, $FrozenDaysTable> {
+  $$FrozenDaysTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get consumedAtUtc => $composableBuilder(
+    column: $table.consumedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FrozenDaysTableOrderingComposer
+    extends Composer<_$AppDatabase, $FrozenDaysTable> {
+  $$FrozenDaysTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get consumedAtUtc => $composableBuilder(
+    column: $table.consumedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reason => $composableBuilder(
+    column: $table.reason,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FrozenDaysTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FrozenDaysTable> {
+  $$FrozenDaysTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get consumedAtUtc => $composableBuilder(
+    column: $table.consumedAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get reason =>
+      $composableBuilder(column: $table.reason, builder: (column) => column);
+}
+
+class $$FrozenDaysTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FrozenDaysTable,
+          FrozenDayRow,
+          $$FrozenDaysTableFilterComposer,
+          $$FrozenDaysTableOrderingComposer,
+          $$FrozenDaysTableAnnotationComposer,
+          $$FrozenDaysTableCreateCompanionBuilder,
+          $$FrozenDaysTableUpdateCompanionBuilder,
+          (
+            FrozenDayRow,
+            BaseReferences<_$AppDatabase, $FrozenDaysTable, FrozenDayRow>,
+          ),
+          FrozenDayRow,
+          PrefetchHooks Function()
+        > {
+  $$FrozenDaysTableTableManager(_$AppDatabase db, $FrozenDaysTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FrozenDaysTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FrozenDaysTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FrozenDaysTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                Value<int> consumedAtUtc = const Value.absent(),
+                Value<String> reason = const Value.absent(),
+              }) => FrozenDaysCompanion(
+                dateEpochDays: dateEpochDays,
+                consumedAtUtc: consumedAtUtc,
+                reason: reason,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                required int consumedAtUtc,
+                required String reason,
+              }) => FrozenDaysCompanion.insert(
+                dateEpochDays: dateEpochDays,
+                consumedAtUtc: consumedAtUtc,
+                reason: reason,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FrozenDaysTable, FrozenDayRow>(table),
+                  BaseReferences<_$AppDatabase, $FrozenDaysTable, FrozenDayRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FrozenDaysTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FrozenDaysTable,
+      FrozenDayRow,
+      $$FrozenDaysTableFilterComposer,
+      $$FrozenDaysTableOrderingComposer,
+      $$FrozenDaysTableAnnotationComposer,
+      $$FrozenDaysTableCreateCompanionBuilder,
+      $$FrozenDaysTableUpdateCompanionBuilder,
+      (
+        FrozenDayRow,
+        BaseReferences<_$AppDatabase, $FrozenDaysTable, FrozenDayRow>,
+      ),
+      FrozenDayRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4554,4 +4991,6 @@ class $AppDatabaseManager {
       $$UserSettingsTableTableTableManager(_db, _db.userSettingsTable);
   $$DailyStatsTableTableTableManager get dailyStatsTable =>
       $$DailyStatsTableTableTableManager(_db, _db.dailyStatsTable);
+  $$FrozenDaysTableTableManager get frozenDays =>
+      $$FrozenDaysTableTableManager(_db, _db.frozenDays);
 }

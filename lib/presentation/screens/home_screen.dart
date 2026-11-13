@@ -1,6 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/text/plural.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/presentation/widgets/daily_goal_card.dart';
@@ -19,6 +20,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final today = LocalDate.fromDateTime(ref.watch(clockProvider)().toLocal());
     return Scaffold(
       appBar: AppBar(
         title: const Text('English Edu'),
@@ -41,10 +43,15 @@ class HomeScreen extends ConsumerWidget {
             ref
                 .watch(computeStreakProvider)
                 .when(
-                  data: (streak) => StreakCard(streak: streak),
-                  loading: () => const StreakCard(streak: StreakInfo(count: 0)),
-                  error: (error, stack) =>
-                      const StreakCard(streak: StreakInfo(count: 0)),
+                  data: (streak) => StreakCard(streak: streak, today: today),
+                  loading: () => StreakCard(
+                    streak: const StreakInfo(count: 0),
+                    today: today,
+                  ),
+                  error: (error, stack) => StreakCard(
+                    streak: const StreakInfo(count: 0),
+                    today: today,
+                  ),
                 ),
             const SizedBox(height: 12),
             ref

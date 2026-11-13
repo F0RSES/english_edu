@@ -37,6 +37,13 @@
 - BL-47 (performance traces, P3), BL-48 (`jni`/NDK на первой APK-сборке, P2).
 - Локальный CI: `scripts/ci.sh` (format + analyze + test) и `scripts/README.md`.
 - BL-49 (P3): защита UI от падения `captureException`.
+- Freeze system (ADR-015): таблица `frozen_days` (`dateEpochDays` PK, `consumedAtUtc`, `reason`), `FrozenDays` в `@DriftDatabase`, `schemaVersion 1 → 2` с миграцией `onUpgrade` (только `createTable`, данные v1 сохраняются).
+- `StreakRule` (`frozenEarnedFor`: 7/30, `maxAvailable = 2`), `FrozenDaysRepository` + `DriftFrozenDaysRepository`.
+- `MarkMissedDay` + покрытие вчерашнего пропуска в `bootstrapApp` (считается серия на конец дня перед пропуском).
+- BL-50 (streak continuity, P3).
+- `ExportPayload` v2: `+ frozenDays` (`Set<LocalDate>`), `currentSchemaVersion = 2`; обратная совместимость — снимок v1 читается с пустым `frozenDays`.
+- `ExportPayloadCodec`: `encode` пишет `frozenDays` (`daysSinceEpoch`), `decode` принимает v1 (пусто) и v2 (восстанавливает), версия 3+ — `FormatException`.
+- Заморозки входят в export/import и очищаются сбросом прогресса. **BL-51 закрыт.**
 
 ### Fixed
 - README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
@@ -62,6 +69,12 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- `ExportProgress`, `ImportProgress` и `ResetProgress` принимают `FrozenDaysRepository`; импорт дописывает шаг `frozen.replaceAll`, сброс — `frozen.replaceAll(const [])` (порядок progress → logs → stats → frozen).
+- `ImportProgress` валидирует версии `1..2` вместо только `1`; `ImportDialog` пропускает обе версии, версия 3+ отсекается кодеком («Невалидный JSON»).
+- `StreakInfo`: `+int frozenAvailable`, `+Set<LocalDate> frozenDates`; оба поля участвуют в `==`/`hashCode`, множество сравнивается без `setEquals` (domain — pure Dart).
+- `ComputeStreak` принимает `FrozenDaysRepository`: замороженный день продолжает серию и входит в счёт, `frozenAvailable = clamp(earned(count) - frozen.length, 0, 2)`; 3 запроса вместо 2.
+- `StreakCard` требует `today` и показывает остаток заморозок и бейдж «Freeze использован» (вместо «Freeze появится в Phase 5d»); `HomeScreen` передаёт локальную дату из `clockProvider`.
+- **BL-46 закрыт**, ADR-015 — Accepted.
 - `dart format` применён ко всему репозиторию: 73 файла, только переносы строк и trailing commas, analyze=0, 355 тестов зелёные. **BL-40 закрыт.**
 - README переписан: финальный статус MVP, инструкция для бета-тестеров, Sentry, Roadmap.
 - DoD дополнен прогоном `bash scripts/ci.sh` перед коммитом.

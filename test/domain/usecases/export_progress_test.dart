@@ -5,6 +5,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
@@ -12,6 +13,7 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_frozen_days_repository.dart';
 import 'fakes/fake_progress_repository.dart';
 import 'fakes/fake_review_log_repository.dart';
 import 'fakes/fake_settings_repository.dart';
@@ -52,12 +54,14 @@ ExportProgress exportOf({
   List<ReviewLog> seedLogs = const [],
   List<DailyStats> seedStats = const [],
   UserSettings? settings,
+  Iterable<LocalDate> seedFrozen = const [],
 }) => ExportProgress(
   settings: FakeSettingsRepository(settings),
   progress: FakeProgressRepository(seedProgress),
   reviewLog: FakeReviewLogRepository(seedLogs),
   stats: FakeStatsRepository(seedStats),
   words: FakeWordRepository(seedWords),
+  frozen: FakeFrozenDaysRepository(seedFrozen),
   clock: () => now,
 );
 
@@ -66,7 +70,7 @@ void main() {
     test('returns an empty payload for empty repositories', () async {
       final payload = await exportOf().call();
 
-      expect(payload.schemaVersion, 1);
+      expect(payload.schemaVersion, ExportPayload.currentSchemaVersion);
       expect(payload.exportedAt, now);
       expect(payload.words, isEmpty);
       expect(payload.progress, isEmpty);
@@ -98,6 +102,18 @@ void main() {
       final custom = UserSettings.defaults().copyWith(dailyNewLimit: 3);
       final payload = await exportOf(settings: custom).call();
       expect(payload.settings.dailyNewLimit, 3);
+    });
+
+    test('includes frozen days', () async {
+      final payload = await exportOf(seedFrozen: [const LocalDate(19723)])
+          .call();
+
+      expect(payload.frozenDays, {const LocalDate(19723)});
+    });
+
+    test('leaves frozen days empty when there are none', () async {
+      final payload = await exportOf().call();
+      expect(payload.frozenDays, isEmpty);
     });
 
     test('stamps exportedAt in UTC', () async {

@@ -42,7 +42,10 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
       setState(() => _error = 'Невалидный JSON: $error');
       return;
     }
-    if (payload.schemaVersion != 1) {
+    final isSupported =
+        payload.schemaVersion >= 1 &&
+        payload.schemaVersion <= ExportPayload.currentSchemaVersion;
+    if (!isSupported) {
       setState(
         () =>
             _error = 'Неподдерживаемая версия схемы: ${payload.schemaVersion}',
@@ -116,7 +119,7 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
             minLines: 6,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
-              hintText: '{"schemaVersion": 1, ...}',
+              hintText: '{"schemaVersion": 2, ...}',
             ),
             onChanged: (_) {
               if (_error != null) {

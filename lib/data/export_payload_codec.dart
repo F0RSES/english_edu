@@ -24,6 +24,9 @@ final class ExportPayloadCodec {
   const ExportPayloadCodec();
 
   /// Сериализует [payload] в компактный JSON.
+  ///
+  /// Версия берётся из payload: кодек не подменяет её, иначе объект в памяти и
+  /// JSON расходились бы. `frozenDays` пишется всегда — в v1-снимке он пуст.
   String encode(ExportPayload payload) => jsonEncode({
     'schemaVersion': payload.schemaVersion,
     'exportedAt': payload.exportedAt.toUtc().toIso8601String(),
@@ -32,6 +35,7 @@ final class ExportPayloadCodec {
     'progress': [for (final item in payload.progress) _progressToJson(item)],
     'logs': [for (final log in payload.logs) _logToJson(log)],
     'stats': [for (final stats in payload.stats) _statsToJson(stats)],
+    'frozenDays': [for (final date in payload.frozenDays) date.daysSinceEpoch],
   });
 
   Map<String, Object?> _settingsToJson(UserSettings settings) => {
@@ -88,8 +92,9 @@ final class ExportPayloadCodec {
 
   /// Разбирает JSON, созданный [encode].
   ///
-  /// Бросает [FormatException], если структура не соответствует схеме v1:
-  /// диалог импорта показывает текст ошибки, а не stack trace.
+  /// Бросает [FormatException], если структура не соответствует схеме или
+  /// версия неизвестна: диалог импорта показывает текст ошибки, а не stack
+  /// trace. Обратная совместимость: снимок v1 читается с пустым `frozenDays`.
   ExportPayload decode(String source) {
     final Object? raw;
     try {
@@ -98,8 +103,9 @@ final class ExportPayloadCodec {
       throw FormatException('Некорректный JSON: ${error.message}');
     }
     final root = _asMap(raw, 'корень');
+    final version = _int(root, 'schemaVersion');
     return ExportPayload(
-      schemaVersion: _int(root, 'schemaVersion'),
+      schemaVersion: version,
       exportedAt: _date(root, 'exportedAt'),
       settings: _settingsFromJson(_asMap(root['settings'], 'settings')),
       words: [
@@ -118,7 +124,25 @@ final class ExportPayloadCodec {
         for (final item in _list(root, 'stats'))
           _statsFromJson(_asMap(item, 'stats[]')),
       ],
+      frozenDays: _frozenDaysFromJson(root, version),
     );
+  }
+
+  /// Заморозки: появились в v2, в v1 их не было.
+  Set<LocalDate> _frozenDaysFromJson(Map<String, Object?> root, int version) {
+    switch (version) {
+      case 1:
+        return const <LocalDate>{};
+      case ExportPayload.currentSchemaVersion:
+        return {
+          for (final item in _list(root, 'frozenDays'))
+            LocalDate(_asInt(item, 'frozenDays[]')),
+        };
+      default:
+        throw FormatException(
+          'schemaVersion: неподдерживаемая версия $version',
+        );
+    }
   }
 
   UserSettings _settingsFromJson(Map<String, Object?> map) => UserSettings(
@@ -192,6 +216,17 @@ List<Object?> _list(Map<String, Object?> map, String key) {
     return value;
   }
   throw FormatException('$key: ожидался массив');
+}
+
+/// Целое из элемента массива: любое расхождение — [FormatException].
+int _asInt(Object? value, String name) {
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  throw FormatException('$name: ожидалось целое число');
 }
 
 int _int(Map<String, Object?> map, String key) {

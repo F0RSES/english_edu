@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -51,6 +54,16 @@ ReviewLog log(int id) => ReviewLog(
   previousCardState: CardState.initial(now),
   newCardState: CardState.initial(now),
 );
+
+/// Дневные счётчики для проверки заморозки при старте.
+Future<void> insertStats(AppDatabase db, LocalDate date) => db
+    .into(db.dailyStatsTable)
+    .insert(
+      DailyStatsTableCompanion.insert(
+        dateEpochDays: Value(date.daysSinceEpoch),
+        newWordsStudied: const Value(1),
+      ),
+    );
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -153,6 +166,72 @@ void main() {
       );
 
       expect(result.crashReporter, isA<NoOpCrashReporter>());
+    },
+  );
+
+  test(
+    'bootstrap freezes a missed yesterday earned by the pre-gap streak',
+    () async {
+      final today = LocalDate.fromDateTime(DateTime.now());
+      // Восемь дней подряд, заканчивая позавчерашним: к концу такой серии
+      // заработана одна заморозка, а вчера остался пустым.
+      for (var offset = 2; offset <= 9; offset++) {
+        await insertStats(db, today.addDays(-offset));
+      }
+
+      await bootstrapApp(
+        db: db,
+        logger: const DebugLogger(),
+        bundle: FileAssetBundle('assets/seed/words_v1.json'),
+        sentryDsn: null,
+      );
+
+      final frozen = await db.select(db.frozenDays).get();
+      expect(frozen, hasLength(1));
+      expect(frozen.single.dateEpochDays, today.addDays(-1).daysSinceEpoch);
+      expect(frozen.single.reason, 'missedDay');
+    },
+  );
+
+  test('bootstrap leaves yesterday alone when no freeze was earned', () async {
+    final today = LocalDate.fromDateTime(DateTime.now());
+    for (var offset = 2; offset <= 6; offset++) {
+      await insertStats(db, today.addDays(-offset));
+    }
+
+    await bootstrapApp(
+      db: db,
+      logger: const DebugLogger(),
+      bundle: FileAssetBundle('assets/seed/words_v1.json'),
+      sentryDsn: null,
+    );
+
+    expect(await db.select(db.frozenDays).get(), isEmpty);
+  });
+
+  test(
+    'bootstrap does not freeze again when the previous freeze is spent',
+    () async {
+      final today = LocalDate.fromDateTime(DateTime.now());
+      for (var offset = 2; offset <= 9; offset++) {
+        await insertStats(db, today.addDays(-offset));
+      }
+      final alreadyFrozen = today.addDays(-30);
+      await DriftFrozenDaysRepository(
+        db,
+        clock: DateTime.now,
+      ).add(alreadyFrozen, reason: 'missedDay');
+
+      await bootstrapApp(
+        db: db,
+        logger: const DebugLogger(),
+        bundle: FileAssetBundle('assets/seed/words_v1.json'),
+        sentryDsn: null,
+      );
+
+      final frozen = await db.select(db.frozenDays).get();
+      expect(frozen, hasLength(1));
+      expect(frozen.single.dateEpochDays, alreadyFrozen.daysSinceEpoch);
     },
   );
 }

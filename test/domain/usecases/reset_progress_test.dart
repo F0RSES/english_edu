@@ -12,6 +12,7 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_frozen_days_repository.dart';
 import 'fakes/fake_progress_repository.dart';
 import 'fakes/fake_review_log_repository.dart';
 import 'fakes/fake_settings_repository.dart';
@@ -52,10 +53,12 @@ void main() {
     final progressRepo = FakeProgressRepository([progress(1)]);
     final logRepo = FakeReviewLogRepository([log(1)]);
     final statsRepo = FakeStatsRepository([stats(20000)]);
+    final frozenRepo = FakeFrozenDaysRepository([const LocalDate(20000)]);
     final reset = ResetProgress(
       progress: progressRepo,
       reviewLog: logRepo,
       stats: statsRepo,
+      frozen: frozenRepo,
     );
 
     await reset();
@@ -63,6 +66,24 @@ void main() {
     expect(await progressRepo.getAll(), isEmpty);
     expect(await logRepo.getAll(), isEmpty);
     expect(await statsRepo.getAll(), isEmpty);
+    expect(await frozenRepo.getAll(), isEmpty);
+  });
+
+  test('clears frozen days', () async {
+    final frozenRepo = FakeFrozenDaysRepository([
+      const LocalDate(20000),
+      const LocalDate(20001),
+    ]);
+    final reset = ResetProgress(
+      progress: FakeProgressRepository(),
+      reviewLog: FakeReviewLogRepository(),
+      stats: FakeStatsRepository(),
+      frozen: frozenRepo,
+    );
+
+    await reset();
+
+    expect(await frozenRepo.getAll(), isEmpty);
   });
 
   test('keeps words untouched', () async {
@@ -71,6 +92,7 @@ void main() {
       progress: FakeProgressRepository([progress(1)]),
       reviewLog: FakeReviewLogRepository([log(1)]),
       stats: FakeStatsRepository([stats(20000)]),
+      frozen: FakeFrozenDaysRepository([const LocalDate(20000)]),
     );
 
     await reset();
@@ -86,6 +108,7 @@ void main() {
       progress: FakeProgressRepository([progress(1)]),
       reviewLog: FakeReviewLogRepository([log(1)]),
       stats: FakeStatsRepository([stats(20000)]),
+      frozen: FakeFrozenDaysRepository([const LocalDate(20000)]),
     );
 
     await reset();

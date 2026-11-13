@@ -1,6 +1,10 @@
 include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
   language:
     strict-casts: true
     strict-inference: true
@@ -11,3 +15,15 @@ linter:
     avoid_dynamic_calls: true
     avoid_print: true
     public_member_api_docs: true
+    # Новый линт анализатора из Dart 3.13.7 (в 3.13.4 отсутствовал). Он требует
+    # убрать имя типа в объявлениях конструкторов по всему домену (66 мест,
+    # 31 файл). Механический автофикс затронул бы lib/domain/, test/domain/ и
+    # tools/ — это отдельная задача. Обоснование записано в ADR-007.
+    unnecessary_type_name_in_constructor: false
+    # Ниже — правила, которые анализатор Dart 3.13.7 начал применять к уже
+    # написанному коду домена (24 + 2 + 1 срабатывание). Автофикс меняет
+    # сигнатуры конструкторов и тела в lib/domain/, поэтому вынесен в
+    # отдельную задачу BL-28. Обоснование — ADR-007.
+    prefer_initializing_formals: false
+    use_null_aware_elements: false
+    unnecessary_const_in_enum_constructor: false

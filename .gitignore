@@ -7,5 +7,18 @@ Thumbs.db
 *.env
 .env
 
+# Flutter build artefacts
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+*.iml
+android/.gradle/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/ephemeral/
+
 # pubspec.lock НЕ игнорируется — коммитится.
 # lib/, test/ НЕ игнорируются.
+# android/ и ios/ НЕ игнорируются: без них проект не собрать из чистого клона.

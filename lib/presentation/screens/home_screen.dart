@@ -1,0 +1,150 @@
+import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/streak_info.dart';
+import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/presentation/widgets/daily_goal_card.dart';
+import 'package:english_edu/presentation/widgets/streak_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+/// Главный экран: серия дней, дневная цель и запуск урока.
+///
+/// Экран ничего не считает сам: серию отдаёт `ComputeStreak`, очередь —
+/// `GetTodayQueue`, план дня — сумма лимитов из `UserSettings`.
+class HomeScreen extends ConsumerWidget {
+  /// Создаёт экран.
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('English Edu'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Настройки',
+            onPressed: () => context.go('/profile'),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // AsyncValue.when, а не FutureBuilder: кэшем владеет
+            // FutureProvider, поэтому ref.invalidate после урока
+            // действительно пересчитывает данные.
+            ref
+                .watch(computeStreakProvider)
+                .when(
+                  data: (streak) => StreakCard(streak: streak),
+                  loading: () => const StreakCard(streak: StreakInfo(count: 0)),
+                  error: (error, stack) =>
+                      const StreakCard(streak: StreakInfo(count: 0)),
+                ),
+            const SizedBox(height: 12),
+            ref
+                .watch(dailyGoalProvider)
+                .when(
+                  data: (goal) => DailyGoalCard(
+                    stats: goal.stats,
+                    totalTarget: goal.target,
+                  ),
+                  loading: () =>
+                      DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
+                  error: (error, stack) =>
+                      DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
+                ),
+            const SizedBox(height: 24),
+            ref
+                .watch(getTodayQueueProvider)
+                .when(
+                  data: (queue) => _buildStart(context, queue),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => OutlinedButton.icon(
+                    onPressed: () => _retry(ref),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Повторить'),
+                  ),
+                ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (index) => _openSection(context, index),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Главная',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Словарь',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Профиль',
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Перезапрашивает данные главного экрана.
+  ///
+  /// Инвалидация `FutureProvider` сбрасывает кэш и запускает пересчёт при
+  /// следующем чтении — репозитории пересоздавать не нужно.
+  void _retry(WidgetRef ref) {
+    ref
+      ..invalidate(computeStreakProvider)
+      ..invalidate(getTodayQueueProvider)
+      ..invalidate(dailyGoalProvider);
+  }
+
+  /// Кнопка старта: выключена, когда очередь пуста.
+  Widget _buildStart(BuildContext context, TodayQueue queue) {
+    if (queue.length == 0) {
+      return const FilledButton(
+        onPressed: null,
+        child: Text('Все слова изучены'),
+      );
+    }
+    final words = pluralize(
+      queue.length,
+      one: 'слово',
+      few: 'слова',
+      many: 'слов',
+    );
+    return FilledButton(
+      onPressed: () => context.go('/lesson'),
+      child: Text('Начать урок (${queue.length} $words)'),
+    );
+  }
+
+  /// План по умолчанию, пока настройки не прочитаны.
+  ///
+  /// Показывать «0 / 0» нельзя: это выглядит как отсутствие цели.
+  int get _fallbackTarget {
+    final defaults = UserSettings.defaults();
+    return defaults.dailyNewLimit + defaults.dailyReviewLimit;
+  }
+
+  void _openSection(BuildContext context, int index) {
+    switch (index) {
+      case 1:
+        context.go('/dictionary');
+      case 2:
+        context.go('/profile');
+      default:
+        context.go('/');
+    }
+  }
+}

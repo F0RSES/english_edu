@@ -12,7 +12,8 @@
 Правило зависимостей: presentation → domain ← data. Обратных импортов нет.
 
 ## Стек
-- Domain: pure Dart, без Flutter SDK. dart analyze / dart test.
+- Flutter 3.47.9 / Dart 3.13.7, flutter_riverpod 3.x, drift 2.35, drift_flutter 0.3.
+- Domain-слой — pure Dart (без импортов Flutter), но тулинг общий: flutter analyze / flutter test.
 
 ## Ключевые решения
 - Persistence: Drift (SQLite) — см. ADR-002 (Accepted).
@@ -33,3 +34,6 @@
 - TZ-пакет — см. ADR-001 Open questions.
 - Формат хранения расписания: только next_due или полный SM-2 state.
 - Стратегия миграций при откате версии приложения.
+
+## Правила домена
+- Entities/VO — @immutable, ручная equality. Assert на .isUtc → non-const конструктор (WordProgress, ReviewLog).

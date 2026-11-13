@@ -6,7 +6,9 @@
 - Импорты только используемые, порядок задаёт линтер.
 
 ## Обязательно
-- freezed — только для Riverpod state. Entities и value objects: final class + @immutable + const + ручная equality. Freezed только для >8 полей и сложного copyWith.
+- freezed: только для Riverpod state (при его появлении).
+- Entities/VO: final class + @immutable + const конструктор.
+- Equality — ручная. Freezed только при >8 полях и сложном copyWith.
 - dartdoc для всего public API пакетов и domain-контрактов.
 - Имена по смыслу: без сокращений, без венгерской нотации, без «manager»/«helper»/«util» без нужды.
 - Ошибки — через явные типы (sealed-иерархии или Result), не через null в неоднозначных случаях.
@@ -14,7 +16,7 @@
 
 ## Запрещено
 - dynamic и неявные касты; тип выводим из сигнатуры.
-- print и debugPrint в коде приложения — только логгер с уровнями.
+- print — запрещён. debugPrint — только внутри DebugLogger (`lib/core/logger.dart`). Остальной код — через `Logger`.
 - Мутабельные глобалы и сервисы-синглтоны вне DI.
 - Логика в виджетах: расчёты в domain, виджет только отображает.
 - Магические числа и строки — только именованные константы.

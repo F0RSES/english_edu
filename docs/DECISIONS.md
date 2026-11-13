@@ -43,6 +43,7 @@ Architecture Decision Records: один ADR — одно решение.
   - (d) pubspec.lock committed as source of truth for dependency versions. Host SDK: Dart 3.13.4.
   - (e) effective minimum Dart SDK — 3.13.4 (dev_deps VGA 11 требует ^3.13.0); pubspec lower bound >=3.5.0 — официальная совместимость, фактическая — 3.13.
   - (f) Domain may depend on package:meta for @immutable; meta — annotations only, no runtime.
+  - (g) Major versions зафиксированы в ADR-007.
 - **Open questions:** зрелость пакетов пересмотреть в Phase 2a (см. ADR-002 Verification gate); выбор TZ-пакета — Phase 1.1; лицензия проекта — BL-08.
 
 ---
@@ -77,8 +78,179 @@ Architecture Decision Records: один ADR — одно решение.
 - **Alternatives considered:**
   - Держать контракты только в docs до Phase 2a — тогда компиляция и DoD «analyze clean» не проверяются, контракты расходятся с кодом.
   - Выделить domain в отдельный пакет сразу — изоляция лучше, но tooling и структура усложняются до появления второго потребителя.
-- **Consequences:** pubspec появляется в Phase 1, а не в Phase 2a; в Phase 1 используются `dart analyze` и `dart test`, `flutter analyze` и `flutter test` — с Phase 2a; runtime-зависимости остаются нулевыми до 2a; домен компилируется независимо от Flutter. LocalDate stores days since epoch; no implicit TZ conversion; fromDateTime uses Y/M/D as provided.
+- **Consequences:**
+  - pubspec появляется в Phase 1, а не в Phase 2a; в Phase 1 используются `dart analyze` и `dart test`, `flutter analyze` и `flutter test` — с Phase 2a; домен компилируется независимо от Flutter.
+  - runtime-зависимости: meta (annotations only, no runtime code). Иных runtime-зависимостей до Phase 2a нет.
+  - LocalDate stores days since epoch; no implicit TZ conversion; fromDateTime uses Y/M/D as provided.
+  - assert на DateTime.isUtc требует non-const конструктора; WordProgress и ReviewLog — non-const, runtime assert.
 - **Open questions:** решить в Phase 2a: остаётся ли `lib/domain/` внутри приложения или выделяется в отдельный Dart-пакет.
+
+### ADR-004: WordStatus source of truth
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** `Word` и `WordProgress` оба содержали `status`. При upsert двух записей это даёт два источника истины и расхождение между ними.
+- **Decision:** Статус принадлежит `WordProgress`. `Word` — словарная статья: `term`, `translation`, `transcription`, `partOfSpeech`, `exampleSentence`.
+- **Alternatives considered:**
+  - (A) Денормализация в `Word` — отклонено: синхронизация при каждом upsert, два места для одного бага.
+  - (C) Статус только в `Word` — отклонено: прогресс без статуса не имеет смысла для SRS и streak.
+- **Consequences:** `WordRepository.getByStatus` удалён; добавлен `getByIds` — очередь собирается двумя запросами вместо N+1; join остаётся делом реализации Drift в Phase 2, контракт domain остаётся чистым.
+- **Open questions:** индексы Drift для `getByIds` и `getDueBefore` — Phase 2.
+
+### ADR-005: ReviewLog append-only + replaceAll for import
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** REPLACE-импорт требует атомарной замены всех записей. Для журнала ответов это противоречит append-only, который защищает историю от перезаписи.
+- **Decision:** Append-only сохраняется для работы с одной записью (`append`). `replaceAll` — единственное исключение, доступное только импорту и восстановлению; dartdoc контракта прямо запрещает вызывать его из обычного кода.
+- **Alternatives considered:**
+  - Оставить `clear()` + цикл вставок — два вызова вместо одного, промежуточное пустое состояние, больше точек отказа.
+  - Отказаться от REPLACE в пользу merge — отложено до Phase 5, требует отдельного ADR.
+- **Consequences:** Четыре репозитория получают `replaceAll`; `getAll` добавлен в progress/log/stats для экспорта; экспорт больше не зависит от перечисления `WordStatus` и диапазонов дат.
+- **Open questions:** межрепозиторная атомарность (транзакция на все пять шагов) — Phase 2.
+
+### ADR-006: Flutter bootstrap
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** Phase 2a — каркас приложения. До этого проект был pure Dart с готовым доменным слоем и 173 тестами.
+- **Decision:** Flutter-проект создаётся в корне репозитория (`flutter create .`); `lib/domain/` не меняется; Flutter-зависимости добавляются в `pubspec.yaml`; тулинг переходит на `flutter analyze` / `flutter test`. Вместо `sqlite3_flutter_libs` используется `drift_flutter` (ADR-007).
+- **Alternatives considered:**
+  - Отдельный подкаталог `app/` — усложняет пути к домену и дублирует pubspec.
+  - Оставить `dart test` для домена и `flutter test` для виджетов — два прогона и два набора правил вместо одного.
+- **Consequences:** `dart test` заменён на `flutter test` (домен-тесты идут через Flutter-раннер); созданы `android/` и `ios/`; `environment.sdk = ">=3.13.0 <4.0.0"`, минимальный Dart 3.13.7; анализатор Flutter строже — четыре линта отключены (см. ADR-007).
+- **Open questions:** CI matrix (Phase 6), сборка APK/IPA (Phase 6).
+
+---
+
+### ADR-007: Package versions at Phase 2a
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** Проверка pub.dev на 2026-11-04 показала мажоры выше спеки: `flutter_riverpod` 3.4.3 (спека: 2.6), `go_router` 18.1.3 (14), `flutter_local_notifications` 22.3.3 (18), `flutter_lints` 6.0.0 (5). Пакет `sqlite3_flutter_libs` отдаёт `0.6.0+eol` с описанием «Not used anymore, update to version 3.x of package:sqlite3 instead».
+- **Decision:** `flutter_riverpod ^3.4.3`, `drift ^2.35.3`, `drift_flutter ^0.3.1` (вместо `sqlite3_flutter_libs`), `go_router ^18.1.3`, `flutter_local_notifications ^22.3.3`, `flutter_tts ^4.2.5`, `meta ^1.19.0`, `path ^1.9.1`, `very_good_analysis ^11.0.0`, `build_runner ^2.16.1`, `drift_dev ^2.35.2`, `test ^1.31.1`. `flutter_lints` удалён (VGA достаточно). `environment.flutter` не указан.
+- **Alternatives considered:**
+  - Взять версии из спеки (`riverpod 2.6`, `go_router 14`, `fln 18`) — устаревшие мажоры без причины, кода на этих API ещё нет.
+  - `sqlite3_flutter_libs ^0.5.0` — EOL-пакет.
+  - `test ^1.33.0` — несовместим: требует `test_api 0.7.15`, Flutter 3.47.9 пинит `0.7.12`; у `1.31.1` ровно `0.7.12`.
+  - `build_runner ^2.17.1` — требует `analyzer ^14.3.0`, что конфликтует с `test 1.31.1`; 2.16.1 совместим.
+- **Consequences:** `riverpod_generator`/`riverpod_annotation` отложены до 2a.3 (BL-26); миграция Riverpod 2→3 не нужна, кода нет; анализатор Dart 3.13.7 включил четыре новых линта на уже написанном домене — они отключены в `analysis_options.yaml`, механическая уборка вынесена в BL-28.
+- **Lint exceptions (временно, см. BL-28):**
+  - `unnecessary_type_name_in_constructor` — стилистическое; автофикс заменяет `const Foo(...)` на `const new(...)`, то есть переводит код на новый синтаксис конструкторов Dart 3.13.
+  - `prefer_initializing_formals` — **аудит 2a.0c: имена параметров НЕ ломаются.** Автофикс превращает `{required Repo stats} : _stats = stats` в `{required this._stats}`, а вызов `UseCase(stats: …)` остаётся валидным (проверено в изолированном пакете: `dart analyze` чист). 24 срабатывания в 5 файлах `lib/domain/usecases/`. Достаточно `dart fix`, ревью диффа.
+  - `use_null_aware_elements` — стилистическое.
+  - `unnecessary_const_in_enum_constructor` — стилистическое.
+  Правила возвращаются после механической уборки (BL-28).
+- **Open questions:** версия `riverpod_annotation` — 2a.3; снять ли отключённые линты после BL-28.
+
+### ADR-008: Generated files committed
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** `build_runner` генерирует `lib/data/db/app_database.g.dart` (147K). Нужно решить, живёт ли он в репозитории или собирается на месте.
+- **Decision:** Сгенерированные файлы коммитятся в репозиторий.
+- **Alternatives considered:**
+  - (A) Commit — принято: solo-разработка, diff сгенерированного кода ревьюится вместе с исходником, не требует одинаковой версии `build_runner` у всех и в CI.
+  - (B) Генерация в CI — отклонено: сложнее отладка в VS Code (локально файла нет), CI должен фиксировать `build_runner 2.16.1` бит-в-бит.
+  - (C) `.gitignore` для `*.g.dart` — отклонено: проект не соберётся без локального запуска `build_runner`.
+- **Consequences:** `.g.dart` попадает в историю git; при обновлении `build_runner`/`drift_dev` возможны крупные diff'ы в сгенерированном коде; `dart fix` на сгенерированных файлах не применяется.
+- **Open questions:** проверка «generated актуален» в CI — Phase 6 (BL-27).
+
+### ADR-009: ReviewLogId generation
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** `ReviewLog.id` обязателен в домене. `RecordReview` принимает `ReviewLogId Function() nextLogId`, а при DI нужно, чтобы идентификаторы не повторялись после рестарта и не конфликтовали с уже существующими логами.
+- **Decision:** В БД `review_logs.id` — обычный primary key без `autoIncrement`. При старте приложения читается `SELECT MAX(id)`, создаётся `NextReviewLogIdGenerator(max + 1)`, и провайдер отдаёт его метод `next` как `ReviewLogId Function()`.
+- **Alternatives considered:**
+  - (A) `autoIncrement` в БД + nullable `id` в домене — отклонено: тянет изменение контракта домена.
+  - (B) id на основе timestamp — отклонено: риск коллизий при быстрых последовательных вставках.
+  - (C) `max + 1` при каждой записи — отклонено: race condition и лишний запрос на каждый ответ.
+- **Consequences:** после импорта логов с большими id счётчик нужно пересоздать (`max + 1`), иначе новые записи конфликтуют; рестарт приложения пересчитывает `max` автоматически. Пока пересчёт не автоматизирован — см. open questions.
+- **Open questions:** при `ImportProgress` инвалидировать/пересоздавать генератор (listener на журнал) — 2a.3.
+
+### ADR-010: Undo semantics
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** В сессии нужен откат последнего ответа. Журнал append-only, а состояние карточки после ответа уже изменено; откат требует и удаления записи, и восстановления `CardState`.
+- **Decision:** Undo — компенсирующее действие: удаление последней записи журнала плюс восстановление `CardState` из её `previousCardState`. Доступно только в активной сессии, до экрана итогов. Реализация — `UndoLastReview` + `ReviewLogRepository.delete(ReviewLogId)` как явное исключение из append-only.
+- **Alternatives considered:**
+  - (A) Компенсирующий лог с обратным состоянием — отклонено: удваивает историю ради временного действия, усложняет выборку «последний ответ».
+  - (B) Только удаление лога без восстановления прогресса — отклонено: карточка осталась бы в состоянии, которого не было.
+- **Consequences:** `ReviewLogRepository` получает второй метод-исключение (`delete`); долгосрочная история остаётся нетронутой, потому что undo живёт только внутри сессии. Статистика (`DailyStats`) и XP не откатываются: задним числом XP не отзывается.
+- **Open questions:** атомарность двух репозиториев (delete + upsert) — Phase 5 (BL-34).
+
+### ADR-011: RecordReview returns outcome
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** UI показывал «+10 XP», но `RecordReview` возвращал только `CardState`. Правила XP дублировались в экране и в use case — при изменении правил они разъезжались (BL-37).
+- **Decision:** `RecordReview` возвращает `ReviewOutcome` (`newCardState`, `xpGained`, `isCorrect`). Правила XP и «верно/неверно» централизованы в `XpRules`: hard → 5, good → 10, easy → 15, again → 0. `XpRules` используют и `RecordReview`, и `UndoLastReview`.
+- **Alternatives considered:**
+  - Оставить `CardState` и считать XP в UI — отклонено: дублирование уже привело к расхождению.
+  - Возвращать `DailyStats` целиком — избыточно: экрану нужны только XP и признак верного ответа.
+- **Consequences:** контракт `RecordReview` меняется (breaking для тестов и вызовов); `SessionSummary` берёт XP из накопленных `ReviewOutcome`, а не из `correct * 10`; `UndoLastReview` вычитает из `DailyStats` те же значения, что начислил `RecordReview`.
+- **Open questions:** XP за streak/freeze — Phase 5.
+
+### ADR-012: TTS and notifications architecture
+- **Status:** Accepted
+- **Date:** 2026-11-04
+- **Context:** TTS и локальные уведомления — платформенные сервисы. `flutter_local_notifications` 22.3.3 требует `compileSdk 37`, AGP 9.1.1 и core library desugaring, а Android SDK в среде отсутствует — сборку проверить нельзя.
+- **Decision:** Сейчас подключается только TTS: `TtsService` (интерфейс) + `FlutterTtsService` (обёртка над `flutter_tts`), в манифест добавлен `<queries>` с `android.intent.action.TTS_SERVICE`. Уведомления отложены до Phase 5 (BL-38).
+- **Alternatives considered:**
+  - Подключить notifications сейчас на 22.3.3 — отклонено: `compileSdk 37` + AGP 9.1.1 + desugaring невозможно проверить без Android SDK, правки ушли бы «вслепую».
+  - Взять старую версию плагина под текущий toolchain — отклонено: откат на устаревший мажор ради непроверяемой функции.
+  - Не добавлять `<queries>` — отклонено: без него TTS не работает на Android 11+.
+- **Consequences:** TTS изолирован в одном файле и тестируется через `FakeTtsService`; `ProfileScreen` содержит настройки TTS, блок напоминаний отключён с подсказкой «Появится в Phase 5». Notifications потребуют отдельного шага с подъёмом `compileSdk`/AGP и настройкой iOS (`AppDelegate`, `Podfile`).
+- **Open questions:** проверка TTS на реальном устройстве (Phase 6); подъём `compileSdk 37` и AGP 9.1.1 (Phase 5).
+
+### ADR-013: Reset progress semantics
+- **Status:** Accepted
+- **Date:** 2026-11-05
+- **Context:** Нужна danger-zone «начать заново». Возможные сценарии: (A) сбросить прогресс, оставив словарь; (B) удалить всё и пересеять; (C) удалить только добавленные вручную слова. Словарь — самый ценный ресурс пользователя: его потеря означает повторный seed (или ручной ввод, если seed недоступен). MVP не имеет ни file-picker, ни сетевой синхронизации, поэтому необратимое удаление словаря нельзя предложить.
+- **Decision:** MVP реализует (A). Удаляются `WordProgress`, `ReviewLog`, `DailyStats`; `Word` и `UserSettings` сохраняются. Исполнение — `ResetProgress` (порядок: прогресс → логи → статистика, чтобы не оставить логи на удалённые карточки), UI — подтверждающий диалог в `ProfileScreen`. (B) и (C) — Phase 5+.
+- **Consequences:** После сброса серия = 0, дневная цель = 0 из суммы лимитов, все слова снова «новое», `dueAt = CardState.initial`. `ProfileScreen` инвалидирует `computeStreakProvider`, `getTodayQueueProvider`, `dailyGoalProvider`, `dictionaryEntriesProvider` — иначе экраны показали бы старые числа. Отмена сброса невозможна: бэкап надо делать через экспорт (**ADR-014**) заранее.
+- **Open questions:** (B) «удалить всё и пересеять» — Phase 5; (C) «только пользовательские слова» — Phase 5, требует признака источника у `Word`.
+
+### ADR-014: Export/Import MVP via clipboard
+- **Status:** Accepted
+- **Date:** 2026-11-05
+- **Context:** Экспорт/импорт JSON уже реализован в домене (`ExportProgress`/`ImportProgress`, ADR-005), но у него нет UI. Файловый сценарий требует `file_selector` и `share_plus` — двух пакетов, разрешений платформ и iOS entitlements, а также проверки на устройстве, которой в среде нет. Снимок словаря на сотни слов — это единицы-десятки килобайт JSON, что помещается в буфер обмена.
+- **Decision:** MVP работает через clipboard, без внешних пакетов: экспорт копирует JSON схемы v1 в буфер (`Clipboard.setData`), импорт принимает вставленный текст в многострочном поле, проверяет JSON и версию схемы, запрашивает подтверждение и вызывает `ImportProgress` (REPLACE). Сериализация — `ExportPayloadCodec` в data-слое, экраны получают его через `payloadCodecProvider`, чтобы presentation не импортировал data.
+- **Consequences:** Ноль новых зависимостей и разрешений. Импорт необратимо заменяет состояние — отсюда обязательный диалог подтверждения; ошибки разбора показываются внутри диалога, а не в `SnackBar`, который перекрыт модальным окном. Пользователь должен сам позаботиться о сохранении текста (мессенджер, заметки).
+- **Open questions:** файловый экспорт/импорт через `file_selector` + `share_plus` — Phase 5 (**BL-44**); слияние вместо замены — Phase 5.
+
+### ADR-015: Streak freeze semantics
+- **Status:** Proposed
+- **Date:** 2026-11-05
+- **Context:** Пропущенный день обрывает серию, хотя пользователь мог заболеть или не иметь доступа к телефону. Жёсткий сброс наказывает за разовую осечку и обесценивает длинную серию. Нужен механизм «заморозки», но он требует хранения состояния: сейчас `StreakInfo` — чистая производная от `DailyStats` и ничего не помнит.
+- **Decision (design only, код в Phase 5d):**
+  - `StreakInfo` расширяется: `+int frozenAvailable`, `+Set<LocalDate> frozenDates`.
+  - Freeze начисляется за вехи: первый за серию 7 дней, второй за 30 (максимум 2).
+  - `ComputeStreak` при пропуске ровно одного дня проверяет `frozenDates`: если день заморожен, серия продолжается, а заморозка считается израсходованной.
+  - UI: баннер «Freeze использован» на `HomeScreen`.
+- **Consequences:** Нужно персистентное хранилище заморозок — отдельная таблица `FrozenDays` проще, чем JSON в `UserSettings` (иначе `ImportProgress`/`ExportProgress` пришлось бы расширять ради набора дат). Появляется миграция схемы v1→v2 (ADR-002) — отдельный шаг 5b.1, не входит в 5a+5b. До реализации `StreakCard` показывает «Freeze появится в Phase 5d».
+- **Open questions:** миграция v1→v2 и её откат; правило «сколько дней подряд можно морозить»; попадают ли заморозки в экспорт (сейчас формат v1 их не описывает).
+
+### ADR-016: Sentry crash reporting
+- **Status:** Accepted
+- **Date:** 2026-11-13
+- **Context:** Без crash reporting бета слепая: сбои видны только если пользователь сам пришлёт лог. Учебный цикл offline-first, поэтому сеть допустима только для телеметрии сбоев и не должна попадать в критический путь.
+- **Decision:**
+  - `sentry_flutter ^10.3.0` — единственный внешний сервис сбоев.
+  - DSN только через `--dart-define=SENTRY_DSN=...`; в коде, pubspec, ассетах и git его быть не может.
+  - Пустой DSN → `NoOpCrashReporter`: приложение работает, сбои уходят в `Logger`.
+  - `sampleRate`: 1.0 в debug, 0.2 в release.
+  - `tracesSampleRate: 0` — performance-трейсы в MVP выключены (BL-47).
+  - `sendDefaultPii: false`, `attachStacktrace: true`.
+  - iOS: `sentry_flutter` 10.x удалил CocoaPods и требует SPM; Flutter 3.47 включает SPM по умолчанию. `Podfile` не создаём.
+  - Android: `minSdk 26` (требование `sentry_flutter` 10.x), `compileSdk`/`targetSdk`/`ndkVersion` не меняются.
+- **Alternatives considered:**
+  - `sentry_flutter` 9.x с CocoaPods — отклонено: устаревшая ветка, SPM уже default в Flutter 3.47.
+  - Firebase Crashlytics — отклонено: зависимость от Google-сервисов, хуже для privacy.
+  - Rollbar/Bugsnag — отклонено: меньше опыта в Flutter-экосистеме.
+- **Consequences:**
+  - Release-сборка требует `--dart-define` с DSN, иначе crash reporting молча выключен.
+  - `minSdk` поднят 24 → 26 (Android 8.0): устройства на Android 7 больше не поддерживаются.
+  - Тесты не поднимают нативный SDK: `bootstrapApp` принимает `sentryInit`, тесты передают no-op.
+  - `presentation` зависит от `CrashReporter`, а не от Sentry: смена провайдера сбоев не затрагивает экраны.
+- **Open questions:**
+  - IP-адрес: `sendDefaultPii: false` не отключает сбор IP на стороне Sentry — это настройка проекта (Project Settings → Security & Privacy). Инструкция в README.
+  - Performance traces — BL-47 (нужен ADR и спайк на устройстве).
+  - Совместимость `jni`/`ndkVersion 28.2.13676358` с `sentry_flutter` 10.3 — BL-48, проверяется на первой APK-сборке.
 
 ## Реестр
 
@@ -87,3 +259,16 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-001 | Core stack | Accepted |
 | ADR-002 | Persistence: Drift vs Isar | Accepted |
 | ADR-003 | Domain layer location | Accepted |
+| ADR-004 | WordStatus source of truth | Accepted |
+| ADR-005 | ReviewLog append-only + replaceAll for import | Accepted |
+| ADR-006 | Flutter bootstrap | Accepted |
+| ADR-007 | Package versions at Phase 2a | Accepted |
+| ADR-008 | Generated files committed | Accepted |
+| ADR-009 | ReviewLogId generation | Accepted |
+| ADR-010 | Undo semantics | Accepted |
+| ADR-011 | RecordReview returns outcome | Accepted |
+| ADR-012 | TTS and notifications architecture | Accepted |
+| ADR-013 | Reset progress semantics | Accepted |
+| ADR-014 | Export/Import MVP via clipboard | Accepted |
+| ADR-015 | Streak freeze semantics | Proposed |
+| ADR-016 | Sentry crash reporting | Accepted |

@@ -1,0 +1,4557 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'app_database.dart';
+
+// ignore_for_file: type=lint
+class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _termMeta = const VerificationMeta('term');
+  @override
+  late final GeneratedColumn<String> term = GeneratedColumn<String>(
+    'term',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _translationMeta = const VerificationMeta(
+    'translation',
+  );
+  @override
+  late final GeneratedColumn<String> translation = GeneratedColumn<String>(
+    'translation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transcriptionMeta = const VerificationMeta(
+    'transcription',
+  );
+  @override
+  late final GeneratedColumn<String> transcription = GeneratedColumn<String>(
+    'transcription',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _partOfSpeechMeta = const VerificationMeta(
+    'partOfSpeech',
+  );
+  @override
+  late final GeneratedColumn<String> partOfSpeech = GeneratedColumn<String>(
+    'part_of_speech',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _exampleSentenceMeta = const VerificationMeta(
+    'exampleSentence',
+  );
+  @override
+  late final GeneratedColumn<String> exampleSentence = GeneratedColumn<String>(
+    'example_sentence',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    term,
+    translation,
+    transcription,
+    partOfSpeech,
+    exampleSentence,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'words';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Word> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('term')) {
+      context.handle(
+        _termMeta,
+        term.isAcceptableOrUnknown(data['term']!, _termMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_termMeta);
+    }
+    if (data.containsKey('translation')) {
+      context.handle(
+        _translationMeta,
+        translation.isAcceptableOrUnknown(
+          data['translation']!,
+          _translationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_translationMeta);
+    }
+    if (data.containsKey('transcription')) {
+      context.handle(
+        _transcriptionMeta,
+        transcription.isAcceptableOrUnknown(
+          data['transcription']!,
+          _transcriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('part_of_speech')) {
+      context.handle(
+        _partOfSpeechMeta,
+        partOfSpeech.isAcceptableOrUnknown(
+          data['part_of_speech']!,
+          _partOfSpeechMeta,
+        ),
+      );
+    }
+    if (data.containsKey('example_sentence')) {
+      context.handle(
+        _exampleSentenceMeta,
+        exampleSentence.isAcceptableOrUnknown(
+          data['example_sentence']!,
+          _exampleSentenceMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Word map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Word(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      term: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}term'],
+      )!,
+      translation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}translation'],
+      )!,
+      transcription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transcription'],
+      ),
+      partOfSpeech: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_of_speech'],
+      ),
+      exampleSentence: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}example_sentence'],
+      ),
+    );
+  }
+
+  @override
+  $WordsTable createAlias(String alias) {
+    return $WordsTable(attachedDatabase, alias);
+  }
+}
+
+class Word extends DataClass implements Insertable<Word> {
+  /// Первичный ключ из домена.
+  final int id;
+
+  /// Английский термин в нижнем регистре.
+  final String term;
+
+  /// Перевод на русский.
+  final String translation;
+
+  /// IPA-транскрипция, если есть.
+  final String? transcription;
+
+  /// Часть речи, если известна.
+  final String? partOfSpeech;
+
+  /// Пример употребления.
+  final String? exampleSentence;
+  const Word({
+    required this.id,
+    required this.term,
+    required this.translation,
+    this.transcription,
+    this.partOfSpeech,
+    this.exampleSentence,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['term'] = Variable<String>(term);
+    map['translation'] = Variable<String>(translation);
+    if (!nullToAbsent || transcription != null) {
+      map['transcription'] = Variable<String>(transcription);
+    }
+    if (!nullToAbsent || partOfSpeech != null) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech);
+    }
+    if (!nullToAbsent || exampleSentence != null) {
+      map['example_sentence'] = Variable<String>(exampleSentence);
+    }
+    return map;
+  }
+
+  WordsCompanion toCompanion(bool nullToAbsent) {
+    return WordsCompanion(
+      id: Value(id),
+      term: Value(term),
+      translation: Value(translation),
+      transcription: transcription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transcription),
+      partOfSpeech: partOfSpeech == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partOfSpeech),
+      exampleSentence: exampleSentence == null && nullToAbsent
+          ? const Value.absent()
+          : Value(exampleSentence),
+    );
+  }
+
+  factory Word.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Word(
+      id: serializer.fromJson<int>(json['id']),
+      term: serializer.fromJson<String>(json['term']),
+      translation: serializer.fromJson<String>(json['translation']),
+      transcription: serializer.fromJson<String?>(json['transcription']),
+      partOfSpeech: serializer.fromJson<String?>(json['partOfSpeech']),
+      exampleSentence: serializer.fromJson<String?>(json['exampleSentence']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'term': serializer.toJson<String>(term),
+      'translation': serializer.toJson<String>(translation),
+      'transcription': serializer.toJson<String?>(transcription),
+      'partOfSpeech': serializer.toJson<String?>(partOfSpeech),
+      'exampleSentence': serializer.toJson<String?>(exampleSentence),
+    };
+  }
+
+  Word copyWith({
+    int? id,
+    String? term,
+    String? translation,
+    Value<String?> transcription = const Value.absent(),
+    Value<String?> partOfSpeech = const Value.absent(),
+    Value<String?> exampleSentence = const Value.absent(),
+  }) => Word(
+    id: id ?? this.id,
+    term: term ?? this.term,
+    translation: translation ?? this.translation,
+    transcription: transcription.present
+        ? transcription.value
+        : this.transcription,
+    partOfSpeech: partOfSpeech.present ? partOfSpeech.value : this.partOfSpeech,
+    exampleSentence: exampleSentence.present
+        ? exampleSentence.value
+        : this.exampleSentence,
+  );
+  Word copyWithCompanion(WordsCompanion data) {
+    return Word(
+      id: data.id.present ? data.id.value : this.id,
+      term: data.term.present ? data.term.value : this.term,
+      translation: data.translation.present
+          ? data.translation.value
+          : this.translation,
+      transcription: data.transcription.present
+          ? data.transcription.value
+          : this.transcription,
+      partOfSpeech: data.partOfSpeech.present
+          ? data.partOfSpeech.value
+          : this.partOfSpeech,
+      exampleSentence: data.exampleSentence.present
+          ? data.exampleSentence.value
+          : this.exampleSentence,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Word(')
+          ..write('id: $id, ')
+          ..write('term: $term, ')
+          ..write('translation: $translation, ')
+          ..write('transcription: $transcription, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('exampleSentence: $exampleSentence')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    term,
+    translation,
+    transcription,
+    partOfSpeech,
+    exampleSentence,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Word &&
+          other.id == this.id &&
+          other.term == this.term &&
+          other.translation == this.translation &&
+          other.transcription == this.transcription &&
+          other.partOfSpeech == this.partOfSpeech &&
+          other.exampleSentence == this.exampleSentence);
+}
+
+class WordsCompanion extends UpdateCompanion<Word> {
+  final Value<int> id;
+  final Value<String> term;
+  final Value<String> translation;
+  final Value<String?> transcription;
+  final Value<String?> partOfSpeech;
+  final Value<String?> exampleSentence;
+  const WordsCompanion({
+    this.id = const Value.absent(),
+    this.term = const Value.absent(),
+    this.translation = const Value.absent(),
+    this.transcription = const Value.absent(),
+    this.partOfSpeech = const Value.absent(),
+    this.exampleSentence = const Value.absent(),
+  });
+  WordsCompanion.insert({
+    this.id = const Value.absent(),
+    required String term,
+    required String translation,
+    this.transcription = const Value.absent(),
+    this.partOfSpeech = const Value.absent(),
+    this.exampleSentence = const Value.absent(),
+  }) : term = Value(term),
+       translation = Value(translation);
+  static Insertable<Word> custom({
+    Expression<int>? id,
+    Expression<String>? term,
+    Expression<String>? translation,
+    Expression<String>? transcription,
+    Expression<String>? partOfSpeech,
+    Expression<String>? exampleSentence,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (term != null) 'term': term,
+      if (translation != null) 'translation': translation,
+      if (transcription != null) 'transcription': transcription,
+      if (partOfSpeech != null) 'part_of_speech': partOfSpeech,
+      if (exampleSentence != null) 'example_sentence': exampleSentence,
+    });
+  }
+
+  WordsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? term,
+    Value<String>? translation,
+    Value<String?>? transcription,
+    Value<String?>? partOfSpeech,
+    Value<String?>? exampleSentence,
+  }) {
+    return WordsCompanion(
+      id: id ?? this.id,
+      term: term ?? this.term,
+      translation: translation ?? this.translation,
+      transcription: transcription ?? this.transcription,
+      partOfSpeech: partOfSpeech ?? this.partOfSpeech,
+      exampleSentence: exampleSentence ?? this.exampleSentence,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (term.present) {
+      map['term'] = Variable<String>(term.value);
+    }
+    if (translation.present) {
+      map['translation'] = Variable<String>(translation.value);
+    }
+    if (transcription.present) {
+      map['transcription'] = Variable<String>(transcription.value);
+    }
+    if (partOfSpeech.present) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech.value);
+    }
+    if (exampleSentence.present) {
+      map['example_sentence'] = Variable<String>(exampleSentence.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordsCompanion(')
+          ..write('id: $id, ')
+          ..write('term: $term, ')
+          ..write('translation: $translation, ')
+          ..write('transcription: $transcription, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('exampleSentence: $exampleSentence')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WordProgressesTable extends WordProgresses
+    with TableInfo<$WordProgressesTable, WordProgressRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WordProgressesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _wordIdMeta = const VerificationMeta('wordId');
+  @override
+  late final GeneratedColumn<int> wordId = GeneratedColumn<int>(
+    'word_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES words (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _easePermilleMeta = const VerificationMeta(
+    'easePermille',
+  );
+  @override
+  late final GeneratedColumn<int> easePermille = GeneratedColumn<int>(
+    'ease_permille',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
+    'intervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
+    'interval_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _repetitionsMeta = const VerificationMeta(
+    'repetitions',
+  );
+  @override
+  late final GeneratedColumn<int> repetitions = GeneratedColumn<int>(
+    'repetitions',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lapsesMeta = const VerificationMeta('lapses');
+  @override
+  late final GeneratedColumn<int> lapses = GeneratedColumn<int>(
+    'lapses',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueAtUtcMeta = const VerificationMeta(
+    'dueAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> dueAtUtc = GeneratedColumn<int>(
+    'due_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _firstSeenAtUtcMeta = const VerificationMeta(
+    'firstSeenAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> firstSeenAtUtc = GeneratedColumn<int>(
+    'first_seen_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastReviewedAtUtcMeta = const VerificationMeta(
+    'lastReviewedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> lastReviewedAtUtc = GeneratedColumn<int>(
+    'last_reviewed_at_utc',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    wordId,
+    easePermille,
+    intervalDays,
+    repetitions,
+    lapses,
+    dueAtUtc,
+    status,
+    firstSeenAtUtc,
+    lastReviewedAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'word_progresses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WordProgressRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('word_id')) {
+      context.handle(
+        _wordIdMeta,
+        wordId.isAcceptableOrUnknown(data['word_id']!, _wordIdMeta),
+      );
+    }
+    if (data.containsKey('ease_permille')) {
+      context.handle(
+        _easePermilleMeta,
+        easePermille.isAcceptableOrUnknown(
+          data['ease_permille']!,
+          _easePermilleMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_easePermilleMeta);
+    }
+    if (data.containsKey('interval_days')) {
+      context.handle(
+        _intervalDaysMeta,
+        intervalDays.isAcceptableOrUnknown(
+          data['interval_days']!,
+          _intervalDaysMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_intervalDaysMeta);
+    }
+    if (data.containsKey('repetitions')) {
+      context.handle(
+        _repetitionsMeta,
+        repetitions.isAcceptableOrUnknown(
+          data['repetitions']!,
+          _repetitionsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_repetitionsMeta);
+    }
+    if (data.containsKey('lapses')) {
+      context.handle(
+        _lapsesMeta,
+        lapses.isAcceptableOrUnknown(data['lapses']!, _lapsesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_lapsesMeta);
+    }
+    if (data.containsKey('due_at_utc')) {
+      context.handle(
+        _dueAtUtcMeta,
+        dueAtUtc.isAcceptableOrUnknown(data['due_at_utc']!, _dueAtUtcMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueAtUtcMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('first_seen_at_utc')) {
+      context.handle(
+        _firstSeenAtUtcMeta,
+        firstSeenAtUtc.isAcceptableOrUnknown(
+          data['first_seen_at_utc']!,
+          _firstSeenAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_firstSeenAtUtcMeta);
+    }
+    if (data.containsKey('last_reviewed_at_utc')) {
+      context.handle(
+        _lastReviewedAtUtcMeta,
+        lastReviewedAtUtc.isAcceptableOrUnknown(
+          data['last_reviewed_at_utc']!,
+          _lastReviewedAtUtcMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {wordId};
+  @override
+  WordProgressRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WordProgressRow(
+      wordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}word_id'],
+      )!,
+      easePermille: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}ease_permille'],
+      )!,
+      intervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_days'],
+      )!,
+      repetitions: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}repetitions'],
+      )!,
+      lapses: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lapses'],
+      )!,
+      dueAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due_at_utc'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      firstSeenAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}first_seen_at_utc'],
+      )!,
+      lastReviewedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}last_reviewed_at_utc'],
+      ),
+    );
+  }
+
+  @override
+  $WordProgressesTable createAlias(String alias) {
+    return $WordProgressesTable(attachedDatabase, alias);
+  }
+}
+
+class WordProgressRow extends DataClass implements Insertable<WordProgressRow> {
+  /// Ссылка на слово; удаление слова удаляет прогресс.
+  final int wordId;
+
+  /// Ease-фактор SM-2, умноженный на 1000.
+  final int easePermille;
+
+  /// Текущий интервал в днях.
+  final int intervalDays;
+
+  /// Успешных повторений подряд.
+  final int repetitions;
+
+  /// Провалов.
+  final int lapses;
+
+  /// Момент следующего показа, миллисекунды UTC.
+  final int dueAtUtc;
+
+  /// Статус: `newWord` | `learning` | `mastered`.
+  final String status;
+
+  /// Первое появление, миллисекунды UTC.
+  final int firstSeenAtUtc;
+
+  /// Последний ответ, миллисекунды UTC; null — не отвечали.
+  final int? lastReviewedAtUtc;
+  const WordProgressRow({
+    required this.wordId,
+    required this.easePermille,
+    required this.intervalDays,
+    required this.repetitions,
+    required this.lapses,
+    required this.dueAtUtc,
+    required this.status,
+    required this.firstSeenAtUtc,
+    this.lastReviewedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['word_id'] = Variable<int>(wordId);
+    map['ease_permille'] = Variable<int>(easePermille);
+    map['interval_days'] = Variable<int>(intervalDays);
+    map['repetitions'] = Variable<int>(repetitions);
+    map['lapses'] = Variable<int>(lapses);
+    map['due_at_utc'] = Variable<int>(dueAtUtc);
+    map['status'] = Variable<String>(status);
+    map['first_seen_at_utc'] = Variable<int>(firstSeenAtUtc);
+    if (!nullToAbsent || lastReviewedAtUtc != null) {
+      map['last_reviewed_at_utc'] = Variable<int>(lastReviewedAtUtc);
+    }
+    return map;
+  }
+
+  WordProgressesCompanion toCompanion(bool nullToAbsent) {
+    return WordProgressesCompanion(
+      wordId: Value(wordId),
+      easePermille: Value(easePermille),
+      intervalDays: Value(intervalDays),
+      repetitions: Value(repetitions),
+      lapses: Value(lapses),
+      dueAtUtc: Value(dueAtUtc),
+      status: Value(status),
+      firstSeenAtUtc: Value(firstSeenAtUtc),
+      lastReviewedAtUtc: lastReviewedAtUtc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastReviewedAtUtc),
+    );
+  }
+
+  factory WordProgressRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WordProgressRow(
+      wordId: serializer.fromJson<int>(json['wordId']),
+      easePermille: serializer.fromJson<int>(json['easePermille']),
+      intervalDays: serializer.fromJson<int>(json['intervalDays']),
+      repetitions: serializer.fromJson<int>(json['repetitions']),
+      lapses: serializer.fromJson<int>(json['lapses']),
+      dueAtUtc: serializer.fromJson<int>(json['dueAtUtc']),
+      status: serializer.fromJson<String>(json['status']),
+      firstSeenAtUtc: serializer.fromJson<int>(json['firstSeenAtUtc']),
+      lastReviewedAtUtc: serializer.fromJson<int?>(json['lastReviewedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'wordId': serializer.toJson<int>(wordId),
+      'easePermille': serializer.toJson<int>(easePermille),
+      'intervalDays': serializer.toJson<int>(intervalDays),
+      'repetitions': serializer.toJson<int>(repetitions),
+      'lapses': serializer.toJson<int>(lapses),
+      'dueAtUtc': serializer.toJson<int>(dueAtUtc),
+      'status': serializer.toJson<String>(status),
+      'firstSeenAtUtc': serializer.toJson<int>(firstSeenAtUtc),
+      'lastReviewedAtUtc': serializer.toJson<int?>(lastReviewedAtUtc),
+    };
+  }
+
+  WordProgressRow copyWith({
+    int? wordId,
+    int? easePermille,
+    int? intervalDays,
+    int? repetitions,
+    int? lapses,
+    int? dueAtUtc,
+    String? status,
+    int? firstSeenAtUtc,
+    Value<int?> lastReviewedAtUtc = const Value.absent(),
+  }) => WordProgressRow(
+    wordId: wordId ?? this.wordId,
+    easePermille: easePermille ?? this.easePermille,
+    intervalDays: intervalDays ?? this.intervalDays,
+    repetitions: repetitions ?? this.repetitions,
+    lapses: lapses ?? this.lapses,
+    dueAtUtc: dueAtUtc ?? this.dueAtUtc,
+    status: status ?? this.status,
+    firstSeenAtUtc: firstSeenAtUtc ?? this.firstSeenAtUtc,
+    lastReviewedAtUtc: lastReviewedAtUtc.present
+        ? lastReviewedAtUtc.value
+        : this.lastReviewedAtUtc,
+  );
+  WordProgressRow copyWithCompanion(WordProgressesCompanion data) {
+    return WordProgressRow(
+      wordId: data.wordId.present ? data.wordId.value : this.wordId,
+      easePermille: data.easePermille.present
+          ? data.easePermille.value
+          : this.easePermille,
+      intervalDays: data.intervalDays.present
+          ? data.intervalDays.value
+          : this.intervalDays,
+      repetitions: data.repetitions.present
+          ? data.repetitions.value
+          : this.repetitions,
+      lapses: data.lapses.present ? data.lapses.value : this.lapses,
+      dueAtUtc: data.dueAtUtc.present ? data.dueAtUtc.value : this.dueAtUtc,
+      status: data.status.present ? data.status.value : this.status,
+      firstSeenAtUtc: data.firstSeenAtUtc.present
+          ? data.firstSeenAtUtc.value
+          : this.firstSeenAtUtc,
+      lastReviewedAtUtc: data.lastReviewedAtUtc.present
+          ? data.lastReviewedAtUtc.value
+          : this.lastReviewedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordProgressRow(')
+          ..write('wordId: $wordId, ')
+          ..write('easePermille: $easePermille, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('repetitions: $repetitions, ')
+          ..write('lapses: $lapses, ')
+          ..write('dueAtUtc: $dueAtUtc, ')
+          ..write('status: $status, ')
+          ..write('firstSeenAtUtc: $firstSeenAtUtc, ')
+          ..write('lastReviewedAtUtc: $lastReviewedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    wordId,
+    easePermille,
+    intervalDays,
+    repetitions,
+    lapses,
+    dueAtUtc,
+    status,
+    firstSeenAtUtc,
+    lastReviewedAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WordProgressRow &&
+          other.wordId == this.wordId &&
+          other.easePermille == this.easePermille &&
+          other.intervalDays == this.intervalDays &&
+          other.repetitions == this.repetitions &&
+          other.lapses == this.lapses &&
+          other.dueAtUtc == this.dueAtUtc &&
+          other.status == this.status &&
+          other.firstSeenAtUtc == this.firstSeenAtUtc &&
+          other.lastReviewedAtUtc == this.lastReviewedAtUtc);
+}
+
+class WordProgressesCompanion extends UpdateCompanion<WordProgressRow> {
+  final Value<int> wordId;
+  final Value<int> easePermille;
+  final Value<int> intervalDays;
+  final Value<int> repetitions;
+  final Value<int> lapses;
+  final Value<int> dueAtUtc;
+  final Value<String> status;
+  final Value<int> firstSeenAtUtc;
+  final Value<int?> lastReviewedAtUtc;
+  const WordProgressesCompanion({
+    this.wordId = const Value.absent(),
+    this.easePermille = const Value.absent(),
+    this.intervalDays = const Value.absent(),
+    this.repetitions = const Value.absent(),
+    this.lapses = const Value.absent(),
+    this.dueAtUtc = const Value.absent(),
+    this.status = const Value.absent(),
+    this.firstSeenAtUtc = const Value.absent(),
+    this.lastReviewedAtUtc = const Value.absent(),
+  });
+  WordProgressesCompanion.insert({
+    this.wordId = const Value.absent(),
+    required int easePermille,
+    required int intervalDays,
+    required int repetitions,
+    required int lapses,
+    required int dueAtUtc,
+    required String status,
+    required int firstSeenAtUtc,
+    this.lastReviewedAtUtc = const Value.absent(),
+  }) : easePermille = Value(easePermille),
+       intervalDays = Value(intervalDays),
+       repetitions = Value(repetitions),
+       lapses = Value(lapses),
+       dueAtUtc = Value(dueAtUtc),
+       status = Value(status),
+       firstSeenAtUtc = Value(firstSeenAtUtc);
+  static Insertable<WordProgressRow> custom({
+    Expression<int>? wordId,
+    Expression<int>? easePermille,
+    Expression<int>? intervalDays,
+    Expression<int>? repetitions,
+    Expression<int>? lapses,
+    Expression<int>? dueAtUtc,
+    Expression<String>? status,
+    Expression<int>? firstSeenAtUtc,
+    Expression<int>? lastReviewedAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (wordId != null) 'word_id': wordId,
+      if (easePermille != null) 'ease_permille': easePermille,
+      if (intervalDays != null) 'interval_days': intervalDays,
+      if (repetitions != null) 'repetitions': repetitions,
+      if (lapses != null) 'lapses': lapses,
+      if (dueAtUtc != null) 'due_at_utc': dueAtUtc,
+      if (status != null) 'status': status,
+      if (firstSeenAtUtc != null) 'first_seen_at_utc': firstSeenAtUtc,
+      if (lastReviewedAtUtc != null) 'last_reviewed_at_utc': lastReviewedAtUtc,
+    });
+  }
+
+  WordProgressesCompanion copyWith({
+    Value<int>? wordId,
+    Value<int>? easePermille,
+    Value<int>? intervalDays,
+    Value<int>? repetitions,
+    Value<int>? lapses,
+    Value<int>? dueAtUtc,
+    Value<String>? status,
+    Value<int>? firstSeenAtUtc,
+    Value<int?>? lastReviewedAtUtc,
+  }) {
+    return WordProgressesCompanion(
+      wordId: wordId ?? this.wordId,
+      easePermille: easePermille ?? this.easePermille,
+      intervalDays: intervalDays ?? this.intervalDays,
+      repetitions: repetitions ?? this.repetitions,
+      lapses: lapses ?? this.lapses,
+      dueAtUtc: dueAtUtc ?? this.dueAtUtc,
+      status: status ?? this.status,
+      firstSeenAtUtc: firstSeenAtUtc ?? this.firstSeenAtUtc,
+      lastReviewedAtUtc: lastReviewedAtUtc ?? this.lastReviewedAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (wordId.present) {
+      map['word_id'] = Variable<int>(wordId.value);
+    }
+    if (easePermille.present) {
+      map['ease_permille'] = Variable<int>(easePermille.value);
+    }
+    if (intervalDays.present) {
+      map['interval_days'] = Variable<int>(intervalDays.value);
+    }
+    if (repetitions.present) {
+      map['repetitions'] = Variable<int>(repetitions.value);
+    }
+    if (lapses.present) {
+      map['lapses'] = Variable<int>(lapses.value);
+    }
+    if (dueAtUtc.present) {
+      map['due_at_utc'] = Variable<int>(dueAtUtc.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (firstSeenAtUtc.present) {
+      map['first_seen_at_utc'] = Variable<int>(firstSeenAtUtc.value);
+    }
+    if (lastReviewedAtUtc.present) {
+      map['last_reviewed_at_utc'] = Variable<int>(lastReviewedAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordProgressesCompanion(')
+          ..write('wordId: $wordId, ')
+          ..write('easePermille: $easePermille, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('repetitions: $repetitions, ')
+          ..write('lapses: $lapses, ')
+          ..write('dueAtUtc: $dueAtUtc, ')
+          ..write('status: $status, ')
+          ..write('firstSeenAtUtc: $firstSeenAtUtc, ')
+          ..write('lastReviewedAtUtc: $lastReviewedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ReviewLogsTable extends ReviewLogs
+    with TableInfo<$ReviewLogsTable, ReviewLogRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ReviewLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _wordIdMeta = const VerificationMeta('wordId');
+  @override
+  late final GeneratedColumn<int> wordId = GeneratedColumn<int>(
+    'word_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewedAtUtcMeta = const VerificationMeta(
+    'reviewedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> reviewedAtUtc = GeneratedColumn<int>(
+    'reviewed_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gradeMeta = const VerificationMeta('grade');
+  @override
+  late final GeneratedColumn<String> grade = GeneratedColumn<String>(
+    'grade',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _prevEasePermilleMeta = const VerificationMeta(
+    'prevEasePermille',
+  );
+  @override
+  late final GeneratedColumn<int> prevEasePermille = GeneratedColumn<int>(
+    'prev_ease_permille',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _prevIntervalDaysMeta = const VerificationMeta(
+    'prevIntervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> prevIntervalDays = GeneratedColumn<int>(
+    'prev_interval_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _prevRepetitionsMeta = const VerificationMeta(
+    'prevRepetitions',
+  );
+  @override
+  late final GeneratedColumn<int> prevRepetitions = GeneratedColumn<int>(
+    'prev_repetitions',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _prevLapsesMeta = const VerificationMeta(
+    'prevLapses',
+  );
+  @override
+  late final GeneratedColumn<int> prevLapses = GeneratedColumn<int>(
+    'prev_lapses',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _prevDueAtUtcMeta = const VerificationMeta(
+    'prevDueAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> prevDueAtUtc = GeneratedColumn<int>(
+    'prev_due_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _newEasePermilleMeta = const VerificationMeta(
+    'newEasePermille',
+  );
+  @override
+  late final GeneratedColumn<int> newEasePermille = GeneratedColumn<int>(
+    'new_ease_permille',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _newIntervalDaysMeta = const VerificationMeta(
+    'newIntervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> newIntervalDays = GeneratedColumn<int>(
+    'new_interval_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _newRepetitionsMeta = const VerificationMeta(
+    'newRepetitions',
+  );
+  @override
+  late final GeneratedColumn<int> newRepetitions = GeneratedColumn<int>(
+    'new_repetitions',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _newLapsesMeta = const VerificationMeta(
+    'newLapses',
+  );
+  @override
+  late final GeneratedColumn<int> newLapses = GeneratedColumn<int>(
+    'new_lapses',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _newDueAtUtcMeta = const VerificationMeta(
+    'newDueAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> newDueAtUtc = GeneratedColumn<int>(
+    'new_due_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    wordId,
+    reviewedAtUtc,
+    grade,
+    prevEasePermille,
+    prevIntervalDays,
+    prevRepetitions,
+    prevLapses,
+    prevDueAtUtc,
+    newEasePermille,
+    newIntervalDays,
+    newRepetitions,
+    newLapses,
+    newDueAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ReviewLogRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('word_id')) {
+      context.handle(
+        _wordIdMeta,
+        wordId.isAcceptableOrUnknown(data['word_id']!, _wordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_wordIdMeta);
+    }
+    if (data.containsKey('reviewed_at_utc')) {
+      context.handle(
+        _reviewedAtUtcMeta,
+        reviewedAtUtc.isAcceptableOrUnknown(
+          data['reviewed_at_utc']!,
+          _reviewedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewedAtUtcMeta);
+    }
+    if (data.containsKey('grade')) {
+      context.handle(
+        _gradeMeta,
+        grade.isAcceptableOrUnknown(data['grade']!, _gradeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gradeMeta);
+    }
+    if (data.containsKey('prev_ease_permille')) {
+      context.handle(
+        _prevEasePermilleMeta,
+        prevEasePermille.isAcceptableOrUnknown(
+          data['prev_ease_permille']!,
+          _prevEasePermilleMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_prevEasePermilleMeta);
+    }
+    if (data.containsKey('prev_interval_days')) {
+      context.handle(
+        _prevIntervalDaysMeta,
+        prevIntervalDays.isAcceptableOrUnknown(
+          data['prev_interval_days']!,
+          _prevIntervalDaysMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_prevIntervalDaysMeta);
+    }
+    if (data.containsKey('prev_repetitions')) {
+      context.handle(
+        _prevRepetitionsMeta,
+        prevRepetitions.isAcceptableOrUnknown(
+          data['prev_repetitions']!,
+          _prevRepetitionsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_prevRepetitionsMeta);
+    }
+    if (data.containsKey('prev_lapses')) {
+      context.handle(
+        _prevLapsesMeta,
+        prevLapses.isAcceptableOrUnknown(data['prev_lapses']!, _prevLapsesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_prevLapsesMeta);
+    }
+    if (data.containsKey('prev_due_at_utc')) {
+      context.handle(
+        _prevDueAtUtcMeta,
+        prevDueAtUtc.isAcceptableOrUnknown(
+          data['prev_due_at_utc']!,
+          _prevDueAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_prevDueAtUtcMeta);
+    }
+    if (data.containsKey('new_ease_permille')) {
+      context.handle(
+        _newEasePermilleMeta,
+        newEasePermille.isAcceptableOrUnknown(
+          data['new_ease_permille']!,
+          _newEasePermilleMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_newEasePermilleMeta);
+    }
+    if (data.containsKey('new_interval_days')) {
+      context.handle(
+        _newIntervalDaysMeta,
+        newIntervalDays.isAcceptableOrUnknown(
+          data['new_interval_days']!,
+          _newIntervalDaysMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_newIntervalDaysMeta);
+    }
+    if (data.containsKey('new_repetitions')) {
+      context.handle(
+        _newRepetitionsMeta,
+        newRepetitions.isAcceptableOrUnknown(
+          data['new_repetitions']!,
+          _newRepetitionsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_newRepetitionsMeta);
+    }
+    if (data.containsKey('new_lapses')) {
+      context.handle(
+        _newLapsesMeta,
+        newLapses.isAcceptableOrUnknown(data['new_lapses']!, _newLapsesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_newLapsesMeta);
+    }
+    if (data.containsKey('new_due_at_utc')) {
+      context.handle(
+        _newDueAtUtcMeta,
+        newDueAtUtc.isAcceptableOrUnknown(
+          data['new_due_at_utc']!,
+          _newDueAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_newDueAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReviewLogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewLogRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      wordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}word_id'],
+      )!,
+      reviewedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviewed_at_utc'],
+      )!,
+      grade: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}grade'],
+      )!,
+      prevEasePermille: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prev_ease_permille'],
+      )!,
+      prevIntervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prev_interval_days'],
+      )!,
+      prevRepetitions: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prev_repetitions'],
+      )!,
+      prevLapses: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prev_lapses'],
+      )!,
+      prevDueAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}prev_due_at_utc'],
+      )!,
+      newEasePermille: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_ease_permille'],
+      )!,
+      newIntervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_interval_days'],
+      )!,
+      newRepetitions: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_repetitions'],
+      )!,
+      newLapses: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_lapses'],
+      )!,
+      newDueAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_due_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $ReviewLogsTable createAlias(String alias) {
+    return $ReviewLogsTable(attachedDatabase, alias);
+  }
+}
+
+class ReviewLogRow extends DataClass implements Insertable<ReviewLogRow> {
+  /// Идентификатор записи журнала.
+  final int id;
+
+  /// Слово, к которому относится ответ. Без FK — см. dartdoc класса.
+  final int wordId;
+
+  /// Момент ответа, миллисекунды UTC.
+  final int reviewedAtUtc;
+
+  /// Оценка: `again` | `hard` | `good` | `easy`.
+  final String grade;
+
+  /// Ease до ответа.
+  final int prevEasePermille;
+
+  /// Интервал до ответа.
+  final int prevIntervalDays;
+
+  /// Повторений до ответа.
+  final int prevRepetitions;
+
+  /// Провалов до ответа.
+  final int prevLapses;
+
+  /// Дедлайн до ответа, миллисекунды UTC.
+  final int prevDueAtUtc;
+
+  /// Ease после ответа.
+  final int newEasePermille;
+
+  /// Интервал после ответа.
+  final int newIntervalDays;
+
+  /// Повторений после ответа.
+  final int newRepetitions;
+
+  /// Провалов после ответа.
+  final int newLapses;
+
+  /// Дедлайн после ответа, миллисекунды UTC.
+  final int newDueAtUtc;
+  const ReviewLogRow({
+    required this.id,
+    required this.wordId,
+    required this.reviewedAtUtc,
+    required this.grade,
+    required this.prevEasePermille,
+    required this.prevIntervalDays,
+    required this.prevRepetitions,
+    required this.prevLapses,
+    required this.prevDueAtUtc,
+    required this.newEasePermille,
+    required this.newIntervalDays,
+    required this.newRepetitions,
+    required this.newLapses,
+    required this.newDueAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['word_id'] = Variable<int>(wordId);
+    map['reviewed_at_utc'] = Variable<int>(reviewedAtUtc);
+    map['grade'] = Variable<String>(grade);
+    map['prev_ease_permille'] = Variable<int>(prevEasePermille);
+    map['prev_interval_days'] = Variable<int>(prevIntervalDays);
+    map['prev_repetitions'] = Variable<int>(prevRepetitions);
+    map['prev_lapses'] = Variable<int>(prevLapses);
+    map['prev_due_at_utc'] = Variable<int>(prevDueAtUtc);
+    map['new_ease_permille'] = Variable<int>(newEasePermille);
+    map['new_interval_days'] = Variable<int>(newIntervalDays);
+    map['new_repetitions'] = Variable<int>(newRepetitions);
+    map['new_lapses'] = Variable<int>(newLapses);
+    map['new_due_at_utc'] = Variable<int>(newDueAtUtc);
+    return map;
+  }
+
+  ReviewLogsCompanion toCompanion(bool nullToAbsent) {
+    return ReviewLogsCompanion(
+      id: Value(id),
+      wordId: Value(wordId),
+      reviewedAtUtc: Value(reviewedAtUtc),
+      grade: Value(grade),
+      prevEasePermille: Value(prevEasePermille),
+      prevIntervalDays: Value(prevIntervalDays),
+      prevRepetitions: Value(prevRepetitions),
+      prevLapses: Value(prevLapses),
+      prevDueAtUtc: Value(prevDueAtUtc),
+      newEasePermille: Value(newEasePermille),
+      newIntervalDays: Value(newIntervalDays),
+      newRepetitions: Value(newRepetitions),
+      newLapses: Value(newLapses),
+      newDueAtUtc: Value(newDueAtUtc),
+    );
+  }
+
+  factory ReviewLogRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewLogRow(
+      id: serializer.fromJson<int>(json['id']),
+      wordId: serializer.fromJson<int>(json['wordId']),
+      reviewedAtUtc: serializer.fromJson<int>(json['reviewedAtUtc']),
+      grade: serializer.fromJson<String>(json['grade']),
+      prevEasePermille: serializer.fromJson<int>(json['prevEasePermille']),
+      prevIntervalDays: serializer.fromJson<int>(json['prevIntervalDays']),
+      prevRepetitions: serializer.fromJson<int>(json['prevRepetitions']),
+      prevLapses: serializer.fromJson<int>(json['prevLapses']),
+      prevDueAtUtc: serializer.fromJson<int>(json['prevDueAtUtc']),
+      newEasePermille: serializer.fromJson<int>(json['newEasePermille']),
+      newIntervalDays: serializer.fromJson<int>(json['newIntervalDays']),
+      newRepetitions: serializer.fromJson<int>(json['newRepetitions']),
+      newLapses: serializer.fromJson<int>(json['newLapses']),
+      newDueAtUtc: serializer.fromJson<int>(json['newDueAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'wordId': serializer.toJson<int>(wordId),
+      'reviewedAtUtc': serializer.toJson<int>(reviewedAtUtc),
+      'grade': serializer.toJson<String>(grade),
+      'prevEasePermille': serializer.toJson<int>(prevEasePermille),
+      'prevIntervalDays': serializer.toJson<int>(prevIntervalDays),
+      'prevRepetitions': serializer.toJson<int>(prevRepetitions),
+      'prevLapses': serializer.toJson<int>(prevLapses),
+      'prevDueAtUtc': serializer.toJson<int>(prevDueAtUtc),
+      'newEasePermille': serializer.toJson<int>(newEasePermille),
+      'newIntervalDays': serializer.toJson<int>(newIntervalDays),
+      'newRepetitions': serializer.toJson<int>(newRepetitions),
+      'newLapses': serializer.toJson<int>(newLapses),
+      'newDueAtUtc': serializer.toJson<int>(newDueAtUtc),
+    };
+  }
+
+  ReviewLogRow copyWith({
+    int? id,
+    int? wordId,
+    int? reviewedAtUtc,
+    String? grade,
+    int? prevEasePermille,
+    int? prevIntervalDays,
+    int? prevRepetitions,
+    int? prevLapses,
+    int? prevDueAtUtc,
+    int? newEasePermille,
+    int? newIntervalDays,
+    int? newRepetitions,
+    int? newLapses,
+    int? newDueAtUtc,
+  }) => ReviewLogRow(
+    id: id ?? this.id,
+    wordId: wordId ?? this.wordId,
+    reviewedAtUtc: reviewedAtUtc ?? this.reviewedAtUtc,
+    grade: grade ?? this.grade,
+    prevEasePermille: prevEasePermille ?? this.prevEasePermille,
+    prevIntervalDays: prevIntervalDays ?? this.prevIntervalDays,
+    prevRepetitions: prevRepetitions ?? this.prevRepetitions,
+    prevLapses: prevLapses ?? this.prevLapses,
+    prevDueAtUtc: prevDueAtUtc ?? this.prevDueAtUtc,
+    newEasePermille: newEasePermille ?? this.newEasePermille,
+    newIntervalDays: newIntervalDays ?? this.newIntervalDays,
+    newRepetitions: newRepetitions ?? this.newRepetitions,
+    newLapses: newLapses ?? this.newLapses,
+    newDueAtUtc: newDueAtUtc ?? this.newDueAtUtc,
+  );
+  ReviewLogRow copyWithCompanion(ReviewLogsCompanion data) {
+    return ReviewLogRow(
+      id: data.id.present ? data.id.value : this.id,
+      wordId: data.wordId.present ? data.wordId.value : this.wordId,
+      reviewedAtUtc: data.reviewedAtUtc.present
+          ? data.reviewedAtUtc.value
+          : this.reviewedAtUtc,
+      grade: data.grade.present ? data.grade.value : this.grade,
+      prevEasePermille: data.prevEasePermille.present
+          ? data.prevEasePermille.value
+          : this.prevEasePermille,
+      prevIntervalDays: data.prevIntervalDays.present
+          ? data.prevIntervalDays.value
+          : this.prevIntervalDays,
+      prevRepetitions: data.prevRepetitions.present
+          ? data.prevRepetitions.value
+          : this.prevRepetitions,
+      prevLapses: data.prevLapses.present
+          ? data.prevLapses.value
+          : this.prevLapses,
+      prevDueAtUtc: data.prevDueAtUtc.present
+          ? data.prevDueAtUtc.value
+          : this.prevDueAtUtc,
+      newEasePermille: data.newEasePermille.present
+          ? data.newEasePermille.value
+          : this.newEasePermille,
+      newIntervalDays: data.newIntervalDays.present
+          ? data.newIntervalDays.value
+          : this.newIntervalDays,
+      newRepetitions: data.newRepetitions.present
+          ? data.newRepetitions.value
+          : this.newRepetitions,
+      newLapses: data.newLapses.present ? data.newLapses.value : this.newLapses,
+      newDueAtUtc: data.newDueAtUtc.present
+          ? data.newDueAtUtc.value
+          : this.newDueAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewLogRow(')
+          ..write('id: $id, ')
+          ..write('wordId: $wordId, ')
+          ..write('reviewedAtUtc: $reviewedAtUtc, ')
+          ..write('grade: $grade, ')
+          ..write('prevEasePermille: $prevEasePermille, ')
+          ..write('prevIntervalDays: $prevIntervalDays, ')
+          ..write('prevRepetitions: $prevRepetitions, ')
+          ..write('prevLapses: $prevLapses, ')
+          ..write('prevDueAtUtc: $prevDueAtUtc, ')
+          ..write('newEasePermille: $newEasePermille, ')
+          ..write('newIntervalDays: $newIntervalDays, ')
+          ..write('newRepetitions: $newRepetitions, ')
+          ..write('newLapses: $newLapses, ')
+          ..write('newDueAtUtc: $newDueAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    wordId,
+    reviewedAtUtc,
+    grade,
+    prevEasePermille,
+    prevIntervalDays,
+    prevRepetitions,
+    prevLapses,
+    prevDueAtUtc,
+    newEasePermille,
+    newIntervalDays,
+    newRepetitions,
+    newLapses,
+    newDueAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewLogRow &&
+          other.id == this.id &&
+          other.wordId == this.wordId &&
+          other.reviewedAtUtc == this.reviewedAtUtc &&
+          other.grade == this.grade &&
+          other.prevEasePermille == this.prevEasePermille &&
+          other.prevIntervalDays == this.prevIntervalDays &&
+          other.prevRepetitions == this.prevRepetitions &&
+          other.prevLapses == this.prevLapses &&
+          other.prevDueAtUtc == this.prevDueAtUtc &&
+          other.newEasePermille == this.newEasePermille &&
+          other.newIntervalDays == this.newIntervalDays &&
+          other.newRepetitions == this.newRepetitions &&
+          other.newLapses == this.newLapses &&
+          other.newDueAtUtc == this.newDueAtUtc);
+}
+
+class ReviewLogsCompanion extends UpdateCompanion<ReviewLogRow> {
+  final Value<int> id;
+  final Value<int> wordId;
+  final Value<int> reviewedAtUtc;
+  final Value<String> grade;
+  final Value<int> prevEasePermille;
+  final Value<int> prevIntervalDays;
+  final Value<int> prevRepetitions;
+  final Value<int> prevLapses;
+  final Value<int> prevDueAtUtc;
+  final Value<int> newEasePermille;
+  final Value<int> newIntervalDays;
+  final Value<int> newRepetitions;
+  final Value<int> newLapses;
+  final Value<int> newDueAtUtc;
+  const ReviewLogsCompanion({
+    this.id = const Value.absent(),
+    this.wordId = const Value.absent(),
+    this.reviewedAtUtc = const Value.absent(),
+    this.grade = const Value.absent(),
+    this.prevEasePermille = const Value.absent(),
+    this.prevIntervalDays = const Value.absent(),
+    this.prevRepetitions = const Value.absent(),
+    this.prevLapses = const Value.absent(),
+    this.prevDueAtUtc = const Value.absent(),
+    this.newEasePermille = const Value.absent(),
+    this.newIntervalDays = const Value.absent(),
+    this.newRepetitions = const Value.absent(),
+    this.newLapses = const Value.absent(),
+    this.newDueAtUtc = const Value.absent(),
+  });
+  ReviewLogsCompanion.insert({
+    this.id = const Value.absent(),
+    required int wordId,
+    required int reviewedAtUtc,
+    required String grade,
+    required int prevEasePermille,
+    required int prevIntervalDays,
+    required int prevRepetitions,
+    required int prevLapses,
+    required int prevDueAtUtc,
+    required int newEasePermille,
+    required int newIntervalDays,
+    required int newRepetitions,
+    required int newLapses,
+    required int newDueAtUtc,
+  }) : wordId = Value(wordId),
+       reviewedAtUtc = Value(reviewedAtUtc),
+       grade = Value(grade),
+       prevEasePermille = Value(prevEasePermille),
+       prevIntervalDays = Value(prevIntervalDays),
+       prevRepetitions = Value(prevRepetitions),
+       prevLapses = Value(prevLapses),
+       prevDueAtUtc = Value(prevDueAtUtc),
+       newEasePermille = Value(newEasePermille),
+       newIntervalDays = Value(newIntervalDays),
+       newRepetitions = Value(newRepetitions),
+       newLapses = Value(newLapses),
+       newDueAtUtc = Value(newDueAtUtc);
+  static Insertable<ReviewLogRow> custom({
+    Expression<int>? id,
+    Expression<int>? wordId,
+    Expression<int>? reviewedAtUtc,
+    Expression<String>? grade,
+    Expression<int>? prevEasePermille,
+    Expression<int>? prevIntervalDays,
+    Expression<int>? prevRepetitions,
+    Expression<int>? prevLapses,
+    Expression<int>? prevDueAtUtc,
+    Expression<int>? newEasePermille,
+    Expression<int>? newIntervalDays,
+    Expression<int>? newRepetitions,
+    Expression<int>? newLapses,
+    Expression<int>? newDueAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (wordId != null) 'word_id': wordId,
+      if (reviewedAtUtc != null) 'reviewed_at_utc': reviewedAtUtc,
+      if (grade != null) 'grade': grade,
+      if (prevEasePermille != null) 'prev_ease_permille': prevEasePermille,
+      if (prevIntervalDays != null) 'prev_interval_days': prevIntervalDays,
+      if (prevRepetitions != null) 'prev_repetitions': prevRepetitions,
+      if (prevLapses != null) 'prev_lapses': prevLapses,
+      if (prevDueAtUtc != null) 'prev_due_at_utc': prevDueAtUtc,
+      if (newEasePermille != null) 'new_ease_permille': newEasePermille,
+      if (newIntervalDays != null) 'new_interval_days': newIntervalDays,
+      if (newRepetitions != null) 'new_repetitions': newRepetitions,
+      if (newLapses != null) 'new_lapses': newLapses,
+      if (newDueAtUtc != null) 'new_due_at_utc': newDueAtUtc,
+    });
+  }
+
+  ReviewLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? wordId,
+    Value<int>? reviewedAtUtc,
+    Value<String>? grade,
+    Value<int>? prevEasePermille,
+    Value<int>? prevIntervalDays,
+    Value<int>? prevRepetitions,
+    Value<int>? prevLapses,
+    Value<int>? prevDueAtUtc,
+    Value<int>? newEasePermille,
+    Value<int>? newIntervalDays,
+    Value<int>? newRepetitions,
+    Value<int>? newLapses,
+    Value<int>? newDueAtUtc,
+  }) {
+    return ReviewLogsCompanion(
+      id: id ?? this.id,
+      wordId: wordId ?? this.wordId,
+      reviewedAtUtc: reviewedAtUtc ?? this.reviewedAtUtc,
+      grade: grade ?? this.grade,
+      prevEasePermille: prevEasePermille ?? this.prevEasePermille,
+      prevIntervalDays: prevIntervalDays ?? this.prevIntervalDays,
+      prevRepetitions: prevRepetitions ?? this.prevRepetitions,
+      prevLapses: prevLapses ?? this.prevLapses,
+      prevDueAtUtc: prevDueAtUtc ?? this.prevDueAtUtc,
+      newEasePermille: newEasePermille ?? this.newEasePermille,
+      newIntervalDays: newIntervalDays ?? this.newIntervalDays,
+      newRepetitions: newRepetitions ?? this.newRepetitions,
+      newLapses: newLapses ?? this.newLapses,
+      newDueAtUtc: newDueAtUtc ?? this.newDueAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (wordId.present) {
+      map['word_id'] = Variable<int>(wordId.value);
+    }
+    if (reviewedAtUtc.present) {
+      map['reviewed_at_utc'] = Variable<int>(reviewedAtUtc.value);
+    }
+    if (grade.present) {
+      map['grade'] = Variable<String>(grade.value);
+    }
+    if (prevEasePermille.present) {
+      map['prev_ease_permille'] = Variable<int>(prevEasePermille.value);
+    }
+    if (prevIntervalDays.present) {
+      map['prev_interval_days'] = Variable<int>(prevIntervalDays.value);
+    }
+    if (prevRepetitions.present) {
+      map['prev_repetitions'] = Variable<int>(prevRepetitions.value);
+    }
+    if (prevLapses.present) {
+      map['prev_lapses'] = Variable<int>(prevLapses.value);
+    }
+    if (prevDueAtUtc.present) {
+      map['prev_due_at_utc'] = Variable<int>(prevDueAtUtc.value);
+    }
+    if (newEasePermille.present) {
+      map['new_ease_permille'] = Variable<int>(newEasePermille.value);
+    }
+    if (newIntervalDays.present) {
+      map['new_interval_days'] = Variable<int>(newIntervalDays.value);
+    }
+    if (newRepetitions.present) {
+      map['new_repetitions'] = Variable<int>(newRepetitions.value);
+    }
+    if (newLapses.present) {
+      map['new_lapses'] = Variable<int>(newLapses.value);
+    }
+    if (newDueAtUtc.present) {
+      map['new_due_at_utc'] = Variable<int>(newDueAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('wordId: $wordId, ')
+          ..write('reviewedAtUtc: $reviewedAtUtc, ')
+          ..write('grade: $grade, ')
+          ..write('prevEasePermille: $prevEasePermille, ')
+          ..write('prevIntervalDays: $prevIntervalDays, ')
+          ..write('prevRepetitions: $prevRepetitions, ')
+          ..write('prevLapses: $prevLapses, ')
+          ..write('prevDueAtUtc: $prevDueAtUtc, ')
+          ..write('newEasePermille: $newEasePermille, ')
+          ..write('newIntervalDays: $newIntervalDays, ')
+          ..write('newRepetitions: $newRepetitions, ')
+          ..write('newLapses: $newLapses, ')
+          ..write('newDueAtUtc: $newDueAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserSettingsTableTable extends UserSettingsTable
+    with TableInfo<$UserSettingsTableTable, UserSettingsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserSettingsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dailyNewLimitMeta = const VerificationMeta(
+    'dailyNewLimit',
+  );
+  @override
+  late final GeneratedColumn<int> dailyNewLimit = GeneratedColumn<int>(
+    'daily_new_limit',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(10),
+  );
+  static const VerificationMeta _dailyReviewLimitMeta = const VerificationMeta(
+    'dailyReviewLimit',
+  );
+  @override
+  late final GeneratedColumn<int> dailyReviewLimit = GeneratedColumn<int>(
+    'daily_review_limit',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(50),
+  );
+  static const VerificationMeta _remindersEnabledMeta = const VerificationMeta(
+    'remindersEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> remindersEnabled = GeneratedColumn<bool>(
+    'reminders_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("reminders_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _reminderHourMeta = const VerificationMeta(
+    'reminderHour',
+  );
+  @override
+  late final GeneratedColumn<int> reminderHour = GeneratedColumn<int>(
+    'reminder_hour',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(9),
+  );
+  static const VerificationMeta _reminderMinuteMeta = const VerificationMeta(
+    'reminderMinute',
+  );
+  @override
+  late final GeneratedColumn<int> reminderMinute = GeneratedColumn<int>(
+    'reminder_minute',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _ttsVoiceMeta = const VerificationMeta(
+    'ttsVoice',
+  );
+  @override
+  late final GeneratedColumn<String> ttsVoice = GeneratedColumn<String>(
+    'tts_voice',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('en-US'),
+  );
+  static const VerificationMeta _ttsSpeedMeta = const VerificationMeta(
+    'ttsSpeed',
+  );
+  @override
+  late final GeneratedColumn<double> ttsSpeed = GeneratedColumn<double>(
+    'tts_speed',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.5),
+  );
+  static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
+    'updatedAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAtUtc = GeneratedColumn<int>(
+    'updated_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    dailyNewLimit,
+    dailyReviewLimit,
+    remindersEnabled,
+    reminderHour,
+    reminderMinute,
+    ttsVoice,
+    ttsSpeed,
+    updatedAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserSettingsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('daily_new_limit')) {
+      context.handle(
+        _dailyNewLimitMeta,
+        dailyNewLimit.isAcceptableOrUnknown(
+          data['daily_new_limit']!,
+          _dailyNewLimitMeta,
+        ),
+      );
+    }
+    if (data.containsKey('daily_review_limit')) {
+      context.handle(
+        _dailyReviewLimitMeta,
+        dailyReviewLimit.isAcceptableOrUnknown(
+          data['daily_review_limit']!,
+          _dailyReviewLimitMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminders_enabled')) {
+      context.handle(
+        _remindersEnabledMeta,
+        remindersEnabled.isAcceptableOrUnknown(
+          data['reminders_enabled']!,
+          _remindersEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_hour')) {
+      context.handle(
+        _reminderHourMeta,
+        reminderHour.isAcceptableOrUnknown(
+          data['reminder_hour']!,
+          _reminderHourMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reminder_minute')) {
+      context.handle(
+        _reminderMinuteMeta,
+        reminderMinute.isAcceptableOrUnknown(
+          data['reminder_minute']!,
+          _reminderMinuteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('tts_voice')) {
+      context.handle(
+        _ttsVoiceMeta,
+        ttsVoice.isAcceptableOrUnknown(data['tts_voice']!, _ttsVoiceMeta),
+      );
+    }
+    if (data.containsKey('tts_speed')) {
+      context.handle(
+        _ttsSpeedMeta,
+        ttsSpeed.isAcceptableOrUnknown(data['tts_speed']!, _ttsSpeedMeta),
+      );
+    }
+    if (data.containsKey('updated_at_utc')) {
+      context.handle(
+        _updatedAtUtcMeta,
+        updatedAtUtc.isAcceptableOrUnknown(
+          data['updated_at_utc']!,
+          _updatedAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserSettingsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserSettingsRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      dailyNewLimit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_new_limit'],
+      )!,
+      dailyReviewLimit: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_review_limit'],
+      )!,
+      remindersEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}reminders_enabled'],
+      )!,
+      reminderHour: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_hour'],
+      )!,
+      reminderMinute: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reminder_minute'],
+      )!,
+      ttsVoice: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tts_voice'],
+      )!,
+      ttsSpeed: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}tts_speed'],
+      )!,
+      updatedAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $UserSettingsTableTable createAlias(String alias) {
+    return $UserSettingsTableTable(attachedDatabase, alias);
+  }
+}
+
+class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
+  /// Всегда 1 — синглтон обеспечивается CHECK-констрейнтом.
+  final int id;
+
+  /// Лимит новых слов в день.
+  final int dailyNewLimit;
+
+  /// Лимит повторений в день.
+  final int dailyReviewLimit;
+
+  /// Включены ли напоминания.
+  final bool remindersEnabled;
+
+  /// Час напоминания, 0..23.
+  final int reminderHour;
+
+  /// Минута напоминания, 0..59.
+  final int reminderMinute;
+
+  /// Идентификатор голоса TTS.
+  final String ttsVoice;
+
+  /// Скорость речи 0.1..1.0. `real`, а не permille: диапазон узкий,
+  /// сравнение в домене идёт через double.
+  final double ttsSpeed;
+
+  /// Момент последнего изменения, миллисекунды UTC.
+  final int updatedAtUtc;
+  const UserSettingsRow({
+    required this.id,
+    required this.dailyNewLimit,
+    required this.dailyReviewLimit,
+    required this.remindersEnabled,
+    required this.reminderHour,
+    required this.reminderMinute,
+    required this.ttsVoice,
+    required this.ttsSpeed,
+    required this.updatedAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['daily_new_limit'] = Variable<int>(dailyNewLimit);
+    map['daily_review_limit'] = Variable<int>(dailyReviewLimit);
+    map['reminders_enabled'] = Variable<bool>(remindersEnabled);
+    map['reminder_hour'] = Variable<int>(reminderHour);
+    map['reminder_minute'] = Variable<int>(reminderMinute);
+    map['tts_voice'] = Variable<String>(ttsVoice);
+    map['tts_speed'] = Variable<double>(ttsSpeed);
+    map['updated_at_utc'] = Variable<int>(updatedAtUtc);
+    return map;
+  }
+
+  UserSettingsTableCompanion toCompanion(bool nullToAbsent) {
+    return UserSettingsTableCompanion(
+      id: Value(id),
+      dailyNewLimit: Value(dailyNewLimit),
+      dailyReviewLimit: Value(dailyReviewLimit),
+      remindersEnabled: Value(remindersEnabled),
+      reminderHour: Value(reminderHour),
+      reminderMinute: Value(reminderMinute),
+      ttsVoice: Value(ttsVoice),
+      ttsSpeed: Value(ttsSpeed),
+      updatedAtUtc: Value(updatedAtUtc),
+    );
+  }
+
+  factory UserSettingsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserSettingsRow(
+      id: serializer.fromJson<int>(json['id']),
+      dailyNewLimit: serializer.fromJson<int>(json['dailyNewLimit']),
+      dailyReviewLimit: serializer.fromJson<int>(json['dailyReviewLimit']),
+      remindersEnabled: serializer.fromJson<bool>(json['remindersEnabled']),
+      reminderHour: serializer.fromJson<int>(json['reminderHour']),
+      reminderMinute: serializer.fromJson<int>(json['reminderMinute']),
+      ttsVoice: serializer.fromJson<String>(json['ttsVoice']),
+      ttsSpeed: serializer.fromJson<double>(json['ttsSpeed']),
+      updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'dailyNewLimit': serializer.toJson<int>(dailyNewLimit),
+      'dailyReviewLimit': serializer.toJson<int>(dailyReviewLimit),
+      'remindersEnabled': serializer.toJson<bool>(remindersEnabled),
+      'reminderHour': serializer.toJson<int>(reminderHour),
+      'reminderMinute': serializer.toJson<int>(reminderMinute),
+      'ttsVoice': serializer.toJson<String>(ttsVoice),
+      'ttsSpeed': serializer.toJson<double>(ttsSpeed),
+      'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
+    };
+  }
+
+  UserSettingsRow copyWith({
+    int? id,
+    int? dailyNewLimit,
+    int? dailyReviewLimit,
+    bool? remindersEnabled,
+    int? reminderHour,
+    int? reminderMinute,
+    String? ttsVoice,
+    double? ttsSpeed,
+    int? updatedAtUtc,
+  }) => UserSettingsRow(
+    id: id ?? this.id,
+    dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
+    dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
+    remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+    reminderHour: reminderHour ?? this.reminderHour,
+    reminderMinute: reminderMinute ?? this.reminderMinute,
+    ttsVoice: ttsVoice ?? this.ttsVoice,
+    ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+    updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
+  );
+  UserSettingsRow copyWithCompanion(UserSettingsTableCompanion data) {
+    return UserSettingsRow(
+      id: data.id.present ? data.id.value : this.id,
+      dailyNewLimit: data.dailyNewLimit.present
+          ? data.dailyNewLimit.value
+          : this.dailyNewLimit,
+      dailyReviewLimit: data.dailyReviewLimit.present
+          ? data.dailyReviewLimit.value
+          : this.dailyReviewLimit,
+      remindersEnabled: data.remindersEnabled.present
+          ? data.remindersEnabled.value
+          : this.remindersEnabled,
+      reminderHour: data.reminderHour.present
+          ? data.reminderHour.value
+          : this.reminderHour,
+      reminderMinute: data.reminderMinute.present
+          ? data.reminderMinute.value
+          : this.reminderMinute,
+      ttsVoice: data.ttsVoice.present ? data.ttsVoice.value : this.ttsVoice,
+      ttsSpeed: data.ttsSpeed.present ? data.ttsSpeed.value : this.ttsSpeed,
+      updatedAtUtc: data.updatedAtUtc.present
+          ? data.updatedAtUtc.value
+          : this.updatedAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserSettingsRow(')
+          ..write('id: $id, ')
+          ..write('dailyNewLimit: $dailyNewLimit, ')
+          ..write('dailyReviewLimit: $dailyReviewLimit, ')
+          ..write('remindersEnabled: $remindersEnabled, ')
+          ..write('reminderHour: $reminderHour, ')
+          ..write('reminderMinute: $reminderMinute, ')
+          ..write('ttsVoice: $ttsVoice, ')
+          ..write('ttsSpeed: $ttsSpeed, ')
+          ..write('updatedAtUtc: $updatedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    dailyNewLimit,
+    dailyReviewLimit,
+    remindersEnabled,
+    reminderHour,
+    reminderMinute,
+    ttsVoice,
+    ttsSpeed,
+    updatedAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserSettingsRow &&
+          other.id == this.id &&
+          other.dailyNewLimit == this.dailyNewLimit &&
+          other.dailyReviewLimit == this.dailyReviewLimit &&
+          other.remindersEnabled == this.remindersEnabled &&
+          other.reminderHour == this.reminderHour &&
+          other.reminderMinute == this.reminderMinute &&
+          other.ttsVoice == this.ttsVoice &&
+          other.ttsSpeed == this.ttsSpeed &&
+          other.updatedAtUtc == this.updatedAtUtc);
+}
+
+class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
+  final Value<int> id;
+  final Value<int> dailyNewLimit;
+  final Value<int> dailyReviewLimit;
+  final Value<bool> remindersEnabled;
+  final Value<int> reminderHour;
+  final Value<int> reminderMinute;
+  final Value<String> ttsVoice;
+  final Value<double> ttsSpeed;
+  final Value<int> updatedAtUtc;
+  const UserSettingsTableCompanion({
+    this.id = const Value.absent(),
+    this.dailyNewLimit = const Value.absent(),
+    this.dailyReviewLimit = const Value.absent(),
+    this.remindersEnabled = const Value.absent(),
+    this.reminderHour = const Value.absent(),
+    this.reminderMinute = const Value.absent(),
+    this.ttsVoice = const Value.absent(),
+    this.ttsSpeed = const Value.absent(),
+    this.updatedAtUtc = const Value.absent(),
+  });
+  UserSettingsTableCompanion.insert({
+    this.id = const Value.absent(),
+    this.dailyNewLimit = const Value.absent(),
+    this.dailyReviewLimit = const Value.absent(),
+    this.remindersEnabled = const Value.absent(),
+    this.reminderHour = const Value.absent(),
+    this.reminderMinute = const Value.absent(),
+    this.ttsVoice = const Value.absent(),
+    this.ttsSpeed = const Value.absent(),
+    required int updatedAtUtc,
+  }) : updatedAtUtc = Value(updatedAtUtc);
+  static Insertable<UserSettingsRow> custom({
+    Expression<int>? id,
+    Expression<int>? dailyNewLimit,
+    Expression<int>? dailyReviewLimit,
+    Expression<bool>? remindersEnabled,
+    Expression<int>? reminderHour,
+    Expression<int>? reminderMinute,
+    Expression<String>? ttsVoice,
+    Expression<double>? ttsSpeed,
+    Expression<int>? updatedAtUtc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (dailyNewLimit != null) 'daily_new_limit': dailyNewLimit,
+      if (dailyReviewLimit != null) 'daily_review_limit': dailyReviewLimit,
+      if (remindersEnabled != null) 'reminders_enabled': remindersEnabled,
+      if (reminderHour != null) 'reminder_hour': reminderHour,
+      if (reminderMinute != null) 'reminder_minute': reminderMinute,
+      if (ttsVoice != null) 'tts_voice': ttsVoice,
+      if (ttsSpeed != null) 'tts_speed': ttsSpeed,
+      if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
+    });
+  }
+
+  UserSettingsTableCompanion copyWith({
+    Value<int>? id,
+    Value<int>? dailyNewLimit,
+    Value<int>? dailyReviewLimit,
+    Value<bool>? remindersEnabled,
+    Value<int>? reminderHour,
+    Value<int>? reminderMinute,
+    Value<String>? ttsVoice,
+    Value<double>? ttsSpeed,
+    Value<int>? updatedAtUtc,
+  }) {
+    return UserSettingsTableCompanion(
+      id: id ?? this.id,
+      dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
+      dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
+      remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+      reminderHour: reminderHour ?? this.reminderHour,
+      reminderMinute: reminderMinute ?? this.reminderMinute,
+      ttsVoice: ttsVoice ?? this.ttsVoice,
+      ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+      updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (dailyNewLimit.present) {
+      map['daily_new_limit'] = Variable<int>(dailyNewLimit.value);
+    }
+    if (dailyReviewLimit.present) {
+      map['daily_review_limit'] = Variable<int>(dailyReviewLimit.value);
+    }
+    if (remindersEnabled.present) {
+      map['reminders_enabled'] = Variable<bool>(remindersEnabled.value);
+    }
+    if (reminderHour.present) {
+      map['reminder_hour'] = Variable<int>(reminderHour.value);
+    }
+    if (reminderMinute.present) {
+      map['reminder_minute'] = Variable<int>(reminderMinute.value);
+    }
+    if (ttsVoice.present) {
+      map['tts_voice'] = Variable<String>(ttsVoice.value);
+    }
+    if (ttsSpeed.present) {
+      map['tts_speed'] = Variable<double>(ttsSpeed.value);
+    }
+    if (updatedAtUtc.present) {
+      map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserSettingsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('dailyNewLimit: $dailyNewLimit, ')
+          ..write('dailyReviewLimit: $dailyReviewLimit, ')
+          ..write('remindersEnabled: $remindersEnabled, ')
+          ..write('reminderHour: $reminderHour, ')
+          ..write('reminderMinute: $reminderMinute, ')
+          ..write('ttsVoice: $ttsVoice, ')
+          ..write('ttsSpeed: $ttsSpeed, ')
+          ..write('updatedAtUtc: $updatedAtUtc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DailyStatsTableTable extends DailyStatsTable
+    with TableInfo<$DailyStatsTableTable, DailyStatsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DailyStatsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dateEpochDaysMeta = const VerificationMeta(
+    'dateEpochDays',
+  );
+  @override
+  late final GeneratedColumn<int> dateEpochDays = GeneratedColumn<int>(
+    'date_epoch_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _newWordsStudiedMeta = const VerificationMeta(
+    'newWordsStudied',
+  );
+  @override
+  late final GeneratedColumn<int> newWordsStudied = GeneratedColumn<int>(
+    'new_words_studied',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _reviewsCompletedMeta = const VerificationMeta(
+    'reviewsCompleted',
+  );
+  @override
+  late final GeneratedColumn<int> reviewsCompleted = GeneratedColumn<int>(
+    'reviews_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _xpGainedMeta = const VerificationMeta(
+    'xpGained',
+  );
+  @override
+  late final GeneratedColumn<int> xpGained = GeneratedColumn<int>(
+    'xp_gained',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _correctAnswersMeta = const VerificationMeta(
+    'correctAnswers',
+  );
+  @override
+  late final GeneratedColumn<int> correctAnswers = GeneratedColumn<int>(
+    'correct_answers',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    dateEpochDays,
+    newWordsStudied,
+    reviewsCompleted,
+    xpGained,
+    correctAnswers,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'daily_stats';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DailyStatsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('date_epoch_days')) {
+      context.handle(
+        _dateEpochDaysMeta,
+        dateEpochDays.isAcceptableOrUnknown(
+          data['date_epoch_days']!,
+          _dateEpochDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('new_words_studied')) {
+      context.handle(
+        _newWordsStudiedMeta,
+        newWordsStudied.isAcceptableOrUnknown(
+          data['new_words_studied']!,
+          _newWordsStudiedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('reviews_completed')) {
+      context.handle(
+        _reviewsCompletedMeta,
+        reviewsCompleted.isAcceptableOrUnknown(
+          data['reviews_completed']!,
+          _reviewsCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('xp_gained')) {
+      context.handle(
+        _xpGainedMeta,
+        xpGained.isAcceptableOrUnknown(data['xp_gained']!, _xpGainedMeta),
+      );
+    }
+    if (data.containsKey('correct_answers')) {
+      context.handle(
+        _correctAnswersMeta,
+        correctAnswers.isAcceptableOrUnknown(
+          data['correct_answers']!,
+          _correctAnswersMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {dateEpochDays};
+  @override
+  DailyStatsRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DailyStatsRow(
+      dateEpochDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}date_epoch_days'],
+      )!,
+      newWordsStudied: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_words_studied'],
+      )!,
+      reviewsCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviews_completed'],
+      )!,
+      xpGained: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp_gained'],
+      )!,
+      correctAnswers: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}correct_answers'],
+      )!,
+    );
+  }
+
+  @override
+  $DailyStatsTableTable createAlias(String alias) {
+    return $DailyStatsTableTable(attachedDatabase, alias);
+  }
+}
+
+class DailyStatsRow extends DataClass implements Insertable<DailyStatsRow> {
+  /// День в локальной TZ как число дней от эпохи.
+  final int dateEpochDays;
+
+  /// Новых слов показано.
+  final int newWordsStudied;
+
+  /// Повторений завершено.
+  final int reviewsCompleted;
+
+  /// XP за день.
+  final int xpGained;
+
+  /// Успешных ответов.
+  final int correctAnswers;
+  const DailyStatsRow({
+    required this.dateEpochDays,
+    required this.newWordsStudied,
+    required this.reviewsCompleted,
+    required this.xpGained,
+    required this.correctAnswers,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['date_epoch_days'] = Variable<int>(dateEpochDays);
+    map['new_words_studied'] = Variable<int>(newWordsStudied);
+    map['reviews_completed'] = Variable<int>(reviewsCompleted);
+    map['xp_gained'] = Variable<int>(xpGained);
+    map['correct_answers'] = Variable<int>(correctAnswers);
+    return map;
+  }
+
+  DailyStatsTableCompanion toCompanion(bool nullToAbsent) {
+    return DailyStatsTableCompanion(
+      dateEpochDays: Value(dateEpochDays),
+      newWordsStudied: Value(newWordsStudied),
+      reviewsCompleted: Value(reviewsCompleted),
+      xpGained: Value(xpGained),
+      correctAnswers: Value(correctAnswers),
+    );
+  }
+
+  factory DailyStatsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DailyStatsRow(
+      dateEpochDays: serializer.fromJson<int>(json['dateEpochDays']),
+      newWordsStudied: serializer.fromJson<int>(json['newWordsStudied']),
+      reviewsCompleted: serializer.fromJson<int>(json['reviewsCompleted']),
+      xpGained: serializer.fromJson<int>(json['xpGained']),
+      correctAnswers: serializer.fromJson<int>(json['correctAnswers']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'dateEpochDays': serializer.toJson<int>(dateEpochDays),
+      'newWordsStudied': serializer.toJson<int>(newWordsStudied),
+      'reviewsCompleted': serializer.toJson<int>(reviewsCompleted),
+      'xpGained': serializer.toJson<int>(xpGained),
+      'correctAnswers': serializer.toJson<int>(correctAnswers),
+    };
+  }
+
+  DailyStatsRow copyWith({
+    int? dateEpochDays,
+    int? newWordsStudied,
+    int? reviewsCompleted,
+    int? xpGained,
+    int? correctAnswers,
+  }) => DailyStatsRow(
+    dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+    newWordsStudied: newWordsStudied ?? this.newWordsStudied,
+    reviewsCompleted: reviewsCompleted ?? this.reviewsCompleted,
+    xpGained: xpGained ?? this.xpGained,
+    correctAnswers: correctAnswers ?? this.correctAnswers,
+  );
+  DailyStatsRow copyWithCompanion(DailyStatsTableCompanion data) {
+    return DailyStatsRow(
+      dateEpochDays: data.dateEpochDays.present
+          ? data.dateEpochDays.value
+          : this.dateEpochDays,
+      newWordsStudied: data.newWordsStudied.present
+          ? data.newWordsStudied.value
+          : this.newWordsStudied,
+      reviewsCompleted: data.reviewsCompleted.present
+          ? data.reviewsCompleted.value
+          : this.reviewsCompleted,
+      xpGained: data.xpGained.present ? data.xpGained.value : this.xpGained,
+      correctAnswers: data.correctAnswers.present
+          ? data.correctAnswers.value
+          : this.correctAnswers,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyStatsRow(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('newWordsStudied: $newWordsStudied, ')
+          ..write('reviewsCompleted: $reviewsCompleted, ')
+          ..write('xpGained: $xpGained, ')
+          ..write('correctAnswers: $correctAnswers')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    dateEpochDays,
+    newWordsStudied,
+    reviewsCompleted,
+    xpGained,
+    correctAnswers,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DailyStatsRow &&
+          other.dateEpochDays == this.dateEpochDays &&
+          other.newWordsStudied == this.newWordsStudied &&
+          other.reviewsCompleted == this.reviewsCompleted &&
+          other.xpGained == this.xpGained &&
+          other.correctAnswers == this.correctAnswers);
+}
+
+class DailyStatsTableCompanion extends UpdateCompanion<DailyStatsRow> {
+  final Value<int> dateEpochDays;
+  final Value<int> newWordsStudied;
+  final Value<int> reviewsCompleted;
+  final Value<int> xpGained;
+  final Value<int> correctAnswers;
+  const DailyStatsTableCompanion({
+    this.dateEpochDays = const Value.absent(),
+    this.newWordsStudied = const Value.absent(),
+    this.reviewsCompleted = const Value.absent(),
+    this.xpGained = const Value.absent(),
+    this.correctAnswers = const Value.absent(),
+  });
+  DailyStatsTableCompanion.insert({
+    this.dateEpochDays = const Value.absent(),
+    this.newWordsStudied = const Value.absent(),
+    this.reviewsCompleted = const Value.absent(),
+    this.xpGained = const Value.absent(),
+    this.correctAnswers = const Value.absent(),
+  });
+  static Insertable<DailyStatsRow> custom({
+    Expression<int>? dateEpochDays,
+    Expression<int>? newWordsStudied,
+    Expression<int>? reviewsCompleted,
+    Expression<int>? xpGained,
+    Expression<int>? correctAnswers,
+  }) {
+    return RawValuesInsertable({
+      if (dateEpochDays != null) 'date_epoch_days': dateEpochDays,
+      if (newWordsStudied != null) 'new_words_studied': newWordsStudied,
+      if (reviewsCompleted != null) 'reviews_completed': reviewsCompleted,
+      if (xpGained != null) 'xp_gained': xpGained,
+      if (correctAnswers != null) 'correct_answers': correctAnswers,
+    });
+  }
+
+  DailyStatsTableCompanion copyWith({
+    Value<int>? dateEpochDays,
+    Value<int>? newWordsStudied,
+    Value<int>? reviewsCompleted,
+    Value<int>? xpGained,
+    Value<int>? correctAnswers,
+  }) {
+    return DailyStatsTableCompanion(
+      dateEpochDays: dateEpochDays ?? this.dateEpochDays,
+      newWordsStudied: newWordsStudied ?? this.newWordsStudied,
+      reviewsCompleted: reviewsCompleted ?? this.reviewsCompleted,
+      xpGained: xpGained ?? this.xpGained,
+      correctAnswers: correctAnswers ?? this.correctAnswers,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (dateEpochDays.present) {
+      map['date_epoch_days'] = Variable<int>(dateEpochDays.value);
+    }
+    if (newWordsStudied.present) {
+      map['new_words_studied'] = Variable<int>(newWordsStudied.value);
+    }
+    if (reviewsCompleted.present) {
+      map['reviews_completed'] = Variable<int>(reviewsCompleted.value);
+    }
+    if (xpGained.present) {
+      map['xp_gained'] = Variable<int>(xpGained.value);
+    }
+    if (correctAnswers.present) {
+      map['correct_answers'] = Variable<int>(correctAnswers.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DailyStatsTableCompanion(')
+          ..write('dateEpochDays: $dateEpochDays, ')
+          ..write('newWordsStudied: $newWordsStudied, ')
+          ..write('reviewsCompleted: $reviewsCompleted, ')
+          ..write('xpGained: $xpGained, ')
+          ..write('correctAnswers: $correctAnswers')
+          ..write(')'))
+        .toString();
+  }
+}
+
+abstract class _$AppDatabase extends GeneratedDatabase {
+  _$AppDatabase(QueryExecutor e) : super(e);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $WordsTable words = $WordsTable(this);
+  late final $WordProgressesTable wordProgresses = $WordProgressesTable(this);
+  late final $ReviewLogsTable reviewLogs = $ReviewLogsTable(this);
+  late final $UserSettingsTableTable userSettingsTable =
+      $UserSettingsTableTable(this);
+  late final $DailyStatsTableTable dailyStatsTable = $DailyStatsTableTable(
+    this,
+  );
+  late final Index idxWordsTerm = Index(
+    'idx_words_term',
+    'CREATE INDEX idx_words_term ON words (term)',
+  );
+  late final Index idxWordProgressDue = Index(
+    'idx_word_progress_due',
+    'CREATE INDEX idx_word_progress_due ON word_progresses (due_at_utc)',
+  );
+  late final Index idxWordProgressStatus = Index(
+    'idx_word_progress_status',
+    'CREATE INDEX idx_word_progress_status ON word_progresses (status)',
+  );
+  late final Index idxReviewLogsWord = Index(
+    'idx_review_logs_word',
+    'CREATE INDEX idx_review_logs_word ON review_logs (word_id)',
+  );
+  late final Index idxReviewLogsReviewed = Index(
+    'idx_review_logs_reviewed',
+    'CREATE INDEX idx_review_logs_reviewed ON review_logs (reviewed_at_utc)',
+  );
+  @override
+  Iterable<TableInfo<Table, Object?>> get allTables =>
+      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    words,
+    wordProgresses,
+    reviewLogs,
+    userSettingsTable,
+    dailyStatsTable,
+    idxWordsTerm,
+    idxWordProgressDue,
+    idxWordProgressStatus,
+    idxReviewLogsWord,
+    idxReviewLogsReviewed,
+  ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'words',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('word_progresses', kind: UpdateKind.delete)],
+    ),
+  ]);
+}
+
+typedef $$WordsTableCreateCompanionBuilder = WordsCompanion Function({
+  Value<int> id,
+  required String term,
+  required String translation,
+  Value<String?> transcription,
+  Value<String?> partOfSpeech,
+  Value<String?> exampleSentence,
+});
+typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
+  Value<int> id,
+  Value<String> term,
+  Value<String> translation,
+  Value<String?> transcription,
+  Value<String?> partOfSpeech,
+  Value<String?> exampleSentence,
+});
+
+final class $$WordsTableReferences
+    extends BaseReferences<_$AppDatabase, $WordsTable, Word> {
+  $$WordsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$WordProgressesTable, List<WordProgressRow>>
+  _wordProgressesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.wordProgresses,
+    aliasName: 'words__id__word_progresses__word_id',
+  );
+
+  $$WordProgressesTableProcessedTableManager get wordProgressesRefs {
+    final manager = $$WordProgressesTableTableManager(
+      $_db,
+      $_db.wordProgresses,
+    ).filter((f) => f.wordId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_wordProgressesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
+  $$WordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get exampleSentence => $composableBuilder(
+    column: $table.exampleSentence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> wordProgressesRefs(
+    Expression<bool> Function($$WordProgressesTableFilterComposer f) f,
+  ) {
+    final $$WordProgressesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wordProgresses,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordProgressesTableFilterComposer(
+            $db: $db,
+            $table: $db.wordProgresses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WordsTable> {
+  $$WordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get exampleSentence => $composableBuilder(
+    column: $table.exampleSentence,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WordsTable> {
+  $$WordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get term =>
+      $composableBuilder(column: $table.term, builder: (column) => column);
+
+  GeneratedColumn<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get exampleSentence => $composableBuilder(
+    column: $table.exampleSentence,
+    builder: (column) => column,
+  );
+
+  Expression<T> wordProgressesRefs<T extends Object>(
+    Expression<T> Function($$WordProgressesTableAnnotationComposer a) f,
+  ) {
+    final $$WordProgressesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.wordProgresses,
+      getReferencedColumn: (t) => t.wordId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordProgressesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.wordProgresses,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$WordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WordsTable,
+          Word,
+          $$WordsTableFilterComposer,
+          $$WordsTableOrderingComposer,
+          $$WordsTableAnnotationComposer,
+          $$WordsTableCreateCompanionBuilder,
+          $$WordsTableUpdateCompanionBuilder,
+          (Word, $$WordsTableReferences),
+          Word,
+          PrefetchHooks Function({bool wordProgressesRefs})
+        > {
+  $$WordsTableTableManager(_$AppDatabase db, $WordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> term = const Value.absent(),
+                Value<String> translation = const Value.absent(),
+                Value<String?> transcription = const Value.absent(),
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> exampleSentence = const Value.absent(),
+              }) => WordsCompanion(
+                id: id,
+                term: term,
+                translation: translation,
+                transcription: transcription,
+                partOfSpeech: partOfSpeech,
+                exampleSentence: exampleSentence,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String term,
+                required String translation,
+                Value<String?> transcription = const Value.absent(),
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> exampleSentence = const Value.absent(),
+              }) => WordsCompanion.insert(
+                id: id,
+                term: term,
+                translation: translation,
+                transcription: transcription,
+                partOfSpeech: partOfSpeech,
+                exampleSentence: exampleSentence,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WordsTable, Word>(table),
+                  $$WordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({wordProgressesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (wordProgressesRefs) db.wordProgresses,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (wordProgressesRefs)
+                    await $_getPrefetchedDataByColumns<
+                      Word,
+                      $WordsTable,
+                      WordProgressRow,
+                      $WordProgressesTable
+                    >(
+                      currentTable: table,
+                      referencedTable: $$WordsTableReferences
+                          ._wordProgressesRefsTable(db),
+                      managerFromTypedResult: (p0) => $$WordsTableReferences(
+                        db,
+                        table,
+                        p0,
+                      ).wordProgressesRefs,
+                      currentColumn: 'id',
+                      referencedColumn: 'word_id',
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WordsTable,
+      Word,
+      $$WordsTableFilterComposer,
+      $$WordsTableOrderingComposer,
+      $$WordsTableAnnotationComposer,
+      $$WordsTableCreateCompanionBuilder,
+      $$WordsTableUpdateCompanionBuilder,
+      (Word, $$WordsTableReferences),
+      Word,
+      PrefetchHooks Function({bool wordProgressesRefs})
+    >;
+typedef $$WordProgressesTableCreateCompanionBuilder =
+    WordProgressesCompanion Function({
+      Value<int> wordId,
+      required int easePermille,
+      required int intervalDays,
+      required int repetitions,
+      required int lapses,
+      required int dueAtUtc,
+      required String status,
+      required int firstSeenAtUtc,
+      Value<int?> lastReviewedAtUtc,
+    });
+typedef $$WordProgressesTableUpdateCompanionBuilder =
+    WordProgressesCompanion Function({
+      Value<int> wordId,
+      Value<int> easePermille,
+      Value<int> intervalDays,
+      Value<int> repetitions,
+      Value<int> lapses,
+      Value<int> dueAtUtc,
+      Value<String> status,
+      Value<int> firstSeenAtUtc,
+      Value<int?> lastReviewedAtUtc,
+    });
+
+final class $$WordProgressesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $WordProgressesTable, WordProgressRow> {
+  $$WordProgressesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $WordsTable _wordIdTable(_$AppDatabase db) =>
+      db.words.createAlias('word_progresses__word_id__words__id');
+
+  $$WordsTableProcessedTableManager get wordId {
+    final $_column = $_itemColumn<int>('word_id')!;
+
+    final manager = $$WordsTableTableManager(
+      $_db,
+      $_db.words,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_wordIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$WordProgressesTableFilterComposer
+    extends Composer<_$AppDatabase, $WordProgressesTable> {
+  $$WordProgressesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get easePermille => $composableBuilder(
+    column: $table.easePermille,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lapses => $composableBuilder(
+    column: $table.lapses,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dueAtUtc => $composableBuilder(
+    column: $table.dueAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get firstSeenAtUtc => $composableBuilder(
+    column: $table.firstSeenAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lastReviewedAtUtc => $composableBuilder(
+    column: $table.lastReviewedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$WordsTableFilterComposer get wordId {
+    final $$WordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableFilterComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordProgressesTableOrderingComposer
+    extends Composer<_$AppDatabase, $WordProgressesTable> {
+  $$WordProgressesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get easePermille => $composableBuilder(
+    column: $table.easePermille,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lapses => $composableBuilder(
+    column: $table.lapses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dueAtUtc => $composableBuilder(
+    column: $table.dueAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get firstSeenAtUtc => $composableBuilder(
+    column: $table.firstSeenAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lastReviewedAtUtc => $composableBuilder(
+    column: $table.lastReviewedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$WordsTableOrderingComposer get wordId {
+    final $$WordsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableOrderingComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordProgressesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WordProgressesTable> {
+  $$WordProgressesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get easePermille => $composableBuilder(
+    column: $table.easePermille,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get repetitions => $composableBuilder(
+    column: $table.repetitions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lapses =>
+      $composableBuilder(column: $table.lapses, builder: (column) => column);
+
+  GeneratedColumn<int> get dueAtUtc =>
+      $composableBuilder(column: $table.dueAtUtc, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get firstSeenAtUtc => $composableBuilder(
+    column: $table.firstSeenAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get lastReviewedAtUtc => $composableBuilder(
+    column: $table.lastReviewedAtUtc,
+    builder: (column) => column,
+  );
+
+  $$WordsTableAnnotationComposer get wordId {
+    final $$WordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.wordId,
+      referencedTable: $db.words,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$WordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.words,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$WordProgressesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WordProgressesTable,
+          WordProgressRow,
+          $$WordProgressesTableFilterComposer,
+          $$WordProgressesTableOrderingComposer,
+          $$WordProgressesTableAnnotationComposer,
+          $$WordProgressesTableCreateCompanionBuilder,
+          $$WordProgressesTableUpdateCompanionBuilder,
+          (WordProgressRow, $$WordProgressesTableReferences),
+          WordProgressRow,
+          PrefetchHooks Function({bool wordId})
+        > {
+  $$WordProgressesTableTableManager(
+    _$AppDatabase db,
+    $WordProgressesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WordProgressesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WordProgressesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WordProgressesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                Value<int> easePermille = const Value.absent(),
+                Value<int> intervalDays = const Value.absent(),
+                Value<int> repetitions = const Value.absent(),
+                Value<int> lapses = const Value.absent(),
+                Value<int> dueAtUtc = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> firstSeenAtUtc = const Value.absent(),
+                Value<int?> lastReviewedAtUtc = const Value.absent(),
+              }) => WordProgressesCompanion(
+                wordId: wordId,
+                easePermille: easePermille,
+                intervalDays: intervalDays,
+                repetitions: repetitions,
+                lapses: lapses,
+                dueAtUtc: dueAtUtc,
+                status: status,
+                firstSeenAtUtc: firstSeenAtUtc,
+                lastReviewedAtUtc: lastReviewedAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> wordId = const Value.absent(),
+                required int easePermille,
+                required int intervalDays,
+                required int repetitions,
+                required int lapses,
+                required int dueAtUtc,
+                required String status,
+                required int firstSeenAtUtc,
+                Value<int?> lastReviewedAtUtc = const Value.absent(),
+              }) => WordProgressesCompanion.insert(
+                wordId: wordId,
+                easePermille: easePermille,
+                intervalDays: intervalDays,
+                repetitions: repetitions,
+                lapses: lapses,
+                dueAtUtc: dueAtUtc,
+                status: status,
+                firstSeenAtUtc: firstSeenAtUtc,
+                lastReviewedAtUtc: lastReviewedAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WordProgressesTable, WordProgressRow>(table),
+                  $$WordProgressesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({wordId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (wordId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.wordId,
+                        referencedTable: $$WordProgressesTableReferences
+                            ._wordIdTable(db),
+                        referencedColumn: $$WordProgressesTableReferences
+                            ._wordIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$WordProgressesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WordProgressesTable,
+      WordProgressRow,
+      $$WordProgressesTableFilterComposer,
+      $$WordProgressesTableOrderingComposer,
+      $$WordProgressesTableAnnotationComposer,
+      $$WordProgressesTableCreateCompanionBuilder,
+      $$WordProgressesTableUpdateCompanionBuilder,
+      (WordProgressRow, $$WordProgressesTableReferences),
+      WordProgressRow,
+      PrefetchHooks Function({bool wordId})
+    >;
+typedef $$ReviewLogsTableCreateCompanionBuilder = ReviewLogsCompanion Function({
+  Value<int> id,
+  required int wordId,
+  required int reviewedAtUtc,
+  required String grade,
+  required int prevEasePermille,
+  required int prevIntervalDays,
+  required int prevRepetitions,
+  required int prevLapses,
+  required int prevDueAtUtc,
+  required int newEasePermille,
+  required int newIntervalDays,
+  required int newRepetitions,
+  required int newLapses,
+  required int newDueAtUtc,
+});
+typedef $$ReviewLogsTableUpdateCompanionBuilder = ReviewLogsCompanion Function({
+  Value<int> id,
+  Value<int> wordId,
+  Value<int> reviewedAtUtc,
+  Value<String> grade,
+  Value<int> prevEasePermille,
+  Value<int> prevIntervalDays,
+  Value<int> prevRepetitions,
+  Value<int> prevLapses,
+  Value<int> prevDueAtUtc,
+  Value<int> newEasePermille,
+  Value<int> newIntervalDays,
+  Value<int> newRepetitions,
+  Value<int> newLapses,
+  Value<int> newDueAtUtc,
+});
+
+class $$ReviewLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get wordId => $composableBuilder(
+    column: $table.wordId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewedAtUtc => $composableBuilder(
+    column: $table.reviewedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get grade => $composableBuilder(
+    column: $table.grade,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prevEasePermille => $composableBuilder(
+    column: $table.prevEasePermille,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prevIntervalDays => $composableBuilder(
+    column: $table.prevIntervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prevRepetitions => $composableBuilder(
+    column: $table.prevRepetitions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prevLapses => $composableBuilder(
+    column: $table.prevLapses,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get prevDueAtUtc => $composableBuilder(
+    column: $table.prevDueAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newEasePermille => $composableBuilder(
+    column: $table.newEasePermille,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newIntervalDays => $composableBuilder(
+    column: $table.newIntervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newRepetitions => $composableBuilder(
+    column: $table.newRepetitions,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newLapses => $composableBuilder(
+    column: $table.newLapses,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newDueAtUtc => $composableBuilder(
+    column: $table.newDueAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ReviewLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get wordId => $composableBuilder(
+    column: $table.wordId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewedAtUtc => $composableBuilder(
+    column: $table.reviewedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get grade => $composableBuilder(
+    column: $table.grade,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prevEasePermille => $composableBuilder(
+    column: $table.prevEasePermille,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prevIntervalDays => $composableBuilder(
+    column: $table.prevIntervalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prevRepetitions => $composableBuilder(
+    column: $table.prevRepetitions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prevLapses => $composableBuilder(
+    column: $table.prevLapses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get prevDueAtUtc => $composableBuilder(
+    column: $table.prevDueAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newEasePermille => $composableBuilder(
+    column: $table.newEasePermille,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newIntervalDays => $composableBuilder(
+    column: $table.newIntervalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newRepetitions => $composableBuilder(
+    column: $table.newRepetitions,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newLapses => $composableBuilder(
+    column: $table.newLapses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newDueAtUtc => $composableBuilder(
+    column: $table.newDueAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ReviewLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ReviewLogsTable> {
+  $$ReviewLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get wordId =>
+      $composableBuilder(column: $table.wordId, builder: (column) => column);
+
+  GeneratedColumn<int> get reviewedAtUtc => $composableBuilder(
+    column: $table.reviewedAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get grade =>
+      $composableBuilder(column: $table.grade, builder: (column) => column);
+
+  GeneratedColumn<int> get prevEasePermille => $composableBuilder(
+    column: $table.prevEasePermille,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get prevIntervalDays => $composableBuilder(
+    column: $table.prevIntervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get prevRepetitions => $composableBuilder(
+    column: $table.prevRepetitions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get prevLapses => $composableBuilder(
+    column: $table.prevLapses,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get prevDueAtUtc => $composableBuilder(
+    column: $table.prevDueAtUtc,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newEasePermille => $composableBuilder(
+    column: $table.newEasePermille,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newIntervalDays => $composableBuilder(
+    column: $table.newIntervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newRepetitions => $composableBuilder(
+    column: $table.newRepetitions,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newLapses =>
+      $composableBuilder(column: $table.newLapses, builder: (column) => column);
+
+  GeneratedColumn<int> get newDueAtUtc => $composableBuilder(
+    column: $table.newDueAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$ReviewLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ReviewLogsTable,
+          ReviewLogRow,
+          $$ReviewLogsTableFilterComposer,
+          $$ReviewLogsTableOrderingComposer,
+          $$ReviewLogsTableAnnotationComposer,
+          $$ReviewLogsTableCreateCompanionBuilder,
+          $$ReviewLogsTableUpdateCompanionBuilder,
+          (
+            ReviewLogRow,
+            BaseReferences<_$AppDatabase, $ReviewLogsTable, ReviewLogRow>,
+          ),
+          ReviewLogRow,
+          PrefetchHooks Function()
+        > {
+  $$ReviewLogsTableTableManager(_$AppDatabase db, $ReviewLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ReviewLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ReviewLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ReviewLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> wordId = const Value.absent(),
+                Value<int> reviewedAtUtc = const Value.absent(),
+                Value<String> grade = const Value.absent(),
+                Value<int> prevEasePermille = const Value.absent(),
+                Value<int> prevIntervalDays = const Value.absent(),
+                Value<int> prevRepetitions = const Value.absent(),
+                Value<int> prevLapses = const Value.absent(),
+                Value<int> prevDueAtUtc = const Value.absent(),
+                Value<int> newEasePermille = const Value.absent(),
+                Value<int> newIntervalDays = const Value.absent(),
+                Value<int> newRepetitions = const Value.absent(),
+                Value<int> newLapses = const Value.absent(),
+                Value<int> newDueAtUtc = const Value.absent(),
+              }) => ReviewLogsCompanion(
+                id: id,
+                wordId: wordId,
+                reviewedAtUtc: reviewedAtUtc,
+                grade: grade,
+                prevEasePermille: prevEasePermille,
+                prevIntervalDays: prevIntervalDays,
+                prevRepetitions: prevRepetitions,
+                prevLapses: prevLapses,
+                prevDueAtUtc: prevDueAtUtc,
+                newEasePermille: newEasePermille,
+                newIntervalDays: newIntervalDays,
+                newRepetitions: newRepetitions,
+                newLapses: newLapses,
+                newDueAtUtc: newDueAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int wordId,
+                required int reviewedAtUtc,
+                required String grade,
+                required int prevEasePermille,
+                required int prevIntervalDays,
+                required int prevRepetitions,
+                required int prevLapses,
+                required int prevDueAtUtc,
+                required int newEasePermille,
+                required int newIntervalDays,
+                required int newRepetitions,
+                required int newLapses,
+                required int newDueAtUtc,
+              }) => ReviewLogsCompanion.insert(
+                id: id,
+                wordId: wordId,
+                reviewedAtUtc: reviewedAtUtc,
+                grade: grade,
+                prevEasePermille: prevEasePermille,
+                prevIntervalDays: prevIntervalDays,
+                prevRepetitions: prevRepetitions,
+                prevLapses: prevLapses,
+                prevDueAtUtc: prevDueAtUtc,
+                newEasePermille: newEasePermille,
+                newIntervalDays: newIntervalDays,
+                newRepetitions: newRepetitions,
+                newLapses: newLapses,
+                newDueAtUtc: newDueAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ReviewLogsTable, ReviewLogRow>(table),
+                  BaseReferences<_$AppDatabase, $ReviewLogsTable, ReviewLogRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ReviewLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ReviewLogsTable,
+      ReviewLogRow,
+      $$ReviewLogsTableFilterComposer,
+      $$ReviewLogsTableOrderingComposer,
+      $$ReviewLogsTableAnnotationComposer,
+      $$ReviewLogsTableCreateCompanionBuilder,
+      $$ReviewLogsTableUpdateCompanionBuilder,
+      (
+        ReviewLogRow,
+        BaseReferences<_$AppDatabase, $ReviewLogsTable, ReviewLogRow>,
+      ),
+      ReviewLogRow,
+      PrefetchHooks Function()
+    >;
+typedef $$UserSettingsTableTableCreateCompanionBuilder =
+    UserSettingsTableCompanion Function({
+      Value<int> id,
+      Value<int> dailyNewLimit,
+      Value<int> dailyReviewLimit,
+      Value<bool> remindersEnabled,
+      Value<int> reminderHour,
+      Value<int> reminderMinute,
+      Value<String> ttsVoice,
+      Value<double> ttsSpeed,
+      required int updatedAtUtc,
+    });
+typedef $$UserSettingsTableTableUpdateCompanionBuilder =
+    UserSettingsTableCompanion Function({
+      Value<int> id,
+      Value<int> dailyNewLimit,
+      Value<int> dailyReviewLimit,
+      Value<bool> remindersEnabled,
+      Value<int> reminderHour,
+      Value<int> reminderMinute,
+      Value<String> ttsVoice,
+      Value<double> ttsSpeed,
+      Value<int> updatedAtUtc,
+    });
+
+class $$UserSettingsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $UserSettingsTableTable> {
+  $$UserSettingsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailyNewLimit => $composableBuilder(
+    column: $table.dailyNewLimit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailyReviewLimit => $composableBuilder(
+    column: $table.dailyReviewLimit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get remindersEnabled => $composableBuilder(
+    column: $table.remindersEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reminderHour => $composableBuilder(
+    column: $table.reminderHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reminderMinute => $composableBuilder(
+    column: $table.reminderMinute,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ttsVoice => $composableBuilder(
+    column: $table.ttsVoice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get ttsSpeed => $composableBuilder(
+    column: $table.ttsSpeed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserSettingsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserSettingsTableTable> {
+  $$UserSettingsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dailyNewLimit => $composableBuilder(
+    column: $table.dailyNewLimit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dailyReviewLimit => $composableBuilder(
+    column: $table.dailyReviewLimit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get remindersEnabled => $composableBuilder(
+    column: $table.remindersEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reminderHour => $composableBuilder(
+    column: $table.reminderHour,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reminderMinute => $composableBuilder(
+    column: $table.reminderMinute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ttsVoice => $composableBuilder(
+    column: $table.ttsVoice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get ttsSpeed => $composableBuilder(
+    column: $table.ttsSpeed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserSettingsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserSettingsTableTable> {
+  $$UserSettingsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get dailyNewLimit => $composableBuilder(
+    column: $table.dailyNewLimit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dailyReviewLimit => $composableBuilder(
+    column: $table.dailyReviewLimit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get remindersEnabled => $composableBuilder(
+    column: $table.remindersEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reminderHour => $composableBuilder(
+    column: $table.reminderHour,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reminderMinute => $composableBuilder(
+    column: $table.reminderMinute,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ttsVoice =>
+      $composableBuilder(column: $table.ttsVoice, builder: (column) => column);
+
+  GeneratedColumn<double> get ttsSpeed =>
+      $composableBuilder(column: $table.ttsSpeed, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAtUtc => $composableBuilder(
+    column: $table.updatedAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$UserSettingsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserSettingsTableTable,
+          UserSettingsRow,
+          $$UserSettingsTableTableFilterComposer,
+          $$UserSettingsTableTableOrderingComposer,
+          $$UserSettingsTableTableAnnotationComposer,
+          $$UserSettingsTableTableCreateCompanionBuilder,
+          $$UserSettingsTableTableUpdateCompanionBuilder,
+          (
+            UserSettingsRow,
+            BaseReferences<
+              _$AppDatabase,
+              $UserSettingsTableTable,
+              UserSettingsRow
+            >,
+          ),
+          UserSettingsRow,
+          PrefetchHooks Function()
+        > {
+  $$UserSettingsTableTableTableManager(
+    _$AppDatabase db,
+    $UserSettingsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserSettingsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserSettingsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserSettingsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyNewLimit = const Value.absent(),
+                Value<int> dailyReviewLimit = const Value.absent(),
+                Value<bool> remindersEnabled = const Value.absent(),
+                Value<int> reminderHour = const Value.absent(),
+                Value<int> reminderMinute = const Value.absent(),
+                Value<String> ttsVoice = const Value.absent(),
+                Value<double> ttsSpeed = const Value.absent(),
+                Value<int> updatedAtUtc = const Value.absent(),
+              }) => UserSettingsTableCompanion(
+                id: id,
+                dailyNewLimit: dailyNewLimit,
+                dailyReviewLimit: dailyReviewLimit,
+                remindersEnabled: remindersEnabled,
+                reminderHour: reminderHour,
+                reminderMinute: reminderMinute,
+                ttsVoice: ttsVoice,
+                ttsSpeed: ttsSpeed,
+                updatedAtUtc: updatedAtUtc,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> dailyNewLimit = const Value.absent(),
+                Value<int> dailyReviewLimit = const Value.absent(),
+                Value<bool> remindersEnabled = const Value.absent(),
+                Value<int> reminderHour = const Value.absent(),
+                Value<int> reminderMinute = const Value.absent(),
+                Value<String> ttsVoice = const Value.absent(),
+                Value<double> ttsSpeed = const Value.absent(),
+                required int updatedAtUtc,
+              }) => UserSettingsTableCompanion.insert(
+                id: id,
+                dailyNewLimit: dailyNewLimit,
+                dailyReviewLimit: dailyReviewLimit,
+                remindersEnabled: remindersEnabled,
+                reminderHour: reminderHour,
+                reminderMinute: reminderMinute,
+                ttsVoice: ttsVoice,
+                ttsSpeed: ttsSpeed,
+                updatedAtUtc: updatedAtUtc,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$UserSettingsTableTable, UserSettingsRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $UserSettingsTableTable,
+                    UserSettingsRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserSettingsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserSettingsTableTable,
+      UserSettingsRow,
+      $$UserSettingsTableTableFilterComposer,
+      $$UserSettingsTableTableOrderingComposer,
+      $$UserSettingsTableTableAnnotationComposer,
+      $$UserSettingsTableTableCreateCompanionBuilder,
+      $$UserSettingsTableTableUpdateCompanionBuilder,
+      (
+        UserSettingsRow,
+        BaseReferences<_$AppDatabase, $UserSettingsTableTable, UserSettingsRow>,
+      ),
+      UserSettingsRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DailyStatsTableTableCreateCompanionBuilder =
+    DailyStatsTableCompanion Function({
+      Value<int> dateEpochDays,
+      Value<int> newWordsStudied,
+      Value<int> reviewsCompleted,
+      Value<int> xpGained,
+      Value<int> correctAnswers,
+    });
+typedef $$DailyStatsTableTableUpdateCompanionBuilder =
+    DailyStatsTableCompanion Function({
+      Value<int> dateEpochDays,
+      Value<int> newWordsStudied,
+      Value<int> reviewsCompleted,
+      Value<int> xpGained,
+      Value<int> correctAnswers,
+    });
+
+class $$DailyStatsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $DailyStatsTableTable> {
+  $$DailyStatsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newWordsStudied => $composableBuilder(
+    column: $table.newWordsStudied,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewsCompleted => $composableBuilder(
+    column: $table.reviewsCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get xpGained => $composableBuilder(
+    column: $table.xpGained,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get correctAnswers => $composableBuilder(
+    column: $table.correctAnswers,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DailyStatsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $DailyStatsTableTable> {
+  $$DailyStatsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newWordsStudied => $composableBuilder(
+    column: $table.newWordsStudied,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewsCompleted => $composableBuilder(
+    column: $table.reviewsCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xpGained => $composableBuilder(
+    column: $table.xpGained,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get correctAnswers => $composableBuilder(
+    column: $table.correctAnswers,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DailyStatsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DailyStatsTableTable> {
+  $$DailyStatsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get dateEpochDays => $composableBuilder(
+    column: $table.dateEpochDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newWordsStudied => $composableBuilder(
+    column: $table.newWordsStudied,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewsCompleted => $composableBuilder(
+    column: $table.reviewsCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get xpGained =>
+      $composableBuilder(column: $table.xpGained, builder: (column) => column);
+
+  GeneratedColumn<int> get correctAnswers => $composableBuilder(
+    column: $table.correctAnswers,
+    builder: (column) => column,
+  );
+}
+
+class $$DailyStatsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DailyStatsTableTable,
+          DailyStatsRow,
+          $$DailyStatsTableTableFilterComposer,
+          $$DailyStatsTableTableOrderingComposer,
+          $$DailyStatsTableTableAnnotationComposer,
+          $$DailyStatsTableTableCreateCompanionBuilder,
+          $$DailyStatsTableTableUpdateCompanionBuilder,
+          (
+            DailyStatsRow,
+            BaseReferences<_$AppDatabase, $DailyStatsTableTable, DailyStatsRow>,
+          ),
+          DailyStatsRow,
+          PrefetchHooks Function()
+        > {
+  $$DailyStatsTableTableTableManager(
+    _$AppDatabase db,
+    $DailyStatsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DailyStatsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DailyStatsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DailyStatsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                Value<int> newWordsStudied = const Value.absent(),
+                Value<int> reviewsCompleted = const Value.absent(),
+                Value<int> xpGained = const Value.absent(),
+                Value<int> correctAnswers = const Value.absent(),
+              }) => DailyStatsTableCompanion(
+                dateEpochDays: dateEpochDays,
+                newWordsStudied: newWordsStudied,
+                reviewsCompleted: reviewsCompleted,
+                xpGained: xpGained,
+                correctAnswers: correctAnswers,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> dateEpochDays = const Value.absent(),
+                Value<int> newWordsStudied = const Value.absent(),
+                Value<int> reviewsCompleted = const Value.absent(),
+                Value<int> xpGained = const Value.absent(),
+                Value<int> correctAnswers = const Value.absent(),
+              }) => DailyStatsTableCompanion.insert(
+                dateEpochDays: dateEpochDays,
+                newWordsStudied: newWordsStudied,
+                reviewsCompleted: reviewsCompleted,
+                xpGained: xpGained,
+                correctAnswers: correctAnswers,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DailyStatsTableTable, DailyStatsRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $DailyStatsTableTable,
+                    DailyStatsRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DailyStatsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DailyStatsTableTable,
+      DailyStatsRow,
+      $$DailyStatsTableTableFilterComposer,
+      $$DailyStatsTableTableOrderingComposer,
+      $$DailyStatsTableTableAnnotationComposer,
+      $$DailyStatsTableTableCreateCompanionBuilder,
+      $$DailyStatsTableTableUpdateCompanionBuilder,
+      (
+        DailyStatsRow,
+        BaseReferences<_$AppDatabase, $DailyStatsTableTable, DailyStatsRow>,
+      ),
+      DailyStatsRow,
+      PrefetchHooks Function()
+    >;
+
+class $AppDatabaseManager {
+  final _$AppDatabase _db;
+  $AppDatabaseManager(this._db);
+  $$WordsTableTableManager get words =>
+      $$WordsTableTableManager(_db, _db.words);
+  $$WordProgressesTableTableManager get wordProgresses =>
+      $$WordProgressesTableTableManager(_db, _db.wordProgresses);
+  $$ReviewLogsTableTableManager get reviewLogs =>
+      $$ReviewLogsTableTableManager(_db, _db.reviewLogs);
+  $$UserSettingsTableTableTableManager get userSettingsTable =>
+      $$UserSettingsTableTableTableManager(_db, _db.userSettingsTable);
+  $$DailyStatsTableTableTableManager get dailyStatsTable =>
+      $$DailyStatsTableTableTableManager(_db, _db.dailyStatsTable);
+}

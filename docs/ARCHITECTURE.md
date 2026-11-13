@@ -5,102 +5,131 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Слои
 
-- **presentation** — экраны и виджеты, state через Riverpod. Зависит от domain.
-- **domain** — сущности, value objects, контракты репозиториев, use cases. Pure Dart, без Flutter SDK.
-- **data** — Drift-база и реализации репозиториев. Зависит от domain.
+- **presentation** — Flutter-виджеты и экраны, state через Riverpod. Зависит от domain.
+- **domain** — сущности, value objects, контракты репозиториев, use cases. Pure Dart, без импортов Flutter.
+- **data** — Drift-база (`drift` + `drift_flutter`) и реализации репозиториев. Зависит от domain.
 
 Правило: presentation → domain ← data. Domain не импортирует ни presentation, ни data, ни Flutter.
+
+Окружение: Flutter 3.47.9, Dart 3.13.7. Тулинг — `flutter analyze` / `flutter test`.
 
 ## Entities
 
 ### Word
-Словарная статья: то, что показывается в карточке урока.
+Словарная статья: то, что показывается в карточке урока. Статуса изучения здесь нет — он принадлежит `WordProgress` (см. ADR-004).
 
 | Поле | Тип | Назначение |
 |---|---|---|
 | id | `WordId` | Стабильный идентификатор слова в seed |
-| lemma | `String` | Слово в начальной форме, английский |
+| term | `String` | Английский термин, уже trimmed и lower-case |
 | translation | `String` | Перевод, русский |
-| partOfSpeech | `String?` | Часть речи, если известна |
-| example | `String?` | Пример употребления на английском |
 | transcription | `String?` | IPA-транскрипция |
-| audioAsset | `String?` | Путь к локальному аудио, если есть |
-| tags | `List<String>` | Теги: тема, уровень |
-| createdAtUtc | `DateTime` | Когда слово попало в базу, UTC |
+| partOfSpeech | `String?` | Часть речи, если известна |
+| exampleSentence | `String?` | Пример употребления на английском |
 
 ### WordProgress
-Текущее состояние изучения слова: одна запись на слово.
+Текущее состояние изучения слова: одна запись на слово. Конструктор non-const: assert на `DateTime.isUtc` не является potentially-constant выражением.
 
 | Поле | Тип | Назначение |
 |---|---|---|
 | wordId | `WordId` | Ссылка на Word |
-| card | `CardState` | Расписание повторений |
-| totalReviews | `int` | Сколько раз слово оценено |
-| firstSeenAtUtc | `DateTime` | Первое появление в уроке, UTC |
-| lastReviewedAtUtc | `DateTime?` | Последняя оценка, UTC |
-| isSuspended | `bool` | Исключено из очереди пользователем |
+| cardState | `CardState` | Расписание повторений |
+| status | `WordStatus` | Статус изучения — единственный источник истины (ADR-004) |
+| firstSeenAt | `DateTime` | Первое появление в уроке, UTC (assert) |
+| lastReviewedAt | `DateTime?` | Последняя оценка, UTC, null = не отвечали |
+
+Фабрика `WordProgress.newWord({required WordId wordId, required DateTime now})` создаёт запись со статусом `newWord`, `CardState.initial(now)` и `firstSeenAt = now.toUtc()`.
 
 ### ReviewLog
-Неизменяемая запись о попытке. Источник правды для статистики и streak.
+Неизменяемая запись о попытке. Источник правды для статистики и streak. Конструктор non-const по той же причине, что у WordProgress. Append-only: без `copyWith`, записи не редактируются и не удаляются.
 
 | Поле | Тип | Назначение |
 |---|---|---|
 | id | `ReviewLogId` | Идентификатор записи |
 | wordId | `WordId` | Какое слово оценивали |
-| reviewedAtUtc | `DateTime` | Момент ответа, UTC |
+| reviewedAt | `DateTime` | Момент ответа, UTC (assert) |
 | grade | `ReviewGrade` | Оценка: again / hard / good / easy |
-| previousIntervalDays | `int` | Интервал до ответа |
-| nextIntervalDays | `int` | Интервал после ответа |
-| nextEase | `double` | Ease после пересчёта |
-| durationMs | `int` | Время ответа |
-| sessionId | `String?` | Группа повторений в одной сессии |
+| previousCardState | `CardState` | Состояние карточки до ответа |
+| newCardState | `CardState` | Состояние карточки после ответа |
 
 ### UserSettings
-Пользовательские настройки: одна запись на устройство.
+Пользовательские настройки: одна запись на устройство. Фабрика `UserSettings.defaults()` возвращает все значения по умолчанию.
 
-| Поле | Тип | Назначение |
-|---|---|---|
-| dailyGoal | `int` | Цель повторений в день |
-| newWordsPerDay | `int` | Лимит новых слов в день |
-| ttsEnabled | `bool` | Озвучивание включено |
-| ttsVoiceId | `String?` | Выбранный голос |
-| notificationsEnabled | `bool` | Локальные напоминания включены |
-| reminderLocalTime | `String?` | Время напоминания в формате HH:mm, локальная TZ |
-| timeZoneId | `String?` | IANA-идентификатор TZ, если зафиксирован явно |
-| updatedAtUtc | `DateTime` | Последнее изменение, UTC |
+| Поле | Тип | Дефолт | Назначение |
+|---|---|---|---|
+| dailyNewLimit | `int` | 10 | Лимит новых слов в день, `>= 0` |
+| dailyReviewLimit | `int` | 50 | Лимит повторений в день, `>= 0` |
+| remindersEnabled | `bool` | false | Локальные напоминания включены |
+| reminderHour | `int` | 9 | Час напоминания, `0..23` |
+| reminderMinute | `int` | 0 | Минута напоминания, `0..59` |
+| ttsVoice | `String` | 'en-US' | Идентификатор голоса TTS |
+| ttsSpeed | `double` | 0.5 | Скорость речи, `0.1..1.0` |
 
 ### DailyStats
-Агрегат по одному локальному дню. Вычисляется из ReviewLog, вручную не вводится.
+Агрегат по одному локальному дню. Вычисляется из ReviewLog, вручную не вводится. Фабрика `DailyStats.empty(date)` даёт нулевые счётчики. Геттеры: `totalAnswers = newWordsStudied + reviewsCompleted`, `accuracy = totalAnswers == 0 ? 0.0 : correctAnswers / totalAnswers` (приближение, точное определение — Phase 3).
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| localDate | `LocalDate` | День в локальной TZ пользователя |
-| reviewsCount | `int` | Повторений за день |
-| newWordsCount | `int` | Новых слов за день |
-| xpEarned | `int` | XP за день |
-| goalReached | `bool` | Дневная цель достигнута |
+| date | `LocalDate` | День в локальной TZ пользователя |
+| newWordsStudied | `int` | Новых слов показано, `>= 0` |
+| reviewsCompleted | `int` | Повторений завершено, `>= 0` |
+| xpGained | `int` | XP за день, `>= 0` |
+| correctAnswers | `int` | Успешных ответов, `>= 0` |
 
 ## Value objects
 
 ### CardState
-Состояние расписания SM-2 для одного слова.
+Состояние расписания SM-2 для одного слова. `easePermille` — ease, умноженный на 1000 (2500 = 2.5): целое масштабирование делает equality детерминированной. Фабрика `CardState.initial(dueAt)` даёт ease 2500 и нулевые счётчики.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| ease | `double` | Текущий ease-фактор |
-| intervalDays | `int` | Интервал до следующего показа |
-| repetitions | `int` | Успешных повторений подряд |
-| lapses | `int` | Число провалов |
-| dueAtUtc | `DateTime` | Когда слово снова доступно, UTC |
+| easePermille | `int` | Ease-фактор × 1000, `>= 1300` |
+| intervalDays | `int` | Интервал до следующего показа, `>= 0` |
+| repetitions | `int` | Успешных повторений подряд, `>= 0` |
+| lapses | `int` | Число провалов, `>= 0` |
+| dueAt | `DateTime` | Когда слово снова доступно, всегда UTC |
+
+Геттер `ease` возвращает `easePermille / 1000.0`.
 
 ### StreakInfo
 Результат расчёта серии. Не хранится, вычисляется из логов.
 
 | Поле | Тип | Назначение |
 |---|---|---|
-| count | `int` | Длина текущей серии в локальных днях |
-| lastActiveLocalDate | `LocalDate?` | Последний день с активностью |
-| isActiveToday | `bool` | Активность уже была сегодня |
+| count | `int` | Длина текущей серии в локальных днях, `>= 0` |
+| lastActiveLocalDate | `LocalDate?` | Последний день с активностью, null если истории нет |
+
+### ExportPayload
+Снимок полного состояния для бэкапа. Не `const`: списки копируются в unmodifiable. Валидация (`schemaVersion == 1`, `exportedAt.isUtc`) — в `ImportProgress`, не в конструкторе.
+
+| Поле | Тип | Назначение |
+|---|---|---|
+| schemaVersion | `int` | Версия схемы, поддерживается только 1 |
+| exportedAt | `DateTime` | Момент снимка, UTC |
+| settings | `UserSettings` | Настройки на момент экспорта |
+| words | `List<Word>` | Словарь |
+| progress | `List<WordProgress>` | Прогресс |
+| logs | `List<ReviewLog>` | Журнал ответов |
+| stats | `List<DailyStats>` | Дневная статистика |
+
+Равенство — поэлементное по всем спискам.
+
+## SRS
+
+`SrsCalculator` — интерфейс алгоритма повторений. Реализация: `Sm2SrsCalculator` (Phase 1.1c).
+
+- `CardState apply(CardState current, ReviewGrade grade, DateTime now)`
+- Δ ease в permille: again −800, hard −140, good 0, easy +100; пол 1300.
+- Интервалы: repetitions 1 → 1 день, 2 → 6 дней, ≥ 3 → `interval × EF` с округлением.
+- `dueAt = now + interval` без выравнивания на полночь (улучшение Phase 3).
+- Чистая функция: от системных часов не зависит.
+- `now` — UTC; при нарушении бросается `ArgumentError` (runtime-проверка, не assert — release-safe).
+
+## Serialization contract
+
+`ExportPayloadCodec` (`lib/data/export_payload_codec.dart`) — единственное место JSON-сериализации схемы v1: компактный JSON, все моменты времени в UTC ISO-8601, enum'ы по `.name`, `DailyStats.date` — числом `daysSinceEpoch`. `decode` бросает `FormatException` на любое структурное несоответствие; экраны получают кодек через `payloadCodecProvider`, чтобы presentation не импортировал data.
+
+`WordStatus` сериализуется как часть `WordProgress`, не `Word`: статус живёт только в прогрессе (ADR-004). Значение пишется по `.name`; переименование — breaking change, требует миграции в data-слое. То же для enum `ReviewGrade`: `.name` → `again` / `hard` / `good` / `easy`. Do NOT serialize enums by `.index`: index is not a stable key, он меняется при вставке значения в середину списка.
 
 ## Repository interfaces
 
@@ -108,45 +137,170 @@ Dart-код в документе не приводится: сигнатуры 
 
 ### WordRepository
 - `Future<Word?> getById(WordId id)`
-- `Future<List<Word>> getByIds(List<WordId> ids)`
+- `Future<List<Word>> getByIds(Iterable<WordId> ids)`
 - `Future<List<Word>> getAll()`
-- `Future<int> count()`
-- `Future<void> upsertAll(List<Word> words)`
+- `Future<List<Word>> search(String query)`
+- `Future<void> upsert(Word word)`
+- `Future<void> insertMany(Iterable<Word> words)` — атомарно, для seed
+- `Future<void> delete(WordId id)`
+- `Future<void> replaceAll(Iterable<Word> words)` — импорт/восстановление
 
 ### ProgressRepository
-- `Future<List<WordProgress>> getDue(DateTime nowUtc, {required int limit})`
 - `Future<WordProgress?> getByWordId(WordId wordId)`
-- `Future<void> saveAll(List<WordProgress> items)`
-- `Future<void> appendReview(ReviewLog log)`
-- `Future<List<ReviewLog>> getReviewsSince(DateTime sinceUtc)`
-- `Future<int> countReviewsBetween(DateTime fromUtc, DateTime toUtc)`
+- `Future<List<WordProgress>> getByStatus(WordStatus status)`
+- `Future<List<WordProgress>> getAll()`
+- `Future<List<WordProgress>> getDueBefore(DateTime utcInstant)`
+- `Future<void> upsert(WordProgress progress)`
+- `Future<void> replaceAll(Iterable<WordProgress> items)`
 
 ### SettingsRepository
-- `Future<UserSettings> read()`
-- `Future<void> write(UserSettings settings)`
-- `Stream<UserSettings> watch()`
+- `Future<UserSettings> get()`
+- `Future<void> save(UserSettings settings)`
+
+### ReviewLogRepository
+- `Future<void> append(ReviewLog log)` — единственная операция для учебного цикла
+- `Future<List<ReviewLog>> getByWordId(WordId wordId)`
+- `Future<List<ReviewLog>> getAll()`
+- `Future<List<ReviewLog>> getByDateRange(DateTime fromUtc, DateTime toUtc)`
+- `Future<void> replaceAll(Iterable<ReviewLog> logs)` — исключение из append-only, только импорт (ADR-005)
+
+### StatsRepository
+- `Future<DailyStats?> getForDate(LocalDate date)`
+- `Future<List<DailyStats>> getRange(LocalDate from, LocalDate to)`
+- `Future<List<DailyStats>> getAll()`
+- `Future<LocalDate?> getLastActiveDate()`
+- `Future<void> upsert(DailyStats stats)`
+- `Future<void> replaceAll(Iterable<DailyStats> items)`
 
 ## Use cases
 
-| Use case | Вход | Выход |
+| Use case | Сигнатура | Поведение |
 |---|---|---|
-| GetTodayQueue | `DateTime nowUtc`, `int limit` | `Future<List<QueueItem>>`: сначала due, затем новые |
-| RecordReview | `WordId wordId`, `ReviewGrade grade`, `DateTime nowUtc`, `int durationMs` | `Future<RecordReviewResult>`: новый CardState и ReviewLog |
-| ExportProgress | `DateTime nowUtc` | `Future<ExportPayload>`: schemaVersion и строки прогресса |
-| ImportProgress | `ExportPayload payload` | `Future<ImportResult>`: added / updated / skipped / rejected |
-| ComputeStreak | `List<LocalDate> activeDates`, `LocalDate todayLocal` | `StreakInfo` |
+| GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | due по `dueAt` asc, newWords по `firstSeenAt` asc, оба обрезаны `dailyReviewLimit` / `dailyNewLimit`; слова со статусом `newWord` исключены из due |
+| RecordReview | `RecordReview({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required WordRepository words, required SrsCalculator srs, required ReviewLogId Function() nextLogId, required DateTime Function() clock})` → `Future<CardState>` | проверяет существование слова; создаёт или обновляет прогресс, пишет ReviewLog, поднимает DailyStats. Статус: mastered при `reps ≥ 5 && intervalDays ≥ 21` (Anki-style mature); `lapses` не блокирует — история провалов не мешает mastered. Иначе learning: после любого ответа слово уже видели, `newWord` только до первого ответа |
+| ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = 1` |
+| ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion == 1` и `exportedAt.isUtc`; атомарность per-repo |
+| ComputeStreak | `ComputeStreak({required StatsRepository stats, required DateTime Function() clock})` → `Future<StreakInfo>` | 2 запроса: `getLastActiveDate` + `getRange`; локальная дата `clock().toLocal()`, окно `_lookbackDays = 3650` |
+| ResetProgress | `ResetProgress({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats})` → `Future<void>` | очищает прогресс → логи → статистику; слова и настройки сохраняются (ADR-013) |
 
 Поддерживающие типы `QueueItem`, `RecordReviewResult`, `ExportPayload`, `ImportResult`, `WordId`, `ReviewLogId`, `ReviewGrade`, `LocalDate` определяются в 1.1a вместе с сущностями.
 
+## Data
+
+Схема v1 — пять таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC.
+
+| Таблица | Data-класс | Первичный ключ | Индексы |
+|---|---|---|---|
+| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement) | `idx_words_term` |
+| `word_progresses` | `WordProgressRow` | `wordId` → `words.id` ON DELETE CASCADE | `idx_word_progress_due`, `idx_word_progress_status` |
+| `review_logs` | `ReviewLogRow` | `id` | `idx_review_logs_word`, `idx_review_logs_reviewed` |
+| `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |
+| `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
+
+**Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
+
+**`review_logs.wordId` без внешнего ключа.** Логи должны пережить удаление слова: иначе история обучения исчезает вместе со словарём. Каскад есть только у прогресса.
+
+**`user_settings` — синглтон** через `CHECK (id = 1)`; вторая строка отвергается на уровне SQLite. Плюс `CHECK (tts_speed BETWEEN 0.1 AND 1.0)` — `ttsSpeed` хранится как `real`, не permille: диапазон узкий, сравнение всё равно идёт в домене через double.
+
+**Версия схемы: 1.** `MigrationStrategy`: `onCreate = createAll`, `beforeOpen` включает `PRAGMA foreign_keys = ON` (SQLite не проверяет FK иначе — без этого каскад молча не работает). Миграции начинаются с v2.
+
+Инициализация из `assets/seed/` — 2a.2 (BL-29).
+
+**Реализации репозиториев** — `lib/data/repositories/*.dart`: `DriftWordRepository`, `DriftProgressRepository`, `DriftReviewLogRepository`, `DriftSettingsRepository`, `DriftStatsRepository`. Каждая — `final class` поверх `AppDatabase` и мапперов. `insertMany` и `replaceAll` идут в одной транзакции; `getDueBefore` и `getByDateRange` бросают `ArgumentError` на не-UTC. `WordRepository.nextId()` — `SELECT COALESCE(MAX(id), 0) + 1` без чтения таблицы в память; удалённые id не переиспользуются, атомарность при параллельных вставках — BL-39.
+
+**`WordRepository.search` фильтрует в Dart, не в SQL.** `LIKE` в SQLite регистронезависим только для ASCII, а переводы кириллические — поиск «книга» не находил «Книга». Для словаря в сотни слов линейный проход дешевле FTS-индекса; при росте объёма — BL-32.
+
+**`JsonSeedLoader` работает через `WordRepository`**, а не через `AppDatabase`: `count() > 0` → выход, иначе `insertMany` одной транзакцией. Падение откатывает весь батч, повторный запуск пробует снова.
+
+## DI
+
+Providers — `lib/core/di/providers.dart`, Riverpod 3.x без codegen (`riverpod_annotation` — 2a.3, BL-26).
+
+| Группа | Провайдеры |
+|---|---|
+| Инфраструктура | `appDatabaseProvider` (override в `main`), `clockProvider`, `assetBundleProvider` (override в тестах), `nextReviewLogIdProvider` (override в `main`), `crashReporterProvider` (override в `main`, ADR-016), `srsCalculatorProvider` |
+| Репозитории | `wordRepositoryProvider`, `progressRepositoryProvider`, `reviewLogRepositoryProvider`, `settingsRepositoryProvider`, `statsRepositoryProvider` |
+| Use cases | `getTodayQueueUseCaseProvider`, `recordReviewProvider`, `computeStreakUseCaseProvider`, `exportProgressProvider`, `importProgressProvider` |
+| Async-данные экрана | `getTodayQueueProvider`, `computeStreakProvider`, `dailyGoalProvider` |
+| Сброс и бэкап | `resetProgressProvider` (ADR-013), `exportProgressProvider`, `importProgressProvider`, `payloadCodecProvider` (ADR-014) |
+| Прочее | `seedLoaderProvider` |
+
+Async-данные — `FutureProvider`: состоянием владеет провайдер, поэтому `ref.invalidate` действительно запускает пересчёт. Использовать `AsyncValue.when` в UI, не `FutureBuilder` с future из `build` — иначе кэш живёт до следующего rebuild и главный экран показывает прогресс до урока (BL-41, исправлено в 4b.1). UseCase-провайдеры оставлены отдельно: тесты подменяют реализацию через `overrideWithValue`, не трогая async-состояние. `LessonScreen` инвалидирует все три после сессии и при закрытии.
+
+`appDatabaseProvider`, `nextReviewLogIdProvider` и `crashReporterProvider` намеренно бросают `UnimplementedError`: их переопределяют `main` и тесты, чтобы не тащить файловую базу, глобальный счётчик и нативный SDK. `assetBundleProvider` даёт `rootBundle` по умолчанию и подменяется в тестах.
+
+Bootstrap (`bootstrapApp` в `main.dart`): `AppDatabase()` → `seedLoader.loadIfEmpty()` в отдельном `ProviderContainer` → `SELECT MAX(id)` → `NextReviewLogIdGenerator(max + 1)` → `runApp` с overrides (ADR-009). **Seed обёрнут в try/catch: падение загрузчика логируется, но не блокирует запуск — приложение стартует с пустой БД, seed повторится на следующем запуске (`count() == 0`).**
+
+Сброс `nextReviewLogIdProvider` после `ImportProgress` не реализован: импорт пока не вызывается из UI, пересчёт `max(id)` — Phase 5 (BL-36).
+
+## Presentation
+
+- `lib/presentation/theme.dart` — Material 3, seed `Colors.teal`, пастельный фон.
+- `lib/presentation/router.dart` — `routerProvider` (GoRouter): `/`, `/lesson`, `/dictionary`, `/profile`.
+- `lib/presentation/screens/` — `HomeScreen` (серия, дневная цель, запуск урока, `NavigationBar`), `LessonScreen` (сессия), `DictionaryScreen` (словарь), `ProfileScreen` (настройки и скорость TTS).
+- `lib/presentation/widgets/streak_card.dart` — серия дней из `StreakInfo`: крупная цифра, остаток до вехи 7, поздравления на 7/30/100/365. Freeze не реализован — подпись «Freeze появится в Phase 5d» (ADR-015, BL-46).
+- `lib/presentation/widgets/daily_goal_card.dart` — «сделано / план» из `DailyStats.totalAnswers` и суммы `dailyNewLimit + dailyReviewLimit`; полоска обрезана на 100%, счётчик показывает факт (перебор виден как «7 / 5»).
+- `HomeScreen` не считает сам: серию берёт у `ComputeStreak`, очередь у `GetTodayQueue`, план — сумма лимитов `UserSettings`. Кнопка старта выключена при пустой очереди; ошибка очереди показывает «Повторить» и пересоздаёт репозитории через `ref.invalidate` (у `ConsumerWidget` нет `setState`).
+- `lib/presentation/widgets/` — `WordCard` (термин + транскрипция, reveal перевода и примера через `AnimatedSwitcher`), `SessionSummary` (итоги + «Готово»).
+- `lib/presentation/screens/dictionary_screen.dart` — словарь: поиск через `WordRepository.search`, вкладки `Все`/`Изучаю`/`Выучено`, добавление слова, состояния loading/empty/error.
+- `lib/presentation/widgets/word_list_item.dart` — строка словаря: термин, перевод, транскрипция, чип статуса (`новое`/`изучаю`/`выучено`).
+- `lib/presentation/widgets/add_word_dialog.dart` — форма добавления: term/translation обязательны, дубликат по терму требует подтверждения, id = `max(id) + 1` (временное решение).
+- `lib/presentation/widgets/export_dialog.dart` — JSON схемы v1 (read-only, selectable) и кнопка копирования в буфер (ADR-014).
+- `lib/presentation/widgets/import_dialog.dart` — вставка JSON, проверка разбора и версии схемы, подтверждение, затем `ImportProgress` (REPLACE).
+- `ProfileScreen` — секции: дневные лимиты (слайдеры 0..50/0..200), озвучка, резервная копия, опасная зона (сброс прогресса за подтверждением), напоминания (disabled, Phase 5).
+- `LessonScreen` обёрнут в `PopScope`: пока ответов нет, системный back закрывает экран сразу и инвалидирует кэш; если сессия начата — диалог «Завершить сессию?» (BL-43), после подтверждения кэш инвалидируется и экран закрывается.
+- `lib/core/text/plural.dart` — `pluralize(n, one/few/many)`; единственное место правил русского склонения (используется в `StreakCard` и кнопке старта урока).
+
+`DictionaryEntry` (`lib/domain/value_objects/`) — пара «слово + статус»; `status == null` означает отсутствие прогресса, такие слова видны только во вкладке «Все».
+
+`LessonScreen` — `ConsumerStatefulWidget`: очередь грузится один раз (`ref.read(getTodayQueueProvider)`), `FutureBuilder` даёт три состояния (загрузка, ошибка, пустая очередь). Оценка — `Dismissible` (вправо `good`, влево `again`) или кнопки; каждая запись идёт через `recordReviewProvider`, после последней карточки — `SessionSummary`. Undo доступен до итогов и вызывает `undoLastReviewProvider` (ADR-010).
+
+XP и признак «верно» считаются в домене: `XpRules` (hard 5, good 10, easy 15, again 0) и `RecordReview`, возвращающий `ReviewOutcome` (ADR-011). Экран только суммирует `outcome.xpGained`.
+
+## Core services
+
+- `lib/core/tts/tts_service.dart` — `TtsService` (интерфейс) + `FlutterTtsService` (обёртка над `flutter_tts`). Голос — BCP-47 (`en-US`/`en-GB`), скорость 0.1..1.0; значения берутся из `UserSettings`.
+- Напоминания — **TBD Phase 5** (BL-38): `flutter_local_notifications` требует `compileSdk 37`, AGP 9.1.1 и desugaring, а Android SDK в среде отсутствует (ADR-012).
+- `lib/core/logger.dart` — `Logger`/`DebugLogger`.
+
+Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.intent.action.TTS_SERVICE`; других изменений нет.
+
+Логирование — через `Logger` (`lib/core/logger.dart`); `debugPrint` допустим только внутри `DebugLogger`. Bootstrap (`main.dart`) логирует падение seed как warning, а ошибку чтения `MAX(id)` — как error, продолжая с генератором от 1.
+
+**DailyStats и ReviewLogs — независимые источники.** Удаление слова не откатывает статистику. `ComputeStreak` читает `DailyStats`, а не логи. Это задумано: пользователь отвечал — факт остаётся, даже если слово удалили.
+
+**Два уровня валидации.** `CHECK` в БД — last line of defense (ручные правки базы, seed, будущие миграции). `ArgumentError`/assert в domain — early detection, ошибка падает рядом с источником. Оба уровня сохраняются сознательно, дублирование оправдано разной ценой ошибки.
+
+**`ttsSpeed` как `real`.** UI-слайдер с шагом 0.05 даёт точные double, поэтому permille не нужен. Если в 2a.3 увидим drift equality на double — переделать на `int ttsSpeedPermille` (BL-30).
+
+## Observability
+
+- `lib/core/crash_reporter.dart` — контракт `CrashReporter` (`captureException`, `setContext`) и две реализации: `SentryCrashReporter` (отправка в Sentry) и `NoOpCrashReporter` (ничего не делает). Presentation зависит от контракта, а не от SDK.
+- `crashReporterProvider` по умолчанию бросает `UnimplementedError`: выбор между Sentry и заглушкой делает `main`, иначе сбой терялся бы молча.
+- DSN — только `--dart-define=SENTRY_DSN=...`. Пустая строка → `NoOpCrashReporter`. Параметры: `sampleRate` 1.0 debug / 0.2 release, `tracesSampleRate: 0`, `sendDefaultPii: false`, `attachStacktrace: true` (ADR-016).
+- `bootstrapApp` принимает `sentryDsn` и необязательный `sentryInit`: тесты подменяют инициализацию заглушкой, нативный SDK в `flutter test` не поднимается. Сбой `sentryInit` не блокирует старт — приложение продолжает работу с `NoOpCrashReporter`.
+- Точки отправки: bootstrap (`bootstrap_seed`, `bootstrap_review_log_id`), `LessonScreen._grade` (`record_review`), `ImportDialog._submit` (`import`). Сбой сначала попадает в `Logger`, затем в `CrashReporter`; сообщение в UI не меняется.
+- iOS: `sentry_flutter` 10.x использует SPM (CocoaPods удалён), `Podfile` не создаётся. Android: `minSdk 26` в `android/app/build.gradle.kts`; `compileSdk`/`targetSdk`/`ndkVersion` наследуются от Flutter.
+- IP-адрес отключается в проекте Sentry (Project Settings → Security & Privacy) — это серверная настройка, клиент на неё не влияет.
+
 ## File layout
 
-Планируемое дерево доменного слоя; файлы появятся в 1.1a–1.1c:
+Текущее дерево после Flutter bootstrap (Phase 2a.0b):
 
+- `lib/main.dart` — точка входа, `ProviderScope` + `MaterialApp`
+- `lib/core/di/` — провайдеры зависимостей (пусто, 2a.3)
 - `lib/domain/entities/` — `word.dart`, `word_progress.dart`, `review_log.dart`, `user_settings.dart`, `daily_stats.dart`
-- `lib/domain/value_objects/` — `word_id.dart`, `review_log_id.dart`, `review_grade.dart`, `local_date.dart`, `card_state.dart`, `streak_info.dart`
-- `lib/domain/repositories/` — `word_repository.dart`, `progress_repository.dart`, `settings_repository.dart`
-- `lib/domain/use_cases/` — `get_today_queue.dart`, `record_review.dart`, `export_progress.dart`, `import_progress.dart`, `compute_streak.dart`
+- `lib/domain/value_objects/` — `word_id.dart`, `review_log_id.dart`, `review_grade.dart`, `word_status.dart`, `local_date.dart`, `card_state.dart`, `streak_info.dart`, `today_queue.dart`, `export_payload.dart`
+- `lib/domain/repositories/` — `word_repository.dart`, `progress_repository.dart`, `review_log_repository.dart`, `settings_repository.dart`, `stats_repository.dart`
+- `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
+- `lib/domain/usecases/` — `get_today_queue.dart`, `record_review.dart`, `export_progress.dart`, `import_progress.dart`, `compute_streak.dart`
+- `lib/data/db/` — Drift-схема (пусто, 2a.1)
+- `lib/data/repositories/` — реализации контрактов (пусто, 2a.1)
+- `lib/presentation/screens/`, `lib/presentation/widgets/` — UI (пусто, 2a.2)
 - `test/domain/` — тесты, зеркалящие структуру `lib/domain/`
+- `tools/` — `validate_seed*.dart`, `generate_seed.dart`
+- `assets/seed/` — seed-файлы контента
 
 Правила: один публичный тип на файл, имена файлов в snake_case, импорт через полный путь пакета.
 

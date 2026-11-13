@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "manual-mvp",
+      "name": "Manual MVP selection",
+      "license": "CC0 (manual selection, translations pending review)",
+      "url": null
+    }
+  ],
+  "words": [
+    {
+      "id": 1,
+      "term": "the",
+      "translation": "определённый артикль",
+      "transcription": "/ðə/",
+      "partOfSpeech": "article",
+      "exampleSentence": "The cat is on the mat.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 1
+    },
+    {
+      "id": 2,
+      "term": "be",
+      "translation": "быть",
+      "transcription": "/biː/",
+      "partOfSpeech": "verb",
+      "exampleSentence": "I want to be happy.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 2
+    },
+    {
+      "id": 3,
+      "term": "to",
+      "translation": "к, в, на",
+      "transcription": "/tuː/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "I go to school.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 3
+    },
+    {
+      "id": 4,
+      "term": "of",
+      "translation": "из, от",
+      "transcription": "/ɒv/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "A cup of tea.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 4
+    },
+    {
+      "id": 5,
+      "term": "and",
+      "translation": "и",
+      "transcription": "/ænd/",
+      "partOfSpeech": "conjunction",
+      "exampleSentence": "Cats and dogs.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 5
+    },
+    {
+      "id": 6,
+      "term": "a",
+      "translation": "неопределённый артикль",
+      "transcription": "/ə/",
+      "partOfSpeech": "article",
+      "exampleSentence": "I have a dog.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 6
+    },
+    {
+      "id": 7,
+      "term": "in",
+      "translation": "в",
+      "transcription": "/ɪn/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "The keys are in the bag.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 7
+    },
+    {
+      "id": 8,
+      "term": "that",
+      "translation": "тот, что",
+      "transcription": "/ðæt/",
+      "partOfSpeech": "pronoun",
+      "exampleSentence": "That is my house.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 8
+    },
+    {
+      "id": 9,
+      "term": "have",
+      "translation": "иметь",
+      "transcription": "/hæv/",
+      "partOfSpeech": "verb",
+      "exampleSentence": "I have a car.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 9
+    },
+    {
+      "id": 10,
+      "term": "i",
+      "translation": "я",
+      "transcription": "/aɪ/",
+      "partOfSpeech": "pronoun",
+      "exampleSentence": "I am here.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 10
+    },
+    {
+      "id": 11,
+      "term": "it",
+      "translation": "оно, это",
+      "transcription": "/ɪt/",
+      "partOfSpeech": "pronoun",
+      "exampleSentence": "It is cold.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 11
+    },
+    {
+      "id": 12,
+      "term": "for",
+      "translation": "для",
+      "transcription": "/fɔːr/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "This is for you.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 12
+    },
+    {
+      "id": 13,
+      "term": "not",
+      "translation": "не",
+      "transcription": "/nɒt/",
+      "partOfSpeech": "adverb",
+      "exampleSentence": "I am not ready.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 13
+    },
+    {
+      "id": 14,
+      "term": "on",
+      "translation": "на",
+      "transcription": "/ɒn/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "The book is on the table.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 14
+    },
+    {
+      "id": 15,
+      "term": "with",
+      "translation": "с",
+      "transcription": "/wɪð/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "Come with me.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 15
+    },
+    {
+      "id": 16,
+      "term": "he",
+      "translation": "он",
+      "transcription": "/hiː/",
+      "partOfSpeech": "pronoun",
+      "exampleSentence": "He is my friend.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 16
+    },
+    {
+      "id": 17,
+      "term": "as",
+      "translation": "как",
+      "transcription": "/æz/",
+      "partOfSpeech": "conjunction",
+      "exampleSentence": "As you wish.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 17
+    },
+    {
+      "id": 18,
+      "term": "you",
+      "translation": "ты, вы",
+      "transcription": "/juː/",
+      "partOfSpeech": "pronoun",
+      "exampleSentence": "You are welcome.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 18
+    },
+    {
+      "id": 19,
+      "term": "do",
+      "translation": "делать",
+      "transcription": "/duː/",
+      "partOfSpeech": "verb",
+      "exampleSentence": "What do you do?",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 19
+    },
+    {
+      "id": 20,
+      "term": "at",
+      "translation": "в, у",
+      "transcription": "/æt/",
+      "partOfSpeech": "preposition",
+      "exampleSentence": "Meet me at the station.",
+      "sourceId": "manual-mvp",
+      "frequencyRank": 20
+    }
+  ]
+}

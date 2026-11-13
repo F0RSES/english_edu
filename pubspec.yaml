@@ -1,13 +1,32 @@
 name: english_edu
-description: Offline-first English vocabulary trainer.
+description: Offline-first English learning app
 publish_to: none
+version: 0.1.0+1
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.13.0 <4.0.0"
 
 dependencies:
+  drift: ^2.35.3
+  drift_flutter: ^0.3.1
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  flutter_tts: ^4.2.5
+  go_router: ^18.1.3
   meta: ^1.19.0
+  path: ^1.9.1
+  sentry_flutter: ^10.3.0
 
 dev_dependencies:
-  test: ^1.33.0
+  build_runner: ^2.16.1
+  drift_dev: ^2.35.2
+  flutter_test:
+    sdk: flutter
+  test: ^1.31.1
   very_good_analysis: ^11.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/seed/

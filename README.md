@@ -6,7 +6,7 @@ Offline-first мобильное приложение для изучения а
 ## Status
 
 **Phase 23 — Reading Mode** (6 игр + разговорник + чтение; 2071 слово,
-209 фраз, 34 рассказа). APK собирается, iOS — нет. 818 тестов, analyze=0.
+209 фраз, 34 рассказа). APK собирается, iOS — нет. 836 тестов, analyze=0.
 
 ## Features
 
@@ -40,7 +40,7 @@ Offline-first мобильное приложение для изучения а
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 818 passed
+    flutter test               # 836 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -196,7 +196,7 @@ flutter build apk --debug \
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 39 ADR + архитектурные решения — docs/DECISIONS.md
+- 40 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 

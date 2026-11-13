@@ -105,6 +105,12 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/chat'),
+        icon: const Icon(Icons.smart_toy),
+        label: const Text('Помощник'),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (index) => _openSection(context, index),
         destinations: const [

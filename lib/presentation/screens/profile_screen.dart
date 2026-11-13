@@ -32,6 +32,16 @@ class ProfileScreen extends ConsumerWidget {
         children: [
           _Identity(settings: ref.watch(settingsRepositoryProvider).get()),
           const SizedBox(height: 16),
+          Card(
+            margin: EdgeInsets.zero,
+            child: ListTile(
+              leading: const Icon(Icons.smart_toy),
+              title: const Text('Помощник'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/chat'),
+            ),
+          ),
+          const SizedBox(height: 16),
           _Stats(
             streak: ref.watch(computeStreakProvider),
             words: ref.watch(dictionaryEntriesProvider),

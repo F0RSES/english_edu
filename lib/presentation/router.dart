@@ -1,6 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/presentation/screens/achievements_screen.dart';
+import 'package:english_edu/presentation/screens/chat_screen.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/screens/dictionary_screen.dart';
 import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
@@ -75,6 +76,11 @@ final routerProvider = Provider<GoRouter>(
             storyId: int.tryParse(state.pathParameters['id'] ?? ''),
           ),
         ),
+      ),
+      GoRoute(
+        path: '/chat',
+        pageBuilder: (context, state) =>
+            _slideUpPage(state, const ChatScreen()),
       ),
       GoRoute(
         path: '/typing-speed',

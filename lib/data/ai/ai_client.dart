@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
@@ -25,6 +26,12 @@ const _errorHunterType = 'error_hunter';
 
 /// Значение поля `type` для задания «Заполни пропуск» (ADR-025).
 const _clozeType = 'cloze_test';
+
+/// Значение поля `type` для чата с помощником (ADR-041).
+const _chatType = 'chat';
+
+/// Таймаут чата: ответ по контексту длиннее, чем подсказка к одному слову.
+const _chatTimeout = Duration(seconds: 30);
 
 /// Ошибка AI-подсказки: сеть, статус ответа или неожиданный формат.
 ///
@@ -52,7 +59,11 @@ final class AiException implements Exception {
 /// Сеть используется только по явному действию пользователя (кнопка
 /// «Подсказка»): учебный цикл остаётся офлайн.
 final class AiClient
-    implements HintGenerator, ErrorTaskGenerator, ClozeGenerator {
+    implements
+        HintGenerator,
+        ErrorTaskGenerator,
+        ClozeGenerator,
+        ChatGenerator {
   /// Создаёт клиент поверх переданного `http.Client`: тесты подставляют
   /// `MockClient`, приложение — реальный клиент.
   AiClient(this._client);
@@ -168,5 +179,53 @@ final class AiClient
     } on FormatException catch (error) {
       throw AiException('AI proxy returned a malformed task: ${error.message}');
     }
+  }
+
+  /// Отправляет контекст чата и уровень пользователя, возвращает ответ
+  /// помощника (контракт [ChatGenerator], ADR-041).
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустой
+  /// ответ; таймаут пробрасывается как [TimeoutException].
+  @override
+  Future<String> sendChat({
+    required List<({String role, String content})> messages,
+    required String level,
+  }) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'type': _chatType,
+            'messages': [
+              for (final message in messages)
+                {'role': message.role, 'content': message.content},
+            ],
+            'word': level,
+          }),
+        )
+        .timeout(_chatTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final message = decoded['message'];
+    if (message is! String || message.trim().isEmpty) {
+      throw const AiException('AI proxy returned no chat message');
+    }
+    return message;
   }
 }

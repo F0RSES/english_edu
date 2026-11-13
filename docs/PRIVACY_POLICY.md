@@ -1,7 +1,7 @@
 # Privacy Policy / Политика конфиденциальности
 
 **English Edu** — offline-first приложение для изучения английского.
-Last updated / Обновлено: 2026-11-06.
+Last updated / Обновлено: 2026-11-13.
 
 ---
 
@@ -27,6 +27,11 @@ Last updated / Обновлено: 2026-11-06.
   request under its own terms.
 - **Error Hunter game (optional, opt-in by opening the screen).** Same as above:
   one word from your dictionary is sent to generate a task.
+- **AI chat assistant (optional, opt-in by sending a message).** Messages you
+  type in the "Помощник" chat are sent to our proxy, which forwards them to the
+  DeepSeek API to generate a reply. The last 10 messages and your CEFR level
+  are sent as context. Chat history is stored only on your device and is never
+  synced to the cloud.
 - **Crash reports (optional).** If the build was configured with a Sentry DSN,
   crashes and errors are reported to Sentry. Reports contain the error, the stack
   trace and the app/platform version; `sendDefaultPii` is disabled, so no IP
@@ -76,6 +81,11 @@ Questions about privacy: see the contact listed in the store page.
   постоянно; обработка запроса у провайдера модели идёт по его правилам.
 - **Игра «Охота на ошибки» (по желанию, при открытии экрана).** То же самое:
   одно слово из словаря отправляется для генерации задания.
+- **Чат с AI-помощником (по желанию, по отправке сообщения).** Сообщения,
+  которые вы пишете в чате «Помощник», отправляются на наш прокси и передаются
+  в DeepSeek API для генерации ответа. В контекст уходят последние 10 сообщений
+  и ваш уровень CEFR. История чата хранится только на вашем устройстве и не
+  синхронизируется в облако.
 - **Отчёты о сбоях (опционально).** Если сборка сконфигурирована с DSN Sentry,
   падения и ошибки уходят в Sentry. В отчёте — ошибка, стектрейс и версия
   приложения/платформы; `sendDefaultPii` выключен, поэтому клиент не прикладывает

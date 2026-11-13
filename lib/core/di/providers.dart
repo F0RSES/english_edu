@@ -11,6 +11,7 @@ import 'package:english_edu/data/db/story_seed_loader.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/data/repositories/drift_achievement_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
+import 'package:english_edu/data/repositories/drift_chat_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
 import 'package:english_edu/data/repositories/drift_daily_challenge_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
@@ -28,12 +29,14 @@ import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/data/sync/supabase_cloud_auth_service.dart';
 import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
+import 'package:english_edu/domain/entities/chat_message.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/phrase.dart';
 import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
+import 'package:english_edu/domain/repositories/chat_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
 import 'package:english_edu/domain/repositories/daily_challenge_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
@@ -47,6 +50,7 @@ import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/repositories/user_category_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloud_auth_service.dart';
 import 'package:english_edu/domain/services/cloud_sync_service.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
@@ -78,6 +82,7 @@ import 'package:english_edu/domain/usecases/mark_missed_day.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/save_typing_record.dart';
+import 'package:english_edu/domain/usecases/send_chat_message.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
@@ -155,6 +160,11 @@ final errorTaskGeneratorProvider = Provider<ErrorTaskGenerator>(
 
 /// Генератор заданий «Заполни пропуск»; реализация — `AiClient` (ADR-025).
 final clozeGeneratorProvider = Provider<ClozeGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Генератор ответов чата; реализация — `AiClient` (ADR-041).
+final chatGeneratorProvider = Provider<ChatGenerator>(
   (ref) => ref.watch(aiClientProvider),
 );
 
@@ -741,6 +751,26 @@ final undoLastReviewProvider = Provider<UndoLastReview>(
     reviewLog: ref.watch(reviewLogRepositoryProvider),
     stats: ref.watch(statsRepositoryProvider),
   ),
+);
+
+/// История чата с AI-помощником (ADR-041, schema v15).
+final chatRepositoryProvider = Provider<ChatRepository>(
+  (ref) => DriftChatRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Отправка сообщения помощнику: последние 10 сообщений в контекст (ADR-041).
+final sendChatMessageProvider = Provider<SendChatMessage>(
+  (ref) => SendChatMessage(
+    chat: ref.watch(chatRepositoryProvider),
+    ai: ref.watch(chatGeneratorProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    clock: ref.watch(clockProvider),
+  ),
+);
+
+/// История чата для экрана; инвалидируется после отправки и очистки.
+final chatHistoryProvider = FutureProvider<List<ChatMessage>>(
+  (ref) => ref.watch(chatRepositoryProvider).getAll(),
 );
 
 /// URL проекта Supabase (`--dart-define=SUPABASE_URL=...`, ADR-022).

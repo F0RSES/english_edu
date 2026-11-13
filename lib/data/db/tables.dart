@@ -501,3 +501,26 @@ class Stories extends Table {
   /// Момент загрузки, миллисекунды UTC.
   IntColumn get createdAtUtc => integer()();
 }
+
+/// Сообщения чата с AI-помощником (Phase 25a, ADR-041).
+///
+/// История хранится только локально и не синхронизируется в облако:
+/// содержимое переписки — приватные данные пользователя.
+@DataClassName('ChatMessageRow')
+@TableIndex(name: 'idx_chat_messages_created', columns: {#createdAtUtc})
+class ChatMessages extends Table {
+  @override
+  String get tableName => 'chat_messages';
+
+  /// Автоинкремент: сообщения только добавляются.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Роль отправителя: имя значения `ChatRole` ('user' | 'assistant').
+  TextColumn get role => text()();
+
+  /// Текст сообщения.
+  TextColumn get content => text()();
+
+  /// Момент создания, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+}

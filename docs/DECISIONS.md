@@ -738,6 +738,23 @@ Architecture Decision Records: один ADR — одно решение.
   - Добавленные незнакомые слова попадают в очередь дня как новые (уровень рассказа).
 - **Open questions:** озвучка рассказа через TTS (BL-87).
 
+### ADR-041: Chat with AI bot
+- **Status:** Proposed
+- **Date:** 2026-11-13
+- **Context:** Нужен интерактивный помощник для вопросов про английский. Приложение ходит через прокси (ADR-019), ключ модели живёт на сервере. История сообщений — локально (Drift), в облако не синхронизируется.
+- **Decision:**
+  - Таблица `chat_messages` (**schema v14 → v15**): `id` autoIncrement, `role` ('user' | 'assistant'), `content`, `createdAtUtc`; индекс `idx_chat_messages_created` по `createdAtUtc`.
+  - `SendChatMessage` (domain): сохраняет сообщение пользователя, берёт последние 10 сообщений (включая новое) как контекст, отправляет через доменный контракт `ChatGenerator`, сохраняет ответ. Пустое сообщение — `ArgumentError`.
+  - `AiClient.sendChat` (data) реализует `ChatGenerator` (паттерн ADR-019): POST `{"type":"chat","messages":[...],"word":level}` на прокси, таймаут 30 с, ответ `{"message":...}`, `AiException` при ошибке.
+  - UI: `ChatScreen` (`/chat`, slide-up) + FAB «Помощник» на Home + ListTile в Profile. Приветствие — заглушка UI, в БД не сохраняется. Очистка истории — с подтверждением.
+  - Уровень пользователя (`preferredLevel.label`) передаётся в поле `word` для правильного тона ответа.
+  - История хранится локально и НЕ синхронизируется в облако (приватность); при ошибке AI сообщение пользователя остаётся в истории.
+- **Alternatives considered:**
+  - (A) Отдельный сервис (ChatGPT API) — отклонено: два провайдера, второй ключ и второй прокси.
+  - (B) Локальная модель — отклонено: качество и размер приложения.
+- **Consequences:** +1 таблица. Токены DeepSeek тратятся на чат (~$0.0002/обмен). Лимит 10 сообщений — экономия токенов. Содержимое переписки уходит на прокси только по явной отправке; privacy policy обновлена.
+- **Open questions:** rate limiting (BL-89), оффлайн-кэш ответов (BL-90).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -781,3 +798,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-037 | Typing Speed | Accepted |
 | ADR-038 | Phrasebook | Accepted |
 | ADR-039 | Reading Mode | Accepted |
+| ADR-041 | Chat with AI bot | Proposed |

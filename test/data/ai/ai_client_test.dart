@@ -92,4 +92,46 @@ void main() {
 
     await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
   });
+
+  test('sendChat posts the chat type, messages and level', () async {
+    Object? capturedBody;
+    final client = AiClient(
+      MockClient((request) async {
+        capturedBody = jsonDecode(request.body);
+        return jsonResponse({'message': 'Привет! Чем помочь?'}, 200);
+      }),
+    );
+
+    final reply = await client.sendChat(
+      messages: const [
+        (role: 'user', content: 'Привет'),
+        (role: 'assistant', content: 'Здравствуйте!'),
+      ],
+      level: 'A2',
+    );
+
+    expect(reply, 'Привет! Чем помочь?');
+    expect(capturedBody, {
+      'type': 'chat',
+      'messages': [
+        {'role': 'user', 'content': 'Привет'},
+        {'role': 'assistant', 'content': 'Здравствуйте!'},
+      ],
+      'word': 'A2',
+    });
+  });
+
+  test('sendChat throws AiException when the payload has no message', () async {
+    final client = AiClient(
+      MockClient((_) async => jsonResponse({'oops': true}, 200)),
+    );
+
+    await expectLater(
+      client.sendChat(
+        messages: const [(role: 'user', content: 'hi')],
+        level: 'A1',
+      ),
+      throwsA(isA<AiException>()),
+    );
+  });
 }

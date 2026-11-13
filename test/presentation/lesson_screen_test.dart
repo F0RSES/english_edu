@@ -109,12 +109,17 @@ final class Harness {
         ),
       ),
       getWeakWordsQueueProvider.overrideWithValue(
-        GetWeakWordsQueue(words: wordRepo, progress: progressRepo),
+        GetWeakWordsQueue(
+          words: wordRepo,
+          progress: progressRepo,
+          settings: settingsRepo,
+        ),
       ),
       getSmartReviewQueueProvider.overrideWithValue(
         GetSmartReviewQueue(
           words: wordRepo,
           progress: progressRepo,
+          settings: settingsRepo,
           clock: () => now,
         ),
       ),

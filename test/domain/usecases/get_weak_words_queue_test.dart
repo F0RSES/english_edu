@@ -2,17 +2,23 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
 import 'fakes/fake_progress_repository.dart';
+import 'fakes/fake_settings_repository.dart';
 import 'fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id) =>
-    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
+Word word(int id, {CefrLevel level = CefrLevel.a1}) => Word(
+  id: WordId(id),
+  term: 'term$id',
+  translation: 'перевод$id',
+  level: level,
+);
 
 /// Прогресс с заданными lapses и ease (ease — множитель, не permille).
 WordProgress progress(
@@ -39,6 +45,7 @@ GetWeakWordsQueue queueOf({
 }) => GetWeakWordsQueue(
   words: FakeWordRepository(words),
   progress: FakeProgressRepository(progress),
+  settings: FakeSettingsRepository(),
 );
 
 List<int> ids(List<Word> words) => [for (final item in words) item.id.value];
@@ -113,6 +120,18 @@ void main() {
       ).call();
 
       // Статус не фильтр: провал возвращает слово в повторение.
+      expect(ids(queue.due), [1]);
+    });
+
+    test('filters by preferred level', () async {
+      final queue = await queueOf(
+        words: [
+          word(1),
+          word(2, level: CefrLevel.b2),
+        ],
+        progress: [progress(1, lapses: 2), progress(2, lapses: 3)],
+      ).call();
+
       expect(ids(queue.due), [1]);
     });
   });

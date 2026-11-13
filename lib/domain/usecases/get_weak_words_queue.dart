@@ -1,5 +1,6 @@
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 
@@ -14,20 +15,25 @@ import 'package:english_edu/domain/value_objects/today_queue.dart';
 /// проблемное слово показывается первым, а не самое «свежее» по дате.
 ///
 /// `newWords` всегда пуст: это режим повторения, новых слов он не вводит.
+/// Повторяются только слова выбранного уровня (Phase 27a).
 final class GetWeakWordsQueue {
   /// Создаёт use case.
   const GetWeakWordsQueue({
     required WordRepository words,
     required ProgressRepository progress,
+    required SettingsRepository settings,
   }) : _words = words,
-       _progress = progress;
+       _progress = progress,
+       _settings = settings;
 
   final WordRepository _words;
   final ProgressRepository _progress;
+  final SettingsRepository _settings;
 
   /// Возвращает проблемные слова в порядке приоритета.
   Future<TodayQueue> call() async {
-    final allWords = await _words.getAll();
+    final level = (await _settings.get()).preferredLevel;
+    final allWords = await _words.getByLevel(level);
     final allProgress = await _progress.getAll();
     final wordById = {for (final word in allWords) word.id: word};
 

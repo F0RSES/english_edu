@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 Widget host({int wordCount = 2}) => ProviderScope(
@@ -19,6 +20,7 @@ Widget host({int wordCount = 2}) => ProviderScope(
           for (var id = 1; id <= wordCount; id++)
             Word(id: WordId(id), term: 'term$id', translation: 'перевод$id'),
         ]),
+        settings: FakeSettingsRepository(),
         random: Random(3),
         pairsCount: wordCount,
       ),

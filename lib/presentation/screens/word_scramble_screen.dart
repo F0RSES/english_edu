@@ -454,26 +454,28 @@ class _PuzzleView extends StatelessWidget {
   }
 
   /// Поле ответа: N квадратов по длине слова, следующий подсвечен.
+  ///
+  /// Wrap, а не Row: длинное слово не влезает в одну строку на узком экране
+  /// и переносится, вместо того чтобы вылезать за край (Phase 27a).
   Widget _answerField(BuildContext context) {
     final theme = Theme.of(context);
     final length = puzzle.solution.length;
-    final row = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    final field = Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 6,
+      runSpacing: 6,
       children: [
         for (var i = 0; i < length; i++)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3),
-            child: _AnswerSquare(
-              letter: i < answer.length ? answer[i] : null,
-              isNext: i == answer.length && !hasError,
-              hasError: hasError,
-              theme: theme,
-            ),
+          _AnswerSquare(
+            letter: i < answer.length ? answer[i] : null,
+            isNext: i == answer.length && !hasError,
+            hasError: hasError,
+            theme: theme,
           ),
       ],
     );
 
-    final pulsing = row
+    final pulsing = field
         .animate(key: ValueKey('pulse-$pulseKey'), autoPlay: pulseKey > 0)
         .scaleXY(begin: 1, end: 1.08, duration: 150.ms, curve: Curves.easeOut)
         .then()

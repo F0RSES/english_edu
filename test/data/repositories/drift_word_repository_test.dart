@@ -5,6 +5,7 @@ import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
@@ -40,6 +41,22 @@ void main() {
     await repo.upsert(word(2, 'two'));
 
     expect(await repo.getAll(), hasLength(2));
+  });
+
+  test('getByLevel returns only words of that level', () async {
+    await repo.insertMany([
+      word(1, 'one'),
+      const domain.Word(
+        id: WordId(2),
+        term: 'two',
+        translation: 'переводtwo',
+        level: CefrLevel.b2,
+      ),
+    ]);
+
+    expect(await repo.getByLevel(CefrLevel.a1), [word(1, 'one')]);
+    expect(await repo.getByLevel(CefrLevel.b2), hasLength(1));
+    expect(await repo.getByLevel(CefrLevel.c2), isEmpty);
   });
 
   test('counts words for a cheap emptiness check', () async {

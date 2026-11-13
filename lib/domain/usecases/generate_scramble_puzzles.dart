@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/value_objects/scramble_puzzle.dart';
 
@@ -13,8 +14,10 @@ final class GenerateScramblePuzzles {
   /// Создаёт генератор.
   const GenerateScramblePuzzles({
     required WordRepository words,
+    required SettingsRepository settings,
     required Random random,
   }) : _words = words,
+       _settings = settings,
        _random = random;
 
   /// Сколько попыток перемешать, прежде чем сдаться.
@@ -27,9 +30,12 @@ final class GenerateScramblePuzzles {
   static const _minTermLength = 2;
 
   final WordRepository _words;
+  final SettingsRepository _settings;
   final Random _random;
 
   /// Возвращает до [count] заданий в случайном порядке слов.
+  ///
+  /// Слова берутся строго выбранного уровня (Phase 27a).
   ///
   /// Пустой словарь даёт пустой список: экран покажет состояние ошибки, а не
   /// пустую игру. `scrambled` не совпадает с `solution`, если это возможно
@@ -38,7 +44,8 @@ final class GenerateScramblePuzzles {
     if (count <= 0) {
       return const [];
     }
-    final allWords = await _words.getAll();
+    final level = (await _settings.get()).preferredLevel;
+    final allWords = await _words.getByLevel(level);
     final eligible = [
       for (final word in allWords)
         if (word.term.trim().length >= _minTermLength) word,

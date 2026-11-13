@@ -3,6 +3,8 @@ import 'package:english_edu/domain/usecases/generate_error_task.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_settings_repository.dart';
+
 /// Генератор, падающий первые [failures] вызовов, затем отдающий задание.
 final class _FlakyGenerator implements ErrorTaskGenerator {
   _FlakyGenerator({required this.failures, required this.task});
@@ -11,11 +13,16 @@ final class _FlakyGenerator implements ErrorTaskGenerator {
   final ErrorHunterTask task;
   int calls = 0;
   String? lastWord;
+  String? lastLevel;
 
   @override
-  Future<ErrorHunterTask> generateErrorTask(String word) async {
+  Future<ErrorHunterTask> generateErrorTask(
+    String word, {
+    required String level,
+  }) async {
     calls++;
     lastWord = word;
+    lastLevel = level;
     if (calls <= failures) {
       throw StateError('ai failed');
     }
@@ -32,7 +39,10 @@ final class _MixedFailureGenerator implements ErrorTaskGenerator {
   int calls = 0;
 
   @override
-  Future<ErrorHunterTask> generateErrorTask(String word) async {
+  Future<ErrorHunterTask> generateErrorTask(
+    String word, {
+    required String level,
+  }) async {
     calls++;
     if (calls == 1) {
       throw const FormatException('malformed task');
@@ -54,18 +64,25 @@ ErrorHunterTask task() => ErrorHunterTask(
 void main() {
   test('returns the task on the first attempt', () async {
     final generator = _FlakyGenerator(failures: 0, task: task());
-    final useCase = GenerateErrorTask(generator: generator);
+    final useCase = GenerateErrorTask(
+      generator: generator,
+      settings: FakeSettingsRepository(),
+    );
 
     final result = await useCase('book');
 
     expect(result, task());
     expect(generator.calls, 1);
     expect(generator.lastWord, 'book');
+    expect(generator.lastLevel, 'A1');
   });
 
   test('retries and succeeds on the third attempt', () async {
     final generator = _FlakyGenerator(failures: 2, task: task());
-    final useCase = GenerateErrorTask(generator: generator);
+    final useCase = GenerateErrorTask(
+      generator: generator,
+      settings: FakeSettingsRepository(),
+    );
 
     final result = await useCase('book');
 
@@ -75,7 +92,10 @@ void main() {
 
   test('throws a clear error after three failed attempts', () async {
     final generator = _FlakyGenerator(failures: 3, task: task());
-    final useCase = GenerateErrorTask(generator: generator);
+    final useCase = GenerateErrorTask(
+      generator: generator,
+      settings: FakeSettingsRepository(),
+    );
 
     await expectLater(
       useCase('book'),
@@ -92,7 +112,10 @@ void main() {
 
   test('retries regardless of the exception type', () async {
     final generator = _MixedFailureGenerator(task: task());
-    final useCase = GenerateErrorTask(generator: generator);
+    final useCase = GenerateErrorTask(
+      generator: generator,
+      settings: FakeSettingsRepository(),
+    );
 
     final result = await useCase('book');
 

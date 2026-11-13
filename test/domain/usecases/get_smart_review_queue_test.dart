@@ -2,17 +2,23 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/get_smart_review_queue.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:test/test.dart';
 
 import 'fakes/fake_progress_repository.dart';
+import 'fakes/fake_settings_repository.dart';
 import 'fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id) =>
-    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
+Word word(int id, {CefrLevel level = CefrLevel.a1}) => Word(
+  id: WordId(id),
+  term: 'term$id',
+  translation: 'перевод$id',
+  level: level,
+);
 
 WordProgress progress(
   int id, {
@@ -41,6 +47,7 @@ GetSmartReviewQueue useCase({
 }) => GetSmartReviewQueue(
   words: FakeWordRepository(words),
   progress: FakeProgressRepository(progressItems),
+  settings: FakeSettingsRepository(),
   clock: () => now,
   maxItems: maxItems,
 );
@@ -137,5 +144,17 @@ void main() {
     final queue = await useCase(progressItems: [progress(1, lapses: 2)])();
 
     expect(queue, isEmpty);
+  });
+
+  test('should_filter_by_preferred_level', () async {
+    final queue = await useCase(
+      words: [
+        word(1),
+        word(2, level: CefrLevel.b2),
+      ],
+      progressItems: [progress(1, lapses: 1), progress(2, lapses: 5)],
+    )();
+
+    expect(queue.map((item) => item.word.id.value), [1]);
   });
 }

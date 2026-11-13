@@ -21,14 +21,19 @@ final class FakeErrorExplainer implements ErrorExplainer {
   /// Last context passed to [explain].
   String? lastContext;
 
+  /// Last level passed to [explain].
+  String? lastLevel;
+
   @override
   Future<String> explain({
     required String gameType,
     required String context,
+    required String level,
   }) async {
     calls++;
     lastGameType = gameType;
     lastContext = context;
+    lastLevel = level;
     if (throwOnExplain) {
       throw const AiException('fake failure');
     }

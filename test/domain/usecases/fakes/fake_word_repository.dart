@@ -1,5 +1,6 @@
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 
 /// In-memory word repository for use-case tests.
@@ -13,6 +14,10 @@ final class FakeWordRepository implements WordRepository {
   /// Нужен экранам, которые показывают состояние загрузки или ошибки: тест
   /// придерживает чтение через `Completer` или бросает исключение.
   Future<void> Function()? beforeGetAll;
+
+  /// Хук перед `getByLevel`: игры читают словарь по уровню (Phase 27a),
+  /// поэтому loading/error-тестам нужен отдельный хук, а не `beforeGetAll`.
+  Future<void> Function()? beforeGetByLevel;
 
   final Map<WordId, Word> _byId;
 
@@ -29,6 +34,15 @@ final class FakeWordRepository implements WordRepository {
   Future<List<Word>> getAll() async {
     await beforeGetAll?.call();
     return _byId.values.toList();
+  }
+
+  @override
+  Future<List<Word>> getByLevel(CefrLevel level) async {
+    await beforeGetByLevel?.call();
+    return [
+      for (final word in _byId.values)
+        if (word.level == level) word,
+    ];
   }
 
   @override

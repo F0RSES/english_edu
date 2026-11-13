@@ -195,7 +195,7 @@ class _Achievements extends StatelessWidget {
       for (final item in items)
         if (item.isUnlocked) item,
     ];
-    final total = items.isEmpty ? 9 : items.length;
+    final total = items.isEmpty ? 0 : items.length;
 
     return Card(
       margin: EdgeInsets.zero,

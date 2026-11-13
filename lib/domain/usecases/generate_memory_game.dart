@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/value_objects/memory_card.dart';
 import 'package:english_edu/domain/value_objects/memory_game.dart';
@@ -7,17 +8,21 @@ import 'package:english_edu/domain/value_objects/memory_game.dart';
 /// Собирает партию «Memory» из словаря (ADR-036).
 ///
 /// Пары берутся случайно, но детерминированно при инжектированном `Random`:
-/// тесты подставляют seed и получают один и тот же расклад.
+/// тесты подставляют seed и получают один и тот же расклад. Слова — строго
+/// выбранного уровня (Phase 27a).
 final class GenerateMemoryGame {
   /// Создаёт use case.
   const GenerateMemoryGame({
     required WordRepository words,
+    required SettingsRepository settings,
     required Random random,
     this.pairsCount = 8,
   }) : _words = words,
+       _settings = settings,
        _random = random;
 
   final WordRepository _words;
+  final SettingsRepository _settings;
   final Random _random;
 
   /// Сколько пар нужно в идеале.
@@ -29,7 +34,8 @@ final class GenerateMemoryGame {
   /// пустой словарь даёт пустую партию, а не исключение — экран покажет
   /// «добавьте слова» вместо падения.
   Future<MemoryGame> call() async {
-    final all = await _words.getAll();
+    final level = (await _settings.get()).preferredLevel;
+    final all = await _words.getByLevel(level);
     if (all.isEmpty) {
       return MemoryGame(cards: const []);
     }

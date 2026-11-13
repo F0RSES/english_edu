@@ -244,7 +244,7 @@ void main() {
       expect(ids(queue.newWords), [1, 2, 3]);
     });
 
-    test('newWords include levels below the preferred one', () async {
+    test('newWords include only the preferred level', () async {
       final queue = await queueOf(
         words: [
           word(1, level: CefrLevel.a0),
@@ -259,20 +259,21 @@ void main() {
         ),
       ).call();
 
-      expect(ids(queue.newWords), [1, 2, 3]);
+      // Строгая фильтрация (Phase 27a): уровни ниже выбранного тоже отсекаются.
+      expect(ids(queue.newWords), [3]);
     });
 
-    test('dueWords not filtered by level', () async {
+    test('dueWords filtered by level', () async {
       final queue = await queueOf(
         words: [word(1, level: CefrLevel.c1)],
         progress: [dueProgress(1, const Duration(hours: -1))],
-        // Уровень пользователя A1, но слово уже в прогрессе — повторяем.
+        // Уровень пользователя A1: слово другого уровня не повторяем.
         settings: UserSettings.defaults().copyWith(
           preferredLevel: CefrLevel.a1,
         ),
       ).call();
 
-      expect(ids(queue.due), [1]);
+      expect(queue.due, isEmpty);
       expect(queue.newWords, isEmpty);
     });
 
@@ -287,6 +288,53 @@ void main() {
 
       expect(queue.due, isEmpty);
       expect(ids(queue.newWords), [1]);
+    });
+
+    test('returns only preferredLevel words in newWords', () async {
+      final queue = await queueOf(
+        words: [
+          word(1, level: CefrLevel.a2),
+          word(2, level: CefrLevel.b1),
+          word(3, level: CefrLevel.a2),
+        ],
+        progress: const [],
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.a2,
+        ),
+      ).call();
+
+      expect(ids(queue.newWords), [1, 3]);
+    });
+
+    test('returns only preferredLevel words in due', () async {
+      final queue = await queueOf(
+        words: [
+          word(1, level: CefrLevel.b1),
+          word(2, level: CefrLevel.a2),
+        ],
+        progress: [
+          dueProgress(1, const Duration(hours: -2)),
+          dueProgress(2, const Duration(hours: -1)),
+        ],
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.b1,
+        ),
+      ).call();
+
+      expect(ids(queue.due), [1]);
+    });
+
+    test('returns empty queue when no words at preferredLevel', () async {
+      final queue = await queueOf(
+        words: [word(1)],
+        progress: [dueProgress(1, const Duration(hours: -1))],
+        settings: UserSettings.defaults().copyWith(
+          preferredLevel: CefrLevel.c2,
+        ),
+      ).call();
+
+      expect(queue.due, isEmpty);
+      expect(queue.newWords, isEmpty);
     });
   });
 }

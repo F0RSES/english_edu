@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/text/plural.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
@@ -28,19 +29,55 @@ class HomeScreen extends ConsumerWidget {
     final today = LocalDate.fromDateTime(ref.watch(clockProvider)().toLocal());
     final weakCount = ref.watch(weakWordsCountProvider).value ?? 0;
     final smartCount = ref.watch(smartReviewCountProvider).value ?? 0;
+    final level =
+        ref.watch(settingsProvider).value?.preferredLevel ?? CefrLevel.a1;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('English Edu'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Настройки',
-            // push: экран открывается поверх главной, поэтому в AppBar
-            // появляется кнопка «Назад» (Phase 17).
-            onPressed: () => context.push('/settings'),
-          ),
-        ],
+        title: Row(
+          children: [
+            PopupMenuButton<CefrLevel>(
+              tooltip: 'Уровень английского',
+              onSelected: (selected) =>
+                  unawaited(_changeLevel(context, ref, selected)),
+              itemBuilder: (context) => [
+                for (final value in CefrLevel.values)
+                  PopupMenuItem<CefrLevel>(
+                    value: value,
+                    child: Text('${value.label} — ${value.description}'),
+                  ),
+              ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      level.label,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const Icon(Icons.arrow_drop_down, size: 18),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'Настройки',
+              // push: экран открывается поверх главной, поэтому в AppBar
+              // появляется кнопка «Назад» (Phase 17).
+              onPressed: () => context.push('/settings'),
+            ),
+          ],
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(dailyGoalProvider),
@@ -145,6 +182,35 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Сохраняет уровень и сбрасывает кэши, зависящие от него (Phase 27a).
+  ///
+  /// Очередь дня, цель и бейджи «Сложные»/Smart считаются по уровню,
+  /// поэтому инвалидируются вместе с настройками.
+  Future<void> _changeLevel(
+    BuildContext context,
+    WidgetRef ref,
+    CefrLevel level,
+  ) async {
+    try {
+      final repository = ref.read(settingsRepositoryProvider);
+      final settings = await repository.get();
+      await repository.save(settings.copyWith(preferredLevel: level));
+      ref
+        ..invalidate(settingsProvider)
+        ..invalidate(getTodayQueueProvider)
+        ..invalidate(dailyGoalProvider)
+        ..invalidate(weakWordsQueueProvider)
+        ..invalidate(smartReviewQueueProvider);
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).error('Level change failed', error, stack);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Не удалось сохранить настройки')),
+        );
+      }
+    }
   }
 
   /// Компактная карточка серии: пока данные грузятся, показываем нулевую.
@@ -407,7 +473,7 @@ class _PillButton extends StatelessWidget {
   );
 }
 
-/// Плитка игры в сетке «Тренировки».
+/// Плитка игры в сетке «Игры».
 class _GameCard extends StatelessWidget {
   const _GameCard({
     required this.title,

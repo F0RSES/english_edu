@@ -3,9 +3,9 @@ import 'package:english_edu/domain/services/error_explainer.dart';
 
 /// Объясняет ошибку в мини-игре через AI-помощника (ADR-042).
 ///
-/// Уровень пользователя добавляется в контекст, чтобы объяснение было
-/// подходящего тона и сложности. Сеть используется только по явному тапу
-/// на иконку помощника.
+/// Уровень пользователя передаётся генератору отдельно и добавляется
+/// в контекст, чтобы объяснение было подходящего тона и сложности. Сеть
+/// используется только по явному тапу на иконку помощника.
 final class ExplainError {
   /// Создаёт use case; все зависимости внедряются.
   const ExplainError({
@@ -34,6 +34,7 @@ final class ExplainError {
     final explanation = await _explainer.explain(
       gameType: gameType,
       context: fullContext,
+      level: settings.preferredLevel.label,
     );
     return explanation;
   }

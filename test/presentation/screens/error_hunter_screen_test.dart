@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_error_task_generator.dart';
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 ErrorHunterTask task() => ErrorHunterTask(
@@ -28,6 +29,7 @@ Widget host(FakeErrorTaskGenerator generator) => ProviderScope(
       ]),
     ),
     errorTaskGeneratorProvider.overrideWithValue(generator),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
   ],
   child: const MaterialApp(home: ErrorHunterScreen()),
 );

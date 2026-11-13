@@ -163,7 +163,10 @@ final errorTaskGeneratorProvider = Provider<ErrorTaskGenerator>(
 
 /// Задание «Охоты на ошибки» с повторными попытками (Phase 26a).
 final generateErrorTaskProvider = Provider<GenerateErrorTask>(
-  (ref) => GenerateErrorTask(generator: ref.watch(errorTaskGeneratorProvider)),
+  (ref) => GenerateErrorTask(
+    generator: ref.watch(errorTaskGeneratorProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+  ),
 );
 
 /// Генератор заданий «Заполни пропуск»; реализация — `AiClient` (ADR-025).
@@ -191,6 +194,7 @@ final getClozeTaskProvider = Provider<GetClozeTask>(
   (ref) => GetClozeTask(
     tasks: ref.watch(clozeTaskRepositoryProvider),
     generator: ref.watch(clozeGeneratorProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -272,6 +276,14 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
     ref.watch(appDatabaseProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Настройки пользователя как async-данные (Phase 27a).
+///
+/// AppBar главной показывает отсюда уровень; после сохранения настроек
+/// провайдер инвалидируется, чтобы селектор не показывал старое значение.
+final settingsProvider = FutureProvider<UserSettings>(
+  (ref) => ref.watch(settingsRepositoryProvider).get(),
 );
 
 /// Доступ к дневной статистике.
@@ -360,6 +372,7 @@ final getSmartReviewQueueProvider = Provider<GetSmartReviewQueue>(
   (ref) => GetSmartReviewQueue(
     words: ref.watch(wordRepositoryProvider),
     progress: ref.watch(progressRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
@@ -438,6 +451,7 @@ final getWeakWordsQueueProvider = Provider<GetWeakWordsQueue>(
   (ref) => GetWeakWordsQueue(
     words: ref.watch(wordRepositoryProvider),
     progress: ref.watch(progressRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
   ),
 );
 
@@ -461,6 +475,7 @@ final weakWordsCountProvider = FutureProvider<int>(
 final generateDictationQueueProvider = Provider<GenerateDictationQueue>(
   (ref) => GenerateDictationQueue(
     words: ref.watch(wordRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     random: Random(),
   ),
 );
@@ -472,6 +487,7 @@ final generateDictationQueueProvider = Provider<GenerateDictationQueue>(
 final generateScramblePuzzlesProvider = Provider<GenerateScramblePuzzles>(
   (ref) => GenerateScramblePuzzles(
     words: ref.watch(wordRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     random: Random(),
   ),
 );
@@ -543,7 +559,7 @@ final exportProgressProvider = Provider<ExportProgress>(
   ),
 );
 
-/// JSON-кодек снимка состояния (схема v2; v1 читается с пустыми frozenDays).
+/// JSON-кодек снимка состояния (схема v5 — актуально).
 ///
 /// Живёт в data-слое, но экраны получают его через DI: presentation не должен
 /// импортировать data напрямую.
@@ -593,6 +609,7 @@ final class DictionarySearchQuery extends Notifier<String> {
 final generateMemoryGameProvider = Provider<GenerateMemoryGame>(
   (ref) => GenerateMemoryGame(
     words: ref.watch(wordRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     random: Random(),
   ),
 );
@@ -662,6 +679,7 @@ final typingRecordRepositoryProvider = Provider<TypingRecordRepository>(
 final generateTypingSessionProvider = Provider<GenerateTypingSession>(
   (ref) => GenerateTypingSession(
     words: ref.watch(wordRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
     random: Random(),
   ),
 );

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
-import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:english_edu/presentation/widgets/analytics_section.dart';
 import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
@@ -47,7 +46,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _save(UserSettings settings) async {
     try {
       await ref.read(settingsRepositoryProvider).save(settings);
-      ref.invalidate(dailyGoalProvider);
+      ref
+        ..invalidate(settingsProvider)
+        ..invalidate(dailyGoalProvider);
       if (!mounted) {
         return;
       }
@@ -85,28 +86,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// Обновляет всё, что зависит от прогресса: после сброса и импорта.
   void _invalidateDerived() {
     ref
+      ..invalidate(settingsProvider)
       ..invalidate(computeStreakProvider)
       ..invalidate(getTodayQueueProvider)
       ..invalidate(dailyGoalProvider)
       ..invalidate(dictionaryEntriesProvider);
-  }
-
-  /// Меняет уровень пользователя (ADR-023).
-  ///
-  /// Очередь дня зависит от уровня (`newWords` не выше preferredLevel),
-  /// поэтому её кэш сбрасывается вместе с целью дня.
-  Future<void> _pickLevel(UserSettings settings) async {
-    final level = await showDialog<CefrLevel>(
-      context: context,
-      builder: (context) => _LevelDialog(current: settings.preferredLevel),
-    );
-    if (level == null || level == settings.preferredLevel) {
-      return;
-    }
-    await _save(settings.copyWith(preferredLevel: level));
-    ref
-      ..invalidate(getTodayQueueProvider)
-      ..invalidate(dailyGoalProvider);
   }
 
   /// Включает/выключает ежедневное напоминание (ADR-017).
@@ -282,15 +266,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         final settings = snapshot.data ?? UserSettings.defaults();
         return ListView(
           children: [
-            const _SectionHeader('Уровень английского', icon: Icons.school),
-            ListTile(
-              leading: const Icon(Icons.school_outlined),
-              title: Text(settings.preferredLevel.label),
-              subtitle: Text(settings.preferredLevel.description),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => unawaited(_pickLevel(settings)),
-            ),
-            const Divider(),
             const _SectionHeader('Дневные лимиты', icon: Icons.tune),
             ListTile(
               title: const Text('Новых слов в день'),
@@ -631,51 +606,6 @@ class _EmailDialogState extends State<_EmailDialog> {
         child: const Text('Отмена'),
       ),
       FilledButton(onPressed: _submit, child: const Text('Отправить')),
-    ],
-  );
-}
-
-/// Диалог выбора уровня CEFR (ADR-023).
-///
-/// Возвращает выбранный уровень или null при отмене: вызывающий сохраняет
-/// настройку только по явному выбору.
-class _LevelDialog extends StatefulWidget {
-  const _LevelDialog({required this.current});
-
-  final CefrLevel current;
-
-  @override
-  State<_LevelDialog> createState() => _LevelDialogState();
-}
-
-class _LevelDialogState extends State<_LevelDialog> {
-  late CefrLevel _selected = widget.current;
-
-  @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Уровень английского'),
-    content: Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final level in CefrLevel.values)
-          ChoiceChip(
-            label: Text(level.label),
-            tooltip: level.description,
-            selected: _selected == level,
-            onSelected: (_) => setState(() => _selected = level),
-          ),
-      ],
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Отмена'),
-      ),
-      FilledButton(
-        onPressed: () => Navigator.of(context).pop(_selected),
-        child: const Text('Сохранить'),
-      ),
     ],
   );
 }

@@ -1,4 +1,5 @@
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 
 /// Read and write access to the vocabulary.
@@ -15,6 +16,12 @@ abstract interface class WordRepository {
 
   /// Returns every stored word.
   Future<List<Word>> getAll();
+
+  /// Returns words exactly at [level] (Phase 27a).
+  ///
+  /// Строгое равенство, а не «не выше»: очередь дня и игры берут слова
+  /// только выбранного уровня. Пустой список — на этом уровне слов нет.
+  Future<List<Word>> getByLevel(CefrLevel level);
 
   /// Number of stored words.
   ///

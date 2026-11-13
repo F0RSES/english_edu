@@ -79,9 +79,9 @@ void main() {
       }),
     );
 
-    final task = await client.generateCloze('eat');
+    final task = await client.generateCloze('eat', level: 'A1');
 
-    expect(capturedBody, {'type': 'cloze_test', 'word': 'eat'});
+    expect(capturedBody, {'type': 'cloze_test', 'word': 'A1 - eat'});
     expect(task.sentence, 'I ___ apples every day.');
     expect(task.correctWord, 'eat');
     expect(task.options, ['eat', 'eats', 'ate', 'eating', 'eaten']);
@@ -92,7 +92,10 @@ void main() {
       MockClient((_) async => jsonResponse({'sentence': 'no answer'}, 200)),
     );
 
-    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+    await expectLater(
+      client.generateCloze('eat', level: 'A1'),
+      throwsA(isA<AiException>()),
+    );
   });
 
   test('generateCloze throws AiException when options are missing', () async {
@@ -105,7 +108,10 @@ void main() {
       ),
     );
 
-    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+    await expectLater(
+      client.generateCloze('eat', level: 'A1'),
+      throwsA(isA<AiException>()),
+    );
   });
 
   test('generateCloze throws AiException when options are not five', () async {
@@ -119,7 +125,10 @@ void main() {
       ),
     );
 
-    await expectLater(client.generateCloze('eat'), throwsA(isA<AiException>()));
+    await expectLater(
+      client.generateCloze('eat', level: 'A1'),
+      throwsA(isA<AiException>()),
+    );
   });
 
   test('sendChat posts the chat type, messages and level', () async {
@@ -178,11 +187,12 @@ void main() {
     await client.explain(
       gameType: 'cloze_test',
       context: 'Игра: cloze_test. Ошибка.',
+      level: 'A1',
     );
 
     expect(capturedBody, {
       'type': 'explain_error',
-      'word': 'Игра: cloze_test. Ошибка.',
+      'word': 'A1 - Игра: cloze_test. Ошибка.',
     });
   });
 
@@ -196,6 +206,7 @@ void main() {
     final result = await client.explain(
       gameType: 'typing',
       context: 'контекст',
+      level: 'A1',
     );
 
     expect(result, 'Объяснение ошибки');
@@ -207,7 +218,7 @@ void main() {
     );
 
     await expectLater(
-      client.explain(gameType: 'listening', context: 'контекст'),
+      client.explain(gameType: 'listening', context: 'контекст', level: 'A1'),
       throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
     );
   });

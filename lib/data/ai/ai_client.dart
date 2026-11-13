@@ -115,17 +115,24 @@ final class AiClient
     return association;
   }
 
-  /// Запрашивает задание «Охота на ошибки» для [word] (Phase 8).
+  /// Запрашивает задание «Охота на ошибки» для [word] уровня [level] (Phase 8).
   ///
-  /// Бросает [AiException] на неуспешный статус, неверный JSON или задание,
-  /// не прошедшее валидацию схемы.
+  /// Уровень уходит в поле `word` вместе со словом: прокси принимает только
+  /// это поле (Phase 27a). Бросает [AiException] на неуспешный статус,
+  /// неверный JSON или задание, не прошедшее валидацию схемы.
   @override
-  Future<ErrorHunterTask> generateErrorTask(String word) async {
+  Future<ErrorHunterTask> generateErrorTask(
+    String word, {
+    required String level,
+  }) async {
     final response = await _client
         .post(
           Uri.parse(_proxyUrl),
           headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({'type': _errorHunterType, 'word': word}),
+          body: jsonEncode({
+            'type': _errorHunterType,
+            'word': '$level - $word',
+          }),
         )
         .timeout(_taskTimeout);
 
@@ -152,17 +159,18 @@ final class AiClient
     }
   }
 
-  /// Запрашивает задание «Заполни пропуск» для [word] (ADR-025).
+  /// Запрашивает задание «Заполни пропуск» для [word] уровня [level] (ADR-025).
   ///
-  /// Бросает [AiException] на неуспешный статус, неверный JSON или задание,
-  /// не прошедшее валидацию схемы.
+  /// Уровень уходит в поле `word` вместе со словом: прокси принимает только
+  /// это поле (Phase 27a). Бросает [AiException] на неуспешный статус,
+  /// неверный JSON или задание, не прошедшее валидацию схемы.
   @override
-  Future<ClozeTask> generateCloze(String word) async {
+  Future<ClozeTask> generateCloze(String word, {required String level}) async {
     final response = await _client
         .post(
           Uri.parse(_proxyUrl),
           headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({'type': _clozeType, 'word': word}),
+          body: jsonEncode({'type': _clozeType, 'word': '$level - $word'}),
         )
         .timeout(_taskTimeout);
 
@@ -240,7 +248,8 @@ final class AiClient
   /// Объясняет ошибку в мини-игре (контракт [ErrorExplainer], ADR-042).
   ///
   /// [gameType] в payload отдельно не уходит: use case уже включает игру
-  /// в [context], а прокси принимает только поле `word`.
+  /// в [context], а прокси принимает только поле `word`. Уровень [level]
+  /// добавляется к контексту префиксом (Phase 27a).
   ///
   /// Бросает [AiException] на неуспешный статус, неверный JSON или пустой
   /// ответ; таймаут пробрасывается как [TimeoutException].
@@ -248,12 +257,13 @@ final class AiClient
   Future<String> explain({
     required String gameType,
     required String context,
+    required String level,
   }) async {
     final response = await _client
         .post(
           Uri.parse(_proxyUrl),
           headers: const {'Content-Type': 'application/json'},
-          body: jsonEncode({'type': _explainType, 'word': context}),
+          body: jsonEncode({'type': _explainType, 'word': '$level - $context'}),
         )
         .timeout(_explainTimeout);
 

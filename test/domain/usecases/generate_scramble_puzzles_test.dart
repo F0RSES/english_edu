@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_settings_repository.dart';
 import 'fakes/fake_word_repository.dart';
 
 Word word(int id, String term) =>
@@ -13,6 +15,7 @@ Word word(int id, String term) =>
 GenerateScramblePuzzles generatorOf(List<Word> words, {int seed = 7}) =>
     GenerateScramblePuzzles(
       words: FakeWordRepository(words),
+      settings: FakeSettingsRepository(),
       random: Random(seed),
     );
 
@@ -95,6 +98,24 @@ void main() {
 
     test('count <= 0 yields nothing', () async {
       expect(await generatorOf([word(1, 'book')]).call(count: 0), isEmpty);
+    });
+
+    test('uses only preferred level words', () async {
+      final puzzles = await GenerateScramblePuzzles(
+        words: FakeWordRepository([
+          word(1, 'apple'),
+          const Word(
+            id: WordId(2),
+            term: 'book',
+            translation: 'переводbook',
+            level: CefrLevel.b2,
+          ),
+        ]),
+        settings: FakeSettingsRepository(),
+        random: Random(7),
+      ).call();
+
+      expect([for (final puzzle in puzzles) puzzle.solution], ['apple']);
     });
   });
 }

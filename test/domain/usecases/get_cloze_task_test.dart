@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 
 import 'fakes/fake_cloze_generator.dart';
 import 'fakes/fake_cloze_task_repository.dart';
+import 'fakes/fake_settings_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
@@ -22,7 +23,12 @@ final _generated = ClozeTask(
 GetClozeTask useCaseOf({
   required FakeClozeTaskRepository tasks,
   required FakeClozeGenerator generator,
-}) => GetClozeTask(tasks: tasks, generator: generator, clock: () => now);
+}) => GetClozeTask(
+  tasks: tasks,
+  generator: generator,
+  settings: FakeSettingsRepository(),
+  clock: () => now,
+);
 
 void main() {
   group('GetClozeTask', () {
@@ -49,6 +55,7 @@ void main() {
 
       expect(task, _generated);
       expect(generator.calls, 1);
+      expect(generator.lastLevel, 'A1');
       expect(tasks.saveCalls, 1);
       expect(await tasks.getByWordId(const WordId(2)), _generated);
       // Время приходит из часов use case и уже в UTC.

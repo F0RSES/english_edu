@@ -99,6 +99,7 @@ void main() {
     final useCase = GetSmartReviewQueue(
       words: words,
       progress: progressRepo,
+      settings: DriftSettingsRepository(db, clock: () => now),
       clock: () => now,
     );
 

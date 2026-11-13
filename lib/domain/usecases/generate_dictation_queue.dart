@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 
 /// Собирает очередь аудио-диктанта (ADR-028).
@@ -14,22 +15,26 @@ final class GenerateDictationQueue {
   /// Создаёт генератор.
   const GenerateDictationQueue({
     required WordRepository words,
+    required SettingsRepository settings,
     required Random random,
   }) : _words = words,
+       _settings = settings,
        _random = random;
 
   final WordRepository _words;
+  final SettingsRepository _settings;
   final Random _random;
 
   /// Возвращает до [count] случайных слов в случайном порядке.
   ///
-  /// Пустой словарь даёт пустой список: экран покажет ошибку, а не пустой
-  /// диктант без слов.
+  /// Слова берутся строго выбранного уровня (Phase 27a). Пустой словарь даёт
+  /// пустой список: экран покажет ошибку, а не пустой диктант без слов.
   Future<List<Word>> call({int count = 10}) async {
     if (count <= 0) {
       return const [];
     }
-    final allWords = await _words.getAll();
+    final level = (await _settings.get()).preferredLevel;
+    final allWords = await _words.getByLevel(level);
     if (allWords.isEmpty) {
       return const [];
     }

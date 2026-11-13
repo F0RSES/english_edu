@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_typing_session.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_settings_repository.dart';
 import 'fakes/fake_word_repository.dart';
 
 List<Word> words(int count) => [
@@ -19,6 +21,7 @@ void main() {
     test('should_take_requested_number_of_words', () async {
       final session = await GenerateTypingSession(
         words: FakeWordRepository(words(20)),
+        settings: FakeSettingsRepository(),
         random: Random(5),
       )();
 
@@ -30,10 +33,30 @@ void main() {
     test('should_fall_back_to_available_words', () async {
       final session = await GenerateTypingSession(
         words: FakeWordRepository(words(3)),
+        settings: FakeSettingsRepository(),
         random: Random(5),
       )();
 
       expect(session.length, 3);
+    });
+
+    test('should_use_only_preferred_level_words', () async {
+      final session = await GenerateTypingSession(
+        words: FakeWordRepository([
+          const Word(id: WordId(1), term: 'a1', translation: 'п1'),
+          const Word(
+            id: WordId(2),
+            term: 'b2',
+            translation: 'п2',
+            level: CefrLevel.b2,
+          ),
+        ]),
+        settings: FakeSettingsRepository(),
+        random: Random(5),
+      )();
+
+      expect(session.length, 1);
+      expect(session.words.single.term, 'a1');
     });
   });
 

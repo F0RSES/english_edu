@@ -20,6 +20,7 @@ void main() {
     await useCase(gameType: 'cloze_test', context: 'ошибка');
 
     expect(explainer.lastContext, contains('Уровень пользователя: B2.'));
+    expect(explainer.lastLevel, 'B2');
   });
 
   test('passes game type and context', () async {

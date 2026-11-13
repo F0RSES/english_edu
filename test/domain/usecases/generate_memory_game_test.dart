@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
+import 'fakes/fake_settings_repository.dart';
 import 'fakes/fake_word_repository.dart';
 
 List<Word> words(int count) => [
@@ -15,6 +17,7 @@ List<Word> words(int count) => [
 GenerateMemoryGame useCase(int wordCount, {int pairs = 8}) =>
     GenerateMemoryGame(
       words: FakeWordRepository(words(wordCount)),
+      settings: FakeSettingsRepository(),
       random: Random(7),
       pairsCount: pairs,
     );
@@ -66,9 +69,32 @@ void main() {
   test('should_return_empty_game_for_empty_dictionary', () async {
     final game = await GenerateMemoryGame(
       words: FakeWordRepository(),
+      settings: FakeSettingsRepository(),
       random: Random(1),
     )();
 
     expect(game.cards, isEmpty);
+  });
+
+  test('should_use_only_preferred_level_words', () async {
+    final game = await GenerateMemoryGame(
+      words: FakeWordRepository([
+        const Word(id: WordId(1), term: 'a1word', translation: 'п1'),
+        const Word(
+          id: WordId(2),
+          term: 'b2word',
+          translation: 'п2',
+          level: CefrLevel.b2,
+        ),
+      ]),
+      settings: FakeSettingsRepository(),
+      random: Random(7),
+    )();
+
+    expect(game.cards, hasLength(2));
+    expect(
+      game.cards.every((card) => card.text == 'a1word' || card.text == 'п1'),
+      isTrue,
+    );
   });
 }

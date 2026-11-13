@@ -25,9 +25,13 @@ final class FakeClozeGenerator implements ClozeGenerator {
   /// Сколько раз вызывали генератор.
   int calls = 0;
 
+  /// Последний уровень, переданный в generateCloze.
+  String? lastLevel;
+
   @override
-  Future<ClozeTask> generateCloze(String word) async {
+  Future<ClozeTask> generateCloze(String word, {required String level}) async {
     calls++;
+    lastLevel = level;
     final failure = error;
     if (failure != null) {
       throw failure;

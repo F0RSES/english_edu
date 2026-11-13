@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_cloze_generator.dart';
 import '../../domain/usecases/fakes/fake_cloze_task_repository.dart';
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -39,6 +40,7 @@ Widget host({
       GetClozeTask(
         tasks: tasks ?? FakeClozeTaskRepository(),
         generator: generator ?? FakeClozeGenerator(task: _task),
+        settings: FakeSettingsRepository(),
         clock: () => now,
       ),
     ),

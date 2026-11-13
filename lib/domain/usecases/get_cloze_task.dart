@@ -1,4 +1,5 @@
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -14,13 +15,16 @@ final class GetClozeTask {
   const GetClozeTask({
     required ClozeTaskRepository tasks,
     required ClozeGenerator generator,
+    required SettingsRepository settings,
     required DateTime Function() clock,
   }) : _tasks = tasks,
        _generator = generator,
+       _settings = settings,
        _clock = clock;
 
   final ClozeTaskRepository _tasks;
   final ClozeGenerator _generator;
+  final SettingsRepository _settings;
   final DateTime Function() _clock;
 
   /// Возвращает задание для [wordId] с английским написанием [term].
@@ -32,7 +36,8 @@ final class GetClozeTask {
       return cached;
     }
 
-    final generated = await _generator.generateCloze(term);
+    final level = (await _settings.get()).preferredLevel.label;
+    final generated = await _generator.generateCloze(term, level: level);
     await _tasks.save(wordId, generated, _clock().toUtc());
     return generated;
   }

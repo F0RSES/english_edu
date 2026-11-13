@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final class _FakeRecords implements TypingRecordRepository {
@@ -38,6 +39,7 @@ Widget host(TypingRecordRepository records) => ProviderScope(
         words: FakeWordRepository([
           const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
         ]),
+        settings: FakeSettingsRepository(),
         random: Random(1),
         wordsCount: 1,
       ),
@@ -97,6 +99,7 @@ void main() {
                 const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
                 const Word(id: WordId(2), term: 'book', translation: 'книга'),
               ]),
+              settings: FakeSettingsRepository(),
               random: Random(1),
               wordsCount: 2,
             ),

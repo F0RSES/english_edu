@@ -5,6 +5,7 @@ import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
@@ -117,6 +118,7 @@ Widget app({
   List<Word> words = const [],
   ProgressRepository? progress,
   StatsRepository? stats,
+  FakeSettingsRepository? settings,
 }) {
   final router = GoRouter(
     routes: [
@@ -159,7 +161,9 @@ Widget app({
       progressRepositoryProvider.overrideWithValue(
         progress ?? FakeProgressRepository(),
       ),
-      settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+      settingsRepositoryProvider.overrideWithValue(
+        settings ?? FakeSettingsRepository(),
+      ),
       statsRepositoryProvider.overrideWithValue(stats ?? FakeStatsRepository()),
       frozenDaysRepositoryProvider.overrideWithValue(
         FakeFrozenDaysRepository(),
@@ -367,5 +371,27 @@ void main() {
     expect(find.byIcon(Icons.smart_toy), findsOneWidget);
     expect(find.text('Помощник'), findsNothing);
     expect(find.byTooltip('Помощник'), findsOneWidget);
+  });
+
+  testWidgets('level selector shows the preferred level', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PopupMenuButton<CefrLevel>), findsOneWidget);
+    expect(find.text('A1'), findsOneWidget);
+  });
+
+  testWidgets('level selector changes settings', (tester) async {
+    final settings = FakeSettingsRepository();
+    await tester.pumpWidget(app(words: [word(1)], settings: settings));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<CefrLevel>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('B1 — Intermediate'));
+    await tester.pumpAndSettle();
+
+    expect((await settings.get()).preferredLevel, CefrLevel.b1);
+    expect(find.text('B1'), findsOneWidget);
   });
 }

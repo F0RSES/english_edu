@@ -20,9 +20,16 @@ final class FakeErrorTaskGenerator implements ErrorTaskGenerator {
   /// Сколько раз вызывали генератор.
   int calls = 0;
 
+  /// Последний уровень, переданный в generateErrorTask.
+  String? lastLevel;
+
   @override
-  Future<ErrorHunterTask> generateErrorTask(String word) {
+  Future<ErrorHunterTask> generateErrorTask(
+    String word, {
+    required String level,
+  }) {
     calls++;
+    lastLevel = level;
     final waiter = pending;
     if (waiter != null) {
       return waiter.future;

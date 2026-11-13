@@ -28,7 +28,8 @@ void main() {
 
     await tester.pumpAndSettle();
     // Главный экран с пустой базой показывает «Все слова изучены», поэтому
-    // признак загрузки — заголовок приложения, а не текст кнопки урока.
-    expect(find.text('English Edu'), findsOneWidget);
+    // признак загрузки — селектор уровня в AppBar (Phase 27a): пустая база
+    // даёт дефолтный уровень A1.
+    expect(find.text('A1'), findsOneWidget);
   });
 }

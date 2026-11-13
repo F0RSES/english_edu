@@ -8,7 +8,12 @@ abstract interface class ErrorExplainer {
   ///
   /// [gameType] — идентификатор игры ('cloze_test', 'error_hunter',
   /// 'word_scramble', 'listening', 'typing'); [context] описывает, что было
-  /// и что ответил пользователь. Бросает исключение при недоступности
-  /// провайдера или неверном формате ответа.
-  Future<String> explain({required String gameType, required String context});
+  /// и что ответил пользователь; [level] — метка CEFR пользователя для тона
+  /// объяснения. Бросает исключение при недоступности провайдера или
+  /// неверном формате ответа.
+  Future<String> explain({
+    required String gameType,
+    required String context,
+    required String level,
+  });
 }

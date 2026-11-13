@@ -41,7 +41,11 @@ final class Harness {
   Harness({List<Word>? words, FakeWordRepository? wordRepo, int seed = 3})
     : wordRepo = wordRepo ?? FakeWordRepository(words ?? [word(1, 'apple')]),
       tts = FakeTtsService() {
-    queue = GenerateDictationQueue(words: this.wordRepo, random: Random(seed));
+    queue = GenerateDictationQueue(
+      words: this.wordRepo,
+      settings: settings,
+      random: Random(seed),
+    );
   }
 
   final FakeWordRepository wordRepo;
@@ -98,7 +102,7 @@ void main() {
   testWidgets('renders loading state', (tester) async {
     final pending = Completer<void>();
     final repo = FakeWordRepository([word(1, 'apple')])
-      ..beforeGetAll = () => pending.future;
+      ..beforeGetByLevel = () => pending.future;
 
     await tester.pumpWidget(Harness(wordRepo: repo).app());
     await tester.pump();

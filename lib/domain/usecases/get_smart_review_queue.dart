@@ -1,5 +1,6 @@
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
+import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/value_objects/smart_review_item.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
@@ -25,20 +26,24 @@ const int _staleThresholdDays = 7;
 ///
 /// Только чтение: ничего не пишет в БД. `newWords` вне scope — для новых слов
 /// есть расписание SRS. `mastered` исключается: выученное слово не нужно
-/// поднимать вручную.
+/// поднимать вручную. В очередь попадают только слова выбранного уровня
+/// (Phase 27a).
 final class GetSmartReviewQueue {
   /// Создаёт use case.
   const GetSmartReviewQueue({
     required WordRepository words,
     required ProgressRepository progress,
+    required SettingsRepository settings,
     required DateTime Function() clock,
     this.maxItems = 20,
   }) : _words = words,
        _progress = progress,
+       _settings = settings,
        _clock = clock;
 
   final WordRepository _words;
   final ProgressRepository _progress;
+  final SettingsRepository _settings;
   final DateTime Function() _clock;
 
   /// Сколько элементов максимум вернуть.
@@ -55,7 +60,8 @@ final class GetSmartReviewQueue {
       return const [];
     }
 
-    final allWords = await _words.getAll();
+    final level = (await _settings.get()).preferredLevel;
+    final allWords = await _words.getByLevel(level);
     final wordById = {for (final word in allWords) word.id: word};
 
     final items = <SmartReviewItem>[];

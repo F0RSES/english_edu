@@ -3,6 +3,7 @@ import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/mappers/word_mapper.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 
 /// `WordRepository` поверх Drift.
@@ -41,6 +42,18 @@ final class DriftWordRepository implements WordRepository {
   @override
   Future<List<domain.Word>> getAll() async {
     final rows = await _db.select(_db.words).get();
+    return rows.map(WordMapper.toDomain).toList();
+  }
+
+  /// Слова строго указанного уровня (Phase 27a).
+  ///
+  /// Метка в БД хранится в нижнем регистре (`WordMapper.toCompanion`),
+  /// поэтому сравнение идёт по `label.toLowerCase()`.
+  @override
+  Future<List<domain.Word>> getByLevel(CefrLevel level) async {
+    final rows = await (_db.select(
+      _db.words,
+    )..where((t) => t.level.equals(level.label.toLowerCase()))).get();
     return rows.map(WordMapper.toDomain).toList();
   }
 

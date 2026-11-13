@@ -20,6 +20,7 @@ import '../../domain/usecases/fakes/fake_daily_challenge_repository.dart';
 import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_review_log_repository.dart';
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_srs_calculator.dart';
 import '../../domain/usecases/fakes/fake_stats_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
@@ -49,7 +50,11 @@ final class _Harness {
     overrides: [
       wordRepositoryProvider.overrideWithValue(wordRepo),
       generateScramblePuzzlesProvider.overrideWithValue(
-        GenerateScramblePuzzles(words: wordRepo, random: Random(5)),
+        GenerateScramblePuzzles(
+          words: wordRepo,
+          settings: FakeSettingsRepository(),
+          random: Random(5),
+        ),
       ),
       statsRepositoryProvider.overrideWithValue(stats),
       frozenDaysRepositoryProvider.overrideWithValue(
@@ -102,7 +107,7 @@ void main() {
   testWidgets('renders loading state', (tester) async {
     final pending = Completer<void>();
     final repo = FakeWordRepository(twoWords())
-      ..beforeGetAll = () => pending.future;
+      ..beforeGetByLevel = () => pending.future;
 
     await tester.pumpWidget(host(repo: repo));
     await tester.pump();
@@ -202,7 +207,7 @@ void main() {
 
   testWidgets('shows error state when the dictionary fails', (tester) async {
     final repo = FakeWordRepository(twoWords())
-      ..beforeGetAll = () async => throw StateError('boom');
+      ..beforeGetByLevel = () async => throw StateError('boom');
 
     await tester.pumpWidget(host(repo: repo));
     await tester.pumpAndSettle();
@@ -266,5 +271,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ErrorHelperButton), findsOneWidget);
+  });
+
+  testWidgets('long word answer field wraps without overflow', (tester) async {
+    // Узкий экран: 9 квадратов по ~50px не влезают в 360px одной строкой.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(host(words: [word(1, 'agreement', 'согласие')]));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Wrap), findsWidgets);
   });
 }

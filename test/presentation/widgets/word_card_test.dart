@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('привет'), findsOneWidget);
-    expect(find.text('Hello, world!'), findsOneWidget);
+    expect(find.text('«Hello, world!»'), findsOneWidget);
   });
 
   testWidgets('tap on the speaker speaks the term', (tester) async {

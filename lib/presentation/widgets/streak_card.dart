@@ -44,14 +44,6 @@ class StreakCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final count = streak.count;
-    final freezes = streak.frozenAvailable;
-    final freezeWord = pluralize(
-      freezes,
-      one: 'заморозка',
-      few: 'заморозки',
-      many: 'заморозок',
-    );
-    final lastActive = streak.lastActiveLocalDate;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -76,20 +68,8 @@ class StreakCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(_milestoneMessage(count), style: theme.textTheme.bodyMedium),
             ],
-            if (lastActive != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Последняя активность: $lastActive',
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-            const SizedBox(height: 8),
-            Text(
-              '🧊 $freezes $freezeWord доступно',
-              style: theme.textTheme.bodyMedium,
-            ),
             if (_hasRecentFreeze) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               const Chip(
                 label: Text(_freezeUsedLabel),
                 visualDensity: VisualDensity.compact,

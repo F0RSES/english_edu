@@ -50,12 +50,15 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(child: _buildStreak(ref, today)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildGoal(ref)),
-                ],
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(child: _buildStreak(ref, today)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildGoal(ref)),
+                  ],
+                ),
               ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2),
               const SizedBox(height: 16),
               _buildHero(context, ref),

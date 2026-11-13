@@ -20,19 +20,25 @@ void main() {
   });
 
   testWidgets('shows the count as a separate large number', (tester) async {
-    const lastActive = LocalDate(20000);
+    await tester.pumpWidget(
+      _wrap(const StreakCard(streak: StreakInfo(count: 5), today: today)),
+    );
+
+    expect(find.text('5'), findsOneWidget);
+    expect(find.text('дней подряд'), findsOneWidget);
+  });
+
+  testWidgets('does not show last activity date (Phase 26c)', (tester) async {
     await tester.pumpWidget(
       _wrap(
         const StreakCard(
-          streak: StreakInfo(count: 5, lastActiveLocalDate: lastActive),
+          streak: StreakInfo(count: 5, lastActiveLocalDate: LocalDate(20000)),
           today: today,
         ),
       ),
     );
 
-    expect(find.text('5'), findsOneWidget);
-    expect(find.text('дней подряд'), findsOneWidget);
-    expect(find.text('Последняя активность: $lastActive'), findsOneWidget);
+    expect(find.textContaining('Последняя активность'), findsNothing);
   });
 
   testWidgets('declines the word "day" for every count form', (tester) async {
@@ -88,7 +94,9 @@ void main() {
     expect(find.text('🔥 30 дней! Огонь'), findsOneWidget);
   });
 
-  testWidgets('shows frozenAvailable', (tester) async {
+  testWidgets('shows frozenAvailable badge only when recently used', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(
         const StreakCard(
@@ -98,28 +106,8 @@ void main() {
       ),
     );
 
-    expect(find.text('🧊 2 заморозки доступно'), findsOneWidget);
-  });
-
-  testWidgets('declines the freeze noun', (tester) async {
-    const cases = <int, String>{0: 'заморозок', 1: 'заморозка', 2: 'заморозки'};
-
-    for (final item in cases.entries) {
-      await tester.pumpWidget(
-        _wrap(
-          StreakCard(
-            streak: StreakInfo(count: 7, frozenAvailable: item.key),
-            today: today,
-          ),
-        ),
-      );
-
-      expect(
-        find.text('🧊 ${item.key} ${item.value} доступно'),
-        findsOneWidget,
-        reason: 'available=${item.key} должен давать «${item.value}»',
-      );
-    }
+    // Текст «🧊 N заморозок доступно» убран из карточки (Phase 26c).
+    expect(find.textContaining('заморозк'), findsNothing);
   });
 
   testWidgets('shows the badge for a freeze used in the last week', (

@@ -289,7 +289,10 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
             Center(
               child: Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: Text('${_currentIndex + 1}/${_puzzles.length}'),
+                child: Text(
+                  '${_currentIndex + 1}/${_puzzles.length}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
             ),
         ],
@@ -363,10 +366,18 @@ class _PuzzleView extends StatelessWidget {
             .animate()
             .fadeIn(duration: 350.ms)
             .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
-        const SizedBox(height: 40),
+        const SizedBox(height: 8),
+        Text(
+          'Переведи и собери слово по буквам',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
         _answerField(context),
         if (helperVisible) ...[const SizedBox(height: 12), _errorCard(context)],
-        const SizedBox(height: 40),
+        const SizedBox(height: 24),
         Wrap(
           alignment: WrapAlignment.center,
           spacing: 8,
@@ -442,50 +453,22 @@ class _PuzzleView extends StatelessWidget {
     );
   }
 
-  /// Поле ответа: пустое — пунктир, с буквами — плашки, ошибка — shake.
+  /// Поле ответа: N квадратов по длине слова, следующий подсвечен.
   Widget _answerField(BuildContext context) {
     final theme = Theme.of(context);
-    final tiles = answer.isEmpty
-        ? [
-            SizedBox(
-              width: 52,
-              height: 60,
-              child: CustomPaint(
-                painter: _DashedBorderPainter(
-                  color: theme.colorScheme.outlineVariant,
-                ),
-              ),
-            ),
-          ]
-        : [
-            for (final letter in answer)
-              Container(
-                width: 44,
-                height: 56,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: hasError
-                      ? theme.colorScheme.errorContainer
-                      : theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  letter,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-          ];
-
+    final length = puzzle.solution.length;
     final row = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        for (final tile in tiles)
+        for (var i = 0; i < length; i++)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: tile,
+            padding: const EdgeInsets.symmetric(horizontal: 3),
+            child: _AnswerSquare(
+              letter: i < answer.length ? answer[i] : null,
+              isNext: i == answer.length && !hasError,
+              hasError: hasError,
+              theme: theme,
+            ),
           ),
       ],
     );
@@ -499,6 +482,53 @@ class _PuzzleView extends StatelessWidget {
     return pulsing
         .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
         .shakeX(amount: 10, hz: 6, duration: 400.ms);
+  }
+}
+
+/// Один квадрат поля ответа: буква, пунктир или подсветка следующего.
+class _AnswerSquare extends StatelessWidget {
+  const _AnswerSquare({
+    required this.letter,
+    required this.isNext,
+    required this.hasError,
+    required this.theme,
+  });
+
+  final String? letter;
+  final bool isNext;
+  final bool hasError;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = theme.colorScheme;
+    if (letter != null) {
+      return Container(
+        width: 44,
+        height: 56,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: hasError
+              ? colors.errorContainer
+              : colors.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(8),
+          border: hasError ? Border.all(color: colors.error, width: 2) : null,
+        ),
+        child: Text(
+          letter!,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+    return SizedBox(
+      width: 44,
+      height: 56,
+      child: CustomPaint(
+        painter: _DashedBorderPainter(
+          color: isNext ? colors.primary : colors.outlineVariant,
+        ),
+      ),
+    );
   }
 }
 

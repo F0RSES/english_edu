@@ -94,12 +94,13 @@ class _WordCardState extends ConsumerState<WordCard> {
       onTap: widget.onTap,
       child: Card(
         elevation: 2,
+        color: theme.colorScheme.surfaceContainerHighest,
         child: Stack(
           children: [
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -108,8 +109,8 @@ class _WordCardState extends ConsumerState<WordCard> {
                         child: Text(
                           word.term,
                           style: theme.textTheme.displaySmall?.copyWith(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
                             letterSpacing: -1,
                           ),
                           textAlign: TextAlign.center,
@@ -127,7 +128,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                     Text(
                       word.transcription!,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontStyle: FontStyle.italic,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -197,14 +198,20 @@ class _Revealed extends StatelessWidget {
       children: [
         Text(
           word.translation,
-          style: theme.textTheme.headlineSmall,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.primary,
+          ),
           textAlign: TextAlign.center,
         ),
         if (word.exampleSentence != null) ...[
           const SizedBox(height: 12),
           Text(
-            word.exampleSentence!,
+            '«${word.exampleSentence!}»',
             style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
               color: theme.colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,

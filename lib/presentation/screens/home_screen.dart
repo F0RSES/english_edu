@@ -90,10 +90,20 @@ class HomeScreen extends ConsumerWidget {
                 ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
                 const SizedBox(height: 24),
               ],
-              Text(
-                'Тренировки',
-                style: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Icon(
+                    Icons.gamepad_outlined,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Игры',
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
               const SizedBox(height: 12),
               _buildGames(context)

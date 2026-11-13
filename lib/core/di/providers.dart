@@ -698,6 +698,8 @@ final checkAchievementsProvider = Provider<CheckAchievements>(
     frozen: ref.watch(frozenDaysRepositoryProvider),
     challengeStreak: ref.watch(challengeStreakRepositoryProvider),
     reviewLogs: ref.watch(reviewLogRepositoryProvider),
+    chat: ref.watch(chatRepositoryProvider),
+    typing: ref.watch(typingRecordRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );

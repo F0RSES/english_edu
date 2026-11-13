@@ -162,6 +162,7 @@ class _StatCard extends StatelessWidget {
             Text(
               value,
               style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -223,7 +224,7 @@ class _Achievements extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Пока нет достижений. Выполняй задания, чтобы получить!',
+                  'Пока нет достижений. Выполняй задания!',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),

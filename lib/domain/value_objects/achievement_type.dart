@@ -82,6 +82,195 @@ enum AchievementType {
     description: 'Неделя челленджей',
     icon: '🏅',
     goal: 7,
+  ),
+
+  /// Первый урок завершён.
+  firstLesson(
+    key: 'first_lesson',
+    title: 'Первый урок',
+    description: 'Начало пути',
+    icon: '🌱',
+    goal: 1,
+  ),
+
+  /// Сто ответов всего.
+  answers100(
+    key: 'answers_100',
+    title: '100 ответов',
+    description: 'Сотня позади',
+    icon: '💬',
+    goal: 100,
+  ),
+
+  /// Пятьсот ответов всего.
+  answers500(
+    key: 'answers_500',
+    title: '500 ответов',
+    description: 'Полтысячи!',
+    icon: '🗣️',
+    goal: 500,
+  ),
+
+  /// Тысяча ответов всего.
+  answers1000(
+    key: 'answers_1000',
+    title: '1000 ответов',
+    description: 'Тысяча слов сказано',
+    icon: '🏆',
+    goal: 1000,
+  ),
+
+  /// Пять тысяч ответов всего.
+  answers5000(
+    key: 'answers_5000',
+    title: '5000 ответов',
+    description: 'Неудержимый',
+    icon: '⚡',
+    goal: 5000,
+  ),
+
+  /// Сто верных ответов всего.
+  correct100(
+    key: 'correct_100',
+    title: '100 верных',
+    description: 'Сотня правильных',
+    icon: '✅',
+    goal: 100,
+  ),
+
+  /// Пятьсот верных ответов всего.
+  correct500(
+    key: 'correct_500',
+    title: '500 верных',
+    description: 'Меткий стрелок',
+    icon: '🎯',
+    goal: 500,
+  ),
+
+  /// Четырнадцать дней подряд.
+  streak14(
+    key: 'streak_14',
+    title: '14 дней подряд',
+    description: 'Две недели без пропусков',
+    icon: '🔥',
+    goal: 14,
+  ),
+
+  /// Шестьдесят дней подряд.
+  streak60(
+    key: 'streak_60',
+    title: '60 дней подряд',
+    description: 'Два месяца!',
+    icon: '💪',
+    goal: 60,
+  ),
+
+  /// Год подряд.
+  streak365(
+    key: 'streak_365',
+    title: '365 дней!',
+    description: 'Целый год',
+    icon: '🏅',
+    goal: 365,
+  ),
+
+  /// Две тысячи выученных слов.
+  words2000(
+    key: 'words_2000',
+    title: '2000 слов',
+    description: 'Две тысячи!',
+    icon: '📚',
+    goal: 2000,
+  ),
+
+  /// Пять тысяч выученных слов.
+  words5000(
+    key: 'words_5000',
+    title: '5000 слов!',
+    description: 'Полиглот',
+    icon: '🌍',
+    goal: 5000,
+  ),
+
+  /// Сто верных ответов подряд.
+  perfect100(
+    key: 'perfect_100',
+    title: '100 верных подряд',
+    description: 'Безупречно',
+    icon: '💎',
+    goal: 100,
+  ),
+
+  /// Тридцать челленджей (лучшая серия).
+  daily30(
+    key: 'daily_30',
+    title: '30 челленджей',
+    description: 'Месяц заданий',
+    icon: '🏅',
+    goal: 30,
+  ),
+
+  /// Тысяча XP заработано.
+  xp1000(
+    key: 'xp_1000',
+    title: '1000 XP',
+    description: 'Первая тысяча опыта',
+    icon: '⭐',
+    goal: 1000,
+  ),
+
+  /// Пять тысяч XP заработано.
+  xp5000(
+    key: 'xp_5000',
+    title: '5000 XP',
+    description: 'Опытный боец',
+    icon: '🌟',
+    goal: 5000,
+  ),
+
+  /// Десять тысяч XP заработано.
+  xp10000(
+    key: 'xp_10000',
+    title: '10000 XP!',
+    description: 'Легенда опыта',
+    icon: '👑',
+    goal: 10000,
+  ),
+
+  /// Десять сообщений в чате.
+  chat10(
+    key: 'chat_10',
+    title: '10 сообщений',
+    description: 'Первый диалог',
+    icon: '💬',
+    goal: 10,
+  ),
+
+  /// Пятьдесят сообщений в чате.
+  chat50(
+    key: 'chat_50',
+    title: '50 сообщений',
+    description: 'Общительный',
+    icon: '🗨️',
+    goal: 50,
+  ),
+
+  /// Сто сообщений в чате.
+  chat100(
+    key: 'chat_100',
+    title: '100 сообщений',
+    description: 'Душа компании',
+    icon: '🎙️',
+    goal: 100,
+  ),
+
+  /// Десять заездов Typing Speed.
+  typing10(
+    key: 'typing_10',
+    title: '10 заездов',
+    description: 'Быстрые пальцы',
+    icon: '⌨️',
+    goal: 10,
   );
 
   const AchievementType({

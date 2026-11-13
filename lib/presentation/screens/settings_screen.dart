@@ -282,7 +282,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         final settings = snapshot.data ?? UserSettings.defaults();
         return ListView(
           children: [
-            const _SectionHeader('Уровень английского'),
+            const _SectionHeader('Уровень английского', icon: Icons.school),
             ListTile(
               leading: const Icon(Icons.school_outlined),
               title: Text(settings.preferredLevel.label),
@@ -291,7 +291,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => unawaited(_pickLevel(settings)),
             ),
             const Divider(),
-            const _SectionHeader('Дневные лимиты'),
+            const _SectionHeader('Дневные лимиты', icon: Icons.tune),
             ListTile(
               title: const Text('Новых слов в день'),
               subtitle: Slider(
@@ -325,7 +325,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
             const Divider(),
-            const _SectionHeader('Озвучка'),
+            const _SectionHeader('Озвучка', icon: Icons.volume_up),
             ListTile(
               title: const Text('Голос'),
               trailing: DropdownButton<String>(
@@ -363,7 +363,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => unawaited(_testSpeak(settings)),
             ),
             const Divider(),
-            const _SectionHeader('Резервная копия'),
+            const _SectionHeader('Резервная копия', icon: Icons.backup),
             ListTile(
               leading: const Icon(Icons.emoji_events_outlined),
               title: const Text('Достижения'),
@@ -391,10 +391,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => unawaited(_import()),
             ),
             const Divider(),
-            const _SectionHeader('Синхронизация'),
+            const _SectionHeader('Синхронизация', icon: Icons.cloud_sync),
             const _CloudSyncSection(),
             const Divider(),
-            const _SectionHeader('Опасная зона'),
+            const _SectionHeader('Опасная зона', icon: Icons.warning_amber),
             ListTile(
               leading: Icon(
                 Icons.restart_alt,
@@ -415,10 +415,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => context.push('/onboarding?manual=1'),
             ),
             const Divider(),
-            const _SectionHeader('Аналитика'),
+            const _SectionHeader('Аналитика', icon: Icons.analytics),
             const AnalyticsSection(),
             const Divider(),
-            const _SectionHeader('Напоминания'),
+            const _SectionHeader('Напоминания', icon: Icons.notifications),
             SwitchListTile(
               title: const Text('Включить напоминания'),
               subtitle: Text(
@@ -444,21 +444,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
+  const _SectionHeader(this.title, {this.icon});
 
   final String title;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-    child: Text(
-      title,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        fontSize: 12,
-        letterSpacing: 1.2,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).colorScheme.primary,
-      ),
+    child: Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+        ],
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            fontSize: 12,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ],
     ),
   );
 }

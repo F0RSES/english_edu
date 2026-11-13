@@ -1,13 +1,16 @@
 import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
+import 'package:english_edu/domain/repositories/chat_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/review_log_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/achievement_type.dart';
+import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 
 /// Пересчитывает достижения и открывает новые (ADR-035).
@@ -28,6 +31,8 @@ final class CheckAchievements {
     required FrozenDaysRepository frozen,
     required ChallengeStreakRepository challengeStreak,
     required ReviewLogRepository reviewLogs,
+    required ChatRepository chat,
+    required TypingRecordRepository typing,
     required DateTime Function() clock,
   }) : _achievements = achievements,
        _stats = stats,
@@ -35,6 +40,8 @@ final class CheckAchievements {
        _frozen = frozen,
        _challengeStreak = challengeStreak,
        _reviewLogs = reviewLogs,
+       _chat = chat,
+       _typing = typing,
        _clock = clock;
 
   final AchievementRepository _achievements;
@@ -43,6 +50,8 @@ final class CheckAchievements {
   final FrozenDaysRepository _frozen;
   final ChallengeStreakRepository _challengeStreak;
   final ReviewLogRepository _reviewLogs;
+  final ChatRepository _chat;
+  final TypingRecordRepository _typing;
   final DateTime Function() _clock;
 
   /// Возвращает достижения, открытые этим вызовом.
@@ -59,12 +68,32 @@ final class CheckAchievements {
     final mastered = (await _progress.getAll())
         .where((item) => item.status == WordStatus.mastered)
         .length;
-    final perfect = _longestPerfectRun(await _reviewLogs.getAll());
-    final daily = (await _challengeStreak.get())?.current ?? 0;
+    final logs = await _reviewLogs.getAll();
+    final perfect = _longestPerfectRun(logs);
+    final totalAnswers = logs.length;
+    final totalCorrect = logs.where((l) => !l.grade.isFailure).length;
+    final daily = (await _challengeStreak.get())?.best ?? 0;
+    final allStats = await _stats.getAll();
+    final totalXp = allStats.fold<int>(0, (sum, s) => sum + s.xpGained);
+    final chatCount = (await _chat.getAll())
+        .where((m) => m.role == ChatRole.user)
+        .length;
+    final typingCount = (await _typing.getTop(limit: 10000)).length;
 
     final unlocked = <Achievement>[];
     for (final type in AchievementType.values) {
-      final current = _metricFor(type, streak, mastered, perfect, daily);
+      final current = _metricFor(
+        type,
+        streak: streak,
+        mastered: mastered,
+        perfect: perfect,
+        daily: daily,
+        totalAnswers: totalAnswers,
+        totalCorrect: totalCorrect,
+        totalXp: totalXp,
+        chatCount: chatCount,
+        typingCount: typingCount,
+      );
       final existing = byKey[type.key];
 
       if (existing?.isUnlocked ?? false) {
@@ -91,20 +120,45 @@ final class CheckAchievements {
   }
 
   int _metricFor(
-    AchievementType type,
-    int streak,
-    int mastered,
-    int perfect,
-    int daily,
-  ) => switch (type) {
+    AchievementType type, {
+    required int streak,
+    required int mastered,
+    required int perfect,
+    required int daily,
+    required int totalAnswers,
+    required int totalCorrect,
+    required int totalXp,
+    required int chatCount,
+    required int typingCount,
+  }) => switch (type) {
     AchievementType.streak7 ||
     AchievementType.streak30 ||
-    AchievementType.streak100 => streak,
+    AchievementType.streak100 ||
+    AchievementType.streak14 ||
+    AchievementType.streak60 ||
+    AchievementType.streak365 => streak,
     AchievementType.words100 ||
     AchievementType.words500 ||
-    AchievementType.words1000 => mastered,
-    AchievementType.perfect10 || AchievementType.perfect50 => perfect,
-    AchievementType.daily7 => daily,
+    AchievementType.words1000 ||
+    AchievementType.words2000 ||
+    AchievementType.words5000 => mastered,
+    AchievementType.perfect10 ||
+    AchievementType.perfect50 ||
+    AchievementType.perfect100 => perfect,
+    AchievementType.daily7 || AchievementType.daily30 => daily,
+    AchievementType.firstLesson ||
+    AchievementType.answers100 ||
+    AchievementType.answers500 ||
+    AchievementType.answers1000 ||
+    AchievementType.answers5000 => totalAnswers,
+    AchievementType.correct100 || AchievementType.correct500 => totalCorrect,
+    AchievementType.xp1000 ||
+    AchievementType.xp5000 ||
+    AchievementType.xp10000 => totalXp,
+    AchievementType.chat10 ||
+    AchievementType.chat50 ||
+    AchievementType.chat100 => chatCount,
+    AchievementType.typing10 => typingCount,
   };
 
   /// Самая длинная серия верных ответов в журнале.

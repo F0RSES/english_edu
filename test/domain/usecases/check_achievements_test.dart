@@ -7,10 +7,12 @@ import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:test/test.dart';
 
 import 'fakes/fake_challenge_streak_repository.dart';
+import 'fakes/fake_chat_repository.dart';
 import 'fakes/fake_frozen_days_repository.dart';
 import 'fakes/fake_progress_repository.dart';
 import 'fakes/fake_review_log_repository.dart';
 import 'fakes/fake_stats_repository.dart';
+import 'fakes/fake_typing_record_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
@@ -54,6 +56,8 @@ CheckAchievements useCase(
   frozen: FakeFrozenDaysRepository(),
   challengeStreak: FakeChallengeStreakRepository(),
   reviewLogs: FakeReviewLogRepository(),
+  chat: FakeChatRepository(),
+  typing: FakeTypingRecordRepository(),
   clock: () => now,
 );
 

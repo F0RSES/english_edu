@@ -57,9 +57,11 @@ Future<List<Map<String, Object?>>> _generate(
   int limit,
 ) async {
   final prompt =
-      'Составь $limit употребительных английских фраз на тему "$category" '
-      'уровня $level и их точный русский перевод. Ответь СТРОГО JSON-массивом: '
-      '[{"phrase": "...", "translation": "..."}]';
+      'Составь $limit реальных английских фраз, которые носители языка '
+      'используют в повседневной речи, на тему "$category" уровня $level '
+      '(CEFR). Фразы должны быть естественными, не учебными шаблонами. '
+      'Добавь точный русский перевод. Ответь СТРОГО JSON-массивом: '
+      '[{"phrase": "...", "translation": "...", "level": "$level"}]';
 
   Object? lastError;
   for (var attempt = 1; attempt <= _attempts; attempt++) {

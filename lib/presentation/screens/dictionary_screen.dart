@@ -160,7 +160,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
             children: [
               for (final category in <String?>[null, ..._categoryNames(ref)])
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: 12),
                   child: ChoiceChip(
                     label: Text(category ?? 'Все категории'),
                     selected: _selectedCategory == category,
@@ -179,7 +179,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
             children: [
               for (final level in <CefrLevel?>[null, ...CefrLevel.values])
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: 12),
                   child: ChoiceChip(
                     label: Text(level?.label ?? 'Все уровни'),
                     selected: _selectedLevel == level,

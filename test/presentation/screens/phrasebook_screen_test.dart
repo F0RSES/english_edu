@@ -51,8 +51,8 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    expect(find.text('Все'), findsOneWidget);
-    expect(find.text('Приветствия'), findsOneWidget);
-    expect(find.text('Аэропорт'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Все'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Приветствия'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'Аэропорт'), findsOneWidget);
   });
 }

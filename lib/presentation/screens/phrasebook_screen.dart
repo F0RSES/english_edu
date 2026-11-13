@@ -44,6 +44,7 @@ class _PhrasebookBody extends StatefulWidget {
 class _PhrasebookBodyState extends State<_PhrasebookBody> {
   final _search = TextEditingController();
   var _query = '';
+  String? _selectedLevel;
 
   @override
   void dispose() {
@@ -64,13 +65,13 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
 
   List<Phrase> _visible(List<Phrase> items) {
     final needle = _query.trim().toLowerCase();
-    if (needle.isEmpty) {
-      return items;
-    }
     return [
       for (final item in items)
-        if (item.phrase.toLowerCase().contains(needle) ||
-            item.translation.toLowerCase().contains(needle))
+        if ((_selectedLevel == null ||
+                item.level.toLowerCase() == _selectedLevel) &&
+            (needle.isEmpty ||
+                item.phrase.toLowerCase().contains(needle) ||
+                item.translation.toLowerCase().contains(needle)))
           item,
     ];
   }
@@ -93,6 +94,32 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
               onChanged: (value) => setState(() => _query = value),
             ),
           ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                for (final level in <String?>[
+                  null,
+                  'a1',
+                  'a2',
+                  'b1',
+                  'b2',
+                  'c1',
+                  'c2',
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(level?.toUpperCase() ?? 'Все'),
+                      selected: _selectedLevel == level,
+                      onSelected: (_) => setState(() => _selectedLevel = level),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
           TabBar(
             isScrollable: true,
             tabs: [
@@ -151,6 +178,14 @@ class _PhraseList extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
+            ),
+            trailing: Chip(
+              label: Text(
+                item.level.toUpperCase(),
+                style: const TextStyle(fontSize: 11),
+              ),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
             ),
           ),
         );

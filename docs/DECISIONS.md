@@ -26,7 +26,7 @@ Architecture Decision Records: один ADR — одно решение.
   - go_router — навигация и deep links.
   - freezed + json_serializable — модели, state, сериализация.
   - build_runner — кодогенерация.
-  - flutter_tts — произношение.
+  - stts — STT/TTS; используется только TTS (flutter_tts заменён в ADR-018).
   - flutter_local_notifications — локальные напоминания.
   - very_good_analysis — линт.
 - **Alternatives considered:**
@@ -37,7 +37,7 @@ Architecture Decision Records: один ADR — одно решение.
 - **Scope out:** i18n/l10n вне MVP. UI locale — ru, учебный контент — en. Persistence — ADR-002. Sentry (Phase 6, без PII, DSN только через --dart-define) и AI (out of scope MVP, только через прокси, отдельный ADR, post-launch) в этот ADR не входят.
 - **Version policy:** caret ranges в pubspec.yaml; pubspec.lock коммитится и является источником правды по фактическим версиям. Пересмотр версий — при плановом обновлении зависимостей, не по расписанию.
 - **Consequences:**
-  - (a) flutter_tts и flutter_local_notifications требуют разрешений и platform-конфигурации iOS/Android в Phase 2a.
+  - (a) stts (ранее flutter_tts) и flutter_local_notifications требуют разрешений и platform-конфигурации iOS/Android в Phase 2a.
   - (b) build_runner обязателен в сборке; политика «коммитить generated-файлы (.drift/.freezed/.g/.riverpod) или генерировать в CI» — решение Phase 2a.
   - (c) riverpod_generator + riverpod_annotation — основной путь; при проблемах в Phase 2a допускается fallback на manual providers с обновлением этого ADR.
   - (d) pubspec.lock committed as source of truth for dependency versions. Host SDK: Dart 3.13.4.
@@ -190,7 +190,7 @@ Architecture Decision Records: один ADR — одно решение.
 - **Status:** Accepted
 - **Date:** 2026-11-04
 - **Context:** TTS и локальные уведомления — платформенные сервисы. `flutter_local_notifications` 22.3.3 требует `compileSdk 37`, AGP 9.1.1 и core library desugaring, а Android SDK в среде отсутствует — сборку проверить нельзя.
-- **Decision:** Сейчас подключается только TTS: `TtsService` (интерфейс) + `FlutterTtsService` (обёртка над `flutter_tts`), в манифест добавлен `<queries>` с `android.intent.action.TTS_SERVICE`. Уведомления отложены до Phase 5 (BL-38).
+- **Decision:** Сейчас подключается только TTS: `TtsService` (интерфейс) + `SttsTtsService` (обёртка над `stts`, до ADR-018 — `FlutterTtsService` над `flutter_tts`), в манифест добавлен `<queries>` с `android.intent.action.TTS_SERVICE`. Уведомления отложены до Phase 5 (BL-38).
 - **Alternatives considered:**
   - Подключить notifications сейчас на 22.3.3 — отклонено: `compileSdk 37` + AGP 9.1.1 + desugaring невозможно проверить без Android SDK, правки ушли бы «вслепую».
   - Взять старую версию плагина под текущий toolchain — отклонено: откат на устаревший мажор ради непроверяемой функции.
@@ -278,7 +278,22 @@ Architecture Decision Records: один ADR — одно решение.
   - `compileSdk` зафиксирован литералом: смена дефолта во Flutter не меняет таргет молча.
   - iOS delegate (`AppDelegate`) не настроен — Phase 6c (нужен macOS).
   - В тестах плагин не поднимается: `bootstrapApp` принимает `notificationServiceBuilder`, `ProfileScreen` берёт сервис из DI.
+  - TTS: `stts 1.3.4`, без Kotlin Gradle Plugin — предупреждение сборки, которое давал `flutter_tts`, устранено (ADR-018).
 - **Open questions:** реальное срабатывание на устройстве (Phase 6c); точные будильники (BL-53); iOS delegate.
+
+### ADR-018: TTS migration to stts
+- **Status:** Accepted
+- **Date:** 2026-11-06
+- **Context:** `flutter_tts 4.2.5` применяет Kotlin Gradle Plugin. Сборка Flutter 3.47.9 предупреждает, что будущие версии Flutter перестанут собирать такие плагины («plugins that apply KGP»), то есть зависимость — отложенная поломка сборки. `stts 1.3.4` даёт TTS (и STT) без применения KGP, поддерживает текущий Flutter (>=3.44.0) и требует `minSdk 21`.
+- **Decision:** Заменить `flutter_tts` на `stts ^1.3.4`; `FlutterTtsService` → `SttsTtsService`; `ttsProvider` → `SttsTtsService(Tts())`. Интерфейс `TtsService` (`speak`, `stop`) не меняется. Скорость пересчитывается ×2 из шкалы приложения `0.1..1.0` в rate платформы `0.1..10.0`.
+- **Alternatives considered:**
+  - Оставить `flutter_tts` и ждать версию с Built-in Kotlin — отклонено: поломка наступит при обновлении Flutter, а обновление неизбежно.
+  - `flutter_tts` со своим форком — отклонено: поддержка форка на нашей стороне не оправдана.
+- **Consequences:**
+  - Размер APK немного больше: `stts` содержит и STT-код, который мы не используем.
+  - `setVoice` не перенесён: выбор голоса остаётся через `setLanguage` (BCP-47), конкретный голос — Phase 8.
+  - AGP не пришлось поднимать: несмотря на `classpath 9.2.1` в модуле `stts`, сборка на AGP 9.1.0 и Gradle 9.3.1 прошла. Предупреждение KGP исчезло.
+- **Open questions:** выбор конкретного голоса (Phase 8); проверка звука на реальном устройстве (Phase 6c).
 
 ## Реестр
 
@@ -301,3 +316,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-015 | Streak freeze semantics | Accepted |
 | ADR-016 | Sentry crash reporting | Accepted |
 | ADR-017 | Local notifications | Accepted |
+| ADR-018 | TTS migration to stts | Accepted |

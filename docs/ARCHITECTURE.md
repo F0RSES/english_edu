@@ -268,7 +268,7 @@ XP и признак «верно» считаются в домене: `XpRules
 
 ## Core services
 
-- `lib/core/tts/tts_service.dart` — `TtsService` (интерфейс) + `FlutterTtsService` (обёртка над `flutter_tts`). Голос — BCP-47 (`en-US`/`en-GB`), скорость 0.1..1.0; значения берутся из `UserSettings`.
+- `lib/core/tts/tts_service.dart` — `TtsService` (интерфейс) + `SttsTtsService` (обёртка над `stts`, ADR-018). Голос — BCP-47 (`en-US`/`en-GB`), скорость в настройках 0.1..1.0 пересчитывается ×2 в rate платформы 0.1..10.0; значения берутся из `UserSettings`.
 - `lib/core/notifications/notification_service.dart` — `NotificationService` (`requestPermission`, `scheduleDailyReminder`, `cancelAll`), `FlutterNotificationService` (плагин `flutter_local_notifications`) и `NoOpNotificationService` (fallback, если инициализация не удалась).
 - Напоминание: `zonedSchedule` с `DateTimeComponents.time` (ежедневно) и `AndroidScheduleMode.inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` не запрашивается (ADR-017). Таймзона — `timezone` + `flutter_timezone`; `initializeTimeZones()` и `setLocalLocation` выполняются в `bootstrapApp`, падение даёт NoOp и warning в лог.
 - Android: `compileSdk 36` литералом, desugaring `desugar_jdk_libs 2.1.4`, `multiDexEnabled`; манифест — `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`).

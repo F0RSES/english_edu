@@ -101,4 +101,4 @@ dart run tools/validate_seed.dart assets/seed/words_v1.json
 
 ## Аудио
 
-TTS подключается в Phase 2 (`flutter_tts`). В seed аудио не хранится: ни путей к файлам, ни base64.
+TTS подключается в Phase 2 (`stts`, ADR-018). В seed аудио не хранится: ни путей к файлам, ни base64.

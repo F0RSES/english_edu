@@ -74,6 +74,7 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- TTS: `flutter_tts 4.2.5` → `stts 1.3.4` (`SttsTtsService`, `ttsProvider`); скорость пересчитывается ×2 в rate платформы. Интерфейс `TtsService` не менялся. ADR-018, **BL-54 закрыт**; предупреждение сборки про Kotlin Gradle Plugin исчезло.
 - Android: `compileSdk = 36` литералом (было `flutter.compileSdkVersion`), включены `isCoreLibraryDesugaringEnabled` + `desugar_jdk_libs 2.1.4` и `multiDexEnabled`.
 - Манифест: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`); `SCHEDULE_EXACT_ALARM` намеренно не добавлен.
 - `ExportProgress`, `ImportProgress` и `ResetProgress` принимают `FrozenDaysRepository`; импорт дописывает шаг `frozen.replaceAll`, сброс — `frozen.replaceAll(const [])` (порядок progress → logs → stats → frozen).

@@ -54,6 +54,7 @@
 | BL-50 | P3 | Phase 5e — полная логика streak continuity + защита от эксплойта freeze (ручное добавление через debug-меню) | серия переживает пропуск автоматически без bootstrap-эвристики; ручное добавление freeze не увеличивает баланс | Todo |
 | BL-51 | P2 | Phase 5e — заморозки не входят в export/import (формат v1) и не очищаются `ResetProgress` | импорт снимка не оставляет «висячих» заморозок; сброс прогресса обнуляет `frozen_days` | Done |
 | BL-53 | P3 | Phase 6c — если тестеры пожалуются на неточность напоминаний: `AndroidScheduleMode.exact` + `SCHEDULE_EXACT_ALARM` + `requestExactAlarmsPermission()` | точное время на Android 14+, инструкция по разрешению в UI | Todo |
+| BL-54 | P2 | Phase 6c — миграция `flutter_tts` 4.2.5 → `stts` 1.3.4: flutter_tts применяет Kotlin Gradle Plugin, будущие версии Flutter перестанут такие плагины собирать | `flutter build apk --debug` зелёный без предупреждения KGP, `SttsTtsService`, analyze=0, тесты без изменений | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

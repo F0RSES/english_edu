@@ -37,7 +37,7 @@ import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:stts/stts.dart';
 
 /// Riverpod providers без codegen.
 ///
@@ -49,9 +49,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 ///
 /// В тестах переопределяется на фейк: реальный плагин требует платформенного
 /// канала.
-final ttsProvider = Provider<TtsService>(
-  (ref) => FlutterTtsService(FlutterTts()),
-);
+final ttsProvider = Provider<TtsService>((ref) => SttsTtsService(Tts()));
 
 /// Логгер приложения.
 final loggerProvider = Provider<Logger>((ref) => const DebugLogger());

@@ -25,6 +25,7 @@ Roadmap ниже). 413 тестов, analyze=0.
 - Dart 3.13.7
 - Android minSdk 26 / compileSdk 36
 - iOS deployment target 15.0 (SPM, CocoaPods не поддерживается)
+- TTS: stts 1.3.4 (без Kotlin Gradle Plugin)
 
 ## How to run
 

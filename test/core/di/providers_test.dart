@@ -166,8 +166,8 @@ void main() {
     expect(container.read(seedLoaderProvider), isA<JsonSeedLoader>());
   });
 
-  test('tts provider resolves to the Flutter implementation', () {
-    expect(container.read(ttsProvider), isA<FlutterTtsService>());
+  test('tts provider resolves to the stts implementation', () {
+    expect(container.read(ttsProvider), isA<SttsTtsService>());
   });
 
   test('asset bundle can be overridden for seeding', () {

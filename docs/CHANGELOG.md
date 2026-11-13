@@ -35,6 +35,8 @@
 - `bootstrapApp` принимает `sentryDsn` и `sentryInit` и возвращает `({idGenerator, crashReporter})`; DSN — только через `--dart-define=SENTRY_DSN`, пустой → `NoOpCrashReporter`.
 - Отправка сбоев из `LessonScreen._grade` (`record_review`) и `ImportDialog._submit` (`import`).
 - BL-47 (performance traces, P3), BL-48 (`jni`/NDK на первой APK-сборке, P2).
+- Локальный CI: `scripts/ci.sh` (format + analyze + test) и `scripts/README.md`.
+- BL-49 (P3): защита UI от падения `captureException`.
 
 ### Fixed
 - BL-41: `computeStreakProvider` / `getTodayQueueProvider` переведены в `FutureProvider` (UseCase-провайдеры переименованы в `computeStreakUseCaseProvider` / `getTodayQueueUseCaseProvider`). `HomeScreen` использует `AsyncValue.when` вместо `FutureBuilder`, `LessonScreen` инвалидирует серию, очередь и цель после сессии и при закрытии — главный экран видит прогресс сразу после урока.
@@ -59,6 +61,9 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- `dart format` применён ко всему репозиторию: 73 файла, только переносы строк и trailing commas, analyze=0, 355 тестов зелёные. **BL-40 закрыт.**
+- README переписан: финальный статус MVP, инструкция для бета-тестеров, Sentry, Roadmap.
+- DoD дополнен прогоном `bash scripts/ci.sh` перед коммитом.
 - `minSdk` 24 → 26 (Android 8.0) — требование `sentry_flutter` 10.x; `compileSdk`/`targetSdk`/`ndkVersion` не менялись.
 - `bootstrapApp` возвращает запись `({NextReviewLogIdGenerator idGenerator, CrashReporter crashReporter})` вместо одного генератора.
 - Тулинг: `dart analyze` / `dart test` → `flutter analyze` / `flutter test`.

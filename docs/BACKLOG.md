@@ -47,9 +47,10 @@
 | BL-44 | P3 | Phase 5 — файловый export/import вместо clipboard: `file_selector` + `share_plus` (ADR-014) | JSON-файл на устройстве: сохранение через share_plus, выбор через file_selector | Todo |
 | BL-45 | P3 | Phase 4 — склонение по числу продублировано в `HomeScreen` и `StreakCard` | `pluralize` в `lib/core/text/plural.dart`, analyze=0, тесты на все формы | Done |
 | BL-46 | P2 | Phase 5d — Freeze система (ADR-015): таблица `FrozenDays`, `schemaVersion 2`, `ComputeStreak` учитывает замороженный день, вехи 7/30 выдают freeze | миграция v1→v2 работает, freeze применяется при пропуске одного дня, тест на серию через заморозку | Todo |
-| BL-40 | P2 | Phase 4 — `dart format` не применён к репозиторию: 83 файла вне scope задач 2a–3b не соответствуют formatter'у 3.13.7 (tall style) | `dart format lib test tools` одной задачей, diff отревьюен (только пробелы/переносы), analyze=0, тесты зелёные | Todo |
+| BL-40 | P2 | Phase 4 — `dart format` не применён к репозиторию: 83 файла вне scope задач 2a–3b не соответствуют formatter'у 3.13.7 (tall style) | `dart format lib test tools` одной задачей, diff отревьюен (только пробелы/переносы), analyze=0, тесты зелёные | Done |
 | BL-47 | P3 | Phase 6c — performance traces Sentry (`tracesSampleRate > 0`), если понадобятся: сейчас 0 (ADR-016) | ADR + спайк на реальном устройстве: бюджет трейсов и влияние на холодный старт | Todo |
 | BL-48 | P2 | Phase 7 — при первой APK-сборке проверить, что `ndkVersion 28.2.13676358` совместим с `jni` из `sentry_flutter` 10.3 | `flutter build apk` зелёный; при несовместимости — поднять/понизить NDK и записать в ADR-016 | Todo |
+| BL-49 | P3 | Phase 6c — если `captureException` начнёт бросать, обернуть вызовы в UI в try/catch | ошибка репортёра не ломает обработку сбоя: тест «репортёр бросает → snackbar всё равно показан» | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

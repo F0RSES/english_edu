@@ -37,20 +37,19 @@
 - Phase 4, task 4c — дневные лимиты, сброс прогресса (ADR-013), export/import через clipboard (ADR-014), `PopScope` в уроке (334 tests). **Phase 4 закрыта.**
 - Phase 5, task 5a+5b — `PopScope` confirm (BL-43), общий `pluralize` (BL-45), визуал `StreakCard`; ADR-015 (freeze) — Proposed, без кода (347 tests).
 - Phase 6, task 6a — Sentry: `CrashReporter`/`SentryCrashReporter`/`NoOpCrashReporter`, `crashReporterProvider`, DSN через `--dart-define`, `minSdk` 24 → 26; ADR-016 Accepted (355 tests).
+- Phase 6, task 6b — `dart format` по всему репозиторию (BL-40), `scripts/ci.sh` (format + analyze + test), финальный README с инструкцией для бета-тестеров; тег `phase-6-mvp`. **Phase 6 закрыта** (без APK, iOS и reminders).
 
 ## In progress
-- Phase 6b — локальный CI.
+- — (MVP ready)
 
 ## Next
-- Phase 6c — performance traces Sentry, если понадобятся (BL-47).
-- Phase 5c — notifications (BL-38) после появления Android SDK.
+- Phase 5c (notifications, нужен Android SDK) или Phase 7 (publish) — решение пользователя.
 
 ## Open questions
-- Android SDK не установлен (`flutter doctor`: «Unable to locate Android SDK»): `flutter build apk`, разрешения `POST_NOTIFICATIONS`/`SCHEDULE_EXACT_ALARM` и desugaring проверить нельзя. BL-38 остаётся заблокированным до появления SDK.
-- iOS-сборка требует macOS; `Podfile` ещё не создан и не должен создаваться — `sentry_flutter` 10.x работает через SPM.
-- DSN для release: нужен проект в Sentry и `--dart-define=SENTRY_DSN=...`; без него crash reporting выключен (ADR-016).
-- IP-адрес: `sendDefaultPii: false` не отключает сбор IP — это серверная настройка проекта Sentry.
-- `jni` из `sentry_flutter` 10.3 и `ndkVersion 28.2.13676358` — проверка на первой APK-сборке (BL-48).
+- APK build: Android SDK не установлен, `flutter build apk` не проверен (BL-38, BL-48).
+- iOS build: нужен macOS; `sentry_flutter` 10.x работает через SPM, `Podfile` не создаётся.
+- License: не выбрана (BL-08); в README остался плейсхолдер `<your-email>` — заменить перед публикацией.
+- DSN для release: нужен проект в Sentry (ADR-016), без него crash reporting выключен.
 
 ## Environment
 - Flutter 3.47.9 (stable), Dart 3.13.7, linux_x64.

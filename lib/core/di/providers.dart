@@ -1,5 +1,6 @@
 import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
+import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/core/tts/tts_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
@@ -54,6 +55,11 @@ final ttsProvider = Provider<TtsService>(
 
 /// Логгер приложения.
 final loggerProvider = Provider<Logger>((ref) => const DebugLogger());
+
+/// Локальные напоминания. Переопределяется в `main` (ADR-017).
+final notificationServiceProvider = Provider<NotificationService>((ref) {
+  throw UnimplementedError('Override notificationServiceProvider in main');
+});
 
 /// Отчётчик сбоев. Переопределяется в `main` (ADR-016).
 ///

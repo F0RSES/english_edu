@@ -6,10 +6,14 @@ plugins {
 
 android {
     namespace = "com.norman.english_edu"
-    compileSdk = flutter.compileSdkVersion
+    // Литерал, а не flutter.compileSdkVersion: смена дефолта во Flutter не
+    // должна незаметно менять Android-таргет (ADR-017).
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Требование flutter_local_notifications 10+: java.time в minSdk 26.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -22,6 +26,8 @@ android {
         // sentry_flutter 10.x requires minSdk 26 (Android 8.0).
         minSdk = 26
         targetSdk = flutter.targetSdkVersion
+        // Требование flutter_local_notifications: методов больше лимита DEX.
+        multiDexEnabled = true
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
@@ -43,6 +49,11 @@ kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+dependencies {
+    // Бэкпорт java.time для minSdk 26 — требование flutter_local_notifications.
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {

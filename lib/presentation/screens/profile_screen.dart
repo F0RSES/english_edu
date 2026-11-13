@@ -10,7 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Голоса, доступные в MVP.
 const _voices = <String>['en-US', 'en-GB'];
 
-/// Профиль: настройки озвучки. Напоминания отложены до Phase 5 (BL-38).
+/// Время напоминания как `HH:MM` (24-часовой формат).
+String _formatTime(UserSettings settings) {
+  final hour = settings.reminderHour.toString().padLeft(2, '0');
+  final minute = settings.reminderMinute.toString().padLeft(2, '0');
+  return '$hour:$minute';
+}
+
+/// Профиль: настройки озвучки, напоминания, резервная копия.
 class ProfileScreen extends ConsumerStatefulWidget {
   /// Создаёт экран.
   const ProfileScreen({super.key});
@@ -77,6 +84,75 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ..invalidate(getTodayQueueProvider)
       ..invalidate(dailyGoalProvider)
       ..invalidate(dictionaryEntriesProvider);
+  }
+
+  /// Включает/выключает ежедневное напоминание (ADR-017).
+  ///
+  /// Побочный эффект выполняется до сохранения: если ОС отказала в разрешении
+  /// или планирование упало, настройка не должна выглядеть включённой.
+  Future<void> _toggleReminders(UserSettings settings, bool enabled) async {
+    try {
+      final notifications = ref.read(notificationServiceProvider);
+      if (enabled) {
+        await notifications.requestPermission();
+        await notifications.scheduleDailyReminder(
+          hour: settings.reminderHour,
+          minute: settings.reminderMinute,
+        );
+      } else {
+        await notifications.cancelAll();
+      }
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).error('Reminder update failed', error, stack);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Не удалось обновить напоминание')),
+        );
+      }
+      return;
+    }
+    await _save(settings.copyWith(remindersEnabled: enabled));
+  }
+
+  /// Выбирает время напоминания; при включённых напоминаниях перепланирует.
+  ///
+  /// Ввод с клавиатуры, а не циферблат: время задаётся точно (9:05), и это
+  /// поведение детерминированно проверяется в тестах.
+  Future<void> _pickReminderTime(UserSettings settings) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: settings.reminderHour,
+        minute: settings.reminderMinute,
+      ),
+      initialEntryMode: TimePickerEntryMode.input,
+    );
+    if (picked == null || !mounted) {
+      return;
+    }
+    if (settings.remindersEnabled) {
+      try {
+        await ref
+            .read(notificationServiceProvider)
+            .scheduleDailyReminder(hour: picked.hour, minute: picked.minute);
+      } on Object catch (error, stack) {
+        ref
+            .read(loggerProvider)
+            .error('Reminder reschedule failed', error, stack);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Не удалось обновить напоминание')),
+          );
+        }
+        return;
+      }
+    }
+    await _save(
+      settings.copyWith(
+        reminderHour: picked.hour,
+        reminderMinute: picked.minute,
+      ),
+    );
   }
 
   Future<void> _export() async {
@@ -259,11 +335,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const Divider(),
             const _SectionHeader('Напоминания'),
-            const SwitchListTile(
-              title: Text('Включить напоминания'),
-              subtitle: Text('Появится в Phase 5 (BL-38)'),
-              value: false,
-              onChanged: null,
+            SwitchListTile(
+              title: const Text('Включить напоминания'),
+              subtitle: Text(
+                settings.remindersEnabled
+                    ? 'Ежедневно в ${_formatTime(settings)}'
+                    : 'Выключены',
+              ),
+              value: settings.remindersEnabled,
+              onChanged: (value) =>
+                  unawaited(_toggleReminders(settings, value)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule),
+              title: const Text('Время напоминания'),
+              subtitle: Text(_formatTime(settings)),
+              onTap: () => unawaited(_pickReminderTime(settings)),
             ),
           ],
         );

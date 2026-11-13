@@ -44,6 +44,11 @@
 - `ExportPayload` v2: `+ frozenDays` (`Set<LocalDate>`), `currentSchemaVersion = 2`; обратная совместимость — снимок v1 читается с пустым `frozenDays`.
 - `ExportPayloadCodec`: `encode` пишет `frozenDays` (`daysSinceEpoch`), `decode` принимает v1 (пусто) и v2 (восстанавливает), версия 3+ — `FormatException`.
 - Заморозки входят в export/import и очищаются сбросом прогресса. **BL-51 закрыт.**
+- Локальные напоминания (ADR-017): `flutter_local_notifications ^22.3.3`, `timezone ^0.11.2`, `flutter_timezone ^5.1.1`.
+- `lib/core/notifications/notification_service.dart` — `NotificationService`, `FlutterNotificationService`, `NoOpNotificationService`; `notificationServiceProvider` (override в `main`).
+- `bootstrapApp`: инициализация таймзон (`initializeTimeZones` + `setLocalLocation`), инициализация плагина с fallback на NoOp и перепланирование напоминания при старте, если оно включено. `BootstrapResult` получил `notificationService`; тесты инжектят `notificationServiceBuilder`.
+- `ProfileScreen`: рабочий переключатель напоминаний и выбор времени; разрешение спрашивается при включении, ошибка планирования показывает snackbar и не сохраняет настройку.
+- **BL-38 закрыт**, BL-53 (exact alarms, P3).
 
 ### Fixed
 - README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
@@ -69,6 +74,8 @@
 - `StatsRepository.getLastActiveDate`.
 
 ### Changed
+- Android: `compileSdk = 36` литералом (было `flutter.compileSdkVersion`), включены `isCoreLibraryDesugaringEnabled` + `desugar_jdk_libs 2.1.4` и `multiDexEnabled`.
+- Манифест: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`); `SCHEDULE_EXACT_ALARM` намеренно не добавлен.
 - `ExportProgress`, `ImportProgress` и `ResetProgress` принимают `FrozenDaysRepository`; импорт дописывает шаг `frozen.replaceAll`, сброс — `frozen.replaceAll(const [])` (порядок progress → logs → stats → frozen).
 - `ImportProgress` валидирует версии `1..2` вместо только `1`; `ImportDialog` пропускает обе версии, версия 3+ отсекается кодеком («Невалидный JSON»).
 - `StreakInfo`: `+int frozenAvailable`, `+Set<LocalDate> frozenDates`; оба поля участвуют в `==`/`hashCode`, множество сравнивается без `setEquals` (domain — pure Dart).

@@ -11,7 +11,7 @@
 
 - dart format (lib/, test/, tools/)
 - flutter analyze (= 0)
-- flutter test (404 passed)
+- flutter test (413 passed)
 
 ## Переменные
 

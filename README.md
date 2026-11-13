@@ -5,8 +5,8 @@ Offline-first мобильное приложение для изучения а
 
 ## Status
 
-**Phase 6 — MVP closed** (без reminders, без APK, без iOS —
-см. Roadmap ниже). 404 теста, analyze=0.
+**Phase 6 — MVP closed** (APK собирается, iOS — нет; см.
+Roadmap ниже). 413 тестов, analyze=0.
 
 ## Features
 
@@ -16,6 +16,7 @@ Offline-first мобильное приложение для изучения а
 - Личный словарь с поиском и добавлением
 - Export/Import через clipboard
 - Crash reporting (Sentry, опционально)
+- Ежедневные локальные напоминания (точность ±5–15 минут)
 - Полностью offline-first
 
 ## Environment
@@ -29,7 +30,7 @@ Offline-first мобильное приложение для изучения а
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 404 passed
+    flutter test               # 413 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -50,9 +51,8 @@ IP-адрес: отключить в Sentry Project Settings → Security & Priv
 ## Roadmap
 
 - [x] Phase 1–6: architecture, data, LessonScreen, TTS,
-      dictionary, settings, Sentry.
-- [ ] Phase 5c: notifications (нужен Android SDK).
-- [ ] Phase 6 APK build (нужен Android SDK).
+      dictionary, settings, Sentry, freeze, reminders.
+- [x] Phase 6 APK build (debug собирается на Android SDK 36).
 - [ ] Phase 6 iOS build (нужен macOS).
 - [ ] Phase 7: публикация (Google Play, App Store).
 - [ ] Phase 8: AI-помощник (DeepSeek proxy).
@@ -67,8 +67,8 @@ IP-адрес: отключить в Sentry Project Settings → Security & Priv
 
 ### Известные ограничения
 
-- Нет напоминаний (Phase 5c).
-- Нет APK-сборки (нужен Android SDK у разработчика).
+- Напоминания неточные: ±5–15 минут (inexact alarm, BL-53).
+- Release-APK не подписан: используется debug-ключ.
 - iOS не собран (нет macOS).
 
 ### Что тестировать

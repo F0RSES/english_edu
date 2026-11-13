@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../core/notifications/fake_notification_service.dart';
 import '../../core/tts/fake_tts_service.dart';
 import '../../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
@@ -15,11 +16,19 @@ import '../../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_stats_repository.dart';
 
+/// Секция напоминаний — внизу длинного списка.
+Future<void> _scrollToReminders(WidgetTester tester) async {
+  await tester.scrollUntilVisible(find.byType(SwitchListTile), 200);
+  await tester.pumpAndSettle();
+}
+
 final class Harness {
   Harness({UserSettings? settings, List<DailyStats> stats = const []})
     : settingsRepo = FakeSettingsRepository(settings),
       statsRepo = FakeStatsRepository(stats),
       tts = FakeTtsService();
+
+  final FakeNotificationService notifications = FakeNotificationService();
 
   final FakeSettingsRepository settingsRepo;
   final FakeStatsRepository statsRepo;
@@ -37,6 +46,7 @@ final class Harness {
       progressRepositoryProvider.overrideWithValue(progressRepo),
       reviewLogRepositoryProvider.overrideWithValue(logRepo),
       ttsProvider.overrideWithValue(tts),
+      notificationServiceProvider.overrideWithValue(notifications),
     ],
     child: const MaterialApp(home: ProfileScreen()),
   );
@@ -100,20 +110,17 @@ void main() {
     expect(harness.tts.lastSpeed, 0.7);
   });
 
-  testWidgets('reminders toggle is disabled with a Phase 5 hint', (
-    tester,
-  ) async {
-    final harness = Harness();
+  testWidgets('reminders toggle reflects the saved setting', (tester) async {
+    final harness = Harness(
+      settings: const UserSettings(remindersEnabled: true),
+    );
     await tester.pumpWidget(harness.app());
     await tester.pumpAndSettle();
+    await _scrollToReminders(tester);
 
-    // Секция напоминаний — внизу длинного списка.
-    await tester.scrollUntilVisible(find.byType(SwitchListTile), 200);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Появится в Phase 5 (BL-38)'), findsOneWidget);
     final tile = tester.widget<SwitchListTile>(find.byType(SwitchListTile));
-    expect(tile.onChanged, isNull);
+    expect(tile.value, isTrue);
+    expect(tile.onChanged, isNotNull);
   });
 
   testWidgets('shows an error state when settings fail to load', (
@@ -167,6 +174,80 @@ void main() {
     final saved = (await harness.settingsRepo.get()).dailyReviewLimit;
     expect(saved, isNot(UserSettings.defaults().dailyReviewLimit));
     expect(saved % 10, 0);
+  });
+
+  testWidgets('enabling reminders asks permission and schedules', (
+    tester,
+  ) async {
+    final harness = Harness(
+      settings: const UserSettings(reminderHour: 7, reminderMinute: 15),
+    );
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+    await _scrollToReminders(tester);
+
+    await tester.tap(find.text('Включить напоминания'));
+    await tester.pumpAndSettle();
+
+    expect(harness.notifications.requestPermissionCalls, 1);
+    expect(harness.notifications.scheduleCalls.single, (hour: 7, minute: 15));
+    expect((await harness.settingsRepo.get()).remindersEnabled, isTrue);
+  });
+
+  testWidgets('disabling reminders cancels them', (tester) async {
+    final harness = Harness(
+      settings: const UserSettings(remindersEnabled: true),
+    );
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+    await _scrollToReminders(tester);
+
+    await tester.tap(find.text('Включить напоминания'));
+    await tester.pumpAndSettle();
+
+    expect(harness.notifications.cancelCalls, 1);
+    expect(harness.notifications.scheduleCalls, isEmpty);
+    expect((await harness.settingsRepo.get()).remindersEnabled, isFalse);
+  });
+
+  testWidgets('time picker saves the new time and reschedules', (tester) async {
+    final harness = Harness(
+      settings: const UserSettings(remindersEnabled: true),
+    );
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+    await _scrollToReminders(tester);
+
+    await tester.tap(find.text('Время напоминания'));
+    await tester.pumpAndSettle();
+
+    // Ввод с клавиатуры: часы и минуты — два поля.
+    final fields = find.byType(TextField);
+    await tester.enterText(fields.at(0), '7');
+    await tester.enterText(fields.at(1), '30');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    final saved = await harness.settingsRepo.get();
+    expect(saved.reminderHour, 7);
+    expect(saved.reminderMinute, 30);
+    expect(harness.notifications.scheduleCalls.single, (hour: 7, minute: 30));
+  });
+
+  testWidgets('a failing schedule shows a snackbar and keeps the setting', (
+    tester,
+  ) async {
+    final harness = Harness();
+    harness.notifications.throwOnSchedule = true;
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+    await _scrollToReminders(tester);
+
+    await tester.tap(find.text('Включить напоминания'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Не удалось обновить напоминание'), findsOneWidget);
+    expect((await harness.settingsRepo.get()).remindersEnabled, isFalse);
   });
 
   testWidgets('reset button asks for confirmation', (tester) async {

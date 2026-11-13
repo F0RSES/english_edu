@@ -2,6 +2,7 @@ import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/di/review_log_id_generator.dart';
 import 'package:english_edu/core/logger.dart';
+import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
@@ -11,13 +12,18 @@ import 'package:english_edu/presentation/theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
-/// Результат [bootstrapApp]: генератор id и выбранный отчётчик сбоев.
+/// Результат [bootstrapApp]: генератор id, отчётчик сбоев и напоминания.
 typedef BootstrapResult = ({
   NextReviewLogIdGenerator idGenerator,
   CrashReporter crashReporter,
+  NotificationService notificationService,
 });
 
 /// Bootstrap: crash reporting → seed (best effort) → стартовый id журнала.
@@ -35,12 +41,16 @@ Future<BootstrapResult> bootstrapApp({
   required Logger logger,
   required String? sentryDsn,
   Future<void> Function(String dsn)? sentryInit,
+  Future<NotificationService> Function(Logger logger)?
+  notificationServiceBuilder,
 }) async {
   final crashReporter = await _initCrashReporter(
     dsn: sentryDsn,
     init: sentryInit,
     logger: logger,
   );
+  final notificationService =
+      await (notificationServiceBuilder ?? _initNotifications).call(logger);
 
   final container = ProviderContainer(
     overrides: [
@@ -48,11 +58,13 @@ Future<BootstrapResult> bootstrapApp({
       assetBundleProvider.overrideWithValue(bundle),
       loggerProvider.overrideWithValue(logger),
       crashReporterProvider.overrideWithValue(crashReporter),
+      notificationServiceProvider.overrideWithValue(notificationService),
     ],
   );
   try {
     await _seed(container, logger, crashReporter);
     await _coverMissedDay(container, logger);
+    await _scheduleReminderIfEnabled(container, notificationService, logger);
   } finally {
     container.dispose();
   }
@@ -64,6 +76,7 @@ Future<BootstrapResult> bootstrapApp({
     return (
       idGenerator: NextReviewLogIdGenerator(maxRow.read<int>('max_id') + 1),
       crashReporter: crashReporter,
+      notificationService: notificationService,
     );
   } on Object catch (error, stack) {
     logger.error('Cannot read max review log id', error, stack);
@@ -75,6 +88,7 @@ Future<BootstrapResult> bootstrapApp({
     return (
       idGenerator: NextReviewLogIdGenerator(1),
       crashReporter: crashReporter,
+      notificationService: notificationService,
     );
   }
 }
@@ -163,6 +177,58 @@ DateTime _localNoon(LocalDate date) {
   return DateTime(utcMidnight.year, utcMidnight.month, utcMidnight.day, 12);
 }
 
+/// Инициализирует локальные напоминания (ADR-017).
+///
+/// Падение инициализации не блокирует запуск: приложение работает без
+/// напоминаний, а причина уходит в лог. Частый случай — недоступный
+/// `FlutterTimezone` или пустая база таймзон.
+Future<NotificationService> _initNotifications(Logger logger) async {
+  try {
+    tz_data.initializeTimeZones();
+    final timezone = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timezone.identifier));
+
+    const initSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(),
+    );
+    final plugin = FlutterLocalNotificationsPlugin();
+    await plugin.initialize(settings: initSettings);
+    logger.info('Notifications ready');
+    return FlutterNotificationService(plugin);
+  } on Object catch (error, stack) {
+    logger.warn('Notifications init failed, using NoOp', error, stack);
+    return const NoOpNotificationService();
+  }
+}
+
+/// Перепланирует напоминание при старте, если оно включено.
+///
+/// Разрешение спрашивается здесь только при уже включённых напоминаниях: при
+/// первом включении его спрашивает `ProfileScreen`.
+Future<void> _scheduleReminderIfEnabled(
+  ProviderContainer container,
+  NotificationService notificationService,
+  Logger logger,
+) async {
+  if (notificationService is NoOpNotificationService) {
+    return;
+  }
+  try {
+    final settings = await container.read(settingsRepositoryProvider).get();
+    if (!settings.remindersEnabled) {
+      return;
+    }
+    await notificationService.requestPermission();
+    await notificationService.scheduleDailyReminder(
+      hour: settings.reminderHour,
+      minute: settings.reminderMinute,
+    );
+  } on Object catch (error, stack) {
+    logger.warn('Schedule reminder failed', error, stack);
+  }
+}
+
 /// Выбирает отчётчик сбоев: Sentry при непустом DSN, иначе заглушку.
 /// Сбой инициализации Sentry не должен ронять старт приложения: в этом случае
 /// сбои уходят в лог, а приложение работает без crash reporting.
@@ -224,6 +290,9 @@ Future<void> main() async {
         nextReviewLogIdProvider.overrideWithValue(bootstrap.idGenerator.next),
         loggerProvider.overrideWithValue(logger),
         crashReporterProvider.overrideWithValue(bootstrap.crashReporter),
+        notificationServiceProvider.overrideWithValue(
+          bootstrap.notificationService,
+        ),
       ],
       child: const EnglishEduApp(),
     ),

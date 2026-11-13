@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
+import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
@@ -19,6 +20,8 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/main.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'core/notifications/fake_notification_service.dart';
 
 /// Отдаёт содержимое файла как ассет: в тестах нет Flutter asset bundle.
 final class FileAssetBundle extends AssetBundle {
@@ -54,6 +57,24 @@ ReviewLog log(int id) => ReviewLog(
   previousCardState: CardState.initial(now),
   newCardState: CardState.initial(now),
 );
+
+/// Настройки с включёнными/выключенными напоминаниями.
+Future<void> insertReminderSettings(
+  AppDatabase db, {
+  required bool enabled,
+  int hour = 9,
+  int minute = 0,
+}) => db
+    .into(db.userSettingsTable)
+    .insert(
+      UserSettingsTableCompanion.insert(
+        id: const Value(1),
+        remindersEnabled: Value(enabled),
+        reminderHour: Value(hour),
+        reminderMinute: Value(minute),
+        updatedAtUtc: 0,
+      ),
+    );
 
 /// Дневные счётчики для проверки заморозки при старте.
 Future<void> insertStats(AppDatabase db, LocalDate date) => db
@@ -232,6 +253,56 @@ void main() {
       final frozen = await db.select(db.frozenDays).get();
       expect(frozen, hasLength(1));
       expect(frozen.single.dateEpochDays, alreadyFrozen.daysSinceEpoch);
+    },
+  );
+
+  test('bootstrap schedules a reminder when reminders are enabled', () async {
+    final notifications = FakeNotificationService();
+    await insertReminderSettings(db, enabled: true, hour: 7, minute: 30);
+
+    await bootstrapApp(
+      db: db,
+      logger: const DebugLogger(),
+      bundle: FileAssetBundle('assets/seed/words_v1.json'),
+      sentryDsn: null,
+      notificationServiceBuilder: (_) async => notifications,
+    );
+
+    expect(notifications.requestPermissionCalls, 1);
+    expect(notifications.scheduleCalls.single, (hour: 7, minute: 30));
+  });
+
+  test('bootstrap skips the reminder when reminders are disabled', () async {
+    final notifications = FakeNotificationService();
+
+    await bootstrapApp(
+      db: db,
+      logger: const DebugLogger(),
+      bundle: FileAssetBundle('assets/seed/words_v1.json'),
+      sentryDsn: null,
+      notificationServiceBuilder: (_) async => notifications,
+    );
+
+    expect(notifications.requestPermissionCalls, 0);
+    expect(notifications.scheduleCalls, isEmpty);
+  });
+
+  test(
+    'bootstrap schedules nothing when notifications are unavailable',
+    () async {
+      await insertReminderSettings(db, enabled: true);
+
+      final result = await bootstrapApp(
+        db: db,
+        logger: const DebugLogger(),
+        bundle: FileAssetBundle('assets/seed/words_v1.json'),
+        sentryDsn: null,
+        notificationServiceBuilder: (_) async =>
+            const NoOpNotificationService(),
+      );
+
+      // Заглушка не должна дёргать платформу, даже если напоминания включены.
+      expect(result.notificationService, isA<NoOpNotificationService>());
     },
   );
 }

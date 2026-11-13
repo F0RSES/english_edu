@@ -256,6 +256,30 @@ Architecture Decision Records: один ADR — одно решение.
   - Performance traces — BL-47 (нужен ADR и спайк на устройстве).
   - Совместимость `jni`/`ndkVersion 28.2.13676358` с `sentry_flutter` 10.3 — BL-48, проверяется на первой APK-сборке.
 
+### ADR-017: Local notifications
+- **Status:** Accepted
+- **Date:** 2026-11-06
+- **Context:** Напоминания критичны для retention. Существующий Android-таргет: `compileSdk 36`, AGP 9.1.0, `minSdk 26`, Gradle 9.3.1, JDK 25 — всё это уже удовлетворяет `flutter_local_notifications` 22.3.3 (требуется `compileSdk 35+`, AGP 8.11.1+, десугаринг и `multiDex`).
+- **Decision:**
+  - `flutter_local_notifications ^22.3.3`, `timezone ^0.11.2`, `flutter_timezone ^5.1.1`.
+  - `compileSdk = 36` литералом (не `flutter.compileSdkVersion`), AGP 9.1.0 без изменений.
+  - Desugaring: `isCoreLibraryDesugaringEnabled = true` + `coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")`.
+  - `multiDexEnabled = true`.
+  - `AndroidScheduleMode.inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` **не** запрашивается.
+  - Manifest: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`, 4 action из README пакета).
+  - Провайдер `notificationServiceProvider` (override в `main`); `NotificationService` — `requestPermission`, `scheduleDailyReminder`, `cancelAll`.
+  - Разрешение запрашивается при первом включении напоминаний в `ProfileScreen`, а не на старте.
+- **Alternatives considered:**
+  - `exact` + `SCHEDULE_EXACT_ALARM` — отклонено для MVP: Android 14+ не выдаёт разрешение автоматически, Play ограничивает его использование. BL-53 на будущее.
+  - `workmanager` с ручной логикой — отклонено: избыточно для одного ежедневного напоминания.
+  - `firebase_messaging` — отклонено: это push, а не локальные уведомления; сеть в offline-first MVP не нужна.
+- **Consequences:**
+  - Срабатывание «плавает» на ±5–15 минут (inexact alarm).
+  - `compileSdk` зафиксирован литералом: смена дефолта во Flutter не меняет таргет молча.
+  - iOS delegate (`AppDelegate`) не настроен — Phase 6c (нужен macOS).
+  - В тестах плагин не поднимается: `bootstrapApp` принимает `notificationServiceBuilder`, `ProfileScreen` берёт сервис из DI.
+- **Open questions:** реальное срабатывание на устройстве (Phase 6c); точные будильники (BL-53); iOS delegate.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -276,3 +300,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-014 | Export/Import MVP via clipboard | Accepted |
 | ADR-015 | Streak freeze semantics | Accepted |
 | ADR-016 | Sentry crash reporting | Accepted |
+| ADR-017 | Local notifications | Accepted |

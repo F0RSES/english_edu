@@ -227,7 +227,7 @@ Providers — `lib/core/di/providers.dart`, Riverpod 3.x без codegen (`riverp
 
 | Группа | Провайдеры |
 |---|---|
-| Инфраструктура | `appDatabaseProvider` (override в `main`), `clockProvider`, `assetBundleProvider` (override в тестах), `nextReviewLogIdProvider` (override в `main`), `crashReporterProvider` (override в `main`, ADR-016), `srsCalculatorProvider` |
+| Инфраструктура | `appDatabaseProvider` (override в `main`), `clockProvider`, `assetBundleProvider` (override в тестах), `nextReviewLogIdProvider` (override в `main`), `crashReporterProvider` (override в `main`, ADR-016), `notificationServiceProvider` (override в `main`, ADR-017), `srsCalculatorProvider` |
 | Репозитории | `wordRepositoryProvider`, `progressRepositoryProvider`, `reviewLogRepositoryProvider`, `settingsRepositoryProvider`, `statsRepositoryProvider` |
 | Use cases | `getTodayQueueUseCaseProvider`, `recordReviewProvider`, `computeStreakUseCaseProvider`, `exportProgressProvider`, `importProgressProvider` |
 | Async-данные экрана | `getTodayQueueProvider`, `computeStreakProvider`, `dailyGoalProvider` |
@@ -236,7 +236,7 @@ Providers — `lib/core/di/providers.dart`, Riverpod 3.x без codegen (`riverp
 
 Async-данные — `FutureProvider`: состоянием владеет провайдер, поэтому `ref.invalidate` действительно запускает пересчёт. Использовать `AsyncValue.when` в UI, не `FutureBuilder` с future из `build` — иначе кэш живёт до следующего rebuild и главный экран показывает прогресс до урока (BL-41, исправлено в 4b.1). UseCase-провайдеры оставлены отдельно: тесты подменяют реализацию через `overrideWithValue`, не трогая async-состояние. `LessonScreen` инвалидирует все три после сессии и при закрытии.
 
-`appDatabaseProvider`, `nextReviewLogIdProvider` и `crashReporterProvider` намеренно бросают `UnimplementedError`: их переопределяют `main` и тесты, чтобы не тащить файловую базу, глобальный счётчик и нативный SDK. `assetBundleProvider` даёт `rootBundle` по умолчанию и подменяется в тестах.
+`appDatabaseProvider`, `nextReviewLogIdProvider`, `crashReporterProvider` и `notificationServiceProvider` намеренно бросают `UnimplementedError`: их переопределяют `main` и тесты, чтобы не тащить файловую базу, глобальный счётчик и нативный SDK. `assetBundleProvider` даёт `rootBundle` по умолчанию и подменяется в тестах.
 
 Bootstrap (`bootstrapApp` в `main.dart`): `AppDatabase()` → `seedLoader.loadIfEmpty()` в отдельном `ProviderContainer` → `SELECT MAX(id)` → `NextReviewLogIdGenerator(max + 1)` → `runApp` с overrides (ADR-009). **Seed обёрнут в try/catch: падение загрузчика логируется, но не блокирует запуск — приложение стартует с пустой БД, seed повторится на следующем запуске (`count() == 0`).**
 
@@ -269,7 +269,9 @@ XP и признак «верно» считаются в домене: `XpRules
 ## Core services
 
 - `lib/core/tts/tts_service.dart` — `TtsService` (интерфейс) + `FlutterTtsService` (обёртка над `flutter_tts`). Голос — BCP-47 (`en-US`/`en-GB`), скорость 0.1..1.0; значения берутся из `UserSettings`.
-- Напоминания — **TBD Phase 5** (BL-38): `flutter_local_notifications` требует `compileSdk 37`, AGP 9.1.1 и desugaring, а Android SDK в среде отсутствует (ADR-012).
+- `lib/core/notifications/notification_service.dart` — `NotificationService` (`requestPermission`, `scheduleDailyReminder`, `cancelAll`), `FlutterNotificationService` (плагин `flutter_local_notifications`) и `NoOpNotificationService` (fallback, если инициализация не удалась).
+- Напоминание: `zonedSchedule` с `DateTimeComponents.time` (ежедневно) и `AndroidScheduleMode.inexactAllowWhileIdle`; `SCHEDULE_EXACT_ALARM` не запрашивается (ADR-017). Таймзона — `timezone` + `flutter_timezone`; `initializeTimeZones()` и `setLocalLocation` выполняются в `bootstrapApp`, падение даёт NoOp и warning в лог.
+- Android: `compileSdk 36` литералом, desugaring `desugar_jdk_libs 2.1.4`, `multiDexEnabled`; манифест — `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `ScheduledNotificationReceiver` и `ScheduledNotificationBootReceiver` (`exported="false"`).
 - `lib/core/logger.dart` — `Logger`/`DebugLogger`.
 
 Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.intent.action.TTS_SERVICE`; других изменений нет.

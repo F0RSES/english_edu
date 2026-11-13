@@ -40,7 +40,7 @@
 | BL-35 | P3 | Phase 2a.3 — chunking `getByIds` по 500 id | тест на 1000+ id без `too many SQL variables` | Todo |
 | BL-36 | P2 | Phase 5 — после `ImportProgress` инвалидировать `nextReviewLogIdProvider` с пересчётом `max(id)` | импорт 1000 логов → следующая запись получает id 1001 | Todo |
 | BL-37 | P3 | Phase 3b — `RecordReview` возвращает результат с XP, экран перестаёт дублировать `+10` | analyze=0, тест на XP из use case | Done |
-| BL-38 | P2 | Phase 5 — notifications + streak UI: `flutter_local_notifications` 22.3.3, `timezone`, `flutter_timezone`; поднять `compileSdk 37`, AGP 9.1.1, включить desugaring; manifest: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM` + receivers; iOS: `AppDelegate` + `Podfile` + platform 13.0 | `flutter build apk` зелёный, permission request на старте, ежедневное напоминание срабатывает | Todo |
+| BL-38 | P2 | Phase 5 — notifications: `flutter_local_notifications` 22.3.3, `timezone`, `flutter_timezone`; desugaring + multiDex; manifest: `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED` + 2 receivers; `compileSdk` 36 и AGP 9.1.0 оставлены (пакет требует 35+/8.11.1+); exact alarms — BL-53; iOS delegate — 6c | `flutter build apk --debug` зелёный, `inexactAllowWhileIdle`, разрешение спрашивается при включении напоминаний | Done |
 | BL-39 | P2 | Phase 5 — атомарный `nextId`: транзакция + retry на конфликт id при параллельных вставках | 100 параллельных insert → 100 уникальных id, ни одного исключения | Todo |
 | BL-41 | P3 | Phase 4 — `HomeScreen`: `FutureBuilder` получает future из `build`, поэтому любой rebuild перезапускает запросы | `FutureProvider` для серии/цели/очереди, ручной `ref.invalidate` после урока | Done |
 | BL-43 | P2 | Phase 5 — подтверждение выхода из недоделанной сессии | `canPop: !_hasProgress` + диалог «Завершить сессию?», тесты на отмену и подтверждение | Done |
@@ -53,6 +53,7 @@
 | BL-49 | P3 | Phase 6c — если `captureException` начнёт бросать, обернуть вызовы в UI в try/catch | ошибка репортёра не ломает обработку сбоя: тест «репортёр бросает → snackbar всё равно показан» | Todo |
 | BL-50 | P3 | Phase 5e — полная логика streak continuity + защита от эксплойта freeze (ручное добавление через debug-меню) | серия переживает пропуск автоматически без bootstrap-эвристики; ручное добавление freeze не увеличивает баланс | Todo |
 | BL-51 | P2 | Phase 5e — заморозки не входят в export/import (формат v1) и не очищаются `ResetProgress` | импорт снимка не оставляет «висячих» заморозок; сброс прогресса обнуляет `frozen_days` | Done |
+| BL-53 | P3 | Phase 6c — если тестеры пожалуются на неточность напоминаний: `AndroidScheduleMode.exact` + `SCHEDULE_EXACT_ALARM` + `requestExactAlarmsPermission()` | точное время на Android 14+, инструкция по разрешению в UI | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

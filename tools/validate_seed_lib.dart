@@ -180,7 +180,8 @@ void _validateWord(
 
   final transcription = word['transcription'];
   if (transcription != null) {
-    final wrapped = transcription is String &&
+    final wrapped =
+        transcription is String &&
         transcription.length > 1 &&
         transcription.startsWith('/') &&
         transcription.endsWith('/');

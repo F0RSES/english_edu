@@ -21,8 +21,8 @@ final class JsonSeedLoader implements SeedLoader {
   const JsonSeedLoader({
     required WordRepository words,
     required AssetBundle bundle,
-  })  : _words = words,
-        _bundle = bundle;
+  }) : _words = words,
+       _bundle = bundle;
 
   static const _assetPath = 'assets/seed/words_v1.json';
 

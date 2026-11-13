@@ -28,17 +28,14 @@ class WordCard extends ConsumerWidget {
   Future<void> _speak(BuildContext context, WidgetRef ref) async {
     try {
       final settings = await ref.read(settingsRepositoryProvider).get();
-      await ref.read(ttsProvider).speak(
-            word.term,
-            voice: settings.ttsVoice,
-            speed: settings.ttsSpeed,
-          );
+      await ref
+          .read(ttsProvider)
+          .speak(word.term, voice: settings.ttsVoice, speed: settings.ttsSpeed);
     } on Object catch (error, stack) {
       ref.read(loggerProvider).warn('TTS failed', error, stack);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Озвучка недоступна')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Озвучка недоступна')));
       }
     }
   }
@@ -61,8 +58,9 @@ class WordCard extends ConsumerWidget {
                   Flexible(
                     child: Text(
                       word.term,
-                      style: theme.textTheme.displaySmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -118,8 +116,9 @@ class _Revealed extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             word.exampleSentence!,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],

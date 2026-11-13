@@ -27,10 +27,12 @@ void main() {
     });
 
     test('keeps a stable name for serialisation', () {
-      expect(
-        ReviewGrade.values.map((grade) => grade.name).toList(),
-        ['again', 'hard', 'good', 'easy'],
-      );
+      expect(ReviewGrade.values.map((grade) => grade.name).toList(), [
+        'again',
+        'hard',
+        'good',
+        'easy',
+      ]);
     });
   });
 }

@@ -15,18 +15,19 @@ final class DriftProgressRepository implements ProgressRepository {
 
   @override
   Future<WordProgress?> getByWordId(WordId wordId) async {
-    final row = await (_db.select(_db.wordProgresses)
-          ..where((t) => t.wordId.equals(wordId.value))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.wordProgresses)
+              ..where((t) => t.wordId.equals(wordId.value))
+              ..limit(1))
+            .getSingleOrNull();
     return row == null ? null : WordProgressMapper.toDomain(row);
   }
 
   @override
   Future<List<WordProgress>> getByStatus(WordStatus status) async {
-    final rows = await (_db.select(_db.wordProgresses)
-          ..where((t) => t.status.equals(status.name)))
-        .get();
+    final rows = await (_db.select(
+      _db.wordProgresses,
+    )..where((t) => t.status.equals(status.name))).get();
     return rows.map(WordProgressMapper.toDomain).toList();
   }
 
@@ -42,18 +43,19 @@ final class DriftProgressRepository implements ProgressRepository {
       throw ArgumentError.value(utcInstant, 'utcInstant', 'must be UTC');
     }
     final bound = utcInstant.millisecondsSinceEpoch;
-    final rows = await (_db.select(_db.wordProgresses)
-          ..where((t) => t.dueAtUtc.isSmallerOrEqualValue(bound))
-          ..orderBy([(t) => OrderingTerm.asc(t.dueAtUtc)]))
-        .get();
+    final rows =
+        await (_db.select(_db.wordProgresses)
+              ..where((t) => t.dueAtUtc.isSmallerOrEqualValue(bound))
+              ..orderBy([(t) => OrderingTerm.asc(t.dueAtUtc)]))
+            .get();
     return rows.map(WordProgressMapper.toDomain).toList();
   }
 
   @override
   Future<void> upsert(WordProgress progress) async {
-    await _db.into(_db.wordProgresses).insertOnConflictUpdate(
-          WordProgressMapper.toCompanion(progress),
-        );
+    await _db
+        .into(_db.wordProgresses)
+        .insertOnConflictUpdate(WordProgressMapper.toCompanion(progress));
   }
 
   @override
@@ -61,9 +63,9 @@ final class DriftProgressRepository implements ProgressRepository {
     await _db.transaction(() async {
       await _db.delete(_db.wordProgresses).go();
       for (final item in items) {
-        await _db.into(_db.wordProgresses).insert(
-              WordProgressMapper.toCompanion(item),
-            );
+        await _db
+            .into(_db.wordProgresses)
+            .insert(WordProgressMapper.toCompanion(item));
       }
     });
   }

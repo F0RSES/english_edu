@@ -13,37 +13,33 @@ import 'fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id) => Word(
-      id: WordId(id),
-      term: 'term$id',
-      translation: 'перевод$id',
-    );
+Word word(int id) =>
+    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 WordProgress dueProgress(int id, Duration offset) => WordProgress(
-      wordId: WordId(id),
-      cardState: CardState.initial(now.add(offset)),
-      status: WordStatus.learning,
-      firstSeenAt: now.add(const Duration(days: -30)),
-    );
+  wordId: WordId(id),
+  cardState: CardState.initial(now.add(offset)),
+  status: WordStatus.learning,
+  firstSeenAt: now.add(const Duration(days: -30)),
+);
 
 WordProgress newProgress(int id, Duration seenAgo) => WordProgress(
-      wordId: WordId(id),
-      cardState: CardState.initial(now.add(const Duration(days: 1))),
-      status: WordStatus.newWord,
-      firstSeenAt: now.subtract(seenAgo),
-    );
+  wordId: WordId(id),
+  cardState: CardState.initial(now.add(const Duration(days: 1))),
+  status: WordStatus.newWord,
+  firstSeenAt: now.subtract(seenAgo),
+);
 
 GetTodayQueue queueOf({
   required List<Word> words,
   required List<WordProgress> progress,
   UserSettings? settings,
-}) =>
-    GetTodayQueue(
-      words: FakeWordRepository(words),
-      progress: FakeProgressRepository(progress),
-      settings: FakeSettingsRepository(settings),
-      clock: () => now,
-    );
+}) => GetTodayQueue(
+  words: FakeWordRepository(words),
+  progress: FakeProgressRepository(progress),
+  settings: FakeSettingsRepository(settings),
+  clock: () => now,
+);
 
 List<int> ids(List<Word> words) => [for (final item in words) item.id.value];
 
@@ -118,8 +114,10 @@ void main() {
           dueProgress(1, const Duration(hours: -1)),
           newProgress(2, const Duration(days: 1)),
         ],
-        settings: UserSettings.defaults()
-            .copyWith(dailyNewLimit: 0, dailyReviewLimit: 0),
+        settings: UserSettings.defaults().copyWith(
+          dailyNewLimit: 0,
+          dailyReviewLimit: 0,
+        ),
       ).call();
 
       expect(queue.due, isEmpty);

@@ -21,33 +21,30 @@ import 'fakes/fake_word_repository.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-Word word(int id) => Word(
-      id: WordId(id),
-      term: 'term$id',
-      translation: 'перевод$id',
-    );
+Word word(int id) =>
+    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 WordProgress progressOf(int id, WordStatus status) => WordProgress(
-      wordId: WordId(id),
-      cardState: CardState(
-        easePermille: 2500,
-        intervalDays: 1,
-        repetitions: 1,
-        lapses: 0,
-        dueAt: now,
-      ),
-      status: status,
-      firstSeenAt: now.subtract(const Duration(days: 5)),
-    );
+  wordId: WordId(id),
+  cardState: CardState(
+    easePermille: 2500,
+    intervalDays: 1,
+    repetitions: 1,
+    lapses: 0,
+    dueAt: now,
+  ),
+  status: status,
+  firstSeenAt: now.subtract(const Duration(days: 5)),
+);
 
 ReviewLog logOf(int id) => ReviewLog(
-      id: ReviewLogId(id),
-      wordId: const WordId(1),
-      reviewedAt: now.subtract(const Duration(hours: 1)),
-      grade: ReviewGrade.good,
-      previousCardState: CardState.initial(now),
-      newCardState: CardState.initial(now),
-    );
+  id: ReviewLogId(id),
+  wordId: const WordId(1),
+  reviewedAt: now.subtract(const Duration(hours: 1)),
+  grade: ReviewGrade.good,
+  previousCardState: CardState.initial(now),
+  newCardState: CardState.initial(now),
+);
 
 ExportProgress exportOf({
   List<Word> seedWords = const [],
@@ -55,15 +52,14 @@ ExportProgress exportOf({
   List<ReviewLog> seedLogs = const [],
   List<DailyStats> seedStats = const [],
   UserSettings? settings,
-}) =>
-    ExportProgress(
-      settings: FakeSettingsRepository(settings),
-      progress: FakeProgressRepository(seedProgress),
-      reviewLog: FakeReviewLogRepository(seedLogs),
-      stats: FakeStatsRepository(seedStats),
-      words: FakeWordRepository(seedWords),
-      clock: () => now,
-    );
+}) => ExportProgress(
+  settings: FakeSettingsRepository(settings),
+  progress: FakeProgressRepository(seedProgress),
+  reviewLog: FakeReviewLogRepository(seedLogs),
+  stats: FakeStatsRepository(seedStats),
+  words: FakeWordRepository(seedWords),
+  clock: () => now,
+);
 
 void main() {
   group('ExportProgress', () {

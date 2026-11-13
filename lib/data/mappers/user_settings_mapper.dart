@@ -11,14 +11,14 @@ final class UserSettingsMapper {
 
   /// Собирает настройки из строки БД.
   static UserSettings toDomain(UserSettingsRow row) => UserSettings(
-        dailyNewLimit: row.dailyNewLimit,
-        dailyReviewLimit: row.dailyReviewLimit,
-        remindersEnabled: row.remindersEnabled,
-        reminderHour: row.reminderHour,
-        reminderMinute: row.reminderMinute,
-        ttsVoice: row.ttsVoice,
-        ttsSpeed: row.ttsSpeed,
-      );
+    dailyNewLimit: row.dailyNewLimit,
+    dailyReviewLimit: row.dailyReviewLimit,
+    remindersEnabled: row.remindersEnabled,
+    reminderHour: row.reminderHour,
+    reminderMinute: row.reminderMinute,
+    ttsVoice: row.ttsVoice,
+    ttsSpeed: row.ttsSpeed,
+  );
 
   /// Раскладывает настройки в companion.
   ///
@@ -28,16 +28,15 @@ final class UserSettingsMapper {
   static UserSettingsTableCompanion toCompanion(
     UserSettings settings, {
     required DateTime updatedAt,
-  }) =>
-      UserSettingsTableCompanion(
-        id: const Value(1),
-        dailyNewLimit: Value(settings.dailyNewLimit),
-        dailyReviewLimit: Value(settings.dailyReviewLimit),
-        remindersEnabled: Value(settings.remindersEnabled),
-        reminderHour: Value(settings.reminderHour),
-        reminderMinute: Value(settings.reminderMinute),
-        ttsVoice: Value(settings.ttsVoice),
-        ttsSpeed: Value(settings.ttsSpeed),
-        updatedAtUtc: Value(updatedAt.toUtc().millisecondsSinceEpoch),
-      );
+  }) => UserSettingsTableCompanion(
+    id: const Value(1),
+    dailyNewLimit: Value(settings.dailyNewLimit),
+    dailyReviewLimit: Value(settings.dailyReviewLimit),
+    remindersEnabled: Value(settings.remindersEnabled),
+    reminderHour: Value(settings.reminderHour),
+    reminderMinute: Value(settings.reminderMinute),
+    ttsVoice: Value(settings.ttsVoice),
+    ttsSpeed: Value(settings.ttsSpeed),
+    updatedAtUtc: Value(updatedAt.toUtc().millisecondsSinceEpoch),
+  );
 }

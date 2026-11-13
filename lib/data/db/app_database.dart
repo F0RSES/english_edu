@@ -29,12 +29,12 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) => m.createAll(),
-        // SQLite не проверяет внешние ключи, пока их не включат явно.
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    onCreate: (m) => m.createAll(),
+    // SQLite не проверяет внешние ключи, пока их не включат явно.
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
 
 QueryExecutor _openConnection() => driftDatabase(name: 'english_edu');

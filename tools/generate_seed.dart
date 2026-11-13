@@ -10,7 +10,8 @@ const _maxWords = 100;
 const _requestDelay = Duration(milliseconds: 200);
 const _autoSourceId = 'ngsl-auto';
 const _autoSourceName = 'NGSL terms, auto-translated';
-const _autoSourceLicense = 'CC BY-SA 4.0 (NGSL terms); '
+const _autoSourceLicense =
+    'CC BY-SA 4.0 (NGSL terms); '
     'translations pending review';
 
 /// Сколько раз повторяем запрос к API при ошибке.
@@ -254,15 +255,14 @@ Future<Map<String, Object?>> _requestTranslation(
   if (response.statusCode != HttpStatus.ok) {
     // В сообщение попадают только статус и начало тела: заголовки и URI
     // могут содержать учётные данные, если конфигурация изменится.
-    throw HttpException(
-      'HTTP ${response.statusCode}: ${_truncate(body)}',
-    );
+    throw HttpException('HTTP ${response.statusCode}: ${_truncate(body)}');
   }
 
   final decoded = jsonDecode(body) as Map<String, Object?>;
   final choices = decoded['choices']! as List<Object?>;
-  final message = (choices.first! as Map<String, Object?>)['message']!
-      as Map<String, Object?>;
+  final message =
+      (choices.first! as Map<String, Object?>)['message']!
+          as Map<String, Object?>;
   final content = message['content']! as String;
   return jsonDecode(_stripFences(content)) as Map<String, Object?>;
 }

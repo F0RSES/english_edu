@@ -29,11 +29,7 @@ void main() {
   });
 
   test('keeps nullable fields null', () async {
-    const word = domain.Word(
-      id: WordId(1),
-      term: 'book',
-      translation: 'книга',
-    );
+    const word = domain.Word(id: WordId(1), term: 'book', translation: 'книга');
 
     await db.into(db.words).insert(WordMapper.toCompanion(word));
     final row = (await db.select(db.words).get()).single;

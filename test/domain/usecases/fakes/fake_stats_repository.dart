@@ -6,7 +6,7 @@ import 'package:english_edu/domain/value_objects/local_date.dart';
 final class FakeStatsRepository implements StatsRepository {
   /// Creates a fake seeded with [seed], keyed by date.
   FakeStatsRepository([Iterable<DailyStats> seed = const []])
-      : _byDate = {for (final stats in seed) stats.date: stats};
+    : _byDate = {for (final stats in seed) stats.date: stats};
 
   final Map<LocalDate, DailyStats> _byDate;
 
@@ -15,10 +15,10 @@ final class FakeStatsRepository implements StatsRepository {
 
   @override
   Future<List<DailyStats>> getRange(LocalDate from, LocalDate to) async => [
-        for (final entry in _byDate.entries)
-          if (entry.key.compareTo(from) >= 0 && entry.key.compareTo(to) <= 0)
-            entry.value,
-      ];
+    for (final entry in _byDate.entries)
+      if (entry.key.compareTo(from) >= 0 && entry.key.compareTo(to) <= 0)
+        entry.value,
+  ];
 
   @override
   Future<LocalDate?> getLastActiveDate() async {

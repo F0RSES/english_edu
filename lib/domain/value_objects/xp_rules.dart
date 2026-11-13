@@ -7,11 +7,11 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 abstract final class XpRules {
   /// XP за ответ с оценкой [grade].
   static int forGrade(ReviewGrade grade) => switch (grade) {
-        ReviewGrade.again => 0,
-        ReviewGrade.hard => 5,
-        ReviewGrade.good => 10,
-        ReviewGrade.easy => 15,
-      };
+    ReviewGrade.again => 0,
+    ReviewGrade.hard => 5,
+    ReviewGrade.good => 10,
+    ReviewGrade.easy => 15,
+  };
 
   /// Считается ли ответ верным.
   static bool isCorrect(ReviewGrade grade) => grade != ReviewGrade.again;

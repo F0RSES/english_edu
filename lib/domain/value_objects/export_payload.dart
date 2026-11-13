@@ -21,10 +21,10 @@ final class ExportPayload {
     required List<WordProgress> progress,
     required List<ReviewLog> logs,
     required List<DailyStats> stats,
-  })  : words = List.unmodifiable(words),
-        progress = List.unmodifiable(progress),
-        logs = List.unmodifiable(logs),
-        stats = List.unmodifiable(stats);
+  }) : words = List.unmodifiable(words),
+       progress = List.unmodifiable(progress),
+       logs = List.unmodifiable(logs),
+       stats = List.unmodifiable(stats);
 
   /// Version of the export schema; only 1 is supported.
   final int schemaVersion;
@@ -61,17 +61,18 @@ final class ExportPayload {
 
   @override
   int get hashCode => Object.hash(
-        schemaVersion,
-        exportedAt,
-        settings,
-        Object.hashAll(words),
-        Object.hashAll(progress),
-        Object.hashAll(logs),
-        Object.hashAll(stats),
-      );
+    schemaVersion,
+    exportedAt,
+    settings,
+    Object.hashAll(words),
+    Object.hashAll(progress),
+    Object.hashAll(logs),
+    Object.hashAll(stats),
+  );
 
   @override
-  String toString() => 'ExportPayload(v$schemaVersion, '
+  String toString() =>
+      'ExportPayload(v$schemaVersion, '
       'at: ${exportedAt.toIso8601String()}, '
       'words: ${words.length}, progress: ${progress.length}, '
       'logs: ${logs.length}, stats: ${stats.length})';

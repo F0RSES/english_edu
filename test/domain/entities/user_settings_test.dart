@@ -37,10 +37,7 @@ void main() {
         () => UserSettings(ttsSpeed: 0.05),
         throwsA(isA<AssertionError>()),
       );
-      expect(
-        () => UserSettings(ttsSpeed: 1.1),
-        throwsA(isA<AssertionError>()),
-      );
+      expect(() => UserSettings(ttsSpeed: 1.1), throwsA(isA<AssertionError>()));
     });
 
     test('rejects negative daily limits', () {

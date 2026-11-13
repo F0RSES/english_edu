@@ -36,13 +36,13 @@ final class RecordReview {
     required SrsCalculator srs,
     required ReviewLogId Function() nextLogId,
     required DateTime Function() clock,
-  })  : _progress = progress,
-        _reviewLog = reviewLog,
-        _stats = stats,
-        _words = words,
-        _srs = srs,
-        _nextLogId = nextLogId,
-        _clock = clock;
+  }) : _progress = progress,
+       _reviewLog = reviewLog,
+       _stats = stats,
+       _words = words,
+       _srs = srs,
+       _nextLogId = nextLogId,
+       _clock = clock;
 
   final ProgressRepository _progress;
   final ReviewLogRepository _reviewLog;

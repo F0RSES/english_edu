@@ -23,11 +23,7 @@ final class FlutterTtsService implements TtsService {
   final FlutterTts _tts;
 
   @override
-  Future<void> speak(
-    String text, {
-    String? voice,
-    double? speed,
-  }) async {
+  Future<void> speak(String text, {String? voice, double? speed}) async {
     await _tts.setLanguage(voice ?? 'en-US');
     await _tts.setSpeechRate(speed ?? 0.5);
     await _tts.speak(text);

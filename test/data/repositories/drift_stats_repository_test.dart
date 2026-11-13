@@ -5,18 +5,13 @@ import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:test/test.dart';
 
-DailyStats stats(
-  int days, {
-  int newWords = 1,
-  int reviews = 1,
-}) =>
-    DailyStats(
-      date: LocalDate(days),
-      newWordsStudied: newWords,
-      reviewsCompleted: reviews,
-      xpGained: 10,
-      correctAnswers: 1,
-    );
+DailyStats stats(int days, {int newWords = 1, int reviews = 1}) => DailyStats(
+  date: LocalDate(days),
+  newWordsStudied: newWords,
+  reviewsCompleted: reviews,
+  xpGained: 10,
+  correctAnswers: 1,
+);
 
 void main() {
   late AppDatabase db;
@@ -45,10 +40,11 @@ void main() {
       const LocalDate(19721),
       const LocalDate(19723),
     );
-    expect(
-      range.map((item) => item.date.daysSinceEpoch),
-      [19721, 19722, 19723],
-    );
+    expect(range.map((item) => item.date.daysSinceEpoch), [
+      19721,
+      19722,
+      19723,
+    ]);
   });
 
   test('returns every day', () async {

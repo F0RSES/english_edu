@@ -14,26 +14,28 @@ final class ReviewLogMapper {
 
   /// Собирает запись журнала из строки БД.
   static ReviewLog toDomain(ReviewLogRow row) => ReviewLog(
-        id: ReviewLogId(row.id),
-        wordId: WordId(row.wordId),
-        reviewedAt:
-            DateTime.fromMillisecondsSinceEpoch(row.reviewedAtUtc, isUtc: true),
-        grade: _gradeFrom(row.grade),
-        previousCardState: CardStateMapper.fromColumns(
-          easePermille: row.prevEasePermille,
-          intervalDays: row.prevIntervalDays,
-          repetitions: row.prevRepetitions,
-          lapses: row.prevLapses,
-          dueAtUtcMs: row.prevDueAtUtc,
-        ),
-        newCardState: CardStateMapper.fromColumns(
-          easePermille: row.newEasePermille,
-          intervalDays: row.newIntervalDays,
-          repetitions: row.newRepetitions,
-          lapses: row.newLapses,
-          dueAtUtcMs: row.newDueAtUtc,
-        ),
-      );
+    id: ReviewLogId(row.id),
+    wordId: WordId(row.wordId),
+    reviewedAt: DateTime.fromMillisecondsSinceEpoch(
+      row.reviewedAtUtc,
+      isUtc: true,
+    ),
+    grade: _gradeFrom(row.grade),
+    previousCardState: CardStateMapper.fromColumns(
+      easePermille: row.prevEasePermille,
+      intervalDays: row.prevIntervalDays,
+      repetitions: row.prevRepetitions,
+      lapses: row.prevLapses,
+      dueAtUtcMs: row.prevDueAtUtc,
+    ),
+    newCardState: CardStateMapper.fromColumns(
+      easePermille: row.newEasePermille,
+      intervalDays: row.newIntervalDays,
+      repetitions: row.newRepetitions,
+      lapses: row.newLapses,
+      dueAtUtcMs: row.newDueAtUtc,
+    ),
+  );
 
   /// Раскладывает запись журнала в companion.
   static ReviewLogsCompanion toCompanion(ReviewLog log) {

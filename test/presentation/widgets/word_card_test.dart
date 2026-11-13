@@ -23,24 +23,19 @@ Widget host({
   FakeTtsService? tts,
   UserSettings? settings,
   VoidCallback? onTap,
-}) =>
-    ProviderScope(
-      overrides: [
-        ttsProvider.overrideWithValue(tts ?? FakeTtsService()),
-        settingsRepositoryProvider.overrideWithValue(
-          FakeSettingsRepository(settings),
-        ),
-      ],
-      child: MaterialApp(
-        home: Scaffold(
-          body: WordCard(
-            word: word,
-            revealed: revealed,
-            onTap: onTap ?? () {},
-          ),
-        ),
-      ),
-    );
+}) => ProviderScope(
+  overrides: [
+    ttsProvider.overrideWithValue(tts ?? FakeTtsService()),
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
+  ],
+  child: MaterialApp(
+    home: Scaffold(
+      body: WordCard(word: word, revealed: revealed, onTap: onTap ?? () {}),
+    ),
+  ),
+);
 
 void main() {
   testWidgets('renders term and transcription', (tester) async {
@@ -77,8 +72,10 @@ void main() {
 
   testWidgets('speaks with voice and speed from settings', (tester) async {
     final tts = FakeTtsService();
-    final settings = UserSettings.defaults()
-        .copyWith(ttsVoice: 'en-GB', ttsSpeed: 0.8);
+    final settings = UserSettings.defaults().copyWith(
+      ttsVoice: 'en-GB',
+      ttsSpeed: 0.8,
+    );
     await tester.pumpWidget(
       host(revealed: false, tts: tts, settings: settings),
     );

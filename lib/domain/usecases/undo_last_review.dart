@@ -21,9 +21,9 @@ final class UndoLastReview {
     required ProgressRepository progress,
     required ReviewLogRepository reviewLog,
     required StatsRepository stats,
-  })  : _progress = progress,
-        _reviewLog = reviewLog,
-        _stats = stats;
+  }) : _progress = progress,
+       _reviewLog = reviewLog,
+       _stats = stats;
 
   final ProgressRepository _progress;
   final ReviewLogRepository _reviewLog;

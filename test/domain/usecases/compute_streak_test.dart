@@ -8,17 +8,17 @@ import 'fakes/fake_stats_repository.dart';
 final today = LocalDate.fromDateTime(DateTime.utc(2024, 5, 15));
 
 DailyStats active(LocalDate date) => DailyStats(
-      date: date,
-      newWordsStudied: 1,
-      reviewsCompleted: 2,
-      xpGained: 3,
-      correctAnswers: 3,
-    );
+  date: date,
+  newWordsStudied: 1,
+  reviewsCompleted: 2,
+  xpGained: 3,
+  correctAnswers: 3,
+);
 
 ComputeStreak streakOf(List<DailyStats> stats) => ComputeStreak(
-      stats: FakeStatsRepository(stats),
-      clock: () => DateTime.utc(2024, 5, 15, 12),
-    );
+  stats: FakeStatsRepository(stats),
+  clock: () => DateTime.utc(2024, 5, 15, 12),
+);
 
 void main() {
   group('ComputeStreak', () {
@@ -45,10 +45,8 @@ void main() {
     });
 
     test('stops at a gap yesterday', () async {
-      final info = await streakOf([
-        active(today),
-        active(today.addDays(-2)),
-      ]).call();
+      final info = await streakOf([active(today), active(today.addDays(-2))])
+          .call();
       expect(info.count, 1);
       expect(info.lastActiveLocalDate, today);
     });

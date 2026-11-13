@@ -12,20 +12,20 @@ final class UserSettings {
     this.reminderMinute = 0,
     this.ttsVoice = 'en-US',
     this.ttsSpeed = 0.5,
-  })  : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
-        assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
-        assert(
-          reminderHour >= 0 && reminderHour < 24,
-          'reminderHour must be within 0..23',
-        ),
-        assert(
-          reminderMinute >= 0 && reminderMinute < 60,
-          'reminderMinute must be within 0..59',
-        ),
-        assert(
-          ttsSpeed >= 0.1 && ttsSpeed <= 1.0,
-          'ttsSpeed must be within 0.1..1.0',
-        );
+  }) : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
+       assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
+       assert(
+         reminderHour >= 0 && reminderHour < 24,
+         'reminderHour must be within 0..23',
+       ),
+       assert(
+         reminderMinute >= 0 && reminderMinute < 60,
+         'reminderMinute must be within 0..59',
+       ),
+       assert(
+         ttsSpeed >= 0.1 && ttsSpeed <= 1.0,
+         'ttsSpeed must be within 0.1..1.0',
+       );
 
   /// Settings with every value at its MVP default.
   factory UserSettings.defaults() => const UserSettings();
@@ -60,16 +60,15 @@ final class UserSettings {
     int? reminderMinute,
     String? ttsVoice,
     double? ttsSpeed,
-  }) =>
-      UserSettings(
-        dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
-        dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
-        remindersEnabled: remindersEnabled ?? this.remindersEnabled,
-        reminderHour: reminderHour ?? this.reminderHour,
-        reminderMinute: reminderMinute ?? this.reminderMinute,
-        ttsVoice: ttsVoice ?? this.ttsVoice,
-        ttsSpeed: ttsSpeed ?? this.ttsSpeed,
-      );
+  }) => UserSettings(
+    dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
+    dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
+    remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+    reminderHour: reminderHour ?? this.reminderHour,
+    reminderMinute: reminderMinute ?? this.reminderMinute,
+    ttsVoice: ttsVoice ?? this.ttsVoice,
+    ttsSpeed: ttsSpeed ?? this.ttsSpeed,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -85,17 +84,18 @@ final class UserSettings {
 
   @override
   int get hashCode => Object.hash(
-        dailyNewLimit,
-        dailyReviewLimit,
-        remindersEnabled,
-        reminderHour,
-        reminderMinute,
-        ttsVoice,
-        ttsSpeed,
-      );
+    dailyNewLimit,
+    dailyReviewLimit,
+    remindersEnabled,
+    reminderHour,
+    reminderMinute,
+    ttsVoice,
+    ttsSpeed,
+  );
 
   @override
-  String toString() => 'UserSettings(new: $dailyNewLimit, '
+  String toString() =>
+      'UserSettings(new: $dailyNewLimit, '
       'review: $dailyReviewLimit, reminders: $remindersEnabled '
       'at $reminderHour:$reminderMinute, tts: $ttsVoice@$ttsSpeed)';
 }

@@ -56,11 +56,11 @@ final class Sm2SrsCalculator implements SrsCalculator {
   }
 
   int _easeDeltaPermille(ReviewGrade grade) => switch (grade) {
-        ReviewGrade.again => -800,
-        ReviewGrade.hard => -140,
-        ReviewGrade.good => 0,
-        ReviewGrade.easy => 100,
-      };
+    ReviewGrade.again => -800,
+    ReviewGrade.hard => -140,
+    ReviewGrade.good => 0,
+    ReviewGrade.easy => 100,
+  };
 
   int _clampEase(int easePermille) =>
       easePermille < _minEasePermille ? _minEasePermille : easePermille;

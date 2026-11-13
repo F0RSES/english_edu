@@ -19,9 +19,9 @@ void main() {
       correctAnswers: 5,
     );
 
-    await db.into(db.dailyStatsTable).insert(
-          DailyStatsMapper.toCompanion(stats),
-        );
+    await db
+        .into(db.dailyStatsTable)
+        .insert(DailyStatsMapper.toCompanion(stats));
     final row = (await db.select(db.dailyStatsTable).get()).single;
 
     expect(row.dateEpochDays, 19723);
@@ -31,16 +31,13 @@ void main() {
   test('supports the epoch day and a negative day', () async {
     for (final days in [0, -1]) {
       final stats = DailyStats.empty(LocalDate(days));
-      await db.into(db.dailyStatsTable).insert(
-            DailyStatsMapper.toCompanion(stats),
-          );
+      await db
+          .into(db.dailyStatsTable)
+          .insert(DailyStatsMapper.toCompanion(stats));
     }
 
     final rows = await db.select(db.dailyStatsTable).get();
     expect(rows, hasLength(2));
-    expect(
-      rows.map((row) => row.dateEpochDays),
-      containsAll(<int>[0, -1]),
-    );
+    expect(rows.map((row) => row.dateEpochDays), containsAll(<int>[0, -1]));
   });
 }

@@ -10,17 +10,18 @@ import 'package:english_edu/domain/repositories/settings_repository.dart';
 final class DriftSettingsRepository implements SettingsRepository {
   /// Создаёт репозиторий поверх базы и внедрённых часов.
   const DriftSettingsRepository(this._db, {required DateTime Function() clock})
-      : _clock = clock;
+    : _clock = clock;
 
   final AppDatabase _db;
   final DateTime Function() _clock;
 
   @override
   Future<UserSettings> get() async {
-    final row = await (_db.select(_db.userSettingsTable)
-          ..where((t) => t.id.equals(1))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.userSettingsTable)
+              ..where((t) => t.id.equals(1))
+              ..limit(1))
+            .getSingleOrNull();
     return row == null
         ? UserSettings.defaults()
         : UserSettingsMapper.toDomain(row);
@@ -28,11 +29,10 @@ final class DriftSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> save(UserSettings settings) async {
-    await _db.into(_db.userSettingsTable).insertOnConflictUpdate(
-          UserSettingsMapper.toCompanion(
-            settings,
-            updatedAt: _clock().toUtc(),
-          ),
+    await _db
+        .into(_db.userSettingsTable)
+        .insertOnConflictUpdate(
+          UserSettingsMapper.toCompanion(settings, updatedAt: _clock().toUtc()),
         );
   }
 }

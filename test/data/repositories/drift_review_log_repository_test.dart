@@ -11,13 +11,13 @@ import 'package:test/test.dart';
 final base = DateTime.utc(2024, 5, 15, 12);
 
 ReviewLog log(int id, {int wordId = 1, DateTime? at}) => ReviewLog(
-      id: ReviewLogId(id),
-      wordId: WordId(wordId),
-      reviewedAt: at ?? base,
-      grade: ReviewGrade.good,
-      previousCardState: CardState.initial(base),
-      newCardState: CardState.initial(base),
-    );
+  id: ReviewLogId(id),
+  wordId: WordId(wordId),
+  reviewedAt: at ?? base,
+  grade: ReviewGrade.good,
+  previousCardState: CardState.initial(base),
+  newCardState: CardState.initial(base),
+);
 
 void main() {
   late AppDatabase db;

@@ -79,10 +79,8 @@ void main() {
     });
 
     test('copyWith replaces only the given fields', () {
-      final updated = DailyStats.empty(date).copyWith(
-        reviewsCompleted: 3,
-        xpGained: 12,
-      );
+      final updated = DailyStats.empty(date)
+          .copyWith(reviewsCompleted: 3, xpGained: 12);
       expect(updated.reviewsCompleted, 3);
       expect(updated.xpGained, 12);
       expect(updated.newWordsStudied, 0);

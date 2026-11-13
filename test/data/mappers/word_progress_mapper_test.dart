@@ -11,7 +11,9 @@ import 'package:test/test.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Future<void> seedWord(AppDatabase db, int id) => db.into(db.words).insert(
+Future<void> seedWord(AppDatabase db, int id) => db
+    .into(db.words)
+    .insert(
       WordMapper.toCompanion(
         domain.Word(id: WordId(id), term: 'w$id', translation: 'п$id'),
       ),
@@ -21,14 +23,13 @@ WordProgress progress({
   int wordId = 1,
   WordStatus status = WordStatus.learning,
   DateTime? lastReviewedAt,
-}) =>
-    WordProgress(
-      wordId: WordId(wordId),
-      cardState: CardState.initial(now),
-      status: status,
-      firstSeenAt: now,
-      lastReviewedAt: lastReviewedAt,
-    );
+}) => WordProgress(
+  wordId: WordId(wordId),
+  cardState: CardState.initial(now),
+  status: status,
+  firstSeenAt: now,
+  lastReviewedAt: lastReviewedAt,
+);
 
 void main() {
   late AppDatabase db;
@@ -40,9 +41,9 @@ void main() {
     await seedWord(db, 1);
     final original = progress(lastReviewedAt: now);
 
-    await db.into(db.wordProgresses).insert(
-          WordProgressMapper.toCompanion(original),
-        );
+    await db
+        .into(db.wordProgresses)
+        .insert(WordProgressMapper.toCompanion(original));
     final row = (await db.select(db.wordProgresses).get()).single;
 
     expect(WordProgressMapper.toDomain(row), original);
@@ -52,13 +53,10 @@ void main() {
     for (var index = 0; index < WordStatus.values.length; index++) {
       final id = index + 1;
       await seedWord(db, id);
-      final original = progress(
-        wordId: id,
-        status: WordStatus.values[index],
-      );
-      await db.into(db.wordProgresses).insert(
-            WordProgressMapper.toCompanion(original),
-          );
+      final original = progress(wordId: id, status: WordStatus.values[index]);
+      await db
+          .into(db.wordProgresses)
+          .insert(WordProgressMapper.toCompanion(original));
     }
 
     final rows = await db.select(db.wordProgresses).get();
@@ -72,9 +70,9 @@ void main() {
 
   test('rejects progress for a word that does not exist', () async {
     await expectLater(
-      db.into(db.wordProgresses).insert(
-            WordProgressMapper.toCompanion(progress(wordId: 99)),
-          ),
+      db
+          .into(db.wordProgresses)
+          .insert(WordProgressMapper.toCompanion(progress(wordId: 99))),
       throwsA(isA<Exception>()),
     );
   });

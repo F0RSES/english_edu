@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 final class StreakInfo {
   /// Creates a streak; [count] must be non-negative.
   const StreakInfo({required this.count, this.lastActiveLocalDate})
-      : assert(count >= 0, 'count must be >= 0');
+    : assert(count >= 0, 'count must be >= 0');
 
   /// Length of the current streak, in local days.
   final int count;

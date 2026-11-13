@@ -7,7 +7,7 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 final class FakeReviewLogRepository implements ReviewLogRepository {
   /// Creates a fake seeded with [seed].
   FakeReviewLogRepository([Iterable<ReviewLog> seed = const []])
-      : _entries = [...seed];
+    : _entries = [...seed];
 
   final List<ReviewLog> _entries;
 
@@ -18,9 +18,9 @@ final class FakeReviewLogRepository implements ReviewLogRepository {
 
   @override
   Future<List<ReviewLog>> getByWordId(WordId wordId) async => [
-        for (final entry in _entries)
-          if (entry.wordId == wordId) entry,
-      ];
+    for (final entry in _entries)
+      if (entry.wordId == wordId) entry,
+  ];
 
   @override
   Future<List<ReviewLog>> getAll() async => List.of(_entries);
@@ -29,13 +29,12 @@ final class FakeReviewLogRepository implements ReviewLogRepository {
   Future<List<ReviewLog>> getByDateRange(
     DateTime fromUtc,
     DateTime toUtc,
-  ) async =>
-      [
-        for (final entry in _entries)
-          if (!entry.reviewedAt.isBefore(fromUtc) &&
-              entry.reviewedAt.isBefore(toUtc))
-            entry,
-      ];
+  ) async => [
+    for (final entry in _entries)
+      if (!entry.reviewedAt.isBefore(fromUtc) &&
+          entry.reviewedAt.isBefore(toUtc))
+        entry,
+  ];
 
   @override
   Future<void> replaceAll(Iterable<ReviewLog> logs) async {

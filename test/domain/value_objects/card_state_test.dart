@@ -138,10 +138,7 @@ void main() {
 
     test('exposes ease as a ratio', () {
       expect(CardState.initial(dueAt).ease, 2.5);
-      expect(
-        CardState.initial(dueAt).copyWith(easePermille: 1300).ease,
-        1.3,
-      );
+      expect(CardState.initial(dueAt).copyWith(easePermille: 1300).ease, 1.3);
     });
   });
 }

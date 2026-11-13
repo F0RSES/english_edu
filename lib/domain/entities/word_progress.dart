@@ -35,20 +35,19 @@ final class WordProgress {
     required this.status,
     required DateTime firstSeenAt,
     DateTime? lastReviewedAt,
-  })  : firstSeenAt = _requireUtc(firstSeenAt, 'firstSeenAt'),
-        lastReviewedAt = _requireUtcOrNull(lastReviewedAt, 'lastReviewedAt');
+  }) : firstSeenAt = _requireUtc(firstSeenAt, 'firstSeenAt'),
+       lastReviewedAt = _requireUtcOrNull(lastReviewedAt, 'lastReviewedAt');
 
   /// Creates a record for a word that has never been answered.
   factory WordProgress.newWord({
     required WordId wordId,
     required DateTime now,
-  }) =>
-      WordProgress(
-        wordId: wordId,
-        cardState: CardState.initial(now),
-        status: WordStatus.newWord,
-        firstSeenAt: now.toUtc(),
-      );
+  }) => WordProgress(
+    wordId: wordId,
+    cardState: CardState.initial(now),
+    status: WordStatus.newWord,
+    firstSeenAt: now.toUtc(),
+  );
 
   /// Identifier of the word this record belongs to.
   final WordId wordId;
@@ -74,16 +73,15 @@ final class WordProgress {
     WordStatus? status,
     DateTime? firstSeenAt,
     Object? lastReviewedAt = _unset,
-  }) =>
-      WordProgress(
-        wordId: wordId ?? this.wordId,
-        cardState: cardState ?? this.cardState,
-        status: status ?? this.status,
-        firstSeenAt: firstSeenAt ?? this.firstSeenAt,
-        lastReviewedAt: identical(lastReviewedAt, _unset)
-            ? this.lastReviewedAt
-            : lastReviewedAt as DateTime?,
-      );
+  }) => WordProgress(
+    wordId: wordId ?? this.wordId,
+    cardState: cardState ?? this.cardState,
+    status: status ?? this.status,
+    firstSeenAt: firstSeenAt ?? this.firstSeenAt,
+    lastReviewedAt: identical(lastReviewedAt, _unset)
+        ? this.lastReviewedAt
+        : lastReviewedAt as DateTime?,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -100,6 +98,7 @@ final class WordProgress {
       Object.hash(wordId, cardState, status, firstSeenAt, lastReviewedAt);
 
   @override
-  String toString() => 'WordProgress(word: ${wordId.value}, '
+  String toString() =>
+      'WordProgress(word: ${wordId.value}, '
       'status: $status, card: $cardState, lastReviewed: $lastReviewedAt)';
 }

@@ -21,8 +21,8 @@ final class ComputeStreak {
   const ComputeStreak({
     required StatsRepository stats,
     required DateTime Function() clock,
-  })  : _stats = stats,
-        _clock = clock;
+  }) : _stats = stats,
+       _clock = clock;
 
   final StatsRepository _stats;
   final DateTime Function() _clock;

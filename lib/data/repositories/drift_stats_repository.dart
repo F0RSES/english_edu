@@ -14,37 +14,40 @@ final class DriftStatsRepository implements StatsRepository {
 
   @override
   Future<DailyStats?> getForDate(LocalDate date) async {
-    final row = await (_db.select(_db.dailyStatsTable)
-          ..where((t) => t.dateEpochDays.equals(date.daysSinceEpoch))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.dailyStatsTable)
+              ..where((t) => t.dateEpochDays.equals(date.daysSinceEpoch))
+              ..limit(1))
+            .getSingleOrNull();
     return row == null ? null : DailyStatsMapper.toDomain(row);
   }
 
   @override
   Future<List<DailyStats>> getRange(LocalDate from, LocalDate to) async {
-    final rows = await (_db.select(_db.dailyStatsTable)
-          ..where(
-            (t) =>
-                t.dateEpochDays.isBiggerOrEqualValue(from.daysSinceEpoch) &
-                t.dateEpochDays.isSmallerOrEqualValue(to.daysSinceEpoch),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.dateEpochDays)]))
-        .get();
+    final rows =
+        await (_db.select(_db.dailyStatsTable)
+              ..where(
+                (t) =>
+                    t.dateEpochDays.isBiggerOrEqualValue(from.daysSinceEpoch) &
+                    t.dateEpochDays.isSmallerOrEqualValue(to.daysSinceEpoch),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.dateEpochDays)]))
+            .get();
     return rows.map(DailyStatsMapper.toDomain).toList();
   }
 
   @override
   Future<List<DailyStats>> getAll() async {
-    final rows = await (_db.select(_db.dailyStatsTable)
-          ..orderBy([(t) => OrderingTerm.asc(t.dateEpochDays)]))
-        .get();
+    final rows = await (_db.select(
+      _db.dailyStatsTable,
+    )..orderBy([(t) => OrderingTerm.asc(t.dateEpochDays)])).get();
     return rows.map(DailyStatsMapper.toDomain).toList();
   }
 
   @override
   Future<LocalDate?> getLastActiveDate() async {
-    final totalAnswers = _db.dailyStatsTable.newWordsStudied +
+    final totalAnswers =
+        _db.dailyStatsTable.newWordsStudied +
         _db.dailyStatsTable.reviewsCompleted;
     final maxDays = _db.dailyStatsTable.dateEpochDays.max();
     final query = _db.selectOnly(_db.dailyStatsTable)
@@ -57,9 +60,9 @@ final class DriftStatsRepository implements StatsRepository {
 
   @override
   Future<void> upsert(DailyStats stats) async {
-    await _db.into(_db.dailyStatsTable).insertOnConflictUpdate(
-          DailyStatsMapper.toCompanion(stats),
-        );
+    await _db
+        .into(_db.dailyStatsTable)
+        .insertOnConflictUpdate(DailyStatsMapper.toCompanion(stats));
   }
 
   @override
@@ -67,9 +70,9 @@ final class DriftStatsRepository implements StatsRepository {
     await _db.transaction(() async {
       await _db.delete(_db.dailyStatsTable).go();
       for (final item in items) {
-        await _db.into(_db.dailyStatsTable).insert(
-              DailyStatsMapper.toCompanion(item),
-            );
+        await _db
+            .into(_db.dailyStatsTable)
+            .insert(DailyStatsMapper.toCompanion(item));
       }
     });
   }

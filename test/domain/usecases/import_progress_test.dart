@@ -21,24 +21,21 @@ import 'fakes/fake_word_repository.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-Word word(int id) => Word(
-      id: WordId(id),
-      term: 'term$id',
-      translation: 'перевод$id',
-    );
+Word word(int id) =>
+    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 WordProgress progressOf(int id) => WordProgress(
-      wordId: WordId(id),
-      cardState: CardState(
-        easePermille: 2500,
-        intervalDays: 1,
-        repetitions: 1,
-        lapses: 0,
-        dueAt: now,
-      ),
-      status: WordStatus.learning,
-      firstSeenAt: now.subtract(const Duration(days: 5)),
-    );
+  wordId: WordId(id),
+  cardState: CardState(
+    easePermille: 2500,
+    intervalDays: 1,
+    repetitions: 1,
+    lapses: 0,
+    dueAt: now,
+  ),
+  status: WordStatus.learning,
+  firstSeenAt: now.subtract(const Duration(days: 5)),
+);
 
 final class Store {
   Store({
@@ -47,11 +44,11 @@ final class Store {
     List<ReviewLog> seedLogs = const [],
     List<DailyStats> seedStats = const [],
     UserSettings? settings,
-  })  : words = FakeWordRepository(seedWords),
-        progress = FakeProgressRepository(seedProgress),
-        logs = FakeReviewLogRepository(seedLogs),
-        stats = FakeStatsRepository(seedStats),
-        settings = FakeSettingsRepository(settings);
+  }) : words = FakeWordRepository(seedWords),
+       progress = FakeProgressRepository(seedProgress),
+       logs = FakeReviewLogRepository(seedLogs),
+       stats = FakeStatsRepository(seedStats),
+       settings = FakeSettingsRepository(settings);
 
   final FakeWordRepository words;
   final FakeProgressRepository progress;
@@ -60,21 +57,21 @@ final class Store {
   final FakeSettingsRepository settings;
 
   ImportProgress get importUseCase => ImportProgress(
-        words: words,
-        progress: progress,
-        reviewLog: logs,
-        settings: settings,
-        stats: stats,
-      );
+    words: words,
+    progress: progress,
+    reviewLog: logs,
+    settings: settings,
+    stats: stats,
+  );
 
   ExportProgress get exportUseCase => ExportProgress(
-        settings: settings,
-        progress: progress,
-        reviewLog: logs,
-        stats: stats,
-        words: words,
-        clock: () => now,
-      );
+    settings: settings,
+    progress: progress,
+    reviewLog: logs,
+    stats: stats,
+    words: words,
+    clock: () => now,
+  );
 }
 
 ExportPayload payloadOf({
@@ -84,16 +81,15 @@ ExportPayload payloadOf({
   List<ReviewLog> logs = const [],
   List<DailyStats> stats = const [],
   DateTime? exportedAt,
-}) =>
-    ExportPayload(
-      schemaVersion: schemaVersion,
-      exportedAt: exportedAt ?? now,
-      settings: UserSettings.defaults(),
-      words: words,
-      progress: progress,
-      logs: logs,
-      stats: stats,
-    );
+}) => ExportPayload(
+  schemaVersion: schemaVersion,
+  exportedAt: exportedAt ?? now,
+  settings: UserSettings.defaults(),
+  words: words,
+  progress: progress,
+  logs: logs,
+  stats: stats,
+);
 
 void main() {
   group('ImportProgress', () {

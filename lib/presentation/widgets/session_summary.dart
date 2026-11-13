@@ -22,20 +22,20 @@ class SessionSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Сессия завершена',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 16),
-          Text('Верно: $correct из $total'),
-          Text('XP: $actualXp'),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: () => context.go('/'),
-            child: const Text('Готово'),
-          ),
-        ],
-      );
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Text(
+        'Сессия завершена',
+        style: Theme.of(context).textTheme.headlineSmall,
+      ),
+      const SizedBox(height: 16),
+      Text('Верно: $correct из $total'),
+      Text('XP: $actualXp'),
+      const SizedBox(height: 24),
+      FilledButton(
+        onPressed: () => context.go('/'),
+        child: const Text('Готово'),
+      ),
+    ],
+  );
 }

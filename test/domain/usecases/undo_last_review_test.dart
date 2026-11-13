@@ -19,22 +19,21 @@ final now = DateTime.utc(2024, 5, 15, 12);
 const wordId = WordId(1);
 
 WordProgress progress() => WordProgress(
-      wordId: wordId,
-      cardState: CardState.initial(now)
-          .copyWith(intervalDays: 6, repetitions: 2),
-      status: WordStatus.learning,
-      firstSeenAt: now,
-      lastReviewedAt: now,
-    );
+  wordId: wordId,
+  cardState: CardState.initial(now).copyWith(intervalDays: 6, repetitions: 2),
+  status: WordStatus.learning,
+  firstSeenAt: now,
+  lastReviewedAt: now,
+);
 
 ReviewLog log(int id) => ReviewLog(
-      id: ReviewLogId(id),
-      wordId: wordId,
-      reviewedAt: now,
-      grade: ReviewGrade.good,
-      previousCardState: CardState.initial(now),
-      newCardState: CardState.initial(now).copyWith(intervalDays: 6),
-    );
+  id: ReviewLogId(id),
+  wordId: wordId,
+  reviewedAt: now,
+  grade: ReviewGrade.good,
+  previousCardState: CardState.initial(now),
+  newCardState: CardState.initial(now).copyWith(intervalDays: 6),
+);
 
 void main() {
   late FakeProgressRepository progressRepo;

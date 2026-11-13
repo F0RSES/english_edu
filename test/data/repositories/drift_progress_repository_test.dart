@@ -18,13 +18,12 @@ WordProgress progress(
   int wordId, {
   WordStatus status = WordStatus.learning,
   DateTime? due,
-}) =>
-    WordProgress(
-      wordId: WordId(wordId),
-      cardState: CardState.initial(due ?? dueAt),
-      status: status,
-      firstSeenAt: dueAt,
-    );
+}) => WordProgress(
+  wordId: WordId(wordId),
+  cardState: CardState.initial(due ?? dueAt),
+  status: status,
+  firstSeenAt: dueAt,
+);
 
 void main() {
   late AppDatabase db;
@@ -60,17 +59,19 @@ void main() {
     expect(await repo.getByStatus(WordStatus.mastered), hasLength(1));
   });
 
-  test('returns cards due at or before the instant, including the bound',
-      () async {
-    await repo.replaceAll([
-      progress(1, due: dueAt.subtract(const Duration(hours: 2))),
-      progress(2, due: dueAt),
-      progress(3, due: dueAt.add(const Duration(hours: 2))),
-    ]);
+  test(
+    'returns cards due at or before the instant, including the bound',
+    () async {
+      await repo.replaceAll([
+        progress(1, due: dueAt.subtract(const Duration(hours: 2))),
+        progress(2, due: dueAt),
+        progress(3, due: dueAt.add(const Duration(hours: 2))),
+      ]);
 
-    final due = await repo.getDueBefore(dueAt);
-    expect(due.map((item) => item.wordId.value), [1, 2]);
-  });
+      final due = await repo.getDueBefore(dueAt);
+      expect(due.map((item) => item.wordId.value), [1, 2]);
+    },
+  );
 
   test('rejects a non-UTC instant', () async {
     await expectLater(

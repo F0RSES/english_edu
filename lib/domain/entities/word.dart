@@ -25,8 +25,8 @@ final class Word {
     this.transcription,
     this.partOfSpeech,
     this.exampleSentence,
-  })  : assert(term.length > 0, 'term must not be empty'),
-        assert(translation.length > 0, 'translation must not be empty');
+  }) : assert(term.length > 0, 'term must not be empty'),
+       assert(translation.length > 0, 'translation must not be empty');
 
   /// Stable identifier of the word.
   final WordId id;
@@ -57,15 +57,14 @@ final class Word {
     Object? transcription = _unset,
     Object? partOfSpeech = _unset,
     Object? exampleSentence = _unset,
-  }) =>
-      Word(
-        id: id ?? this.id,
-        term: term ?? this.term,
-        translation: translation ?? this.translation,
-        transcription: _resolveText(transcription, this.transcription),
-        partOfSpeech: _resolveText(partOfSpeech, this.partOfSpeech),
-        exampleSentence: _resolveText(exampleSentence, this.exampleSentence),
-      );
+  }) => Word(
+    id: id ?? this.id,
+    term: term ?? this.term,
+    translation: translation ?? this.translation,
+    transcription: _resolveText(transcription, this.transcription),
+    partOfSpeech: _resolveText(partOfSpeech, this.partOfSpeech),
+    exampleSentence: _resolveText(exampleSentence, this.exampleSentence),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -80,13 +79,13 @@ final class Word {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        term,
-        translation,
-        transcription,
-        partOfSpeech,
-        exampleSentence,
-      );
+    id,
+    term,
+    translation,
+    transcription,
+    partOfSpeech,
+    exampleSentence,
+  );
 
   @override
   String toString() => 'Word(${id.value}, "$term" → "$translation")';

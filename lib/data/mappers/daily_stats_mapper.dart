@@ -11,12 +11,12 @@ final class DailyStatsMapper {
 
   /// Собирает счётчики дня из строки БД.
   static DailyStats toDomain(DailyStatsRow row) => DailyStats(
-        date: LocalDate(row.dateEpochDays),
-        newWordsStudied: row.newWordsStudied,
-        reviewsCompleted: row.reviewsCompleted,
-        xpGained: row.xpGained,
-        correctAnswers: row.correctAnswers,
-      );
+    date: LocalDate(row.dateEpochDays),
+    newWordsStudied: row.newWordsStudied,
+    reviewsCompleted: row.reviewsCompleted,
+    xpGained: row.xpGained,
+    correctAnswers: row.correctAnswers,
+  );
 
   /// Раскладывает счётчики дня в companion.
   static DailyStatsTableCompanion toCompanion(DailyStats stats) =>

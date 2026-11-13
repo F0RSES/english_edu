@@ -11,21 +11,21 @@ final class WordMapper {
 
   /// Собирает доменную сущность из строки БД.
   static domain.Word toDomain(Word row) => domain.Word(
-        id: WordId(row.id),
-        term: row.term,
-        translation: row.translation,
-        transcription: row.transcription,
-        partOfSpeech: row.partOfSpeech,
-        exampleSentence: row.exampleSentence,
-      );
+    id: WordId(row.id),
+    term: row.term,
+    translation: row.translation,
+    transcription: row.transcription,
+    partOfSpeech: row.partOfSpeech,
+    exampleSentence: row.exampleSentence,
+  );
 
   /// Раскладывает сущность в companion для insert/update.
   static WordsCompanion toCompanion(domain.Word word) => WordsCompanion(
-        id: Value(word.id.value),
-        term: Value(word.term),
-        translation: Value(word.translation),
-        transcription: Value(word.transcription),
-        partOfSpeech: Value(word.partOfSpeech),
-        exampleSentence: Value(word.exampleSentence),
-      );
+    id: Value(word.id.value),
+    term: Value(word.term),
+    translation: Value(word.translation),
+    transcription: Value(word.transcription),
+    partOfSpeech: Value(word.partOfSpeech),
+    exampleSentence: Value(word.exampleSentence),
+  );
 }

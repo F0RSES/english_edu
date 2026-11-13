@@ -22,8 +22,11 @@ void main() {
   });
 
   test('saves and reads settings back', () async {
-    final settings = UserSettings.defaults()
-        .copyWith(dailyNewLimit: 4, remindersEnabled: true, reminderHour: 20);
+    final settings = UserSettings.defaults().copyWith(
+      dailyNewLimit: 4,
+      remindersEnabled: true,
+      reminderHour: 20,
+    );
 
     await repo.save(settings);
 

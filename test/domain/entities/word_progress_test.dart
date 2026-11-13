@@ -66,20 +66,14 @@ void main() {
     });
 
     test('copyWith sets and clears lastReviewedAt', () {
-      final progress = WordProgress.newWord(
-        wordId: const WordId(1),
-        now: now,
-      );
+      final progress = WordProgress.newWord(wordId: const WordId(1), now: now);
       final reviewed = progress.copyWith(lastReviewedAt: now);
       expect(reviewed.lastReviewedAt, now);
       expect(reviewed.copyWith(lastReviewedAt: null).lastReviewedAt, isNull);
     });
 
     test('copyWith without arguments returns an equal record', () {
-      final progress = WordProgress.newWord(
-        wordId: const WordId(1),
-        now: now,
-      );
+      final progress = WordProgress.newWord(wordId: const WordId(1), now: now);
       expect(progress.copyWith(), equals(progress));
     });
   });

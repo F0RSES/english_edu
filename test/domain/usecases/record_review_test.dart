@@ -21,11 +21,8 @@ import 'fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id) => Word(
-      id: WordId(id),
-      term: 'term$id',
-      translation: 'перевод$id',
-    );
+Word word(int id) =>
+    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 WordProgress seeded(
   int id, {
@@ -33,19 +30,18 @@ WordProgress seeded(
   int lapses = 0,
   int interval = 1,
   WordStatus status = WordStatus.learning,
-}) =>
-    WordProgress(
-      wordId: WordId(id),
-      cardState: CardState(
-        easePermille: 2500,
-        intervalDays: interval,
-        repetitions: repetitions,
-        lapses: lapses,
-        dueAt: now,
-      ),
-      status: status,
-      firstSeenAt: now.subtract(const Duration(days: 10)),
-    );
+}) => WordProgress(
+  wordId: WordId(id),
+  cardState: CardState(
+    easePermille: 2500,
+    intervalDays: interval,
+    repetitions: repetitions,
+    lapses: lapses,
+    dueAt: now,
+  ),
+  status: status,
+  firstSeenAt: now.subtract(const Duration(days: 10)),
+);
 
 final class Harness {
   Harness({
@@ -53,10 +49,10 @@ final class Harness {
     List<WordProgress>? seedProgress,
     List<DailyStats>? seedStats,
     SrsCalculator? srs,
-  })  : words = FakeWordRepository(seedWords ?? [word(1)]),
-        progress = FakeProgressRepository(seedProgress ?? const []),
-        stats = FakeStatsRepository(seedStats ?? const []),
-        srs = srs ?? const FakeSrsCalculator() {
+  }) : words = FakeWordRepository(seedWords ?? [word(1)]),
+       progress = FakeProgressRepository(seedProgress ?? const []),
+       stats = FakeStatsRepository(seedStats ?? const []),
+       srs = srs ?? const FakeSrsCalculator() {
     useCase = RecordReview(
       progress: progress,
       reviewLog: logs,
@@ -111,10 +107,7 @@ void main() {
 
     test('returns the same state that was stored', () async {
       final harness = Harness();
-      final returned = await harness.useCase(
-        const WordId(1),
-        ReviewGrade.hard,
-      );
+      final returned = await harness.useCase(const WordId(1), ReviewGrade.hard);
       final saved = await harness.progress.getByWordId(const WordId(1));
       expect(saved!.cardState, returned.newCardState);
     });
@@ -175,29 +168,33 @@ void main() {
       expect(entries.single.newCardState, next.newCardState);
     });
 
-    test('keeps learning after a lapse instead of returning to newWord',
-        () async {
-      final harness = Harness(seedProgress: [seeded(1, repetitions: 2)]);
-      await harness.useCase(const WordId(1), ReviewGrade.again);
+    test(
+      'keeps learning after a lapse instead of returning to newWord',
+      () async {
+        final harness = Harness(seedProgress: [seeded(1, repetitions: 2)]);
+        await harness.useCase(const WordId(1), ReviewGrade.again);
 
-      final saved = await harness.progress.getByWordId(const WordId(1));
-      expect(saved!.cardState.repetitions, 0);
-      expect(saved.status, WordStatus.learning);
-    });
+        final saved = await harness.progress.getByWordId(const WordId(1));
+        expect(saved!.cardState.repetitions, 0);
+        expect(saved.status, WordStatus.learning);
+      },
+    );
 
-    test('derives mastered when reps and interval pass the thresholds',
-        () async {
-      final harness = Harness(
-        srs: const Sm2SrsCalculator(),
-        seedProgress: [seeded(1, repetitions: 4, interval: 60)],
-      );
-      await harness.useCase(const WordId(1), ReviewGrade.good);
+    test(
+      'derives mastered when reps and interval pass the thresholds',
+      () async {
+        final harness = Harness(
+          srs: const Sm2SrsCalculator(),
+          seedProgress: [seeded(1, repetitions: 4, interval: 60)],
+        );
+        await harness.useCase(const WordId(1), ReviewGrade.good);
 
-      final saved = await harness.progress.getByWordId(const WordId(1));
-      expect(saved!.cardState.repetitions, 5);
-      expect(saved.cardState.intervalDays, 150);
-      expect(saved.status, WordStatus.mastered);
-    });
+        final saved = await harness.progress.getByWordId(const WordId(1));
+        expect(saved!.cardState.repetitions, 5);
+        expect(saved.cardState.intervalDays, 150);
+        expect(saved.status, WordStatus.mastered);
+      },
+    );
 
     test('stays learning below the interval threshold', () async {
       final harness = Harness(
@@ -295,29 +292,31 @@ void main() {
       }
     });
 
-    test('a lapse resets the interval and keeps ease above the floor',
-        () async {
-      final harness = Harness(srs: const Sm2SrsCalculator());
-      for (var answer = 0; answer < 3; answer++) {
-        await harness.useCase(const WordId(1), ReviewGrade.good);
-      }
+    test(
+      'a lapse resets the interval and keeps ease above the floor',
+      () async {
+        final harness = Harness(srs: const Sm2SrsCalculator());
+        for (var answer = 0; answer < 3; answer++) {
+          await harness.useCase(const WordId(1), ReviewGrade.good);
+        }
 
-      final before = await harness.progress.getByWordId(const WordId(1));
-      expect(before!.cardState.repetitions, 3);
-      expect(before.cardState.intervalDays, 15);
-      expect(before.cardState.easePermille, 2500);
-      expect(before.status, WordStatus.learning);
+        final before = await harness.progress.getByWordId(const WordId(1));
+        expect(before!.cardState.repetitions, 3);
+        expect(before.cardState.intervalDays, 15);
+        expect(before.cardState.easePermille, 2500);
+        expect(before.status, WordStatus.learning);
 
-      final next = await harness.useCase(const WordId(1), ReviewGrade.again);
-      expect(next.newCardState.repetitions, 0);
-      expect(next.newCardState.intervalDays, 1);
-      expect(next.newCardState.lapses, 1);
-      expect(next.newCardState.easePermille, 1700);
-      expect(next.newCardState.dueAt, now.add(const Duration(days: 1)));
+        final next = await harness.useCase(const WordId(1), ReviewGrade.again);
+        expect(next.newCardState.repetitions, 0);
+        expect(next.newCardState.intervalDays, 1);
+        expect(next.newCardState.lapses, 1);
+        expect(next.newCardState.easePermille, 1700);
+        expect(next.newCardState.dueAt, now.add(const Duration(days: 1)));
 
-      final after = await harness.progress.getByWordId(const WordId(1));
-      expect(after!.status, WordStatus.learning);
-    });
+        final after = await harness.progress.getByWordId(const WordId(1));
+        expect(after!.status, WordStatus.learning);
+      },
+    );
 
     test('four goods give interval 38 but stay learning', () async {
       final harness = Harness(srs: const Sm2SrsCalculator());

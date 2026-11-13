@@ -14,14 +14,13 @@ final class CardStateMapper {
     required int repetitions,
     required int lapses,
     required int dueAtUtcMs,
-  }) =>
-      CardState(
-        easePermille: easePermille,
-        intervalDays: intervalDays,
-        repetitions: repetitions,
-        lapses: lapses,
-        dueAt: DateTime.fromMillisecondsSinceEpoch(dueAtUtcMs, isUtc: true),
-      );
+  }) => CardState(
+    easePermille: easePermille,
+    intervalDays: intervalDays,
+    repetitions: repetitions,
+    lapses: lapses,
+    dueAt: DateTime.fromMillisecondsSinceEpoch(dueAtUtcMs, isUtc: true),
+  );
 
   /// Раскладывает VO на колонки.
   static ({
@@ -30,12 +29,12 @@ final class CardStateMapper {
     int repetitions,
     int lapses,
     int dueAtUtcMs,
-  }) toColumns(CardState state) =>
-      (
-        easePermille: state.easePermille,
-        intervalDays: state.intervalDays,
-        repetitions: state.repetitions,
-        lapses: state.lapses,
-        dueAtUtcMs: state.dueAt.toUtc().millisecondsSinceEpoch,
-      );
+  })
+  toColumns(CardState state) => (
+    easePermille: state.easePermille,
+    intervalDays: state.intervalDays,
+    repetitions: state.repetitions,
+    lapses: state.lapses,
+    dueAtUtcMs: state.dueAt.toUtc().millisecondsSinceEpoch,
+  );
 }

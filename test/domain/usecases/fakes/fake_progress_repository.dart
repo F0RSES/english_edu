@@ -7,7 +7,7 @@ import 'package:english_edu/domain/value_objects/word_status.dart';
 final class FakeProgressRepository implements ProgressRepository {
   /// Creates a fake seeded with [seed].
   FakeProgressRepository([Iterable<WordProgress> seed = const []])
-      : _byWordId = {for (final item in seed) item.wordId: item};
+    : _byWordId = {for (final item in seed) item.wordId: item};
 
   final Map<WordId, WordProgress> _byWordId;
 
@@ -16,15 +16,15 @@ final class FakeProgressRepository implements ProgressRepository {
 
   @override
   Future<List<WordProgress>> getByStatus(WordStatus status) async => [
-        for (final item in _byWordId.values)
-          if (item.status == status) item,
-      ];
+    for (final item in _byWordId.values)
+      if (item.status == status) item,
+  ];
 
   @override
   Future<List<WordProgress>> getDueBefore(DateTime utcInstant) async => [
-        for (final item in _byWordId.values)
-          if (!item.cardState.dueAt.isAfter(utcInstant)) item,
-      ];
+    for (final item in _byWordId.values)
+      if (!item.cardState.dueAt.isAfter(utcInstant)) item,
+  ];
 
   @override
   Future<List<WordProgress>> getAll() async => _byWordId.values.toList();

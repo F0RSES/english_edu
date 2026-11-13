@@ -11,8 +11,8 @@ final class TodayQueue {
   ///
   /// Not `const`: the constructor takes a defensive copy of each argument.
   TodayQueue({required List<Word> due, required List<Word> newWords})
-      : due = List.unmodifiable(due),
-        newWords = List.unmodifiable(newWords);
+    : due = List.unmodifiable(due),
+      newWords = List.unmodifiable(newWords);
 
   /// Words scheduled for review today, in session order.
   final List<Word> due;
@@ -40,7 +40,8 @@ final class TodayQueue {
       Object.hash(Object.hashAll(due), Object.hashAll(newWords));
 
   @override
-  String toString() => 'TodayQueue(due: ${due.length}, '
+  String toString() =>
+      'TodayQueue(due: ${due.length}, '
       'new: ${newWords.length})';
 }
 

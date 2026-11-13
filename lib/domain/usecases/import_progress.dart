@@ -21,11 +21,11 @@ final class ImportProgress {
     required ReviewLogRepository reviewLog,
     required SettingsRepository settings,
     required StatsRepository stats,
-  })  : _words = words,
-        _progress = progress,
-        _reviewLog = reviewLog,
-        _settings = settings,
-        _stats = stats;
+  }) : _words = words,
+       _progress = progress,
+       _reviewLog = reviewLog,
+       _settings = settings,
+       _stats = stats;
 
   final WordRepository _words;
   final ProgressRepository _progress;

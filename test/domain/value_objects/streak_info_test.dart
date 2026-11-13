@@ -35,10 +35,7 @@ void main() {
 
     test('renders count and last active date', () {
       const info = StreakInfo(count: 4, lastActiveLocalDate: LocalDate(0));
-      expect(
-        info.toString(),
-        'StreakInfo(count: 4, lastActive: 1970-01-01)',
-      );
+      expect(info.toString(), 'StreakInfo(count: 4, lastActive: 1970-01-01)');
     });
   });
 }

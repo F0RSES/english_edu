@@ -19,12 +19,12 @@ final class ExportProgress {
     required StatsRepository stats,
     required WordRepository words,
     required DateTime Function() clock,
-  })  : _settings = settings,
-        _progress = progress,
-        _reviewLog = reviewLog,
-        _stats = stats,
-        _words = words,
-        _clock = clock;
+  }) : _settings = settings,
+       _progress = progress,
+       _reviewLog = reviewLog,
+       _stats = stats,
+       _words = words,
+       _clock = clock;
 
   final SettingsRepository _settings;
   final ProgressRepository _progress;

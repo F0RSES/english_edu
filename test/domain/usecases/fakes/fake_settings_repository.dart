@@ -5,7 +5,7 @@ import 'package:english_edu/domain/repositories/settings_repository.dart';
 final class FakeSettingsRepository implements SettingsRepository {
   /// Creates a fake holding [initial], or the MVP defaults.
   FakeSettingsRepository([UserSettings? initial])
-      : _settings = initial ?? UserSettings.defaults();
+    : _settings = initial ?? UserSettings.defaults();
 
   UserSettings _settings;
 

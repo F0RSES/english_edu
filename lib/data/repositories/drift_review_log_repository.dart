@@ -20,18 +20,19 @@ final class DriftReviewLogRepository implements ReviewLogRepository {
 
   @override
   Future<List<ReviewLog>> getByWordId(WordId wordId) async {
-    final rows = await (_db.select(_db.reviewLogs)
-          ..where((t) => t.wordId.equals(wordId.value))
-          ..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)]))
-        .get();
+    final rows =
+        await (_db.select(_db.reviewLogs)
+              ..where((t) => t.wordId.equals(wordId.value))
+              ..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)]))
+            .get();
     return rows.map(ReviewLogMapper.toDomain).toList();
   }
 
   @override
   Future<List<ReviewLog>> getAll() async {
-    final rows = await (_db.select(_db.reviewLogs)
-          ..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)]))
-        .get();
+    final rows = await (_db.select(
+      _db.reviewLogs,
+    )..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)])).get();
     return rows.map(ReviewLogMapper.toDomain).toList();
   }
 
@@ -45,14 +46,15 @@ final class DriftReviewLogRepository implements ReviewLogRepository {
     }
     final from = fromUtc.millisecondsSinceEpoch;
     final to = toUtc.millisecondsSinceEpoch;
-    final rows = await (_db.select(_db.reviewLogs)
-          ..where(
-            (t) =>
-                t.reviewedAtUtc.isBiggerOrEqualValue(from) &
-                t.reviewedAtUtc.isSmallerThanValue(to),
-          )
-          ..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)]))
-        .get();
+    final rows =
+        await (_db.select(_db.reviewLogs)
+              ..where(
+                (t) =>
+                    t.reviewedAtUtc.isBiggerOrEqualValue(from) &
+                    t.reviewedAtUtc.isSmallerThanValue(to),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.reviewedAtUtc)]))
+            .get();
     return rows.map(ReviewLogMapper.toDomain).toList();
   }
 
@@ -62,9 +64,7 @@ final class DriftReviewLogRepository implements ReviewLogRepository {
     await _db.transaction(() async {
       await _db.delete(_db.reviewLogs).go();
       for (final log in logs) {
-        await _db.into(_db.reviewLogs).insert(
-              ReviewLogMapper.toCompanion(log),
-            );
+        await _db.into(_db.reviewLogs).insert(ReviewLogMapper.toCompanion(log));
       }
     });
   }
@@ -72,7 +72,8 @@ final class DriftReviewLogRepository implements ReviewLogRepository {
   /// Исключение из append-only: только `UndoLastReview` (ADR-010).
   @override
   Future<void> delete(ReviewLogId id) async {
-    await (_db.delete(_db.reviewLogs)..where((t) => t.id.equals(id.value)))
-        .go();
+    await (_db.delete(
+      _db.reviewLogs,
+    )..where((t) => t.id.equals(id.value))).go();
   }
 }

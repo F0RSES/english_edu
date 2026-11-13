@@ -141,8 +141,7 @@ class UserSettingsTable extends Table {
   IntColumn get dailyNewLimit => integer().withDefault(const Constant(10))();
 
   /// Лимит повторений в день.
-  IntColumn get dailyReviewLimit =>
-      integer().withDefault(const Constant(50))();
+  IntColumn get dailyReviewLimit => integer().withDefault(const Constant(50))();
 
   /// Включены ли напоминания.
   BoolColumn get remindersEnabled =>
@@ -169,10 +168,10 @@ class UserSettingsTable extends Table {
 
   @override
   List<String> get customConstraints => [
-        'CHECK (id = 1)',
-        // Имя колонки — SQL-ное (snake_case), не Dart-ное.
-        'CHECK (tts_speed BETWEEN 0.1 AND 1.0)',
-      ];
+    'CHECK (id = 1)',
+    // Имя колонки — SQL-ное (snake_case), не Dart-ное.
+    'CHECK (tts_speed BETWEEN 0.1 AND 1.0)',
+  ];
 }
 
 /// Дневные счётчики. Первичный ключ — `LocalDate.daysSinceEpoch`.

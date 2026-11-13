@@ -3,11 +3,8 @@ import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
-Word word(int id) => Word(
-      id: WordId(id),
-      term: 'term$id',
-      translation: 'перевод$id',
-    );
+Word word(int id) =>
+    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
 
 void main() {
   group('TodayQueue', () {
@@ -40,14 +37,8 @@ void main() {
     });
 
     test('all concatenates due before new', () {
-      final queue = TodayQueue(
-        due: [word(1), word(2)],
-        newWords: [word(3)],
-      );
-      expect(
-        queue.all.map((w) => w.id.value).toList(),
-        [1, 2, 3],
-      );
+      final queue = TodayQueue(due: [word(1), word(2)], newWords: [word(3)]);
+      expect(queue.all.map((w) => w.id.value).toList(), [1, 2, 3]);
       expect(queue.length, 3);
     });
 
@@ -59,10 +50,7 @@ void main() {
     });
 
     test('differs by element order', () {
-      final ascending = TodayQueue(
-        due: [word(1), word(2)],
-        newWords: const [],
-      );
+      final ascending = TodayQueue(due: [word(1), word(2)], newWords: const []);
       final descending = TodayQueue(
         due: [word(2), word(1)],
         newWords: const [],

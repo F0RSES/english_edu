@@ -3,11 +3,7 @@ import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
 void main() {
-  const base = Word(
-    id: WordId(1),
-    term: 'book',
-    translation: 'книга',
-  );
+  const base = Word(id: WordId(1), term: 'book', translation: 'книга');
 
   group('Word', () {
     test('keeps the given values', () {
@@ -34,11 +30,7 @@ void main() {
     });
 
     test('is equal and has the same hash for equal fields', () {
-      const other = Word(
-        id: WordId(1),
-        term: 'book',
-        translation: 'книга',
-      );
+      const other = Word(id: WordId(1), term: 'book', translation: 'книга');
       expect(base, equals(other));
       expect(base.hashCode, other.hashCode);
     });

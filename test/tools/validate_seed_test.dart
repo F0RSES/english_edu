@@ -6,11 +6,11 @@ import 'package:test/test.dart';
 import '../../tools/validate_seed_lib.dart';
 
 Map<String, Object?> source({Object? id = 'manual-mvp'}) => {
-      'id': id,
-      'name': 'Manual MVP selection',
-      'license': 'CC0',
-      'url': null,
-    };
+  'id': id,
+  'name': 'Manual MVP selection',
+  'license': 'CC0',
+  'url': null,
+};
 
 Map<String, Object?> word({
   Object? id = 1,
@@ -43,12 +43,11 @@ Map<String, Object?> seed({
   Object? schemaVersion = 1,
   List<Object?>? sources,
   List<Object?>? words,
-}) =>
-    {
-      'schemaVersion': schemaVersion,
-      'sources': sources ?? [source()],
-      'words': words ?? [word()],
-    };
+}) => {
+  'schemaVersion': schemaVersion,
+  'sources': sources ?? [source()],
+  'words': words ?? [word()],
+};
 
 void main() {
   group('validateSeed', () {
@@ -87,12 +86,7 @@ void main() {
 
     test('treats a duplicate term as a warning only', () {
       final result = validateSeed(
-        seed(
-          words: [
-            word(),
-            word(id: 2, frequencyRank: 2),
-          ],
-        ),
+        seed(words: [word(), word(id: 2, frequencyRank: 2)]),
       );
 
       expect(result.isValid, isTrue);
@@ -114,9 +108,7 @@ void main() {
     });
 
     test('rejects a transcription without surrounding slashes', () {
-      final result = validateSeed(
-        seed(words: [word(transcription: 'ðə')]),
-      );
+      final result = validateSeed(seed(words: [word(transcription: 'ðə')]));
 
       expect(result.isValid, isFalse);
       expect(result.errors.single, contains('transcription'));
@@ -130,18 +122,14 @@ void main() {
     });
 
     test('accepts an auto-translated word with a warning', () {
-      final result = validateSeed(
-        seed(words: [word(autoTranslated: true)]),
-      );
+      final result = validateSeed(seed(words: [word(autoTranslated: true)]));
 
       expect(result.isValid, isTrue);
       expect(result.warnings.single, contains('autoTranslated'));
     });
 
     test('rejects a non-boolean autoTranslated', () {
-      final result = validateSeed(
-        seed(words: [word(autoTranslated: 'yes')]),
-      );
+      final result = validateSeed(seed(words: [word(autoTranslated: 'yes')]));
 
       expect(result.isValid, isFalse);
       expect(result.errors.single, contains('autoTranslated'));
@@ -150,7 +138,10 @@ void main() {
     test('allows the same rank across different sources', () {
       final result = validateSeed(
         seed(
-          sources: [source(), source(id: 'ngsl-auto')],
+          sources: [
+            source(),
+            source(id: 'ngsl-auto'),
+          ],
           words: [
             word(),
             word(id: 2, term: 'be', sourceId: 'ngsl-auto'),
@@ -164,7 +155,12 @@ void main() {
 
     test('treats duplicate ranks inside one source as informational', () {
       final result = validateSeed(
-        seed(words: [word(), word(id: 2, term: 'be')]),
+        seed(
+          words: [
+            word(),
+            word(id: 2, term: 'be'),
+          ],
+        ),
       );
 
       expect(result.isValid, isTrue);

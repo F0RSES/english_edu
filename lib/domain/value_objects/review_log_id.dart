@@ -10,7 +10,7 @@ final class ReviewLogId implements Comparable<ReviewLogId> {
   ///
   /// Fails with an [AssertionError] when [value] is negative.
   const ReviewLogId(this.value)
-      : assert(value >= 0, 'review log id must be >= 0');
+    : assert(value >= 0, 'review log id must be >= 0');
 
   /// Raw non-negative index behind this identifier.
   final int value;

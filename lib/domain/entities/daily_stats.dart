@@ -11,19 +11,19 @@ final class DailyStats {
     required this.reviewsCompleted,
     required this.xpGained,
     required this.correctAnswers,
-  })  : assert(newWordsStudied >= 0, 'newWordsStudied must be >= 0'),
-        assert(reviewsCompleted >= 0, 'reviewsCompleted must be >= 0'),
-        assert(xpGained >= 0, 'xpGained must be >= 0'),
-        assert(correctAnswers >= 0, 'correctAnswers must be >= 0');
+  }) : assert(newWordsStudied >= 0, 'newWordsStudied must be >= 0'),
+       assert(reviewsCompleted >= 0, 'reviewsCompleted must be >= 0'),
+       assert(xpGained >= 0, 'xpGained must be >= 0'),
+       assert(correctAnswers >= 0, 'correctAnswers must be >= 0');
 
   /// Counters of a day without any activity.
   factory DailyStats.empty(LocalDate date) => DailyStats(
-        date: date,
-        newWordsStudied: 0,
-        reviewsCompleted: 0,
-        xpGained: 0,
-        correctAnswers: 0,
-      );
+    date: date,
+    newWordsStudied: 0,
+    reviewsCompleted: 0,
+    xpGained: 0,
+    correctAnswers: 0,
+  );
 
   /// Local day these counters belong to.
   final LocalDate date;
@@ -58,14 +58,13 @@ final class DailyStats {
     int? reviewsCompleted,
     int? xpGained,
     int? correctAnswers,
-  }) =>
-      DailyStats(
-        date: date ?? this.date,
-        newWordsStudied: newWordsStudied ?? this.newWordsStudied,
-        reviewsCompleted: reviewsCompleted ?? this.reviewsCompleted,
-        xpGained: xpGained ?? this.xpGained,
-        correctAnswers: correctAnswers ?? this.correctAnswers,
-      );
+  }) => DailyStats(
+    date: date ?? this.date,
+    newWordsStudied: newWordsStudied ?? this.newWordsStudied,
+    reviewsCompleted: reviewsCompleted ?? this.reviewsCompleted,
+    xpGained: xpGained ?? this.xpGained,
+    correctAnswers: correctAnswers ?? this.correctAnswers,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -79,15 +78,16 @@ final class DailyStats {
 
   @override
   int get hashCode => Object.hash(
-        date,
-        newWordsStudied,
-        reviewsCompleted,
-        xpGained,
-        correctAnswers,
-      );
+    date,
+    newWordsStudied,
+    reviewsCompleted,
+    xpGained,
+    correctAnswers,
+  );
 
   @override
-  String toString() => 'DailyStats($date, new: $newWordsStudied, '
+  String toString() =>
+      'DailyStats($date, new: $newWordsStudied, '
       'reviews: $reviewsCompleted, xp: $xpGained, '
       'correct: $correctAnswers)';
 }

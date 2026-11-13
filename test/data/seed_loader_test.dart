@@ -33,16 +33,16 @@ final class JsonAssetBundle extends AssetBundle {
 }
 
 Map<String, Object?> seedJson(List<Object?> words, {int version = 1}) => {
-      'schemaVersion': version,
-      'sources': const [],
-      'words': words,
-    };
+  'schemaVersion': version,
+  'sources': const [],
+  'words': words,
+};
 
 Map<String, Object?> seedWord(int id, String term) => {
-      'id': id,
-      'term': term,
-      'translation': 'перевод$id',
-    };
+  'id': id,
+  'term': term,
+  'translation': 'перевод$id',
+};
 
 void main() {
   late AppDatabase db;
@@ -73,8 +73,7 @@ void main() {
   });
 
   test('returns 0 when the table already has rows', () async {
-    await loaderFor(FileAssetBundle('assets/seed/words_v1.json'))
-        .loadIfEmpty();
+    await loaderFor(FileAssetBundle('assets/seed/words_v1.json')).loadIfEmpty();
 
     final second = JsonSeedLoader(
       words: words,
@@ -108,8 +107,7 @@ void main() {
   });
 
   test('maps seed fields into columns', () async {
-    await loaderFor(FileAssetBundle('assets/seed/words_v1.json'))
-        .loadIfEmpty();
+    await loaderFor(FileAssetBundle('assets/seed/words_v1.json')).loadIfEmpty();
 
     final stored = await words.getAll();
     final first = stored.firstWhere((word) => word.id.value == 1);

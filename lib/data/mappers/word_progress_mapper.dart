@@ -11,26 +11,26 @@ final class WordProgressMapper {
 
   /// Собирает доменную запись из строки БД.
   static WordProgress toDomain(WordProgressRow row) => WordProgress(
-        wordId: WordId(row.wordId),
-        cardState: CardStateMapper.fromColumns(
-          easePermille: row.easePermille,
-          intervalDays: row.intervalDays,
-          repetitions: row.repetitions,
-          lapses: row.lapses,
-          dueAtUtcMs: row.dueAtUtc,
-        ),
-        status: _statusFrom(row.status),
-        firstSeenAt: DateTime.fromMillisecondsSinceEpoch(
-          row.firstSeenAtUtc,
-          isUtc: true,
-        ),
-        lastReviewedAt: row.lastReviewedAtUtc == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(
-                row.lastReviewedAtUtc!,
-                isUtc: true,
-              ),
-      );
+    wordId: WordId(row.wordId),
+    cardState: CardStateMapper.fromColumns(
+      easePermille: row.easePermille,
+      intervalDays: row.intervalDays,
+      repetitions: row.repetitions,
+      lapses: row.lapses,
+      dueAtUtcMs: row.dueAtUtc,
+    ),
+    status: _statusFrom(row.status),
+    firstSeenAt: DateTime.fromMillisecondsSinceEpoch(
+      row.firstSeenAtUtc,
+      isUtc: true,
+    ),
+    lastReviewedAt: row.lastReviewedAtUtc == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(
+            row.lastReviewedAtUtc!,
+            isUtc: true,
+          ),
+  );
 
   /// Раскладывает запись в companion для insert/update.
   static WordProgressesCompanion toCompanion(WordProgress progress) {

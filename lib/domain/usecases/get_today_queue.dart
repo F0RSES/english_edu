@@ -18,10 +18,10 @@ final class GetTodayQueue {
     required ProgressRepository progress,
     required SettingsRepository settings,
     required DateTime Function() clock,
-  })  : _words = words,
-        _progress = progress,
-        _settings = settings,
-        _clock = clock;
+  }) : _words = words,
+       _progress = progress,
+       _settings = settings,
+       _clock = clock;
 
   final WordRepository _words;
   final ProgressRepository _progress;
@@ -47,10 +47,12 @@ final class GetTodayQueue {
       ..removeWhere((item) => freshIds.contains(item.wordId))
       ..sort((a, b) => a.cardState.dueAt.compareTo(b.cardState.dueAt));
 
-    final dueLimited =
-        dueProgress.take(settings.dailyReviewLimit).toList(growable: false);
-    final freshLimited =
-        freshProgress.take(settings.dailyNewLimit).toList(growable: false);
+    final dueLimited = dueProgress
+        .take(settings.dailyReviewLimit)
+        .toList(growable: false);
+    final freshLimited = freshProgress
+        .take(settings.dailyNewLimit)
+        .toList(growable: false);
 
     return TodayQueue(
       due: await _orderedWords(dueLimited),

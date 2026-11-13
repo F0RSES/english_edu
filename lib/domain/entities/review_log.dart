@@ -60,15 +60,16 @@ final class ReviewLog {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        wordId,
-        reviewedAt,
-        grade,
-        previousCardState,
-        newCardState,
-      );
+    id,
+    wordId,
+    reviewedAt,
+    grade,
+    previousCardState,
+    newCardState,
+  );
 
   @override
-  String toString() => 'ReviewLog(${id.value}, word=${wordId.value}, '
+  String toString() =>
+      'ReviewLog(${id.value}, word=${wordId.value}, '
       'grade=$grade, at=${reviewedAt.toIso8601String()})';
 }

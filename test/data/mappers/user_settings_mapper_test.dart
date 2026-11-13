@@ -15,9 +15,9 @@ void main() {
   test('round-trips default settings', () async {
     final settings = UserSettings.defaults();
 
-    await db.into(db.userSettingsTable).insert(
-          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
-        );
+    await db
+        .into(db.userSettingsTable)
+        .insert(UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt));
     final row = (await db.select(db.userSettingsTable).get()).single;
 
     expect(UserSettingsMapper.toDomain(row), settings);
@@ -34,9 +34,9 @@ void main() {
       ttsSpeed: 0.55,
     );
 
-    await db.into(db.userSettingsTable).insert(
-          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
-        );
+    await db
+        .into(db.userSettingsTable)
+        .insert(UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt));
     final row = (await db.select(db.userSettingsTable).get()).single;
 
     expect(row.id, 1);

@@ -11,14 +11,13 @@ CardState card({
   int interval = 0,
   int reps = 0,
   int lapses = 0,
-}) =>
-    CardState(
-      easePermille: ease,
-      intervalDays: interval,
-      repetitions: reps,
-      lapses: lapses,
-      dueAt: now,
-    );
+}) => CardState(
+  easePermille: ease,
+  intervalDays: interval,
+  repetitions: reps,
+  lapses: lapses,
+  dueAt: now,
+);
 
 void main() {
   group('Sm2SrsCalculator', () {
@@ -55,44 +54,28 @@ void main() {
     });
 
     test('second good answer moves to six days', () {
-      final next = srs.apply(
-        card(reps: 1, interval: 1),
-        ReviewGrade.good,
-        now,
-      );
+      final next = srs.apply(card(reps: 1, interval: 1), ReviewGrade.good, now);
       expect(next.repetitions, 2);
       expect(next.intervalDays, 6);
       expect(next.easePermille, 2500);
     });
 
     test('third good answer scales the interval by ease', () {
-      final next = srs.apply(
-        card(reps: 2, interval: 6),
-        ReviewGrade.good,
-        now,
-      );
+      final next = srs.apply(card(reps: 2, interval: 6), ReviewGrade.good, now);
       expect(next.repetitions, 3);
       expect(next.intervalDays, 15);
       expect(next.easePermille, 2500);
     });
 
     test('third easy answer scales by the raised ease', () {
-      final next = srs.apply(
-        card(reps: 2, interval: 6),
-        ReviewGrade.easy,
-        now,
-      );
+      final next = srs.apply(card(reps: 2, interval: 6), ReviewGrade.easy, now);
       expect(next.repetitions, 3);
       expect(next.easePermille, 2600);
       expect(next.intervalDays, 16);
     });
 
     test('third hard answer scales by the lowered ease', () {
-      final next = srs.apply(
-        card(reps: 2, interval: 6),
-        ReviewGrade.hard,
-        now,
-      );
+      final next = srs.apply(card(reps: 2, interval: 6), ReviewGrade.hard, now);
       expect(next.repetitions, 3);
       expect(next.easePermille, 2360);
       expect(next.intervalDays, 14);
@@ -157,15 +140,17 @@ void main() {
       );
     });
 
-    test('rounds the scaled interval with Dart round (half away from zero)',
-        () {
-      final next = srs.apply(
-        card(reps: 2, interval: 7),
-        ReviewGrade.good,
-        now,
-      );
-      // 7 * 2.5 = 17.5 → 18
-      expect(next.intervalDays, 18);
-    });
+    test(
+      'rounds the scaled interval with Dart round (half away from zero)',
+      () {
+        final next = srs.apply(
+          card(reps: 2, interval: 7),
+          ReviewGrade.good,
+          now,
+        );
+        // 7 * 2.5 = 17.5 → 18
+        expect(next.intervalDays, 18);
+      },
+    );
   });
 }

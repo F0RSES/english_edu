@@ -27,9 +27,7 @@ void main() {
   });
 
   test('stores dueAt as UTC milliseconds and restores UTC', () {
-    final columns = CardStateMapper.toColumns(
-      CardState.initial(dueAt),
-    );
+    final columns = CardStateMapper.toColumns(CardState.initial(dueAt));
 
     expect(columns.dueAtUtcMs, dueAt.millisecondsSinceEpoch);
 
@@ -46,9 +44,7 @@ void main() {
 
   test('converts a local dueAt to UTC before storing', () {
     final local = DateTime(2024, 5, 15, 12);
-    final columns = CardStateMapper.toColumns(
-      CardState.initial(local),
-    );
+    final columns = CardStateMapper.toColumns(CardState.initial(local));
     expect(columns.dueAtUtcMs, local.toUtc().millisecondsSinceEpoch);
   });
 }

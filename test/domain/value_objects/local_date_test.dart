@@ -10,10 +10,7 @@ void main() {
     });
 
     test('maps 2024-01-01 to 19723 and 2024-01-02 to 19724', () {
-      expect(
-        LocalDate.fromDateTime(DateTime.utc(2024)).daysSinceEpoch,
-        19723,
-      );
+      expect(LocalDate.fromDateTime(DateTime.utc(2024)).daysSinceEpoch, 19723);
       expect(
         LocalDate.fromDateTime(DateTime.utc(2024, 1, 2)).daysSinceEpoch,
         19724,

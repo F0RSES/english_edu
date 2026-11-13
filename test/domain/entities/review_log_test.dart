@@ -10,13 +10,13 @@ void main() {
   final previous = CardState.initial(DateTime.utc(2024, 3));
 
   ReviewLog createLog() => ReviewLog(
-        id: const ReviewLogId(1),
-        wordId: const WordId(2),
-        reviewedAt: reviewedAt,
-        grade: ReviewGrade.good,
-        previousCardState: previous,
-        newCardState: previous.copyWith(intervalDays: 1, repetitions: 1),
-      );
+    id: const ReviewLogId(1),
+    wordId: const WordId(2),
+    reviewedAt: reviewedAt,
+    grade: ReviewGrade.good,
+    previousCardState: previous,
+    newCardState: previous.copyWith(intervalDays: 1, repetitions: 1),
+  );
 
   group('ReviewLog', () {
     test('keeps every given value', () {

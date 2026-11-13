@@ -13,15 +13,16 @@ void main() {
 
     test('is exhaustive in a switch expression', () {
       String describe(WordStatus status) => switch (status) {
-            WordStatus.newWord => 'new',
-            WordStatus.learning => 'learning',
-            WordStatus.mastered => 'mastered',
-          };
+        WordStatus.newWord => 'new',
+        WordStatus.learning => 'learning',
+        WordStatus.mastered => 'mastered',
+      };
 
-      expect(
-        WordStatus.values.map(describe).toList(),
-        ['new', 'learning', 'mastered'],
-      );
+      expect(WordStatus.values.map(describe).toList(), [
+        'new',
+        'learning',
+        'mastered',
+      ]);
     });
 
     test('keeps a stable name for serialisation', () {

@@ -15,20 +15,20 @@ final class CardState {
     required this.repetitions,
     required this.lapses,
     required DateTime dueAt,
-  })  : dueAt = dueAt.toUtc(),
-        assert(easePermille >= 1300, 'easePermille must be >= 1300'),
-        assert(intervalDays >= 0, 'intervalDays must be >= 0'),
-        assert(repetitions >= 0, 'repetitions must be >= 0'),
-        assert(lapses >= 0, 'lapses must be >= 0');
+  }) : dueAt = dueAt.toUtc(),
+       assert(easePermille >= 1300, 'easePermille must be >= 1300'),
+       assert(intervalDays >= 0, 'intervalDays must be >= 0'),
+       assert(repetitions >= 0, 'repetitions must be >= 0'),
+       assert(lapses >= 0, 'lapses must be >= 0');
 
   /// Fresh card whose first answer is expected at [dueAt].
   factory CardState.initial(DateTime dueAt) => CardState(
-        easePermille: 2500,
-        intervalDays: 0,
-        repetitions: 0,
-        lapses: 0,
-        dueAt: dueAt,
-      );
+    easePermille: 2500,
+    intervalDays: 0,
+    repetitions: 0,
+    lapses: 0,
+    dueAt: dueAt,
+  );
 
   /// Ease factor scaled by 1000; 1300 stands for 1.3.
   final int easePermille;
@@ -55,14 +55,13 @@ final class CardState {
     int? repetitions,
     int? lapses,
     DateTime? dueAt,
-  }) =>
-      CardState(
-        easePermille: easePermille ?? this.easePermille,
-        intervalDays: intervalDays ?? this.intervalDays,
-        repetitions: repetitions ?? this.repetitions,
-        lapses: lapses ?? this.lapses,
-        dueAt: dueAt ?? this.dueAt,
-      );
+  }) => CardState(
+    easePermille: easePermille ?? this.easePermille,
+    intervalDays: intervalDays ?? this.intervalDays,
+    repetitions: repetitions ?? this.repetitions,
+    lapses: lapses ?? this.lapses,
+    dueAt: dueAt ?? this.dueAt,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -76,15 +75,16 @@ final class CardState {
 
   @override
   int get hashCode => Object.hash(
-        easePermille,
-        intervalDays,
-        repetitions,
-        lapses,
-        dueAt.microsecondsSinceEpoch,
-      );
+    easePermille,
+    intervalDays,
+    repetitions,
+    lapses,
+    dueAt.microsecondsSinceEpoch,
+  );
 
   @override
-  String toString() => 'CardState(ease: $ease, '
+  String toString() =>
+      'CardState(ease: $ease, '
       'interval: ${intervalDays}d, reps: $repetitions, lapses: $lapses, '
       'dueAt: ${dueAt.toIso8601String()})';
 }

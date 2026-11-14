@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -187,5 +188,24 @@ void main() {
           .having((d) => d.color, 'color', Colors.green.withValues(alpha: 0.15))
           .having((d) => d.border, 'border', Border.all(color: Colors.green)),
     );
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Охота на ошибки'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(
+        FakeErrorTaskGenerator(task()),
+        settings: const UserSettings(language: AppLanguage.en),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Error Hunter'), findsOneWidget);
   });
 }

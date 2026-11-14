@@ -1,5 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/phrase.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +14,12 @@ class PhrasebookScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => Scaffold(
     appBar: AppBar(
-      title: const Text('Разговорник'),
+      title: Text(
+        S.gameTitle(
+          'phrasebook',
+          ref.watch(languageProvider).value ?? AppLanguage.ru,
+        ),
+      ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         tooltip: 'Назад',

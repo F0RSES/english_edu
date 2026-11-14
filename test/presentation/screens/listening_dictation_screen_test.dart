@@ -7,6 +7,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -38,9 +39,20 @@ Word word(int id, String term, {String? transcription}) => Word(
 
 /// Окружение диктанта: словарь, TTS-шпион и настоящий `RecordReview`.
 final class Harness {
-  Harness({List<Word>? words, FakeWordRepository? wordRepo, int seed = 3})
-    : wordRepo = wordRepo ?? FakeWordRepository(words ?? [word(1, 'apple')]),
-      tts = FakeTtsService() {
+  Harness({
+    List<Word>? words,
+    FakeWordRepository? wordRepo,
+    int seed = 3,
+    AppLanguage lang = AppLanguage.ru,
+  }) : wordRepo = wordRepo ?? FakeWordRepository(words ?? [word(1, 'apple')]),
+       tts = FakeTtsService() {
+    settings = FakeSettingsRepository(
+      UserSettings.defaults().copyWith(
+        ttsVoice: 'en-GB',
+        ttsSpeed: 0.6,
+        language: lang,
+      ),
+    );
     queue = GenerateDictationQueue(
       words: this.wordRepo,
       settings: settings,
@@ -53,9 +65,7 @@ final class Harness {
   final FakeProgressRepository progress = FakeProgressRepository();
   final FakeReviewLogRepository logs = FakeReviewLogRepository();
   final FakeStatsRepository stats = FakeStatsRepository();
-  final FakeSettingsRepository settings = FakeSettingsRepository(
-    UserSettings.defaults().copyWith(ttsVoice: 'en-GB', ttsSpeed: 0.6),
-  );
+  late final FakeSettingsRepository settings;
   final FakeCrashReporter crashReporter = FakeCrashReporter();
   late final GenerateDictationQueue queue;
   var _nextId = 1;
@@ -254,5 +264,19 @@ void main() {
     expect(find.byType(ErrorHelperButton), findsOneWidget);
 
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(Harness().app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Аудио-диктант'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(Harness(lang: AppLanguage.en).app());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dictation'), findsOneWidget);
   });
 }

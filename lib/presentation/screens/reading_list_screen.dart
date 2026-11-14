@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/core/text/plural.dart';
 import 'package:english_edu/domain/entities/story.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:flutter/material.dart';
@@ -54,9 +56,10 @@ class _ReadingListScreenState extends ConsumerState<ReadingListScreen> {
   @override
   Widget build(BuildContext context) {
     final stories = ref.watch(storiesByLevelProvider(_level));
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Чтение'),
+        title: Text(S.gameTitle('reading', lang)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Назад',

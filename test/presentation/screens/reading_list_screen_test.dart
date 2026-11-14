@@ -1,5 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/story.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/presentation/screens/reading_list_screen.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +27,10 @@ List<Story> stories() => const [
   ),
 ];
 
-Widget host({List<Story> Function(CefrLevel level)? byLevel}) => ProviderScope(
+Widget host({
+  List<Story> Function(CefrLevel level)? byLevel,
+  UserSettings? settings,
+}) => ProviderScope(
   overrides: [
     storiesByLevelProvider.overrideWith(
       (ref, level) async =>
@@ -35,7 +40,9 @@ Widget host({List<Story> Function(CefrLevel level)? byLevel}) => ProviderScope(
               if (story.level == level) story,
           ],
     ),
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
   ],
   child: const MaterialApp(home: ReadingListScreen()),
 );
@@ -64,5 +71,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Рассказы не загружены'), findsOneWidget);
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Чтение'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(language: AppLanguage.en)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Reading'), findsOneWidget);
   });
 }

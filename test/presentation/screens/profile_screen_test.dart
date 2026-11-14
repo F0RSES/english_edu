@@ -1,7 +1,10 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
+import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,17 +13,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 
-Widget host({UserSettings? settings, FakeSettingsRepository? repository}) =>
-    ProviderScope(
-      overrides: [
-        settingsRepositoryProvider.overrideWithValue(
-          repository ?? FakeSettingsRepository(settings),
-        ),
-        computeStreakProvider.overrideWith(
-          (ref) async => const StreakInfo(count: 5),
-        ),
-        analyticsProvider.overrideWith(
-          (ref) async => Analytics(
+Widget host({
+  UserSettings? settings,
+  FakeSettingsRepository? repository,
+  Analytics? analytics,
+}) => ProviderScope(
+  overrides: [
+    settingsRepositoryProvider.overrideWithValue(
+      repository ?? FakeSettingsRepository(settings),
+    ),
+    computeStreakProvider.overrideWith(
+      (ref) async => const StreakInfo(count: 5),
+    ),
+    analyticsProvider.overrideWith(
+      (ref) async =>
+          analytics ??
+          Analytics(
             totalWords: 2071,
             masteredCount: 7,
             learningCount: 3,
@@ -28,15 +36,15 @@ Widget host({UserSettings? settings, FakeSettingsRepository? repository}) =>
             hardestWords: const [],
             last7Days: const [],
           ),
-        ),
-        dailyGoalProvider.overrideWith(
-          (ref) async => const DailyGoal(stats: null, target: 60),
-        ),
-        achievementsProvider.overrideWith((ref) async => const []),
-        clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
-      ],
-      child: const MaterialApp(home: ProfileScreen()),
-    );
+    ),
+    dailyGoalProvider.overrideWith(
+      (ref) async => const DailyGoal(stats: null, target: 60),
+    ),
+    achievementsProvider.overrideWith((ref) async => const []),
+    clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
+  ],
+  child: const MaterialApp(home: ProfileScreen()),
+);
 
 void main() {
   testWidgets('has a back button in the app bar', (tester) async {
@@ -131,5 +139,50 @@ void main() {
     expect((await repository.get()).nickname, 'Norman');
     expect(find.text('Norman'), findsOneWidget);
     expect(find.text('Никнейм сохранён'), findsOneWidget);
+  });
+
+  testWidgets('shows the weekly chart with seven bars', (tester) async {
+    final today = LocalDate.fromDateTime(DateTime.utc(2024, 5, 15, 12));
+    await tester.pumpWidget(
+      host(
+        analytics: Analytics(
+          totalWords: 10,
+          masteredCount: 1,
+          learningCount: 2,
+          newCount: 7,
+          hardestWords: const [],
+          last7Days: [
+            for (var offset = 6; offset >= 0; offset--)
+              DailyStats(
+                date: today.addDays(-offset),
+                newWordsStudied: 1,
+                reviewsCompleted: 0,
+                xpGained: 0,
+                correctAnswers: 1,
+              ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('weekChart')), findsOneWidget);
+    expect(find.text('За 7 дней'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) {
+        final key = widget.key;
+        return key is ValueKey<String> && key.value.startsWith('bar-');
+      }),
+      findsNWidgets(7),
+    );
+  });
+
+  testWidgets('weekly chart header switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(language: AppLanguage.en)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Last 7 days'), findsOneWidget);
   });
 }

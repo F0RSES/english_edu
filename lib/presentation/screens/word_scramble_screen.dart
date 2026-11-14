@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/scramble_puzzle.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -281,9 +283,10 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
   @override
   Widget build(BuildContext context) {
     final puzzle = _puzzle;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Собери слово'),
+        title: Text(S.gameTitle('scramble', lang)),
         actions: [
           if (_puzzles.isNotEmpty)
             Center(

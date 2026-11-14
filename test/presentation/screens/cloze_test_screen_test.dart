@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -189,5 +190,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(generator.words, ['eat']);
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Заполни пропуск'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(language: AppLanguage.en)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gap fill'), findsOneWidget);
   });
 }

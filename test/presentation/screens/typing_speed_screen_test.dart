@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/usecases/generate_typing_session.dart';
 import 'package:english_edu/domain/usecases/save_typing_record.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
@@ -32,29 +34,32 @@ final class _FakeRecords implements TypingRecordRepository {
   }
 }
 
-Widget host(TypingRecordRepository records) => ProviderScope(
-  overrides: [
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-    generateTypingSessionProvider.overrideWithValue(
-      GenerateTypingSession(
-        words: FakeWordRepository([
-          const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
-        ]),
-        settings: FakeSettingsRepository(),
-        random: Random(1),
-        wordsCount: 1,
-      ),
-    ),
-    saveTypingRecordProvider.overrideWithValue(
-      SaveTypingRecord(
-        records: records,
-        clock: () => DateTime.utc(2024, 5, 15, 12),
-      ),
-    ),
-    bestTypingRecordProvider.overrideWith((ref) async => null),
-  ],
-  child: const MaterialApp(home: TypingSpeedScreen()),
-);
+Widget host(TypingRecordRepository records, {UserSettings? settings}) =>
+    ProviderScope(
+      overrides: [
+        settingsRepositoryProvider.overrideWithValue(
+          FakeSettingsRepository(settings),
+        ),
+        generateTypingSessionProvider.overrideWithValue(
+          GenerateTypingSession(
+            words: FakeWordRepository([
+              const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+            ]),
+            settings: FakeSettingsRepository(),
+            random: Random(1),
+            wordsCount: 1,
+          ),
+        ),
+        saveTypingRecordProvider.overrideWithValue(
+          SaveTypingRecord(
+            records: records,
+            clock: () => DateTime.utc(2024, 5, 15, 12),
+          ),
+        ),
+        bestTypingRecordProvider.overrideWith((ref) async => null),
+      ],
+      child: const MaterialApp(home: TypingSpeedScreen()),
+    );
 
 /// Кадры вместо `pumpAndSettle`: экран держит `Timer.periodic`, и settle
 /// не дождётся тишины.
@@ -142,5 +147,24 @@ void main() {
     expect(field.decoration?.hintText, isNull);
     // Живой WPM остаётся (ADR-037).
     expect(find.textContaining('WPM'), findsOneWidget);
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host(_FakeRecords()));
+    await settleFrames(tester);
+
+    expect(find.text('Скорость печати'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(
+        _FakeRecords(),
+        settings: const UserSettings(language: AppLanguage.en),
+      ),
+    );
+    await settleFrames(tester);
+
+    expect(find.text('Typing Speed'), findsOneWidget);
   });
 }

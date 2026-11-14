@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/memory_card.dart';
 import 'package:english_edu/domain/value_objects/memory_game.dart';
 import 'package:flutter/material.dart';
@@ -101,9 +103,10 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
   @override
   Widget build(BuildContext context) {
     final game = _game;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Word Match'),
+        title: Text(S.gameTitle('memory', lang)),
         actions: [
           Center(
             child: Padding(

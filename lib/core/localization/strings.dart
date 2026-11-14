@@ -769,12 +769,12 @@ final class S {
     'word.few': {'ru': 'слова', 'en': 'words'},
     'word.many': {'ru': 'слов', 'en': 'words'},
     'game.errorHunter': {'ru': 'Охота на ошибки', 'en': 'Error Hunter'},
-    'game.cloze': {'ru': 'Пропуск', 'en': 'Gap fill'},
+    'game.cloze': {'ru': 'Заполни пропуск', 'en': 'Gap fill'},
     'game.scramble': {'ru': 'Собери слово', 'en': 'Word Scramble'},
     'game.memory': {'ru': 'Мемори', 'en': 'Memory'},
-    'game.typing': {'ru': 'Скорость печати', 'en': 'Typing'},
+    'game.typing': {'ru': 'Скорость печати', 'en': 'Typing Speed'},
     'game.phrasebook': {'ru': 'Разговорник', 'en': 'Phrasebook'},
-    'game.dictation': {'ru': 'Диктант', 'en': 'Dictation'},
+    'game.dictation': {'ru': 'Аудио-диктант', 'en': 'Dictation'},
     'game.reading': {'ru': 'Чтение', 'en': 'Reading'},
     // Серия.
     'streak.start': {

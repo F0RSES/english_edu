@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
@@ -190,11 +192,12 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final session = _session;
     final current = session?.current;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Typing Speed')),
+      appBar: AppBar(title: Text(S.gameTitle('typing', lang))),
       body: session == null
           ? const Center(child: CircularProgressIndicator())
           : current == null

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
@@ -259,9 +261,10 @@ class _ListeningDictationScreenState
   @override
   Widget build(BuildContext context) {
     final word = _word;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Аудио-диктант'),
+        title: Text(S.gameTitle('dictation', lang)),
         actions: [
           if (_queue.isNotEmpty)
             Center(

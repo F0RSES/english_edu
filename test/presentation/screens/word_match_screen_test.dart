@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/word_match_screen.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +14,11 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
-Widget host({int wordCount = 2}) => ProviderScope(
+Widget host({int wordCount = 2, UserSettings? settings}) => ProviderScope(
   overrides: [
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
     generateMemoryGameProvider.overrideWithValue(
       GenerateMemoryGame(
         words: FakeWordRepository([
@@ -93,5 +98,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Победа!'), findsOneWidget);
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Мемори'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(language: AppLanguage.en)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Memory'), findsOneWidget);
   });
 }

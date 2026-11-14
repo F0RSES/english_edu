@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -60,6 +62,8 @@ class ProfileScreen extends ConsumerWidget {
               achievements: ref.watch(achievementsProvider),
               lang: lang,
             ),
+            const SizedBox(height: 16),
+            const _WeekChartCard(),
           ],
         ),
       ),
@@ -522,5 +526,149 @@ class _Achievements extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Высота самого высокого столбца графика.
+const _chartHeight = 72.0;
+
+/// Минимальная видимая высота столбца: пустой день тоже должен читаться.
+const _minBarHeight = 4.0;
+
+/// Недельная статистика: карточка «За 7 дней» с 7 столбиками (Phase 29a).
+///
+/// Восстановлена после 28a, который удалил её вместе со всей
+/// `AnalyticsSection`; метрики, трудные слова и прогноз mastery не
+/// возвращены — они удалены намеренно. Дизайн столбцов — как в
+/// `AnalyticsSection` до 28a (ADR-021).
+class _WeekChartCard extends ConsumerWidget {
+  const _WeekChartCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return Card(
+      key: const ValueKey('weekChart'),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ref
+            .watch(analyticsProvider)
+            .when(
+              data: (analytics) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    S.last7Days(lang),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  _WeekChart(days: analytics.last7Days, lang: lang),
+                ],
+              ),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, stack) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(S.analyticsFailed(lang)),
+              ),
+            ),
+      ),
+    );
+  }
+}
+
+/// Столбцы по дням: высота пропорциональна числу ответов, под ними день недели.
+class _WeekChart extends StatelessWidget {
+  const _WeekChart({required this.days, required this.lang});
+
+  final List<DailyStats> days;
+  final AppLanguage lang;
+
+  double _heightFor(DailyStats day, int maxAnswers) {
+    if (maxAnswers == 0) {
+      return _minBarHeight;
+    }
+    return _minBarHeight +
+        (_chartHeight - _minBarHeight) * day.totalAnswers / maxAnswers;
+  }
+
+  String _labelFor(DailyStats day) {
+    final date = DateTime.utc(1970)
+        .add(Duration(days: day.date.daysSinceEpoch));
+    return S.weekday(date.weekday, lang);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var maxAnswers = 0;
+    for (final day in days) {
+      if (day.totalAnswers > maxAnswers) {
+        maxAnswers = day.totalAnswers;
+      }
+    }
+    final labelStyle = Theme.of(context).textTheme.labelSmall;
+    return SizedBox(
+      height: _chartHeight + 20,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final (index, day) in days.indexed)
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _Bar(
+                    key: ValueKey('bar-${day.date}'),
+                    height: _heightFor(day, maxAnswers),
+                    delayIndex: index,
+                    isEmpty: day.totalAnswers == 0,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(_labelFor(day), style: labelStyle),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Один столбец: аккуратный цилиндр, растущий снизу вверх.
+class _Bar extends StatelessWidget {
+  const _Bar({
+    required this.height,
+    required this.delayIndex,
+    required this.isEmpty,
+    super.key,
+  });
+
+  final double height;
+  final int delayIndex;
+  final bool isEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+          width: 12,
+          height: height,
+          decoration: BoxDecoration(
+            // Пустой день виден, но не спорит с данными.
+            color: isEmpty ? scheme.outlineVariant : scheme.primary,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        )
+        .animate(delay: (delayIndex * 40).ms)
+        .scaleY(
+          begin: 0,
+          end: 1,
+          alignment: Alignment.bottomCenter,
+          duration: 320.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 }

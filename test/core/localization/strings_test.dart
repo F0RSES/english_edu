@@ -314,5 +314,12 @@ void main() {
       expect(S.removeConfirmBody('apple', AppLanguage.ru), contains('apple'));
       expect(S.removeConfirmBody('apple', AppLanguage.en), contains('apple'));
     });
+
+    test('game titles match screen names (Phase 29a)', () {
+      expect(S.gameTitle('cloze', AppLanguage.ru), 'Заполни пропуск');
+      expect(S.gameTitle('dictation', AppLanguage.ru), 'Аудио-диктант');
+      expect(S.gameTitle('typing', AppLanguage.en), 'Typing Speed');
+      expect(S.gameTitle('cloze', AppLanguage.en), 'Gap fill');
+    });
   });
 }

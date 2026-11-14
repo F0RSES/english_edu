@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
@@ -146,8 +148,9 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
   @override
   Widget build(BuildContext context) {
     final task = _task;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
-      appBar: AppBar(title: const Text('Заполни пропуск')),
+      appBar: AppBar(title: Text(S.gameTitle('cloze', lang))),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: _loading

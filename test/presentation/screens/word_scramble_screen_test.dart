@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
@@ -37,10 +39,15 @@ List<Word> twoWords() => [word(1, 'apple', 'яблоко'), word(2, 'book', 'к�
 /// бы собственную заглушку. Управляем словарём, а seed фиксирует перемешивание.
 /// Окружение: словарь, настоящий use case и настоящий `RecordReview`.
 final class _Harness {
-  _Harness({List<Word>? words, FakeWordRepository? wordRepo})
-    : wordRepo = wordRepo ?? FakeWordRepository(words ?? twoWords());
+  _Harness({
+    List<Word>? words,
+    FakeWordRepository? wordRepo,
+    UserSettings? settings,
+  }) : wordRepo = wordRepo ?? FakeWordRepository(words ?? twoWords()),
+       settingsRepo = FakeSettingsRepository(settings);
 
   final FakeWordRepository wordRepo;
+  final FakeSettingsRepository settingsRepo;
   final FakeProgressRepository progress = FakeProgressRepository();
   final FakeReviewLogRepository logs = FakeReviewLogRepository();
   final FakeStatsRepository stats = FakeStatsRepository();
@@ -49,7 +56,7 @@ final class _Harness {
   Widget app() => ProviderScope(
     overrides: [
       wordRepositoryProvider.overrideWithValue(wordRepo),
-      settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+      settingsRepositoryProvider.overrideWithValue(settingsRepo),
       generateScramblePuzzlesProvider.overrideWithValue(
         GenerateScramblePuzzles(
           words: wordRepo,
@@ -82,8 +89,11 @@ final class _Harness {
   );
 }
 
-Widget host({List<Word>? words, FakeWordRepository? repo}) =>
-    _Harness(words: words, wordRepo: repo).app();
+Widget host({
+  List<Word>? words,
+  FakeWordRepository? repo,
+  UserSettings? settings,
+}) => _Harness(words: words, wordRepo: repo, settings: settings).app();
 
 /// Тапает буквы в порядке [letters], различая повторы по порядку кнопок.
 Future<void> tapLetters(WidgetTester tester, String letters) async {
@@ -286,5 +296,21 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(Wrap), findsWidgets);
+  });
+
+  testWidgets('app bar title is Russian by default', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Собери слово'), findsOneWidget);
+  });
+
+  testWidgets('app bar title switches to English', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(language: AppLanguage.en)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Word Scramble'), findsOneWidget);
   });
 }

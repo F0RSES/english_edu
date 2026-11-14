@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
@@ -98,8 +100,9 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
   @override
   Widget build(BuildContext context) {
     final task = _task;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
-      appBar: AppBar(title: const Text('Охота на ошибки')),
+      appBar: AppBar(title: Text(S.gameTitle('errorHunter', lang))),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: _loading

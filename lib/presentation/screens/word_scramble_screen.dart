@@ -69,6 +69,22 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
   /// Порог, после которого слово считается проваленным.
   static const _failedAttempts = 3;
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
+  @override
+  void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -145,7 +161,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
         _waiting = true;
         _helperVisible = false;
       });
-      _showMessage('Правильно!', correct: true);
       unawaited(_record(puzzle.word, ReviewGrade.good));
       await Future<void>.delayed(_feedbackDelay);
       if (!mounted) {
@@ -240,18 +255,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _hasError = false;
       _used = List<bool>.filled(puzzle.scrambled.length, false);
     });
-  }
-
-  void _showMessage(String text, {required bool correct}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(text),
-          backgroundColor: correct ? Colors.green : Colors.red,
-          duration: const Duration(milliseconds: 700),
-        ),
-      );
   }
 
   Future<void> _showSummary() async {
@@ -495,7 +498,13 @@ class _PuzzleView extends StatelessWidget {
         .then()
         .scaleXY(end: 1, duration: 220.ms, curve: Curves.easeOutBack);
 
-    return pulsing
+    // Зелёная вспышка на 800 мс — синхронно с паузой перед переходом
+    // к следующему слову: успех виден без SnackBar (Phase 29b).
+    final green = pulsing
+        .animate(key: ValueKey('green-$pulseKey'), autoPlay: pulseKey > 0)
+        .tint(color: Colors.green, begin: 0.3, end: 0, duration: 800.ms);
+
+    return green
         .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
         .shakeX(amount: 10, hz: 6, duration: 400.ms);
   }

@@ -35,6 +35,22 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
   bool _loading = true;
   bool _solved = false;
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
+  @override
+  void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -92,9 +108,6 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
       return;
     }
     setState(() => _solved = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Верно!'), backgroundColor: Colors.green),
-    );
   }
 
   @override
@@ -278,9 +291,6 @@ class _OptionsSheetState extends State<_OptionsSheet> {
       _wrongOption = option;
       _shakeCount++;
     });
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      const SnackBar(content: Text('Ошибка'), backgroundColor: Colors.red),
-    );
   }
 
   @override

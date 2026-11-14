@@ -245,6 +245,8 @@ void main() {
         S.enterNickname,
         S.nicknameSaved,
         S.saveNickname,
+        S.personalization,
+        S.changeNickname,
       ];
       for (final build in simple) {
         for (final lang in AppLanguage.values) {

@@ -118,7 +118,9 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Введите никнейм'));
+    await tester.tap(find.byTooltip('Персонализация'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сменить никнейм'));
     await tester.pumpAndSettle();
 
     expect(find.byType(TextField), findsOneWidget);
@@ -130,7 +132,9 @@ void main() {
     await tester.pumpWidget(host(repository: repository));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Введите никнейм'));
+    await tester.tap(find.byTooltip('Персонализация'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Сменить никнейм'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Norman');
     await tester.tap(find.text('Сохранить'));
@@ -184,5 +188,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Last 7 days'), findsOneWidget);
+  });
+
+  testWidgets('single edit button', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.edit), findsOneWidget);
+  });
+
+  testWidgets('sheet contains changeNickname', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Персонализация'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Сменить никнейм'), findsOneWidget);
+    expect(find.text('Галерея'), findsOneWidget);
   });
 }

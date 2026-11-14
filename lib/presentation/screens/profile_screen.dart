@@ -106,14 +106,15 @@ class _Identity extends ConsumerWidget {
                 right: 0,
                 bottom: 0,
                 child: IconButton(
-                  tooltip: S.changeAvatar(lang),
+                  tooltip: S.personalization(lang),
                   style: IconButton.styleFrom(
                     backgroundColor: scheme.primary,
                     foregroundColor: scheme.onPrimary,
                   ),
                   icon: const Icon(Icons.edit, size: 16),
-                  onPressed: () =>
-                      unawaited(_openAvatarSheet(context, ref, avatarPath)),
+                  onPressed: () => unawaited(
+                    _openAvatarSheet(context, ref, avatarPath, nickname),
+                  ),
                 ),
               ),
             ],
@@ -130,12 +131,6 @@ class _Identity extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: S.enterNickname(lang),
-                icon: const Icon(Icons.edit, size: 18),
-                onPressed: () =>
-                    unawaited(_editNickname(context, ref, nickname)),
               ),
             ],
           ),
@@ -175,11 +170,12 @@ class _Identity extends ConsumerWidget {
     );
   }
 
-  /// Лист выбора аватара: галерея, удаление (если есть), отмена.
+  /// Лист персонализации: аватар и никнейм из одной кнопки (Phase 29b).
   Future<void> _openAvatarSheet(
     BuildContext context,
     WidgetRef ref,
     String? currentPath,
+    String? nickname,
   ) async {
     await showModalBottomSheet<void>(
       context: context,
@@ -190,7 +186,7 @@ class _Identity extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                S.changeAvatar(lang),
+                S.personalization(lang),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -203,6 +199,14 @@ class _Identity extends ConsumerWidget {
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 unawaited(_pickAvatar(context, ref, currentPath));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: Text(S.changeNickname(lang)),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                unawaited(_editNickname(context, ref, nickname));
               },
             ),
             if (currentPath != null)

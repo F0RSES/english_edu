@@ -47,6 +47,22 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
   /// Меняется при ошибке: новый ключ перезапускает shake-анимацию.
   int _shakeKey = 0;
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
+  @override
+  void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -108,7 +124,6 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
         _wrongOption = null;
         _lastWrongOption = null;
       });
-      _showSuccess();
       return;
     }
     unawaited(HapticFeedback.heavyImpact());
@@ -126,23 +141,6 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
       _wrongOption = null;
       _waiting = false;
     });
-  }
-
-  /// SnackBar «Верно!» с действием «Далее».
-  void _showSuccess() {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: const Text('Верно!'),
-          backgroundColor: Colors.green,
-          action: SnackBarAction(
-            label: 'Далее',
-            textColor: Colors.white,
-            onPressed: () => unawaited(_load()),
-          ),
-        ),
-      );
   }
 
   @override
@@ -416,6 +414,14 @@ class _OptionCard extends StatelessWidget {
         ),
       ),
     );
+    if (state == _OptionState.correct) {
+      // Успех виден без SnackBar: зелёная карточка + pulse (Phase 29b).
+      return card
+          .animate(key: ValueKey('pulse-$option'), autoPlay: true)
+          .scaleXY(begin: 1, end: 1.05, duration: 200.ms, curve: Curves.easeOut)
+          .then()
+          .scaleXY(end: 1, duration: 200.ms, curve: Curves.easeOutBack);
+    }
     if (state == _OptionState.wrong) {
       return card
           .animate(key: ValueKey('shake-$shakeKey'), autoPlay: true)

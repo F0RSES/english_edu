@@ -154,7 +154,8 @@ void main() {
 
     await typeAndCheck(tester, 'Apple');
 
-    expect(find.text('Правильно!'), findsOneWidget);
+    // Успех — pulse поля, без SnackBar (Phase 29b).
+    expect(find.byType(SnackBar), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();

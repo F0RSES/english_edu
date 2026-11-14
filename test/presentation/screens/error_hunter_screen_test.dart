@@ -96,8 +96,8 @@ void main() {
     await tester.tap(find.text('have').last);
     await tester.pumpAndSettle();
 
-    expect(find.text('Верно!'), findsOneWidget);
     expect(find.text('Следующее задание'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('choosing a wrong option shows an error and keeps the task', (
@@ -111,7 +111,7 @@ void main() {
     await tester.tap(find.text('had'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Ошибка'), findsOneWidget);
+    expect(find.text('Неверно'), findsOneWidget);
     expect(find.text('Следующее задание'), findsNothing);
     expect(find.text('book'), findsOneWidget);
   });

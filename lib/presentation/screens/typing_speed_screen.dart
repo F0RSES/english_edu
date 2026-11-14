@@ -9,6 +9,7 @@ import 'package:english_edu/domain/value_objects/typing_session.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -35,6 +36,17 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
   Word? _lastWrongWord;
   String _lastWrongInput = '';
 
+  /// Ключ зелёной вспышки поля ввода после верного ответа (Phase 29b).
+  int _flashKey = 0;
+
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +55,9 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
 
   @override
   void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
     _ticker?.cancel();
     _input.dispose();
     _focus.dispose();
@@ -94,6 +109,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     if (wasCorrect) {
       _lastWrongWord = null;
       _lastWrongInput = '';
+      _flashKey++;
     } else {
       _lastWrongWord = word;
       _lastWrongInput = value.trim();
@@ -103,15 +119,6 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     unawaited(
       wasCorrect ? HapticFeedback.mediumImpact() : HapticFeedback.heavyImpact(),
     );
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(wasCorrect ? 'Верно!' : 'Было: ${word.term}'),
-          backgroundColor: wasCorrect ? Colors.green : Colors.red,
-          duration: const Duration(milliseconds: 700),
-        ),
-      );
 
     final next = ref.read(submitTypingAnswerProvider)(session, value);
     _input.clear();
@@ -221,16 +228,26 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                   ),
                   const SizedBox(height: 24),
                   TextField(
-                    controller: _input,
-                    focusNode: _focus,
-                    autofocus: true,
-                    textAlign: TextAlign.center,
-                    textInputAction: TextInputAction.done,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    style: const TextStyle(fontSize: 24),
-                    onSubmitted: (value) => unawaited(_submit(value)),
-                  ),
+                        controller: _input,
+                        focusNode: _focus,
+                        autofocus: true,
+                        textAlign: TextAlign.center,
+                        textInputAction: TextInputAction.done,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        style: const TextStyle(fontSize: 24),
+                        onSubmitted: (value) => unawaited(_submit(value)),
+                      )
+                      .animate(
+                        key: ValueKey('flash-$_flashKey'),
+                        autoPlay: _flashKey > 0,
+                      )
+                      .tint(
+                        color: Colors.green,
+                        begin: 0.3,
+                        end: 0,
+                        duration: 700.ms,
+                      ),
                   if (_lastWrongWord != null) ...[
                     const SizedBox(height: 16),
                     _errorCard(context, _lastWrongWord!, _lastWrongInput),

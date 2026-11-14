@@ -167,4 +167,15 @@ void main() {
 
     expect(find.text('Typing Speed'), findsOneWidget);
   });
+
+  testWidgets('no SnackBar after correct answer', (tester) async {
+    await tester.pumpWidget(host(_FakeRecords()));
+    await settleFrames(tester);
+
+    await tester.enterText(find.byType(TextField), 'apple');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(find.byType(SnackBar), findsNothing);
+  });
 }

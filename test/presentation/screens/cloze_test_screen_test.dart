@@ -10,6 +10,7 @@ import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -32,6 +33,7 @@ Widget host({
   FakeClozeTaskRepository? tasks,
   List<Word> words = const [],
   UserSettings? settings,
+  Widget? home,
 }) {
   final settingsRepository = FakeSettingsRepository(settings);
   return ProviderScope(
@@ -53,7 +55,7 @@ Widget host({
       ),
       settingsRepositoryProvider.overrideWithValue(settingsRepository),
     ],
-    child: const MaterialApp(home: ClozeTestScreen()),
+    child: MaterialApp(home: home ?? const ClozeTestScreen()),
   );
 }
 
@@ -76,8 +78,8 @@ void main() {
     await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Верно!'), findsOneWidget);
     expect(find.text('Следующее задание'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('tapping wrong option shows error then resets', (tester) async {
@@ -105,7 +107,7 @@ void main() {
     await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Верно!'), findsOneWidget);
+    expect(find.text('Следующее задание'), findsOneWidget);
   });
 
   testWidgets('shows error state with retry when the task fails', (
@@ -206,5 +208,64 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gap fill'), findsOneWidget);
+  });
+
+  testWidgets('no SnackBar after correct answer', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text('Следующее задание'), findsOneWidget);
+  });
+
+  testWidgets('pulse animation on correct option', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.ancestor(of: find.text('eat'), matching: find.byType(Animate)),
+      findsWidgets,
+    );
+  });
+
+  testWidgets('dispose hides SnackBar on exit', (tester) async {
+    await tester.pumpWidget(
+      host(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ClozeTestScreen(),
+                  ),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    ScaffoldMessenger.of(tester.element(find.byType(ClozeTestScreen)))
+        .showSnackBar(const SnackBar(content: Text('service')));
+    await tester.pump();
+    expect(find.byType(SnackBar), findsOneWidget);
+
+    Navigator.of(tester.element(find.byType(ClozeTestScreen))).pop();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsNothing);
   });
 }

@@ -52,6 +52,14 @@ class _ListeningDictationScreenState
   /// Слова, чей ответ уже записан в SRS: повторно не пишем (ADR-028).
   final Set<WordId> _recorded = {};
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +68,9 @@ class _ListeningDictationScreenState
 
   @override
   void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
     _controller.dispose();
     super.dispose();
   }
@@ -151,7 +162,6 @@ class _ListeningDictationScreenState
         _pulseKey++;
         _waiting = true;
       });
-      _showMessage('Правильно!', correct: true);
       await _record(word.id, ReviewGrade.good);
       await Future<void>.delayed(_feedbackDelay);
       if (!mounted) {
@@ -218,18 +228,6 @@ class _ListeningDictationScreenState
       return;
     }
     unawaited(_speak(_queue[next].term));
-  }
-
-  void _showMessage(String text, {required bool correct}) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(text),
-          backgroundColor: correct ? Colors.green : Colors.red,
-          duration: const Duration(milliseconds: 700),
-        ),
-      );
   }
 
   Future<void> _showSummary() async {
@@ -460,7 +458,13 @@ class _DictationView extends StatelessWidget {
         .then()
         .scaleXY(end: 1, duration: 220.ms, curve: Curves.easeOutBack);
 
-    return pulsing
+    // Зелёная вспышка на 800 мс — синхронно с паузой перед переходом
+    // к следующему слову: успех виден без SnackBar (Phase 29b).
+    final green = pulsing
+        .animate(key: ValueKey('green-$pulseKey'), autoPlay: pulseKey > 0)
+        .tint(color: Colors.green, begin: 0.3, end: 0, duration: 800.ms);
+
+    return green
         .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
         .shakeX(amount: 10, hz: 6, duration: 400.ms);
   }

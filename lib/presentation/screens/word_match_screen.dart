@@ -23,6 +23,14 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
   MemoryGame? _game;
   Timer? _resetTimer;
 
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.maybeOf(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +39,9 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
 
   @override
   void dispose() {
+    // SnackBar живёт на корневом messenger: без этого он переживает экран
+    // и всплывает поверх Home (Phase 29b).
+    _messenger?.hideCurrentSnackBar();
     _resetTimer?.cancel();
     super.dispose();
   }

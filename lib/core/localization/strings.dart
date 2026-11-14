@@ -215,6 +215,14 @@ final class S {
   /// Кнопка сохранения никнейма в диалоге.
   static String saveNickname(AppLanguage l) => _t('profile.saveNickname', l);
 
+  /// Tooltip единой кнопки персонализации профиля (Phase 29b).
+  static String personalization(AppLanguage l) =>
+      _t('profile.personalization', l);
+
+  /// Пункт листа персонализации: смена никнейма.
+  static String changeNickname(AppLanguage l) =>
+      _t('profile.changeNickname', l);
+
   /// Название достижения по ключу.
   static String achievementTitle(AchievementType type, AppLanguage l) =>
       _t('achievement.${type.key}', l);
@@ -850,6 +858,14 @@ final class S {
     'profile.enterNickname': {'ru': 'Введите никнейм', 'en': 'Enter nickname'},
     'profile.nicknameSaved': {'ru': 'Никнейм сохранён', 'en': 'Nickname saved'},
     'profile.saveNickname': {'ru': 'Сохранить', 'en': 'Save'},
+    'profile.personalization': {
+      'ru': 'Персонализация',
+      'en': 'Personalization',
+    },
+    'profile.changeNickname': {
+      'ru': 'Сменить никнейм',
+      'en': 'Change nickname',
+    },
     // Достижения (ключи AchievementType.key).
     'achievement.streak_7': {'ru': '7 дней подряд', 'en': '7-day streak'},
     'achievement.streak_30': {'ru': '30 дней подряд', 'en': '30-day streak'},

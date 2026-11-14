@@ -1,3 +1,5 @@
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,6 +10,7 @@ class SessionSummary extends StatelessWidget {
     required this.actualXp,
     required this.correct,
     required this.total,
+    this.lang = AppLanguage.ru,
     super.key,
   });
 
@@ -20,21 +23,24 @@ class SessionSummary extends StatelessWidget {
   /// Сколько карточек было в сессии.
   final int total;
 
+  /// Язык интерфейса; ru по умолчанию (Phase 27b).
+  final AppLanguage lang;
+
   @override
   Widget build(BuildContext context) => Column(
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Text(
-        'Сессия завершена',
+        S.sessionDone(lang),
         style: Theme.of(context).textTheme.headlineSmall,
       ),
       const SizedBox(height: 16),
-      Text('Верно: $correct из $total'),
-      Text('XP: $actualXp'),
+      Text(S.sessionCorrect(correct, total, lang)),
+      Text(S.sessionXp(actualXp, lang)),
       const SizedBox(height: 24),
       FilledButton(
         onPressed: () => context.go('/'),
-        child: const Text('Готово'),
+        child: Text(S.sessionFinish(lang)),
       ),
     ],
   );

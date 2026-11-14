@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
+
 final now = DateTime.utc(2024, 5, 15, 12);
 const today = LocalDate(20000);
 
@@ -27,6 +29,7 @@ DailyChallenge challenge({
 Widget wrap(DailyChallenge value, {ChallengeStreak? streak}) => ProviderScope(
   overrides: [
     dailyChallengeProvider.overrideWith((ref) async => value),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
     // Бейдж серии читает отдельный провайдер: без подмены тест зависел бы от
     // реальной БД.
     challengeStreakProvider.overrideWith(

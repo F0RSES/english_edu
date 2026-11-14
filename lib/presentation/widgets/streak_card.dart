@@ -1,4 +1,5 @@
-import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,6 @@ const _fireMilestone = 30;
 const _centuryMilestone = 100;
 const _yearMilestone = 365;
 
-/// Подпись бейджа «заморозка уже потрачена».
-const _freezeUsedLabel = 'Freeze использован';
-
 /// Карточка серии: сколько дней подряд были занятия.
 ///
 /// Нулевая серия — не ошибка, а приглашение начать: экран не должен выглядеть
@@ -29,13 +27,21 @@ const _freezeUsedLabel = 'Freeze использован';
 /// чтобы виджет не читал системные часы.
 class StreakCard extends StatelessWidget {
   /// Создаёт карточку для [streak] на дату [today].
-  const StreakCard({required this.streak, required this.today, super.key});
+  const StreakCard({
+    required this.streak,
+    required this.today,
+    this.lang = AppLanguage.ru,
+    super.key,
+  });
 
   /// Текущая серия.
   final StreakInfo streak;
 
   /// Локальная дата экрана: граница «недавности» заморозки.
   final LocalDate today;
+
+  /// Язык интерфейса; ru по умолчанию (Phase 27b).
+  final AppLanguage lang;
 
   /// Окно, в котором израсходованная заморозка считается свежей.
   static const int _recentFreezeDays = 7;
@@ -51,7 +57,7 @@ class StreakCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (count == 0)
-              Text('Начни серию сегодня', style: theme.textTheme.titleMedium)
+              Text(S.streakStart(lang), style: theme.textTheme.titleMedium)
             else ...[
               Text(
                 '$count',
@@ -61,8 +67,7 @@ class StreakCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '${pluralize(count, one: 'день', few: 'дня', many: 'дней')} '
-                'подряд',
+                S.daysInARow(count, lang),
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -70,8 +75,8 @@ class StreakCard extends StatelessWidget {
             ],
             if (_hasRecentFreeze) ...[
               const SizedBox(height: 8),
-              const Chip(
-                label: Text(_freezeUsedLabel),
+              Chip(
+                label: Text(S.freezeUsed(lang)),
                 visualDensity: VisualDensity.compact,
               ),
             ],
@@ -98,19 +103,18 @@ class StreakCard extends StatelessWidget {
   /// карточки нет.
   String _milestoneMessage(int count) {
     if (count >= _yearMilestone) {
-      return '🎉 $_yearMilestone дней подряд!';
+      return S.milestone365(lang);
     }
     if (count >= _centuryMilestone) {
-      return '🔥 $_centuryMilestone дней! Огонь';
+      return S.milestoneFire(_centuryMilestone, lang);
     }
     if (count >= _fireMilestone) {
-      return '🔥 $_fireMilestone дней! Огонь';
+      return S.milestoneFire(_fireMilestone, lang);
     }
     if (count >= _celebrateMilestone) {
-      return '🎉 $_celebrateMilestone дней! Молодец';
+      return S.milestone7(lang);
     }
     final remaining = _firstMilestone - count;
-    return 'До $_firstMilestone дней: $remaining '
-        '${pluralize(remaining, one: 'день', few: 'дня', many: 'дней')}';
+    return S.untilMilestone(remaining, lang);
   }
 }

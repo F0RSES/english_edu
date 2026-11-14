@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
+
 final today = LocalDate.fromDateTime(DateTime.utc(2024, 5, 15, 12));
 
 DailyStats day(int offset, {int answers = 1}) => DailyStats(
@@ -37,7 +39,10 @@ Analytics analyticsOf({
 );
 
 Widget host(Analytics analytics) => ProviderScope(
-  overrides: [analyticsProvider.overrideWith((ref) => analytics)],
+  overrides: [
+    analyticsProvider.overrideWith((ref) => analytics),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+  ],
   child: const MaterialApp(
     home: Scaffold(body: SingleChildScrollView(child: AnalyticsSection())),
   ),

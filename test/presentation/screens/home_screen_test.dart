@@ -4,6 +4,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/repositories/stats_repository.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
@@ -393,5 +394,34 @@ void main() {
 
     expect((await settings.get()).preferredLevel, CefrLevel.b1);
     expect(find.text('B1'), findsOneWidget);
+  });
+
+  testWidgets('language button is present in the AppBar', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Язык'), findsOneWidget);
+    expect(find.byIcon(Icons.language), findsOneWidget);
+  });
+
+  testWidgets('language switch changes UI strings', (tester) async {
+    final settings = FakeSettingsRepository();
+    await tester.pumpWidget(app(words: [word(1)], settings: settings));
+    await tester.pumpAndSettle();
+
+    // До переключения — русские строки.
+    expect(find.text('Игры'), findsOneWidget);
+    expect(find.text('Начать урок'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Язык'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+
+    // После переключения — английские, и настройка сохранена.
+    expect(find.text('Games'), findsOneWidget);
+    expect(find.text('Start lesson'), findsOneWidget);
+    expect(find.text('Игры'), findsNothing);
+    expect((await settings.get()).language, AppLanguage.en);
   });
 }

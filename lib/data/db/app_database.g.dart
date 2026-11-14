@@ -2120,6 +2120,18 @@ class $UserSettingsTableTable extends UserSettingsTable
     requiredDuringInsert: false,
     defaultValue: const Constant('a1'),
   );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('ru'),
+  );
   static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
     'updatedAtUtc',
   );
@@ -2143,6 +2155,7 @@ class $UserSettingsTableTable extends UserSettingsTable
     ttsSpeed,
     hasSeenOnboarding,
     preferredLevel,
+    language,
     updatedAtUtc,
   ];
   @override
@@ -2235,6 +2248,12 @@ class $UserSettingsTableTable extends UserSettingsTable
         ),
       );
     }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
     if (data.containsKey('updated_at_utc')) {
       context.handle(
         _updatedAtUtcMeta,
@@ -2295,6 +2314,10 @@ class $UserSettingsTableTable extends UserSettingsTable
         DriftSqlType.string,
         data['${effectivePrefix}preferred_level'],
       )!,
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
       updatedAtUtc: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at_utc'],
@@ -2342,6 +2365,9 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
   /// Фильтрует новые слова в очереди дня; уже начатые слова не фильтруются.
   final String preferredLevel;
 
+  /// Язык интерфейса: 'ru' | 'en' (schema v17, Phase 27b).
+  final String language;
+
   /// Момент последнего изменения, миллисекунды UTC.
   final int updatedAtUtc;
   const UserSettingsRow({
@@ -2355,6 +2381,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     required this.ttsSpeed,
     required this.hasSeenOnboarding,
     required this.preferredLevel,
+    required this.language,
     required this.updatedAtUtc,
   });
   @override
@@ -2370,6 +2397,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     map['tts_speed'] = Variable<double>(ttsSpeed);
     map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
     map['preferred_level'] = Variable<String>(preferredLevel);
+    map['language'] = Variable<String>(language);
     map['updated_at_utc'] = Variable<int>(updatedAtUtc);
     return map;
   }
@@ -2386,6 +2414,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       ttsSpeed: Value(ttsSpeed),
       hasSeenOnboarding: Value(hasSeenOnboarding),
       preferredLevel: Value(preferredLevel),
+      language: Value(language),
       updatedAtUtc: Value(updatedAtUtc),
     );
   }
@@ -2406,6 +2435,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       ttsSpeed: serializer.fromJson<double>(json['ttsSpeed']),
       hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
       preferredLevel: serializer.fromJson<String>(json['preferredLevel']),
+      language: serializer.fromJson<String>(json['language']),
       updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
     );
   }
@@ -2423,6 +2453,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       'ttsSpeed': serializer.toJson<double>(ttsSpeed),
       'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
       'preferredLevel': serializer.toJson<String>(preferredLevel),
+      'language': serializer.toJson<String>(language),
       'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
     };
   }
@@ -2438,6 +2469,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     double? ttsSpeed,
     bool? hasSeenOnboarding,
     String? preferredLevel,
+    String? language,
     int? updatedAtUtc,
   }) => UserSettingsRow(
     id: id ?? this.id,
@@ -2450,6 +2482,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     preferredLevel: preferredLevel ?? this.preferredLevel,
+    language: language ?? this.language,
     updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
   );
   UserSettingsRow copyWithCompanion(UserSettingsTableCompanion data) {
@@ -2478,6 +2511,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       preferredLevel: data.preferredLevel.present
           ? data.preferredLevel.value
           : this.preferredLevel,
+      language: data.language.present ? data.language.value : this.language,
       updatedAtUtc: data.updatedAtUtc.present
           ? data.updatedAtUtc.value
           : this.updatedAtUtc,
@@ -2497,6 +2531,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           ..write('ttsSpeed: $ttsSpeed, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('preferredLevel: $preferredLevel, ')
+          ..write('language: $language, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -2514,6 +2549,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     ttsSpeed,
     hasSeenOnboarding,
     preferredLevel,
+    language,
     updatedAtUtc,
   );
   @override
@@ -2530,6 +2566,7 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           other.ttsSpeed == this.ttsSpeed &&
           other.hasSeenOnboarding == this.hasSeenOnboarding &&
           other.preferredLevel == this.preferredLevel &&
+          other.language == this.language &&
           other.updatedAtUtc == this.updatedAtUtc);
 }
 
@@ -2544,6 +2581,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
   final Value<double> ttsSpeed;
   final Value<bool> hasSeenOnboarding;
   final Value<String> preferredLevel;
+  final Value<String> language;
   final Value<int> updatedAtUtc;
   const UserSettingsTableCompanion({
     this.id = const Value.absent(),
@@ -2556,6 +2594,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.ttsSpeed = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
     this.preferredLevel = const Value.absent(),
+    this.language = const Value.absent(),
     this.updatedAtUtc = const Value.absent(),
   });
   UserSettingsTableCompanion.insert({
@@ -2569,6 +2608,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.ttsSpeed = const Value.absent(),
     this.hasSeenOnboarding = const Value.absent(),
     this.preferredLevel = const Value.absent(),
+    this.language = const Value.absent(),
     required int updatedAtUtc,
   }) : updatedAtUtc = Value(updatedAtUtc);
   static Insertable<UserSettingsRow> custom({
@@ -2582,6 +2622,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Expression<double>? ttsSpeed,
     Expression<bool>? hasSeenOnboarding,
     Expression<String>? preferredLevel,
+    Expression<String>? language,
     Expression<int>? updatedAtUtc,
   }) {
     return RawValuesInsertable({
@@ -2595,6 +2636,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       if (ttsSpeed != null) 'tts_speed': ttsSpeed,
       if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
       if (preferredLevel != null) 'preferred_level': preferredLevel,
+      if (language != null) 'language': language,
       if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
     });
   }
@@ -2610,6 +2652,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Value<double>? ttsSpeed,
     Value<bool>? hasSeenOnboarding,
     Value<String>? preferredLevel,
+    Value<String>? language,
     Value<int>? updatedAtUtc,
   }) {
     return UserSettingsTableCompanion(
@@ -2623,6 +2666,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       ttsSpeed: ttsSpeed ?? this.ttsSpeed,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       preferredLevel: preferredLevel ?? this.preferredLevel,
+      language: language ?? this.language,
       updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
     );
   }
@@ -2660,6 +2704,9 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     if (preferredLevel.present) {
       map['preferred_level'] = Variable<String>(preferredLevel.value);
     }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
     if (updatedAtUtc.present) {
       map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
     }
@@ -2679,6 +2726,7 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
           ..write('ttsSpeed: $ttsSpeed, ')
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('preferredLevel: $preferredLevel, ')
+          ..write('language: $language, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -8682,6 +8730,7 @@ typedef $$UserSettingsTableTableCreateCompanionBuilder =
       Value<double> ttsSpeed,
       Value<bool> hasSeenOnboarding,
       Value<String> preferredLevel,
+      Value<String> language,
       required int updatedAtUtc,
     });
 typedef $$UserSettingsTableTableUpdateCompanionBuilder =
@@ -8696,6 +8745,7 @@ typedef $$UserSettingsTableTableUpdateCompanionBuilder =
       Value<double> ttsSpeed,
       Value<bool> hasSeenOnboarding,
       Value<String> preferredLevel,
+      Value<String> language,
       Value<int> updatedAtUtc,
     });
 
@@ -8755,6 +8805,11 @@ class $$UserSettingsTableTableFilterComposer
 
   ColumnFilters<String> get preferredLevel => $composableBuilder(
     column: $table.preferredLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8823,6 +8878,11 @@ class $$UserSettingsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => ColumnOrderings(column),
@@ -8882,6 +8942,9 @@ class $$UserSettingsTableTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
   GeneratedColumn<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => column,
@@ -8938,6 +9001,7 @@ class $$UserSettingsTableTableTableManager
                 Value<double> ttsSpeed = const Value.absent(),
                 Value<bool> hasSeenOnboarding = const Value.absent(),
                 Value<String> preferredLevel = const Value.absent(),
+                Value<String> language = const Value.absent(),
                 Value<int> updatedAtUtc = const Value.absent(),
               }) => UserSettingsTableCompanion(
                 id: id,
@@ -8950,6 +9014,7 @@ class $$UserSettingsTableTableTableManager
                 ttsSpeed: ttsSpeed,
                 hasSeenOnboarding: hasSeenOnboarding,
                 preferredLevel: preferredLevel,
+                language: language,
                 updatedAtUtc: updatedAtUtc,
               ),
           createCompanionCallback:
@@ -8964,6 +9029,7 @@ class $$UserSettingsTableTableTableManager
                 Value<double> ttsSpeed = const Value.absent(),
                 Value<bool> hasSeenOnboarding = const Value.absent(),
                 Value<String> preferredLevel = const Value.absent(),
+                Value<String> language = const Value.absent(),
                 required int updatedAtUtc,
               }) => UserSettingsTableCompanion.insert(
                 id: id,
@@ -8976,6 +9042,7 @@ class $$UserSettingsTableTableTableManager
                 ttsSpeed: ttsSpeed,
                 hasSeenOnboarding: hasSeenOnboarding,
                 preferredLevel: preferredLevel,
+                language: language,
                 updatedAtUtc: updatedAtUtc,
               ),
           withReferenceMapper: (p0) => p0

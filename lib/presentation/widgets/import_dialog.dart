@@ -1,4 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,15 +33,16 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
   }
 
   Future<void> _submit() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final raw = _input.text.trim();
     final ExportPayload payload;
     try {
       payload = ref.read(payloadCodecProvider).decode(raw);
     } on FormatException catch (error) {
-      setState(() => _error = 'Невалидный JSON: ${error.message}');
+      setState(() => _error = S.invalidJson(error.message, lang));
       return;
     } on Object catch (error) {
-      setState(() => _error = 'Невалидный JSON: $error');
+      setState(() => _error = S.invalidJson('$error', lang));
       return;
     }
     final isSupported =
@@ -47,8 +50,7 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
         payload.schemaVersion <= ExportPayload.currentSchemaVersion;
     if (!isSupported) {
       setState(
-        () =>
-            _error = 'Неподдерживаемая версия схемы: ${payload.schemaVersion}',
+        () => _error = S.unsupportedVersion(payload.schemaVersion, lang),
       );
       return;
     }
@@ -75,26 +77,27 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = 'Не удалось импортировать данные';
+          _error = S.importFailed(lang);
         });
       }
     }
   }
 
   Future<bool> _confirm() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final answer = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Импорт'),
-        content: const Text('Все данные будут заменены. Продолжить?'),
+        title: Text(S.importTile(lang)),
+        content: Text(S.importConfirmBody(lang)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
+            child: Text(S.cancel(lang)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Продолжить'),
+            child: Text(S.importContinue(lang)),
           ),
         ],
       ),
@@ -103,49 +106,52 @@ class _ImportDialogState extends ConsumerState<ImportDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Импорт'),
-    content: SizedBox(
-      width: 480,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Вставьте JSON резервной копии:'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _input,
-            maxLines: 10,
-            minLines: 6,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: '{"schemaVersion": 2, ...}',
-            ),
-            onChanged: (_) {
-              if (_error != null) {
-                setState(() => _error = null);
-              }
-            },
-          ),
-          if (_error != null) ...[
+  Widget build(BuildContext context) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return AlertDialog(
+      title: Text(S.importTile(lang)),
+      content: SizedBox(
+        width: 480,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(S.importPaste(lang)),
             const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            TextField(
+              controller: _input,
+              maxLines: 10,
+              minLines: 6,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: '{"schemaVersion": 2, ...}',
+              ),
+              onChanged: (_) {
+                if (_error != null) {
+                  setState(() => _error = null);
+                }
+              },
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: _busy ? null : () => Navigator.of(context).pop(false),
-        child: const Text('Отмена'),
-      ),
-      FilledButton(
-        onPressed: _busy ? null : _submit,
-        child: const Text('Импортировать'),
-      ),
-    ],
-  );
+      actions: [
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.of(context).pop(false),
+          child: Text(S.cancel(lang)),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _submit,
+          child: Text(S.importAction(lang)),
+        ),
+      ],
+    );
+  }
 }

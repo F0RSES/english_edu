@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
-import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
@@ -31,13 +32,14 @@ class HomeScreen extends ConsumerWidget {
     final smartCount = ref.watch(smartReviewCountProvider).value ?? 0;
     final level =
         ref.watch(settingsProvider).value?.preferredLevel ?? CefrLevel.a1;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
             PopupMenuButton<CefrLevel>(
-              tooltip: 'Уровень английского',
+              tooltip: S.levelTooltip(lang),
               onSelected: (selected) =>
                   unawaited(_changeLevel(context, ref, selected)),
               itemBuilder: (context) => [
@@ -69,9 +71,22 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             const Spacer(),
+            PopupMenuButton<AppLanguage>(
+              tooltip: S.language(lang),
+              icon: const Icon(Icons.language),
+              onSelected: (selected) =>
+                  unawaited(_changeLanguage(context, ref, selected)),
+              itemBuilder: (context) => [
+                for (final value in AppLanguage.values)
+                  PopupMenuItem<AppLanguage>(
+                    value: value,
+                    child: Text(value.label),
+                  ),
+              ],
+            ),
             IconButton(
               icon: const Icon(Icons.settings),
-              tooltip: 'Настройки',
+              tooltip: S.settings(lang),
               // push: экран открывается поверх главной, поэтому в AppBar
               // появляется кнопка «Назад» (Phase 17).
               onPressed: () => context.push('/settings'),
@@ -91,14 +106,14 @@ class HomeScreen extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: _buildStreak(ref, today)),
+                    Expanded(child: _buildStreak(ref, today, lang)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildGoal(ref)),
+                    Expanded(child: _buildGoal(ref, lang)),
                   ],
                 ),
               ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2),
               const SizedBox(height: 16),
-              _buildHero(context, ref),
+              _buildHero(context, ref, lang),
               const SizedBox(height: 16),
               if (weakCount > 0 || smartCount > 0) ...[
                 Row(
@@ -107,7 +122,7 @@ class HomeScreen extends ConsumerWidget {
                       Expanded(
                         child: _PillButton(
                           icon: Icons.bolt,
-                          label: 'Сложные ($weakCount)',
+                          label: S.weakWords(weakCount, lang),
                           color: Colors.orange,
                           onTap: () => context.push('/weak-words'),
                         ),
@@ -118,7 +133,7 @@ class HomeScreen extends ConsumerWidget {
                       Expanded(
                         child: _PillButton(
                           icon: Icons.auto_awesome,
-                          label: 'Smart ($smartCount)',
+                          label: S.smartReview(smartCount, lang),
                           color: Colors.purple,
                           onTap: () => context.push('/smart-review'),
                         ),
@@ -136,16 +151,17 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Игры',
+                    S.games(lang),
                     style: Theme.of(context).textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
               const SizedBox(height: 12),
-              _buildGames(context)
-                  .animate()
-                  .fadeIn(delay: 300.ms, duration: 300.ms),
+              _buildGames(
+                context,
+                lang,
+              ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
               const SizedBox(height: 24),
               const DailyChallengeCard().animate().fadeIn(
                 delay: 350.ms,
@@ -157,27 +173,27 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/chat'),
-        tooltip: 'Помощник',
+        tooltip: S.assistant(lang),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         child: const Icon(Icons.smart_toy),
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (index) => _openSection(context, index),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Главная',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: S.home(lang),
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_outlined),
-            selectedIcon: Icon(Icons.menu_book),
-            label: 'Словарь',
+            icon: const Icon(Icons.menu_book_outlined),
+            selectedIcon: const Icon(Icons.menu_book),
+            label: S.dictionary(lang),
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Профиль',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: S.profile(lang),
           ),
         ],
       ),
@@ -193,6 +209,7 @@ class HomeScreen extends ConsumerWidget {
     WidgetRef ref,
     CefrLevel level,
   ) async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     try {
       final repository = ref.read(settingsRepositoryProvider);
       final settings = await repository.get();
@@ -206,52 +223,93 @@ class HomeScreen extends ConsumerWidget {
     } on Object catch (error, stack) {
       ref.read(loggerProvider).error('Level change failed', error, stack);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось сохранить настройки')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.saveFailed(lang))));
+      }
+    }
+  }
+
+  /// Сохраняет язык интерфейса и сбрасывает кэш строк (Phase 27b).
+  Future<void> _changeLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage language,
+  ) async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    try {
+      final repository = ref.read(settingsRepositoryProvider);
+      final settings = await repository.get();
+      await repository.save(settings.copyWith(language: language));
+      ref
+        ..invalidate(languageProvider)
+        ..invalidate(settingsProvider);
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).error('Language change failed', error, stack);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.saveFailed(lang))));
       }
     }
   }
 
   /// Компактная карточка серии: пока данные грузятся, показываем нулевую.
-  Widget _buildStreak(WidgetRef ref, LocalDate today) => ref
+  Widget _buildStreak(WidgetRef ref, LocalDate today, AppLanguage lang) => ref
       .watch(computeStreakProvider)
       .when(
-        data: (streak) => StreakCard(streak: streak, today: today),
-        loading: () =>
-            StreakCard(streak: const StreakInfo(count: 0), today: today),
-        error: (error, stack) =>
-            StreakCard(streak: const StreakInfo(count: 0), today: today),
+        data: (streak) => StreakCard(streak: streak, today: today, lang: lang),
+        loading: () => StreakCard(
+          streak: const StreakInfo(count: 0),
+          today: today,
+          lang: lang,
+        ),
+        error: (error, stack) => StreakCard(
+          streak: const StreakInfo(count: 0),
+          today: today,
+          lang: lang,
+        ),
       );
 
-  Widget _buildGoal(WidgetRef ref) => ref
+  Widget _buildGoal(WidgetRef ref, AppLanguage lang) => ref
       .watch(dailyGoalProvider)
       .when(
-        data: (goal) =>
-            DailyGoalCard(stats: goal.stats, totalTarget: goal.target),
-        loading: () => DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
-        error: (error, stack) =>
-            DailyGoalCard(stats: null, totalTarget: _fallbackTarget),
+        data: (goal) => DailyGoalCard(
+          stats: goal.stats,
+          totalTarget: goal.target,
+          lang: lang,
+        ),
+        loading: () => DailyGoalCard(
+          stats: null,
+          totalTarget: _fallbackTarget,
+          lang: lang,
+        ),
+        error: (error, stack) => DailyGoalCard(
+          stats: null,
+          totalTarget: _fallbackTarget,
+          lang: lang,
+        ),
       );
 
   /// Hero-кнопка урока: активность решает очередь дня.
-  Widget _buildHero(BuildContext context, WidgetRef ref) => ref
-      .watch(getTodayQueueProvider)
-      .when(
-        data: (queue) => _HeroStartButton(
-          queue: queue,
-          onTap: () =>
-              _openGame(context, '/lesson', HapticFeedback.mediumImpact),
-        ),
-        loading: () => const _HeroStartButton(queue: null, onTap: null),
-        error: (error, stack) => OutlinedButton.icon(
-          onPressed: () => _retry(ref),
-          icon: const Icon(Icons.refresh),
-          label: const Text('Повторить'),
-        ),
-      );
+  Widget _buildHero(BuildContext context, WidgetRef ref, AppLanguage lang) =>
+      ref
+          .watch(getTodayQueueProvider)
+          .when(
+            data: (queue) => _HeroStartButton(
+              queue: queue,
+              lang: lang,
+              onTap: () =>
+                  _openGame(context, '/lesson', HapticFeedback.mediumImpact),
+            ),
+            loading: () =>
+                _HeroStartButton(queue: null, onTap: null, lang: lang),
+            error: (error, stack) => OutlinedButton.icon(
+              onPressed: () => _retry(ref),
+              icon: const Icon(Icons.refresh),
+              label: Text(S.retry(lang)),
+            ),
+          );
 
-  Widget _buildGames(BuildContext context) => GridView.count(
+  Widget _buildGames(BuildContext context, AppLanguage lang) => GridView.count(
     crossAxisCount: 3,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
@@ -260,56 +318,56 @@ class HomeScreen extends ConsumerWidget {
     childAspectRatio: 1.3,
     children: [
       _GameCard(
-        title: 'Error Hunter',
+        title: S.gameTitle('errorHunter', lang),
         icon: Icons.bug_report,
         color: Colors.redAccent,
         onTap: () =>
             _openGame(context, '/error-hunter', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Пропуск',
+        title: S.gameTitle('cloze', lang),
         icon: Icons.edit_note,
         color: Colors.blueAccent,
         onTap: () =>
             _openGame(context, '/cloze-test', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Собери слово',
+        title: S.gameTitle('scramble', lang),
         icon: Icons.abc,
         color: Colors.green,
         onTap: () =>
             _openGame(context, '/word-scramble', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Memory',
+        title: S.gameTitle('memory', lang),
         icon: Icons.memory,
         color: Colors.indigo,
         onTap: () =>
             _openGame(context, '/word-match', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Typing',
+        title: S.gameTitle('typing', lang),
         icon: Icons.keyboard,
         color: Colors.cyan,
         onTap: () =>
             _openGame(context, '/typing-speed', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Разговорник',
+        title: S.gameTitle('phrasebook', lang),
         icon: Icons.forum,
         color: Colors.teal,
         onTap: () =>
             _openGame(context, '/phrasebook', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Диктант',
+        title: S.gameTitle('dictation', lang),
         icon: Icons.hearing,
         color: Colors.orange,
         onTap: () =>
             _openGame(context, '/listening', HapticFeedback.selectionClick),
       ),
       _GameCard(
-        title: 'Чтение',
+        title: S.gameTitle('reading', lang),
         icon: Icons.book,
         color: Colors.deepPurple,
         onTap: () =>
@@ -360,7 +418,11 @@ class HomeScreen extends ConsumerWidget {
 
 /// Крупная кнопка старта урока: градиент, иконка и счётчик слов.
 class _HeroStartButton extends StatelessWidget {
-  const _HeroStartButton({required this.queue, required this.onTap});
+  const _HeroStartButton({
+    required this.queue,
+    required this.onTap,
+    required this.lang,
+  });
 
   /// Очередь дня; null — данные ещё грузятся.
   final TodayQueue? queue;
@@ -368,23 +430,20 @@ class _HeroStartButton extends StatelessWidget {
   /// Что делать по тапу; null — кнопка недоступна.
   final VoidCallback? onTap;
 
+  /// Язык интерфейса.
+  final AppLanguage lang;
+
   bool get _isEmpty => queue == null || queue!.length == 0;
 
   String get _subtitle {
     final value = queue;
     if (value == null) {
-      return 'Загрузка…';
+      return S.loading(lang);
     }
     if (value.length == 0) {
-      return 'Все слова изучены';
+      return S.allWordsLearned(lang);
     }
-    final words = pluralize(
-      value.length,
-      one: 'слово',
-      few: 'слова',
-      many: 'слов',
-    );
-    return '${value.length} $words';
+    return S.wordCount(value.length, lang);
   }
 
   @override
@@ -418,7 +477,7 @@ class _HeroStartButton extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Начать урок',
+                        S.startLesson(lang),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,

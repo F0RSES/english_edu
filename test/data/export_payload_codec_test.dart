@@ -4,6 +4,7 @@ import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
@@ -47,14 +48,17 @@ Map<String, Object?> firstWord(String json) {
 void main() {
   const codec = ExportPayloadCodec();
 
-  test('currentSchemaVersion is 5', () {
-    expect(ExportPayload.currentSchemaVersion, 5);
+  test('currentSchemaVersion is 6', () {
+    expect(ExportPayload.currentSchemaVersion, 6);
   });
 
   test('encode v3 includes word category', () {
     final json = codec.encode(payloadOf(words: [word(category: 'Бизнес')]));
 
-    expect((jsonDecode(json) as Map<String, Object?>)['schemaVersion'], 5);
+    expect(
+      (jsonDecode(json) as Map<String, Object?>)['schemaVersion'],
+      ExportPayload.currentSchemaVersion,
+    );
     expect(firstWord(json)['category'], 'Бизнес');
   });
 
@@ -248,6 +252,7 @@ void main() {
     final decoded = codec.decode(
       codec.encode(
         payloadOf(
+          schemaVersion: 5,
           settings: UserSettings.defaults().copyWith(
             preferredLevel: CefrLevel.b2,
           ),
@@ -257,6 +262,49 @@ void main() {
 
     expect(decoded.schemaVersion, 5);
     expect(decoded.settings.preferredLevel, CefrLevel.b2);
+  });
+
+  test('encode v6 includes language', () {
+    final json = codec.encode(
+      payloadOf(
+        settings: UserSettings.defaults().copyWith(language: AppLanguage.en),
+      ),
+    );
+
+    final settings =
+        (jsonDecode(json) as Map<String, Object?>)['settings']!
+            as Map<String, Object?>;
+    expect(settings['language'], 'en');
+  });
+
+  test('encode v5 leaves the language key out', () {
+    final json = codec.encode(
+      payloadOf(
+        schemaVersion: 5,
+        settings: UserSettings.defaults().copyWith(language: AppLanguage.en),
+      ),
+    );
+
+    final settings =
+        (jsonDecode(json) as Map<String, Object?>)['settings']!
+            as Map<String, Object?>;
+    expect(settings.containsKey('language'), isFalse);
+  });
+
+  test('decode v5 defaults language to ru', () {
+    final decoded = codec.decode(codec.encode(payloadOf(schemaVersion: 5)));
+
+    expect(decoded.settings.language, AppLanguage.ru);
+  });
+
+  test('decode v6 restores language', () {
+    final original = payloadOf(
+      settings: UserSettings.defaults().copyWith(language: AppLanguage.en),
+    );
+
+    final decoded = codec.decode(codec.encode(original));
+
+    expect(decoded.settings.language, AppLanguage.en);
   });
 
   test('round-trips the current payload', () {
@@ -269,7 +317,7 @@ void main() {
   });
 
   test('invalid schemaVersion throws', () {
-    final json = codec.encode(payloadOf(schemaVersion: 6));
+    final json = codec.encode(payloadOf(schemaVersion: 7));
 
     expect(() => codec.decode(json), throwsFormatException);
   });

@@ -44,6 +44,7 @@ Widget host({
         clock: () => now,
       ),
     ),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
   ],
   child: const MaterialApp(home: ClozeTestScreen()),
 );

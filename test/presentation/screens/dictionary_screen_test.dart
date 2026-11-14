@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -68,6 +69,7 @@ Widget host({
     progressRepositoryProvider.overrideWithValue(
       progressRepo ?? FakeProgressRepository(progress),
     ),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
   ],
   child: const MaterialApp(home: DictionaryScreen()),
 );
@@ -320,6 +322,9 @@ void main() {
           wordRepositoryProvider.overrideWithValue(FakeWordRepository([])),
           progressRepositoryProvider.overrideWithValue(
             FakeProgressRepository([]),
+          ),
+          settingsRepositoryProvider.overrideWithValue(
+            FakeSettingsRepository(),
           ),
         ],
         child: MaterialApp.router(routerConfig: router),

@@ -5,7 +5,7 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v16: варианты ответа в кэше cloze (ADR-025, Phase 26b).
+/// Schema v17: язык интерфейса в настройках (Phase 27b).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
@@ -13,7 +13,7 @@ part 'app_database.g.dart';
 /// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
 /// v10 — `user_categories`, v11 — `achievements`, v12 — `typing_records`,
 /// v13 — `phrases`, v14 — `stories`, v15 — `chat_messages`,
-/// v16 — `cloze_tasks.options`.
+/// v16 — `cloze_tasks.options`, v17 — `user_settings.language`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +98,18 @@ class AppDatabase extends _$AppDatabase {
         );
         if (!hasOptions) {
           await m.addColumn(clozeTasks, clozeTasks.options);
+        }
+      }
+      if (from < 17) {
+        // addColumn не идемпотентен: тесты воссоздают старые схемы из
+        // текущей, и language может уже существовать (паттерн v16/options).
+        final info = await customSelect("PRAGMA table_info('user_settings')")
+            .get();
+        final hasLanguage = info.any(
+          (row) => row.read<String>('name') == 'language',
+        );
+        if (!hasLanguage) {
+          await m.addColumn(userSettingsTable, userSettingsTable.language);
         }
       }
       if (from < 12) {

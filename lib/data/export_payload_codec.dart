@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/export_payload.dart';
@@ -28,7 +29,11 @@ const _levelSinceVersion = 4;
 /// (BL-68).
 const _preferredLevelSinceVersion = 5;
 
-/// JSON-представление снимка состояния, схема v4 (v1–v3 читаются).
+/// Первая версия снимка, в которой появился `UserSettings.language`
+/// (Phase 27b).
+const _languageSinceVersion = 6;
+
+/// JSON-представление снимка состояния, схема v6 (v1–v5 читаются).
 ///
 /// Версии и поля слов:
 ///
@@ -39,9 +44,10 @@ const _preferredLevelSinceVersion = 5;
 /// | v3 | `Word.category` |
 /// | v4 | `Word.level` |
 /// | v5 | `UserSettings.preferredLevel` |
+/// | v6 | `UserSettings.language` |
 ///
 /// Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null,
-/// `level` A1, `preferredLevel` A1.
+/// `level` A1, `preferredLevel` A1, `language` ru.
 ///
 /// Формат принадлежит data-слою (см. `ExportPayload`): домен знает только
 /// структуру, а сериализация живёт рядом с остальными преобразованиями.
@@ -89,6 +95,8 @@ final class ExportPayloadCodec {
     // В снимках v1–v4 уровня пользователя не было (BL-68).
     if (version >= _preferredLevelSinceVersion)
       'preferredLevel': settings.preferredLevel.label,
+    // В снимках v1–v5 языка интерфейса не было (Phase 27b).
+    if (version >= _languageSinceVersion) 'language': settings.language.code,
   };
 
   Map<String, Object?> _wordToJson(Word word, {required int version}) => {
@@ -244,6 +252,7 @@ final class ExportPayloadCodec {
         ttsVoice: _str(map, 'ttsVoice'),
         ttsSpeed: _double(map, 'ttsSpeed'),
         preferredLevel: _preferredLevelFromJson(map, version),
+        language: _languageFromJson(map, version),
       );
 
   /// Уровень пользователя из снимка; в v1–v4 поля не было — получаем A1.
@@ -258,6 +267,17 @@ final class ExportPayloadCodec {
       }
     }
     throw FormatException('preferredLevel: неизвестное значение $label');
+  }
+
+  /// Язык интерфейса из снимка; в v1–v5 поля не было — получаем ru.
+  ///
+  /// Неизвестный код не роняет импорт: `AppLanguage.fromCode` возвращает ru
+  /// (fallback), в отличие от строгого `preferredLevel`.
+  AppLanguage _languageFromJson(Map<String, Object?> map, int version) {
+    if (version < _languageSinceVersion) {
+      return AppLanguage.ru;
+    }
+    return AppLanguage.fromCode(_str(map, 'language'));
   }
 
   Word _wordFromJson(Map<String, Object?> map, int version) => Word(

@@ -92,6 +92,7 @@ import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/daily_challenge.dart';
@@ -285,6 +286,15 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 final settingsProvider = FutureProvider<UserSettings>(
   (ref) => ref.watch(settingsRepositoryProvider).get(),
 );
+
+/// Язык интерфейса (Phase 27b).
+///
+/// UI смотрит отсюда язык; при смене языка провайдер инвалидируется
+/// вместе с `settingsProvider`. Пока настройки не прочитаны — ru.
+final languageProvider = FutureProvider<AppLanguage>((ref) async {
+  final settings = await ref.watch(settingsRepositoryProvider).get();
+  return settings.language;
+});
 
 /// Доступ к дневной статистике.
 final statsRepositoryProvider = Provider<StatsRepository>(

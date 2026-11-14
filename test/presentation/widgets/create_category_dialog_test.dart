@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
+
 /// Минимальный репозиторий категорий для теста диалога.
 final class _FakeRepo implements UserCategoryRepository {
   _FakeRepo([Iterable<UserCategory> seed = const []])
@@ -43,6 +45,7 @@ Widget host(UserCategoryRepository repo) => ProviderScope(
       CreateUserCategory(repo: repo),
     ),
     userCategoriesProvider.overrideWith((ref) => repo.getAll()),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
   ],
   child: MaterialApp(
     home: Scaffold(

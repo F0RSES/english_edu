@@ -1,5 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -39,6 +41,7 @@ class _WordCardState extends ConsumerState<WordCard> {
   ///
   /// Ошибка плагина не должна ломать урок: логируем и показываем SnackBar.
   Future<void> _speak() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     try {
       final settings = await ref.read(settingsRepositoryProvider).get();
       await ref
@@ -52,7 +55,7 @@ class _WordCardState extends ConsumerState<WordCard> {
       ref.read(loggerProvider).warn('TTS failed', error, stack);
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Озвучка недоступна')));
+            .showSnackBar(SnackBar(content: Text(S.ttsFailed(lang))));
       }
     }
   }
@@ -62,6 +65,7 @@ class _WordCardState extends ConsumerState<WordCard> {
   /// Сеть — только по нажатию и только если кэша нет. Ошибка показывается
   /// SnackBar'ом, карточка остаётся рабочей.
   Future<void> _loadAssociation() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _loading = true);
     try {
       final association = await ref
@@ -80,9 +84,8 @@ class _WordCardState extends ConsumerState<WordCard> {
         return;
       }
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось загрузить подсказку')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.hintFailed(lang))));
     }
   }
 
@@ -90,6 +93,7 @@ class _WordCardState extends ConsumerState<WordCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final word = widget.word;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return GestureDetector(
       onTap: widget.onTap,
       child: Card(
@@ -118,7 +122,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.volume_up),
-                        tooltip: 'Озвучить',
+                        tooltip: S.speakTooltip(lang),
                         onPressed: _speak,
                       ),
                     ],
@@ -139,7 +143,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                     duration: const Duration(milliseconds: 250),
                     child: widget.revealed
                         ? _Revealed(word: word)
-                        : const Text('Нажмите, чтобы увидеть перевод'),
+                        : Text(S.tapToReveal(lang)),
                   ),
                   // Подсказка доступна только после раскрытия: до ответа она
                   // подсказывала бы перевод.
@@ -167,7 +171,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                                 ),
                               )
                             : const Icon(Icons.lightbulb, color: Colors.amber),
-                        label: const Text('Подсказка'),
+                        label: Text(S.hint(lang)),
                       ),
                   ],
                 ],

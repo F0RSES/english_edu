@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/mappers/user_settings_mapper.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:test/test.dart';
 
@@ -76,6 +77,20 @@ void main() {
     expect(UserSettingsMapper.toDomain(row).preferredLevel, CefrLevel.b2);
   });
 
+  test('round-trip preserves language', () async {
+    final settings = UserSettings.defaults().copyWith(language: AppLanguage.en);
+
+    await db
+        .into(db.userSettingsTable)
+        .insertOnConflictUpdate(
+          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
+        );
+    final row = (await db.select(db.userSettingsTable).get()).single;
+
+    expect(row.language, 'en');
+    expect(UserSettingsMapper.toDomain(row).language, AppLanguage.en);
+  });
+
   test('keeps boundary ttsSpeed values', () async {
     for (final speed in [0.1, 1.0]) {
       final settings = UserSettings.defaults().copyWith(ttsSpeed: speed);
@@ -91,6 +106,7 @@ void main() {
           ttsSpeed: speed,
           hasSeenOnboarding: settings.hasSeenOnboarding,
           preferredLevel: settings.preferredLevel.label,
+          language: settings.language.code,
           updatedAtUtc: 0,
         ),
       );

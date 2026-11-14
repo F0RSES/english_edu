@@ -34,6 +34,7 @@ final class _FakeRecords implements TypingRecordRepository {
 
 Widget host(TypingRecordRepository records) => ProviderScope(
   overrides: [
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
     generateTypingSessionProvider.overrideWithValue(
       GenerateTypingSession(
         words: FakeWordRepository([
@@ -93,6 +94,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsRepositoryProvider.overrideWithValue(
+            FakeSettingsRepository(),
+          ),
           generateTypingSessionProvider.overrideWithValue(
             GenerateTypingSession(
               words: FakeWordRepository([

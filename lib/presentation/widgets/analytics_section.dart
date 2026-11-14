@@ -1,7 +1,8 @@
 import 'package:english_edu/core/di/providers.dart';
-import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -23,25 +24,29 @@ class AnalyticsSection extends ConsumerWidget {
   const AnalyticsSection({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ref
-      .watch(analyticsProvider)
-      .when(
-        data: (analytics) => _AnalyticsView(analytics: analytics),
-        loading: () => const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, stack) => const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Не удалось загрузить аналитику'),
-        ),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return ref
+        .watch(analyticsProvider)
+        .when(
+          data: (analytics) => _AnalyticsView(analytics: analytics, lang: lang),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(S.analyticsFailed(lang)),
+          ),
+        );
+  }
 }
 
 class _AnalyticsView extends StatelessWidget {
-  const _AnalyticsView({required this.analytics});
+  const _AnalyticsView({required this.analytics, required this.lang});
 
   final Analytics analytics;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +56,32 @@ class _AnalyticsView extends StatelessWidget {
       children: [
         Row(
           children: [
-            _MetricTile(label: 'Всего', value: analytics.totalWords),
-            _MetricTile(label: 'Выучено', value: analytics.masteredCount),
-            _MetricTile(label: 'Изучаю', value: analytics.learningCount),
-            _MetricTile(label: 'Новые', value: analytics.newCount),
+            _MetricTile(
+              label: S.metricTotal(lang),
+              value: analytics.totalWords,
+            ),
+            _MetricTile(
+              label: S.metricMastered(lang),
+              value: analytics.masteredCount,
+            ),
+            _MetricTile(
+              label: S.metricLearning(lang),
+              value: analytics.learningCount,
+            ),
+            _MetricTile(label: S.metricNew(lang), value: analytics.newCount),
           ],
         ),
         const SizedBox(height: 16),
-        Text('За 7 дней', style: theme.textTheme.titleSmall),
+        Text(S.last7Days(lang), style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
-        _WeekChart(days: analytics.last7Days),
+        _WeekChart(days: analytics.last7Days, lang: lang),
         const SizedBox(height: 16),
-        Text('Трудные слова', style: theme.textTheme.titleSmall),
+        Text(S.hardWords(lang), style: theme.textTheme.titleSmall),
         if (analytics.hardestWords.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
-              'Пока нет провалов',
+              S.noLapses(lang),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -79,7 +93,7 @@ class _AnalyticsView extends StatelessWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(item.word.term),
-              trailing: Text('${item.lapses} ${_lapsesLabel(item.lapses)}'),
+              trailing: Text(S.lapsesCount(item.lapses, lang)),
             ),
         const SizedBox(height: 8),
         Text(
@@ -90,18 +104,14 @@ class _AnalyticsView extends StatelessWidget {
     );
   }
 
-  /// «1 провал», «2 провала», «5 провалов».
-  String _lapsesLabel(int lapses) =>
-      pluralize(lapses, one: 'провал', few: 'провала', many: 'провалов');
-
   /// Прогноз в формате `DD.MM.YYYY`; null — «—».
   String _projectionLabel(LocalDate? date) {
     if (date == null) {
-      return 'Прогноз mastery: —';
+      return S.projectionNone(lang);
     }
     final iso = date.toString(); // YYYY-MM-DD
     final parts = iso.split('-');
-    return 'Все слова mastered к ${parts[2]}.${parts[1]}.${parts[0]}';
+    return S.projectionDate('${parts[2]}.${parts[1]}.${parts[0]}', lang);
   }
 }
 
@@ -141,11 +151,10 @@ class _MetricTile extends StatelessWidget {
 
 /// Столбцы по дням: высота пропорциональна числу ответов, под ними день недели.
 class _WeekChart extends StatelessWidget {
-  const _WeekChart({required this.days});
+  const _WeekChart({required this.days, required this.lang});
 
   final List<DailyStats> days;
-
-  static const _labels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  final AppLanguage lang;
 
   double _heightFor(DailyStats day, int maxAnswers) {
     if (maxAnswers == 0) {
@@ -158,7 +167,7 @@ class _WeekChart extends StatelessWidget {
   String _labelFor(DailyStats day) {
     final date = DateTime.utc(1970)
         .add(Duration(days: day.date.daysSinceEpoch));
-    return _labels[date.weekday - 1];
+    return S.weekday(date.weekday, lang);
   }
 
   @override

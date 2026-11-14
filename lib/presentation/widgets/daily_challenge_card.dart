@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
-import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/daily_challenge.dart';
 import 'package:english_edu/domain/value_objects/daily_challenge_type.dart';
@@ -37,6 +38,7 @@ class _ChallengeBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -52,7 +54,7 @@ class _ChallengeBody extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    challenge.goalType.label,
+                    S.challengeLabel(challenge.goalType, lang),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -76,11 +78,11 @@ class _ChallengeBody extends ConsumerWidget {
             if (challenge.isCompleted && !challenge.isClaimed)
               FilledButton(
                 onPressed: () => _claim(context, ref),
-                child: Text('Забрать +${challenge.xpReward} XP'),
+                child: Text(S.claimReward(challenge.xpReward, lang)),
               )
             else if (challenge.isClaimed)
               Text(
-                '✓ Выполнено',
+                S.challengeDone(lang),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: Colors.green,
                 ),
@@ -100,14 +102,13 @@ class _ChallengeBody extends ConsumerWidget {
   Future<void> _claim(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final container = ProviderScope.containerOf(context, listen: false);
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
 
     final int xp;
     try {
       xp = await ref.read(claimDailyChallengeProvider)();
     } on Object {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Не удалось забрать награду')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(S.claimFailed(lang))));
       return;
     }
     if (xp == 0) {
@@ -122,7 +123,7 @@ class _ChallengeBody extends ConsumerWidget {
       ..invalidate(challengeStreakProvider);
 
     await HapticFeedback.mediumImpact();
-    messenger.showSnackBar(SnackBar(content: Text('+$xp XP')));
+    messenger.showSnackBar(SnackBar(content: Text(S.xpGained(xp, lang))));
   }
 
   static IconData _iconFor(DailyChallengeType type) => switch (type) {
@@ -142,25 +143,25 @@ class _StreakBadge extends ConsumerWidget {
   const _StreakBadge();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ref
-      .watch(challengeStreakProvider)
-      .when(
-        data: (streak) => _build(context, streak),
-        loading: () => const SizedBox.shrink(),
-        error: (error, stack) => const SizedBox.shrink(),
-      );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return ref
+        .watch(challengeStreakProvider)
+        .when(
+          data: (streak) => _build(context, streak, lang),
+          loading: () => const SizedBox.shrink(),
+          error: (error, stack) => const SizedBox.shrink(),
+        );
+  }
 
-  Widget _build(BuildContext context, ChallengeStreak streak) {
+  Widget _build(
+    BuildContext context,
+    ChallengeStreak streak,
+    AppLanguage lang,
+  ) {
     final theme = Theme.of(context);
     final style = theme.textTheme.labelMedium?.copyWith(
       color: theme.colorScheme.secondary,
-    );
-    // Склонение по числу: «1 день», «3 дня», «5 дней».
-    final days = pluralize(
-      streak.current,
-      one: 'день',
-      few: 'дня',
-      many: 'дней',
     );
     return Wrap(
       spacing: 12,
@@ -176,10 +177,10 @@ class _StreakBadge extends ConsumerWidget {
               color: theme.colorScheme.secondary,
             ),
             const SizedBox(width: 4),
-            Text('Серия: ${streak.current} $days', style: style),
+            Text(S.challengeStreak(streak.current, lang), style: style),
           ],
         ),
-        Text('Лучший: ${streak.best}', style: style),
+        Text(S.bestStreak(streak.best, lang), style: style),
       ],
     );
   }

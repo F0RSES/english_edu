@@ -1,6 +1,8 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/presentation/widgets/analytics_section.dart';
@@ -14,60 +16,71 @@ class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Профиль'),
-      // Явная кнопка: профиль открывается вкладкой снизу, и системного
-      // «назад» у него нет — без этого из экрана не выбраться.
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: 'Назад',
-        onPressed: () => context.go('/'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.profile(lang)),
+        // Явная кнопка: профиль открывается вкладкой снизу, и системного
+        // «назад» у него нет — без этого из экрана не выбраться.
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: S.back(lang),
+          onPressed: () => context.go('/'),
+        ),
       ),
-    ),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _Identity(settings: ref.watch(settingsRepositoryProvider).get()),
-          const SizedBox(height: 16),
-          Card(
-            margin: EdgeInsets.zero,
-            child: ListTile(
-              leading: const Icon(Icons.smart_toy),
-              title: const Text('Помощник'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/chat'),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _Identity(
+              settings: ref.watch(settingsRepositoryProvider).get(),
+              lang: lang,
             ),
-          ),
-          const SizedBox(height: 16),
-          _Stats(
-            streak: ref.watch(computeStreakProvider),
-            words: ref.watch(dictionaryEntriesProvider),
-            xp: ref.watch(dailyGoalProvider),
-          ),
-          const SizedBox(height: 16),
-          _Achievements(achievements: ref.watch(achievementsProvider)),
-          const SizedBox(height: 16),
-          const Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: AnalyticsSection(),
+            const SizedBox(height: 16),
+            Card(
+              margin: EdgeInsets.zero,
+              child: ListTile(
+                leading: const Icon(Icons.smart_toy),
+                title: Text(S.assistant(lang)),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push('/chat'),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            _Stats(
+              streak: ref.watch(computeStreakProvider),
+              words: ref.watch(dictionaryEntriesProvider),
+              xp: ref.watch(dailyGoalProvider),
+              lang: lang,
+            ),
+            const SizedBox(height: 16),
+            _Achievements(
+              achievements: ref.watch(achievementsProvider),
+              lang: lang,
+            ),
+            const SizedBox(height: 16),
+            const Card(
+              margin: EdgeInsets.zero,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: AnalyticsSection(),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// Аватар и уровень на градиентной подложке.
 class _Identity extends StatelessWidget {
-  const _Identity({required this.settings});
+  const _Identity({required this.settings, required this.lang});
 
   final Future<UserSettings> settings;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +109,7 @@ class _Identity extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Learner',
+                  S.learner(lang),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -105,7 +118,10 @@ class _Identity extends StatelessWidget {
                 FutureBuilder<UserSettings>(
                   future: settings,
                   builder: (context, snapshot) => Text(
-                    'Уровень: ${snapshot.data?.preferredLevel.label ?? 'A1'}',
+                    S.levelLabel(
+                      snapshot.data?.preferredLevel.label ?? 'A1',
+                      lang,
+                    ),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -122,20 +138,32 @@ class _Identity extends StatelessWidget {
 
 /// Три метрики в тонированных карточках.
 class _Stats extends StatelessWidget {
-  const _Stats({required this.streak, required this.words, required this.xp});
+  const _Stats({
+    required this.streak,
+    required this.words,
+    required this.xp,
+    required this.lang,
+  });
 
   final AsyncValue<StreakInfo> streak;
   final AsyncValue<List<Object?>> words;
   final AsyncValue<DailyGoal> xp;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) => Row(
     children: [
-      _StatCard(label: 'Серия', value: '${streak.value?.count ?? 0}'),
+      _StatCard(
+        label: S.statStreak(lang),
+        value: '${streak.value?.count ?? 0}',
+      ),
       const SizedBox(width: 12),
-      _StatCard(label: 'Слов', value: '${words.value?.length ?? 0}'),
+      _StatCard(label: S.statWords(lang), value: '${words.value?.length ?? 0}'),
       const SizedBox(width: 12),
-      _StatCard(label: 'XP', value: '${xp.value?.stats?.xpGained ?? 0}'),
+      _StatCard(
+        label: S.statXp(lang),
+        value: '${xp.value?.stats?.xpGained ?? 0}',
+      ),
     ],
   );
 }
@@ -182,9 +210,10 @@ class _StatCard extends StatelessWidget {
 
 /// Открытые достижения или аккуратная заглушка.
 class _Achievements extends StatelessWidget {
-  const _Achievements({required this.achievements});
+  const _Achievements({required this.achievements, required this.lang});
 
   final AsyncValue<List<Achievement>> achievements;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +237,7 @@ class _Achievements extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Достижения (${unlocked.length}/$total)',
+                    S.achievementsHeader(unlocked.length, total, lang),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -216,7 +245,7 @@ class _Achievements extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => context.push('/achievements'),
-                  child: const Text('Все >'),
+                  child: Text(S.allAchievements(lang)),
                 ),
               ],
             ),
@@ -224,7 +253,7 @@ class _Achievements extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
-                  'Пока нет достижений. Выполняй задания!',
+                  S.noAchievements(lang),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -251,7 +280,7 @@ class _Achievements extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            item.type.title,
+                            S.achievementTitle(item.type, lang),
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,

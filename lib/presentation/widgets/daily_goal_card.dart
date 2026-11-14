@@ -1,4 +1,6 @@
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 
 /// Карточка дневной цели: сделано ответов из суточного плана.
@@ -11,6 +13,7 @@ class DailyGoalCard extends StatelessWidget {
   const DailyGoalCard({
     required this.stats,
     required this.totalTarget,
+    this.lang = AppLanguage.ru,
     super.key,
   });
 
@@ -19,6 +22,9 @@ class DailyGoalCard extends StatelessWidget {
 
   /// Сколько ответов запланировано на день.
   final int totalTarget;
+
+  /// Язык интерфейса; ru по умолчанию (Phase 27b).
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +42,7 @@ class DailyGoalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '$done / $totalTarget слов сегодня',
+              S.wordsToday(done, totalTarget, lang),
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),

@@ -416,6 +416,35 @@ void main() {
     expect(row.sentence, 'I ___ apples.');
   });
 
+  test('migration v16 to v17 adds the language column', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v17',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v16 = текущая схема без user_settings.language.
+    final v16 = AppDatabase.forTesting(NativeDatabase(file));
+    await v16.customStatement(
+      'INSERT INTO user_settings (id, daily_new_limit, daily_review_limit, '
+      'reminders_enabled, reminder_hour, reminder_minute, tts_voice, '
+      'tts_speed, has_seen_onboarding, preferred_level, language, '
+      "updated_at_utc) VALUES (1, 10, 50, 0, 9, 0, 'en-US', 0.5, 0, 'a1', "
+      "'en', 0)",
+    );
+    await v16.customStatement('ALTER TABLE user_settings DROP COLUMN language');
+    await v16.customStatement('PRAGMA user_version = 16');
+    await v16.close();
+
+    final v17 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v17.close);
+
+    final row = (await v17.select(v17.userSettingsTable).get()).single;
+    // Колонка появилась миграцией; старая строка получает дефолт 'ru'.
+    expect(row.language, 'ru');
+    expect(row.preferredLevel, 'a1');
+  });
+
   test('creates all sixteen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);

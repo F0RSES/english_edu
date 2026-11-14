@@ -773,6 +773,24 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +1 AI-тип в прокси (уже готов), новой таблицы нет. Токены ~$0.0003 на объяснение. По явному тапу на прокси уходят предложение/слово, ответ пользователя и правильный ответ; до тапа ничего не отправляется. Privacy Policy обновлена (EN + RU).
 - **Open questions:** rate limit (BL-92).
 
+---
+
+### ADR-043: Localization strategy
+- **Status:** Proposed
+- **Date:** 2026-11-14
+- **Context:** Интерфейс только на русском; англоязычный пользователь не может пользоваться приложением. Полноценный l10n (`flutter_localizations` + ARB + `intl`) тянет кодоген и новые зависимости ради ~200 строк. Учебный контент уже на английском и в переводе не нуждается.
+- **Decision:**
+  - `AppLanguage` (ru/en) — enum в domain; поле `UserSettings.language` хранится в БД (**schema v17**, дефолт 'ru') и в export-снимке (**v6**; v1–v5 читаются с ru).
+  - Строки — класс `S` (`lib/core/localization/strings.dart`): ключ → {ru, en}; неизвестный ключ возвращается как есть (fallback для отладки). Новых зависимостей нет.
+  - Язык UI — `languageProvider` (FutureProvider); переключатель в AppBar главной (`PopupMenuButton` слева от шестерёнки), сохранение в настройки + инвалидация кэшей строк.
+  - Локализованы: главная, профиль, настройки, словарь, урок и их виджеты/диалоги (streak, daily goal, challenge, analytics, word card, error helper, session summary, achievement toast, add word, export/import, create category).
+  - Метки доменных VO (`AchievementType`, `DailyChallengeType`) переводятся через `S` по ключу; сами VO не меняются. Контент (слова/фразы/рассказы) не переводится.
+- **Alternatives considered:**
+  - `flutter_localizations` + ARB + `intl` — отклонено для MVP: кодоген, новые зависимости и отдельный build-step ради плоской карты «ключ → строка».
+  - Хранить язык отдельно от настроек — отклонено: язык — пользовательская настройка, место рядом с остальными и в export.
+- **Consequences:** новая строка требует перевода на оба языка (полнота проверяется тестами `strings_test`). Переход на ARB в будущем возможен: ключи уже отделены от UI. Экраны игр, чата, онбординга, чтения и достижений остаются на русском до BL-94.
+- **Open questions:** проверка на реальном устройстве, что все строки переключаются (условие перевода в Accepted); оставшиеся экраны — BL-94 (Phase 27d).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -818,3 +836,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-039 | Reading Mode | Accepted |
 | ADR-041 | Chat with AI bot | Proposed |
 | ADR-042 | Error Helper | Proposed |
+| ADR-043 | Localization strategy | Proposed |

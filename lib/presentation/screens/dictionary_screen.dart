@@ -1,4 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
@@ -93,6 +95,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   /// список перечитывается и показывается «Добавлено». `null` — пользователь
   /// отменил, реакции нет.
   Future<void> _addWord() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final outcome = await showDialog<AddWordOutcome>(
       context: context,
       builder: (context) => const AddWordDialog(),
@@ -101,7 +104,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
       return;
     }
     ref.invalidate(dictionaryEntriesProvider);
-    _showMessage('Добавлено');
+    _showMessage(S.wordAdded(lang));
   }
 
   /// Имена категорий для фильтра (ADR-034).
@@ -120,148 +123,162 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('Словарь'),
-      // Словарь открывается вкладкой через go: pop не сработает, возврат
-      // на главную — как в Profile.
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: 'Назад',
-        onPressed: () => context.go('/'),
+  Widget build(BuildContext context) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.dictionary(lang)),
+        // Словарь открывается вкладкой через go: pop не сработает, возврат
+        // на главную — как в Profile.
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: S.back(lang),
+          onPressed: () => context.go('/'),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            tooltip: S.addWordTooltip(lang),
+            onPressed: _addWord,
+          ),
+        ],
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.add),
-          tooltip: 'Добавить слово',
-          onPressed: _addWord,
-        ),
-      ],
-    ),
-    body: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              hintText: 'Поиск...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) =>
-                ref.read(dictionarySearchQueryProvider.notifier).update(value),
-          ),
-        ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              for (final category in <String?>[null, ..._categoryNames(ref)])
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: ChoiceChip(
-                    label: Text(category ?? 'Все категории'),
-                    selected: _selectedCategory == category,
-                    onSelected: (_) =>
-                        setState(() => _selectedCategory = category),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              for (final level in <CefrLevel?>[null, ...CefrLevel.values])
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: ChoiceChip(
-                    label: Text(level?.label ?? 'Все уровни'),
-                    selected: _selectedLevel == level,
-                    onSelected: (_) => setState(() => _selectedLevel = level),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        SegmentedButton<DictionaryTab>(
-          segments: const [
-            ButtonSegment(value: DictionaryTab.all, label: Text('Все')),
-            ButtonSegment(value: DictionaryTab.learning, label: Text('Изучаю')),
-            ButtonSegment(
-              value: DictionaryTab.mastered,
-              label: Text('Выучено'),
-            ),
-          ],
-          selected: {_tab},
-          onSelectionChanged: (selection) =>
-              setState(() => _tab = selection.first),
-        ),
-        Expanded(
-          child: ref
-              .watch(dictionaryEntriesProvider)
-              .when(
-                data: _buildList,
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _ErrorState(onRetry: _reload),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              controller: _search,
+              decoration: InputDecoration(
+                hintText: S.searchHint(lang),
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
               ),
-        ),
-      ],
-    ),
-  );
+              onChanged: (value) => ref
+                  .read(dictionarySearchQueryProvider.notifier)
+                  .update(value),
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                for (final category in <String?>[null, ..._categoryNames(ref)])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: ChoiceChip(
+                      label: Text(category ?? S.allCategories(lang)),
+                      selected: _selectedCategory == category,
+                      onSelected: (_) =>
+                          setState(() => _selectedCategory = category),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                for (final level in <CefrLevel?>[null, ...CefrLevel.values])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: ChoiceChip(
+                      label: Text(level?.label ?? S.allLevels(lang)),
+                      selected: _selectedLevel == level,
+                      onSelected: (_) => setState(() => _selectedLevel = level),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<DictionaryTab>(
+            segments: [
+              ButtonSegment(
+                value: DictionaryTab.all,
+                label: Text(S.tabAll(lang)),
+              ),
+              ButtonSegment(
+                value: DictionaryTab.learning,
+                label: Text(S.tabLearning(lang)),
+              ),
+              ButtonSegment(
+                value: DictionaryTab.mastered,
+                label: Text(S.tabMastered(lang)),
+              ),
+            ],
+            selected: {_tab},
+            onSelectionChanged: (selection) =>
+                setState(() => _tab = selection.first),
+          ),
+          Expanded(
+            child: ref
+                .watch(dictionaryEntriesProvider)
+                .when(
+                  data: (entries) => _buildList(entries, lang),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) =>
+                      _ErrorState(onRetry: _reload, lang: lang),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildList(List<DictionaryEntry> entries) {
+  Widget _buildList(List<DictionaryEntry> entries, AppLanguage lang) {
     // Категория, уровень и вкладка складываются по AND: выбранные фильтры
     // сужают список, а не заменяют друг друга.
     final filtered = _applyLevel(_applyCategory(_applyTab(entries)));
     if (filtered.isEmpty) {
-      return Center(child: Text(_emptyMessage()));
+      return Center(child: Text(_emptyMessage(lang)));
     }
     return ListView.builder(
       itemCount: filtered.length,
-      itemBuilder: (context, index) => WordListItem(entry: filtered[index]),
+      itemBuilder: (context, index) =>
+          WordListItem(entry: filtered[index], lang: lang),
     );
   }
 
   /// Разные сообщения: пустой словарь, пустой поиск, пустая вкладка.
   ///
   /// Порядок важен: пустой результат поиска не означает пустой словарь.
-  String _emptyMessage() {
+  String _emptyMessage(AppLanguage lang) {
     if (_search.text.trim().isNotEmpty) {
-      return 'Ничего не найдено';
+      return S.emptySearch(lang);
     }
     if (_selectedCategory != null) {
-      return 'В этой категории пока пусто';
+      return S.emptyCategory(lang);
     }
     if (_selectedLevel != null) {
-      return 'Для этого уровня пока пусто';
+      return S.emptyLevel(lang);
     }
     if (_tab != DictionaryTab.all) {
-      return 'В этой вкладке пока пусто';
+      return S.emptyTab(lang);
     }
-    return 'Словарь пуст — добавьте первое слово';
+    return S.emptyDictionary(lang);
   }
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.onRetry, required this.lang});
 
   final VoidCallback onRetry;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) => Center(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось загрузить словарь'),
+        Text(S.dictionaryLoadFailed(lang)),
         const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
       ],
     ),
   );

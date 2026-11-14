@@ -237,6 +237,9 @@ class UserSettingsTable extends Table {
   /// Фильтрует новые слова в очереди дня; уже начатые слова не фильтруются.
   TextColumn get preferredLevel => text().withDefault(const Constant('a1'))();
 
+  /// Язык интерфейса: 'ru' | 'en' (schema v17, Phase 27b).
+  TextColumn get language => text().withDefault(const Constant('ru'))();
+
   /// Момент последнего изменения, миллисекунды UTC.
   IntColumn get updatedAtUtc => integer()();
 

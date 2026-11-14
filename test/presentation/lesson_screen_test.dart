@@ -100,6 +100,7 @@ final class Harness {
 
   Widget app({Widget? home}) => ProviderScope(
     overrides: [
+      settingsRepositoryProvider.overrideWithValue(settingsRepo),
       getTodayQueueUseCaseProvider.overrideWithValue(
         GetTodayQueue(
           words: wordRepo,

@@ -1,3 +1,4 @@
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:meta/meta.dart';
 
@@ -15,6 +16,7 @@ final class UserSettings {
     this.ttsSpeed = 0.5,
     this.hasSeenOnboarding = false,
     this.preferredLevel = CefrLevel.a1,
+    this.language = AppLanguage.ru,
   }) : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
        assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
        assert(
@@ -64,6 +66,9 @@ final class UserSettings {
   /// не попадают. Слова, которые пользователь уже начал учить, не фильтруются.
   final CefrLevel preferredLevel;
 
+  /// Язык интерфейса (Phase 27b). Учебный контент не переводится.
+  final AppLanguage language;
+
   /// Returns a copy with the given fields replaced.
   UserSettings copyWith({
     int? dailyNewLimit,
@@ -75,6 +80,7 @@ final class UserSettings {
     double? ttsSpeed,
     bool? hasSeenOnboarding,
     CefrLevel? preferredLevel,
+    AppLanguage? language,
   }) => UserSettings(
     dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
     dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
@@ -85,6 +91,7 @@ final class UserSettings {
     ttsSpeed: ttsSpeed ?? this.ttsSpeed,
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     preferredLevel: preferredLevel ?? this.preferredLevel,
+    language: language ?? this.language,
   );
 
   @override
@@ -99,7 +106,8 @@ final class UserSettings {
           ttsVoice == other.ttsVoice &&
           ttsSpeed == other.ttsSpeed &&
           hasSeenOnboarding == other.hasSeenOnboarding &&
-          preferredLevel == other.preferredLevel;
+          preferredLevel == other.preferredLevel &&
+          language == other.language;
 
   @override
   int get hashCode => Object.hash(
@@ -112,6 +120,7 @@ final class UserSettings {
     ttsSpeed,
     hasSeenOnboarding,
     preferredLevel,
+    language,
   );
 
   @override
@@ -119,5 +128,5 @@ final class UserSettings {
       'UserSettings(new: $dailyNewLimit, '
       'review: $dailyReviewLimit, reminders: $remindersEnabled '
       'at $reminderHour:$reminderMinute, tts: $ttsVoice@$ttsSpeed, '
-      'level: ${preferredLevel.label})';
+      'level: ${preferredLevel.label}, lang: ${language.code})';
 }

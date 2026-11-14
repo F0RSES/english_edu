@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 /// Базовые категории: в тестах БД нет, поэтому список подменяется явно.
@@ -26,6 +27,7 @@ Widget host(FakeWordRepository repo) => ProviderScope(
   overrides: [
     wordRepositoryProvider.overrideWithValue(repo),
     userCategoriesProvider.overrideWith((ref) async => seedCategories()),
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
   ],
   child: MaterialApp(
     home: Scaffold(

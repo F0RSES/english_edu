@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_outcome.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
@@ -94,6 +96,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 
   /// Записывает ответ. Возвращает `false`, если сохранить не удалось.
   Future<bool> _grade(Word word, ReviewGrade grade, int total) async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     try {
       final outcome = await ref.read(recordReviewProvider).call(word.id, grade);
       if (!mounted) {
@@ -120,13 +123,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
         ..hideCurrentSnackBar()
         ..showSnackBar(
           SnackBar(
-            content: Text('+${outcome.xpGained} XP'),
+            content: Text(S.xpGained(outcome.xpGained, lang)),
             duration: const Duration(milliseconds: 800),
           ),
         );
       // Достижения — поверх экрана: SnackBar внизу перекрыл бы кнопки.
       for (final achievement in outcome.newlyUnlockedAchievements) {
-        AchievementToast.show(context, achievement);
+        AchievementToast.show(context, achievement, lang: lang);
       }
       return true;
     } on Object catch (error, stack) {
@@ -135,9 +138,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           .read(crashReporterProvider)
           .captureException(error, stackTrace: stack, context: 'record_review');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось сохранить ответ')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.answerSaveFailed(lang))));
       }
       return false;
     }
@@ -167,11 +169,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   }
 
   /// Заголовок экрана: в режимах повторения своя подпись.
-  String get _title => switch (widget.mode) {
-    LessonMode.normal => 'Урок',
-    LessonMode.weak => 'Сложные слова',
-    LessonMode.smart => 'Умное повторение',
-  };
+  String get _title {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    return switch (widget.mode) {
+      LessonMode.normal => S.lessonTitle(lang),
+      LessonMode.weak => S.lessonWeak(lang),
+      LessonMode.smart => S.lessonSmart(lang),
+    };
+  }
 
   /// Идёт ли сессия: есть ответы или уже показан итог.
   ///
@@ -180,22 +185,20 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 
   /// Спрашивает подтверждение выхода из незавершённой сессии (BL-43).
   Future<void> _confirmExit() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Завершить сессию?'),
-        content: const Text(
-          'Прогресс текущей сессии сохранён. '
-          'Недоделанные карточки вернутся в очередь.',
-        ),
+        title: Text(S.exitTitle(lang)),
+        content: Text(S.exitBody(lang)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Отмена'),
+            child: Text(S.cancel(lang)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Выйти'),
+            child: Text(S.exitAction(lang)),
           ),
         ],
       ),
@@ -225,6 +228,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     child: FutureBuilder<TodayQueue>(
       future: _queue,
       builder: (context, snapshot) {
+        final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
         if (snapshot.connectionState != ConnectionState.done) {
           return _scaffold(
             _title,
@@ -234,12 +238,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
         if (snapshot.hasError) {
           return _scaffold(
             _title,
-            const Center(child: Text('Не удалось загрузить очередь')),
+            Center(child: Text(S.queueLoadFailed(lang))),
           );
         }
         final queue = snapshot.data;
         if (queue == null || queue.all.isEmpty) {
-          return _scaffold(_title, const Center(child: Text('На сегодня всё')));
+          return _scaffold(
+            _title,
+            Center(child: Text(S.allDoneForToday(lang))),
+          );
         }
         final words = queue.all;
         if (_finished) {
@@ -250,6 +257,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                 actualXp: _sessionXp,
                 correct: _correct,
                 total: words.length,
+                lang: lang,
               ),
             ),
           );
@@ -260,7 +268,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           widget.mode == LessonMode.normal
               ? '${_index + 1}/${words.length}'
               : _title,
-          _card(words[_index], words.length),
+          _card(words[_index], words.length, lang),
         );
       },
     ),
@@ -280,7 +288,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     body: body,
   );
 
-  Widget _card(Word word, int total) => Column(
+  Widget _card(Word word, int total, AppLanguage lang) => Column(
     children: [
       Expanded(
         child: Padding(
@@ -309,14 +317,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _grade(word, ReviewGrade.again, total),
-                child: const Text('Не знаю'),
+                child: Text(S.dontKnow(lang)),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
                 onPressed: () => _grade(word, ReviewGrade.good, total),
-                child: const Text('Знаю'),
+                child: Text(S.know(lang)),
               ),
             ),
           ],

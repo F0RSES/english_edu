@@ -1,4 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,6 +48,7 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
     if (!_canSubmit) {
       return;
     }
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _busy = true);
 
     try {
@@ -62,8 +65,8 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
       // явный `on StateError` линтер запрещает (Error, а не Exception).
       _fail(
         error is StateError
-            ? 'Категория уже существует'
-            : 'Не удалось создать категорию',
+            ? S.categoryExists(lang)
+            : S.categoryCreateFailed(lang),
       );
     }
   }
@@ -80,8 +83,9 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return AlertDialog(
-      title: const Text('Новая категория'),
+      title: Text(S.newCategory(lang)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,11 +93,11 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
           TextField(
             controller: _name,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'Название'),
+            decoration: InputDecoration(labelText: S.categoryName(lang)),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 16),
-          const Text('Цвет'),
+          Text(S.categoryColor(lang)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -125,11 +129,11 @@ class _CreateCategoryDialogState extends ConsumerState<CreateCategoryDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('Отмена'),
+          child: Text(S.cancel(lang)),
         ),
         FilledButton(
           onPressed: _canSubmit ? _submit : null,
-          child: const Text('Создать'),
+          child: Text(S.categoryCreate(lang)),
         ),
       ],
     );

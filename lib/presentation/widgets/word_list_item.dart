@@ -1,3 +1,5 @@
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
@@ -6,10 +8,17 @@ import 'package:flutter/material.dart';
 /// Строка словаря: слово, перевод, бейдж уровня и чип статуса.
 class WordListItem extends StatelessWidget {
   /// Создаёт строку.
-  const WordListItem({required this.entry, super.key});
+  const WordListItem({
+    required this.entry,
+    this.lang = AppLanguage.ru,
+    super.key,
+  });
 
   /// Запись словаря.
   final DictionaryEntry entry;
+
+  /// Язык интерфейса; ru по умолчанию (Phase 27b).
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +67,7 @@ class WordListItem extends StatelessWidget {
           final example = word.exampleSentence;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(example ?? 'Пример отсутствует'),
+              content: Text(example ?? S.noExample(lang)),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -68,8 +77,8 @@ class WordListItem extends StatelessWidget {
   }
 
   String _statusLabel(WordStatus? status) => switch (status) {
-    null || WordStatus.newWord => 'новое',
-    WordStatus.learning => 'изучаю',
-    WordStatus.mastered => 'выучено',
+    null || WordStatus.newWord => S.statusNew(lang),
+    WordStatus.learning => S.statusLearning(lang),
+    WordStatus.mastered => S.statusMastered(lang),
   };
 }

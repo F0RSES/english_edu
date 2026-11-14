@@ -67,6 +67,7 @@ final class Harness {
 
   Widget app() => ProviderScope(
     overrides: [
+      settingsRepositoryProvider.overrideWithValue(settings),
       importProgressProvider.overrideWithValue(
         ImportProgress(
           words: words,
@@ -131,13 +132,13 @@ void main() {
 
     await _paste(
       tester,
-      const ExportPayloadCodec().encode(payload(schemaVersion: 6)),
+      const ExportPayloadCodec().encode(payload(schemaVersion: 7)),
     );
 
     // Версия отсекается уже на разборе JSON: импорт не должен читать формат,
     // которого не знает.
     expect(find.textContaining('Невалидный JSON'), findsOneWidget);
-    expect(find.textContaining('неподдерживаемая версия 6'), findsOneWidget);
+    expect(find.textContaining('неподдерживаемая версия 7'), findsOneWidget);
   });
 
   testWidgets('a v1 snapshot imports with empty frozen days', (tester) async {

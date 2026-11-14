@@ -1,9 +1,10 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
 import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
-import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -77,15 +78,16 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
   /// `true` — пользователь хочет отдельную карточку-гомоним, `false` — отмена
   /// (форма остаётся открытой, слово не сохраняется).
   Future<bool> _confirmHomonym(String term, List<Word> existing) async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final answer = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('«$term» уже есть в словаре'),
+        title: Text(S.wordExists(term, lang)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Существующие значения:'),
+            Text(S.existingSenses(lang)),
             const SizedBox(height: 8),
             for (final word in existing)
               Padding(
@@ -93,17 +95,17 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
                 child: Text(_senseLabel(word)),
               ),
             const SizedBox(height: 12),
-            const Text('Добавить ещё одно значение?'),
+            Text(S.addAnotherSense(lang)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
+            child: Text(S.cancel(lang)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Добавить как новое'),
+            child: Text(S.addAsNew(lang)),
           ),
         ],
       ),
@@ -123,14 +125,15 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
   }
 
   Future<void> _submit() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final term = _term.text.trim().toLowerCase();
     final translation = _translation.text.trim();
     if (term.isEmpty) {
-      setState(() => _error = 'Введите слово');
+      setState(() => _error = S.enterTerm(lang));
       return;
     }
     if (translation.isEmpty) {
-      setState(() => _error = 'Введите перевод');
+      setState(() => _error = S.enterTranslation(lang));
       return;
     }
 
@@ -170,7 +173,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
     } on Object catch (error, stack) {
       ref.read(loggerProvider).error('Add word failed', error, stack);
       if (mounted) {
-        setState(() => _error = 'Не удалось сохранить слово');
+        setState(() => _error = S.wordSaveFailed(lang));
       }
     }
   }
@@ -200,99 +203,106 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Новое слово'),
-    content: SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _term,
-            decoration: const InputDecoration(labelText: 'Слово'),
-          ),
-          TextField(
-            controller: _translation,
-            decoration: const InputDecoration(labelText: 'Перевод'),
-          ),
-          TextField(
-            controller: _transcription,
-            decoration: const InputDecoration(labelText: 'Транскрипция'),
-          ),
-          DropdownButtonFormField<String>(
-            initialValue: _partOfSpeech,
-            decoration: const InputDecoration(labelText: 'Часть речи'),
-            items: [
-              for (final option in _partOfSpeechOptions)
-                DropdownMenuItem(value: option, child: Text(option)),
-            ],
-            onChanged: (value) => setState(() => _partOfSpeech = value),
-          ),
-          ref
-              .watch(userCategoriesProvider)
-              .when(
-                data: (categories) => DropdownButtonFormField<String?>(
-                  initialValue: _category,
-                  // Пустое значение = «без категории»: показываем подпись,
-                  // иначе поле выглядит незаполненным.
-                  hint: const Text(noCategoryLabel),
-                  decoration: const InputDecoration(labelText: 'Категория'),
-                  items: [
-                    const DropdownMenuItem<String?>(
-                      child: Text(noCategoryLabel),
-                    ),
-                    for (final category in categories)
-                      DropdownMenuItem<String?>(
-                        value: category.name,
-                        child: Text(category.name),
-                      ),
-                    const DropdownMenuItem<String?>(
-                      value: _createCategoryValue,
-                      child: Text('+ Создать категорию…'),
-                    ),
-                  ],
-                  onChanged: _onCategoryChanged,
-                ),
-                // Категории нужны только для выбора: без них форма остаётся
-                // рабочей, слово сохранится «без категории».
-                loading: () => const SizedBox.shrink(),
-                error: (error, stack) => const SizedBox.shrink(),
-              ),
-          DropdownButtonFormField<CefrLevel>(
-            initialValue: _level,
-            decoration: const InputDecoration(labelText: 'Уровень'),
-            items: [
-              for (final level in CefrLevel.values)
-                DropdownMenuItem(
-                  value: level,
-                  child: Text('${level.label} — ${level.description}'),
-                ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _level = value);
-              }
-            },
-          ),
-          TextField(
-            controller: _example,
-            decoration: const InputDecoration(labelText: 'Пример'),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+  Widget build(BuildContext context) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return AlertDialog(
+      title: Text(S.addWordTitle(lang)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _term,
+              decoration: InputDecoration(labelText: S.fieldTerm(lang)),
             ),
+            TextField(
+              controller: _translation,
+              decoration: InputDecoration(labelText: S.fieldTranslation(lang)),
+            ),
+            TextField(
+              controller: _transcription,
+              decoration: InputDecoration(
+                labelText: S.fieldTranscription(lang),
+              ),
+            ),
+            DropdownButtonFormField<String>(
+              initialValue: _partOfSpeech,
+              decoration: InputDecoration(labelText: S.fieldPartOfSpeech(lang)),
+              items: [
+                for (final option in _partOfSpeechOptions)
+                  DropdownMenuItem(value: option, child: Text(option)),
+              ],
+              onChanged: (value) => setState(() => _partOfSpeech = value),
+            ),
+            ref
+                .watch(userCategoriesProvider)
+                .when(
+                  data: (categories) => DropdownButtonFormField<String?>(
+                    initialValue: _category,
+                    // Пустое значение = «без категории»: показываем подпись,
+                    // иначе поле выглядит незаполненным.
+                    hint: Text(S.noCategory(lang)),
+                    decoration: InputDecoration(
+                      labelText: S.fieldCategory(lang),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        child: Text(S.noCategory(lang)),
+                      ),
+                      for (final category in categories)
+                        DropdownMenuItem<String?>(
+                          value: category.name,
+                          child: Text(category.name),
+                        ),
+                      DropdownMenuItem<String?>(
+                        value: _createCategoryValue,
+                        child: Text(S.createCategoryOption(lang)),
+                      ),
+                    ],
+                    onChanged: _onCategoryChanged,
+                  ),
+                  // Категории нужны только для выбора: без них форма остаётся
+                  // рабочей, слово сохранится «без категории».
+                  loading: () => const SizedBox.shrink(),
+                  error: (error, stack) => const SizedBox.shrink(),
+                ),
+            DropdownButtonFormField<CefrLevel>(
+              initialValue: _level,
+              decoration: InputDecoration(labelText: S.fieldLevel(lang)),
+              items: [
+                for (final level in CefrLevel.values)
+                  DropdownMenuItem(
+                    value: level,
+                    child: Text('${level.label} — ${level.description}'),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _level = value);
+                }
+              },
+            ),
+            TextField(
+              controller: _example,
+              decoration: InputDecoration(labelText: S.fieldExample(lang)),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Отмена'),
-      ),
-      FilledButton(onPressed: _submit, child: const Text('Добавить')),
-    ],
-  );
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.cancel(lang)),
+        ),
+        FilledButton(onPressed: _submit, child: Text(S.addWordAction(lang))),
+      ],
+    );
+  }
 }

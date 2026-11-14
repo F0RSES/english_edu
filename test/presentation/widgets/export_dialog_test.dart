@@ -19,6 +19,7 @@ final now = DateTime.utc(2024, 5, 15, 12);
 
 Widget app() => ProviderScope(
   overrides: [
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
     exportProgressProvider.overrideWithValue(
       ExportProgress(
         settings: FakeSettingsRepository(),
@@ -46,7 +47,7 @@ void main() {
         .data;
 
     expect(json, isNotNull);
-    expect(json, contains('"schemaVersion":5'));
+    expect(json, contains('"schemaVersion":6'));
     expect(json, contains('"term":"hello"'));
   });
 

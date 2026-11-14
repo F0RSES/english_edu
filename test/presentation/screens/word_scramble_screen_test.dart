@@ -49,6 +49,7 @@ final class _Harness {
   Widget app() => ProviderScope(
     overrides: [
       wordRepositoryProvider.overrideWithValue(wordRepo),
+      settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
       generateScramblePuzzlesProvider.overrideWithValue(
         GenerateScramblePuzzles(
           words: wordRepo,

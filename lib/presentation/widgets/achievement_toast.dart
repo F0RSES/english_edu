@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -13,12 +15,17 @@ final class AchievementToast {
   const AchievementToast._();
 
   /// Показывает тост и сразу возвращает управление.
-  static void show(BuildContext context, Achievement achievement) {
+  static void show(
+    BuildContext context,
+    Achievement achievement, {
+    AppLanguage lang = AppLanguage.ru,
+  }) {
     final overlay = Overlay.of(context);
     late final OverlayEntry entry;
     entry = OverlayEntry(
       builder: (context) => _AchievementToastWidget(
         achievement: achievement,
+        lang: lang,
         onDismissed: () {
           // Запись могли уже снять (например, экран закрыли) — повторное
           // удаление бросило бы исключение.
@@ -36,10 +43,12 @@ final class AchievementToast {
 class _AchievementToastWidget extends StatefulWidget {
   const _AchievementToastWidget({
     required this.achievement,
+    required this.lang,
     required this.onDismissed,
   });
 
   final Achievement achievement;
+  final AppLanguage lang;
   final VoidCallback onDismissed;
 
   @override
@@ -122,7 +131,7 @@ class _AchievementToastWidgetState extends State<_AchievementToastWidget> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      '🏆 ДОСТИЖЕНИЕ!',
+                                      S.achievementToast(widget.lang),
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -131,7 +140,10 @@ class _AchievementToastWidgetState extends State<_AchievementToastWidget> {
                                       ),
                                     ),
                                     Text(
-                                      widget.achievement.type.title,
+                                      S.achievementTitle(
+                                        widget.achievement.type,
+                                        widget.lang,
+                                      ),
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -139,7 +151,10 @@ class _AchievementToastWidgetState extends State<_AchievementToastWidget> {
                                       ),
                                     ),
                                     Text(
-                                      widget.achievement.type.description,
+                                      S.achievementDescription(
+                                        widget.achievement.type,
+                                        widget.lang,
+                                      ),
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: scheme.onPrimary,

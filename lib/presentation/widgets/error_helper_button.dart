@@ -1,4 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,6 +38,7 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
     if (_loading) {
       return;
     }
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _loading = true);
     try {
       final explanation = await ref.read(explainErrorProvider)(
@@ -69,9 +72,9 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
                         color: Theme.of(sheetContext).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Помощник объясняет',
-                        style: TextStyle(
+                      Text(
+                        S.explain(lang),
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -88,7 +91,7 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => Navigator.of(sheetContext).pop(),
-                      child: const Text('Понятно'),
+                      child: Text(S.gotIt(lang)),
                     ),
                   ),
                 ],
@@ -99,9 +102,8 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
       );
     } on Object catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось получить объяснение')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.explainFailed(lang))));
       }
     } finally {
       if (mounted) {
@@ -113,8 +115,9 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return IconButton(
-      tooltip: 'Спросить у помощника',
+      tooltip: S.askAssistant(lang),
       color: scheme.primary,
       visualDensity: widget.compact ? VisualDensity.compact : null,
       iconSize: widget.compact ? 20 : 24,

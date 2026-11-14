@@ -32,6 +32,7 @@ void main() {
       (l) => S.unsupportedVersion(99, l),
       (l) => S.sessionCorrect(3, 5, l),
       (l) => S.sessionXp(40, l),
+      (l) => S.removeConfirmBody('apple', l),
     ];
 
     test('parameterized strings leave no placeholders in either language', () {
@@ -232,6 +233,12 @@ void main() {
         S.askAssistant,
         S.gotIt,
         S.explainFailed,
+        S.aiHelperTitle,
+        S.addToDictionary,
+        S.removeFromDictionary,
+        S.dontKnowWord,
+        S.wordRemoved,
+        S.removeConfirmTitle,
       ];
       for (final build in simple) {
         for (final lang in AppLanguage.values) {
@@ -291,6 +298,15 @@ void main() {
       expect(S.gameTitle('errorHunter', AppLanguage.en), 'Error Hunter');
       expect(S.allAchievementsTooltip(AppLanguage.ru), 'Все достижения');
       expect(S.allAchievementsTooltip(AppLanguage.en), 'All achievements');
+    });
+
+    test('word helper strings are localized (Phase 28b)', () {
+      expect(S.dontKnowWord(AppLanguage.ru), 'Не знаю слово');
+      expect(S.dontKnowWord(AppLanguage.en), "I don't know this word");
+      expect(S.aiHelperTitle(AppLanguage.en), 'Word helper');
+      expect(S.wordRemoved(AppLanguage.ru), 'Слово удалено');
+      expect(S.removeConfirmBody('apple', AppLanguage.ru), contains('apple'));
+      expect(S.removeConfirmBody('apple', AppLanguage.en), contains('apple'));
     });
   });
 }

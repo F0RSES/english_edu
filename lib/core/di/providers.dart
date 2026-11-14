@@ -57,6 +57,7 @@ import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
+import 'package:english_edu/domain/services/word_translator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
 import 'package:english_edu/domain/usecases/check_achievements.dart';
@@ -182,6 +183,11 @@ final chatGeneratorProvider = Provider<ChatGenerator>(
 
 /// Объяснение ошибок в играх; реализация — `AiClient` (ADR-042).
 final errorExplainerProvider = Provider<ErrorExplainer>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Словарный перевод слова; реализация — `AiClient` (Phase 28b).
+final translationGeneratorProvider = Provider<TranslationGenerator>(
   (ref) => ref.watch(aiClientProvider),
 );
 

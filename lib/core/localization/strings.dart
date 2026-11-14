@@ -671,6 +671,30 @@ final class S {
   /// Ошибка получения объяснения.
   static String explainFailed(AppLanguage l) => _t('helper.failed', l);
 
+  // --- AI Word Helper (Phase 28b) ---
+  /// Заголовок листа перевода слова.
+  static String aiHelperTitle(AppLanguage l) => _t('aiHelper.title', l);
+
+  /// Tooltip добавления слова в словарь.
+  static String addToDictionary(AppLanguage l) => _t('aiHelper.add', l);
+
+  /// Tooltip удаления слова из словаря.
+  static String removeFromDictionary(AppLanguage l) => _t('aiHelper.remove', l);
+
+  /// Кнопка «Не знаю слово» до ответа в игре.
+  static String dontKnowWord(AppLanguage l) => _t('aiHelper.dontKnow', l);
+
+  /// SnackBar после удаления слова из словаря.
+  static String wordRemoved(AppLanguage l) => _t('aiHelper.removed', l);
+
+  /// Заголовок подтверждения удаления слова.
+  static String removeConfirmTitle(AppLanguage l) =>
+      _t('aiHelper.removeTitle', l);
+
+  /// Текст подтверждения удаления; [term] подставляется в {term}.
+  static String removeConfirmBody(String term, AppLanguage l) =>
+      _t('aiHelper.removeBody', l).replaceFirst('{term}', term);
+
   // --- Плюрализация ---
   static String _dayForm(int count, AppLanguage l) => pluralize(
     count,
@@ -1257,6 +1281,25 @@ final class S {
     'helper.failed': {
       'ru': 'Не удалось получить объяснение',
       'en': 'Failed to get the explanation',
+    },
+    // AI Word Helper (Phase 28b).
+    'aiHelper.title': {'ru': 'Помощник по слову', 'en': 'Word helper'},
+    'aiHelper.add': {'ru': 'Добавить в словарь', 'en': 'Add to dictionary'},
+    'aiHelper.remove': {
+      'ru': 'Удалить из словаря',
+      'en': 'Remove from dictionary',
+    },
+    'aiHelper.dontKnow': {
+      'ru': 'Не знаю слово',
+      'en': "I don't know this word",
+    },
+    'aiHelper.removed': {'ru': 'Слово удалено', 'en': 'Word removed'},
+    'aiHelper.removeTitle': {'ru': 'Удалить слово?', 'en': 'Remove word?'},
+    'aiHelper.removeBody': {
+      'ru': 'Слово «{term}» будет удалено из словаря вместе с прогрессом.',
+      'en':
+          'The word "{term}" will be removed from the dictionary with its '
+          'progress.',
     },
   };
 }

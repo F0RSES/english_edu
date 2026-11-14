@@ -23,6 +23,9 @@ final class FakeErrorTaskGenerator implements ErrorTaskGenerator {
   /// Последний уровень, переданный в generateErrorTask.
   String? lastLevel;
 
+  /// Слова, которые пришли в generateErrorTask, в порядке вызовов.
+  final List<String> words = [];
+
   @override
   Future<ErrorHunterTask> generateErrorTask(
     String word, {
@@ -30,6 +33,7 @@ final class FakeErrorTaskGenerator implements ErrorTaskGenerator {
   }) {
     calls++;
     lastLevel = level;
+    words.add(word);
     final waiter = pending;
     if (waiter != null) {
       return waiter.future;

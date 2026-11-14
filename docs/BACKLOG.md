@@ -94,6 +94,7 @@
 | BL-93 | P3 | Phase 27 — счётчики прохождений игр (cloze_completions, scramble_completions) для новых достижений | таблица или колонки счётчиков; CheckAchievements использует их; тесты | Todo |
 | BL-94 | P2 | Phase 27d — локализация оставшихся экранов (игры, чат, онбординг, чтение, достижения), ~80 ключей | все строки через S; тесты на полноту переводов; переключение языка покрывает весь UI | Todo |
 | BL-95 | P3 | Phase 27e — синхронизация доков (12 расхождений из onboarding-отчёта) | PROJECT_CONTEXT/README/ARCHITECTURE/QA_CHECKLIST соответствуют коду; статусы BL приведены в порядок | Todo |
+| BL-96 | P3 | Phase 28c — кэш translate_word в таблице word_translations | table word_translations, AiClient.translate проверяет кэш перед запросом | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

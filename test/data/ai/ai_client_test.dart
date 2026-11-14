@@ -222,4 +222,51 @@ void main() {
       throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
     );
   });
+
+  test('translate parses JSON and posts the translate_word type', () async {
+    Object? capturedBody;
+    final client = AiClient(
+      MockClient((request) async {
+        capturedBody = jsonDecode(request.body);
+        return jsonResponse({
+          'translation': 'учреждение',
+          'partOfSpeech': 'noun',
+          'transcription': '/fəˈsɪləti/',
+          'example': 'The facility is new.',
+        }, 200);
+      }),
+    );
+
+    final result = await client.translate('facility');
+
+    expect(capturedBody, {'type': 'translate_word', 'word': 'facility'});
+    expect(result.text, 'учреждение');
+    expect(result.partOfSpeech, 'noun');
+    expect(result.transcription, '/fəˈsɪləti/');
+    expect(result.example, 'The facility is new.');
+  });
+
+  test('translate treats absent optional fields as null', () async {
+    final client = AiClient(
+      MockClient((_) async => jsonResponse({'translation': 'учреждение'}, 200)),
+    );
+
+    final result = await client.translate('facility');
+
+    expect(result.text, 'учреждение');
+    expect(result.partOfSpeech, isNull);
+    expect(result.transcription, isNull);
+    expect(result.example, isNull);
+  });
+
+  test('translate throws AiException on 500', () async {
+    final client = AiClient(
+      MockClient((_) async => http.Response('boom', 500)),
+    );
+
+    await expectLater(
+      client.translate('facility'),
+      throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
+    );
+  });
 }

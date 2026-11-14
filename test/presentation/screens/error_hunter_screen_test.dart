@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
@@ -21,15 +23,22 @@ ErrorHunterTask task() => ErrorHunterTask(
   options: const ['have', 'has', 'had'],
 );
 
-Widget host(FakeErrorTaskGenerator generator) => ProviderScope(
+Widget host(
+  FakeErrorTaskGenerator generator, {
+  List<Word>? words,
+  UserSettings? settings,
+}) => ProviderScope(
   overrides: [
     wordRepositoryProvider.overrideWithValue(
-      FakeWordRepository([
-        const Word(id: WordId(1), term: 'book', translation: 'книга'),
-      ]),
+      FakeWordRepository(
+        words ??
+            const [Word(id: WordId(1), term: 'book', translation: 'книга')],
+      ),
     ),
     errorTaskGeneratorProvider.overrideWithValue(generator),
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
   ],
   child: const MaterialApp(home: ErrorHunterScreen()),
 );
@@ -132,5 +141,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ErrorHelperButton), findsOneWidget);
+  });
+
+  testWidgets('uses only preferredLevel words', (tester) async {
+    final generator = FakeErrorTaskGenerator(task());
+    await tester.pumpWidget(
+      host(
+        generator,
+        words: const [
+          Word(id: WordId(1), term: 'book', translation: 'книга'),
+          Word(
+            id: WordId(2),
+            term: 'facility',
+            translation: 'учреждение',
+            level: CefrLevel.b1,
+          ),
+        ],
+        settings: const UserSettings(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(generator.words, ['book']);
+  });
+
+  testWidgets('shows green correctWord after solve', (tester) async {
+    await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('has'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('have').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('has'), findsNothing);
+    expect(find.text('have'), findsOneWidget);
+    final container = tester.widget<Container>(
+      find
+          .ancestor(of: find.text('have'), matching: find.byType(Container))
+          .first,
+    );
+    expect(
+      container.decoration,
+      isA<BoxDecoration>()
+          .having((d) => d.color, 'color', Colors.green.withValues(alpha: 0.15))
+          .having((d) => d.border, 'border', Border.all(color: Colors.green)),
+    );
   });
 }

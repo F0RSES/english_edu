@@ -1,9 +1,12 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,27 +30,31 @@ Widget host({
   FakeClozeGenerator? generator,
   FakeClozeTaskRepository? tasks,
   List<Word> words = const [],
-}) => ProviderScope(
-  overrides: [
-    wordRepositoryProvider.overrideWithValue(
-      FakeWordRepository(
-        words.isEmpty
-            ? const [Word(id: WordId(1), term: 'eat', translation: 'есть')]
-            : words,
+  UserSettings? settings,
+}) {
+  final settingsRepository = FakeSettingsRepository(settings);
+  return ProviderScope(
+    overrides: [
+      wordRepositoryProvider.overrideWithValue(
+        FakeWordRepository(
+          words.isEmpty
+              ? const [Word(id: WordId(1), term: 'eat', translation: 'есть')]
+              : words,
+        ),
       ),
-    ),
-    getClozeTaskProvider.overrideWithValue(
-      GetClozeTask(
-        tasks: tasks ?? FakeClozeTaskRepository(),
-        generator: generator ?? FakeClozeGenerator(task: _task),
-        settings: FakeSettingsRepository(),
-        clock: () => now,
+      getClozeTaskProvider.overrideWithValue(
+        GetClozeTask(
+          tasks: tasks ?? FakeClozeTaskRepository(),
+          generator: generator ?? FakeClozeGenerator(task: _task),
+          settings: settingsRepository,
+          clock: () => now,
+        ),
       ),
-    ),
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-  ],
-  child: const MaterialApp(home: ClozeTestScreen()),
-);
+      settingsRepositoryProvider.overrideWithValue(settingsRepository),
+    ],
+    child: const MaterialApp(home: ClozeTestScreen()),
+  );
+}
 
 void main() {
   testWidgets('renders sentence and five options', (tester) async {
@@ -138,5 +145,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ErrorHelperButton), findsOneWidget);
+  });
+
+  testWidgets('shows dont know button before answer', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Не знаю слово'), findsOneWidget);
+    final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
+    expect(helper.revealWord, isFalse);
+    expect(helper.word, 'eat');
+  });
+
+  testWidgets('shows helper after answer', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
+    expect(helper.revealWord, isTrue);
+    expect(helper.word, 'eat');
+  });
+
+  testWidgets('uses only preferredLevel words', (tester) async {
+    final generator = FakeClozeGenerator(task: _task);
+    await tester.pumpWidget(
+      host(
+        generator: generator,
+        words: const [
+          Word(id: WordId(1), term: 'eat', translation: 'есть'),
+          Word(
+            id: WordId(2),
+            term: 'facility',
+            translation: 'учреждение',
+            level: CefrLevel.b1,
+          ),
+        ],
+        settings: const UserSettings(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(generator.words, ['eat']);
   });
 }

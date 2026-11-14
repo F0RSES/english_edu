@@ -6,8 +6,10 @@ import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
+import 'package:english_edu/domain/services/word_translator.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
+import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:http/http.dart' as http;
 
 /// Адрес прокси AI-подсказок (ADR-019).
@@ -40,6 +42,12 @@ const _explainType = 'explain_error';
 /// Таймаут объяснения: модель разбирает контекст ошибки, ответ не мгновенный.
 const _explainTimeout = Duration(seconds: 30);
 
+/// Значение поля `type` для словарного перевода (Phase 28b).
+const _translateType = 'translate_word';
+
+/// Таймаут перевода: словарная статья генерируется дольше подсказки.
+const _translateTimeout = Duration(seconds: 15);
+
 /// Ошибка AI-подсказки: сеть, статус ответа или неожиданный формат.
 ///
 /// Отдельный тип нужен, чтобы UI отличал «нет подсказки» от прочих сбоев и не
@@ -71,7 +79,8 @@ final class AiClient
         ErrorTaskGenerator,
         ClozeGenerator,
         ChatGenerator,
-        ErrorExplainer {
+        ErrorExplainer,
+        TranslationGenerator {
   /// Создаёт клиент поверх переданного `http.Client`: тесты подставляют
   /// `MockClient`, приложение — реальный клиент.
   AiClient(this._client);
@@ -289,4 +298,55 @@ final class AiClient
     }
     return explanation;
   }
+
+  /// Запрашивает словарный перевод [word] (контракт [TranslationGenerator],
+  /// Phase 28b).
+  ///
+  /// В отличие от [generate], возвращает перевод, пригодный для сохранения
+  /// в словарь. Необязательные поля (`partOfSpeech`, `transcription`,
+  /// `example`) отсутствуют или пусты — null.
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустой
+  /// перевод; таймаут пробрасывается как [TimeoutException].
+  @override
+  Future<WordTranslation> translate(String word) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'type': _translateType, 'word': word}),
+        )
+        .timeout(_translateTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final translation = decoded['translation'];
+    if (translation is! String || translation.trim().isEmpty) {
+      throw const AiException('AI proxy returned no translation');
+    }
+    return WordTranslation(
+      text: translation,
+      partOfSpeech: _optionalText(decoded['partOfSpeech']),
+      transcription: _optionalText(decoded['transcription']),
+      example: _optionalText(decoded['example']),
+    );
+  }
+
+  /// Необязательное поле ответа: не-строка или пустая строка — отсутствие.
+  static String? _optionalText(Object? value) =>
+      value is String && value.trim().isNotEmpty ? value : null;
 }

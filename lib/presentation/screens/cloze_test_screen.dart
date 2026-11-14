@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,7 +65,12 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
       _task = null;
     });
     try {
-      final words = await ref.read(wordRepositoryProvider).getAll();
+      // Слова строго выбранного уровня (Phase 28b): раньше игра брала весь
+      // словарь и могла дать задание выше уровня пользователя.
+      final settings = await ref.read(settingsRepositoryProvider).get();
+      final words = await ref
+          .read(wordRepositoryProvider)
+          .getByLevel(settings.preferredLevel);
       if (words.isEmpty) {
         throw StateError('dictionary is empty');
       }
@@ -196,7 +202,9 @@ class _TaskView extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerHighest,
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child:
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text.rich(
                       TextSpan(
                         children: _sentenceSpans(
@@ -218,6 +226,12 @@ class _TaskView extends StatelessWidget {
                     .animate()
                     .fadeIn(duration: 400.ms)
                     .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+                if (solved) ...[
+                  const SizedBox(height: 12),
+                  AiWordHelper(word: task.correctWord),
+                ],
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 28),
@@ -243,6 +257,16 @@ class _TaskView extends StatelessWidget {
                 const SizedBox(height: 4),
                 _errorCard(context),
               ],
+              // Помощник после карточки ошибки: ошибка должна оставаться
+              // в видимой области списка, а не уезжать в cache extent.
+              if (!solved)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AiWordHelper(
+                    word: task.correctWord,
+                    revealWord: false,
+                  ),
+                ),
             ],
           ),
         ),

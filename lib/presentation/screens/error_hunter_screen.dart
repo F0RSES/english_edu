@@ -9,6 +9,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Сравнение слов без регистра и пунктуации: «Book,» == «book».
+String _normalizeWord(String value) =>
+    value.toLowerCase().replaceAll(RegExp('[^a-zа-яё]'), '');
+
 /// Мини-игра «Охота на ошибки» (Phase 8).
 ///
 /// Задание генерирует AI-прокси по случайному слову из словаря. Пользователь
@@ -43,7 +47,12 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
       _task = null;
     });
     try {
-      final words = await ref.read(wordRepositoryProvider).getAll();
+      // Слова строго выбранного уровня (Phase 28b): раньше игра брала весь
+      // словарь и могла дать задание выше уровня пользователя.
+      final settings = await ref.read(settingsRepositoryProvider).get();
+      final words = await ref
+          .read(wordRepositoryProvider)
+          .getByLevel(settings.preferredLevel);
       if (words.isEmpty) {
         throw StateError('dictionary is empty');
       }
@@ -70,7 +79,7 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
   /// Реагируем только на ошибочное слово: остальные — просто текст, иначе
   /// пользователь тыкал бы вслепую.
   Future<void> _onWordTap(ErrorHunterTask task, String chunk) async {
-    if (_solved || _normalize(chunk) != _normalize(task.wrongWord)) {
+    if (_solved || _normalizeWord(chunk) != _normalizeWord(task.wrongWord)) {
       return;
     }
     final solved = await showModalBottomSheet<bool>(
@@ -85,10 +94,6 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
       const SnackBar(content: Text('Верно!'), backgroundColor: Colors.green),
     );
   }
-
-  /// Сравнивает слова без регистра и пунктуации: «Book,» == «book».
-  String _normalize(String value) =>
-      value.toLowerCase().replaceAll(RegExp('[^a-zа-яё]'), '');
 
   @override
   Widget build(BuildContext context) {
@@ -148,12 +153,13 @@ class _TaskView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        // Предложение в контейнере: текст не висит на голом фоне (Phase 27c).
+        // Предложение в контейнере: фон на тон ниже подсветки слов, чтобы
+        // кликабельные слова не сливались с фоном (Phase 28b).
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: colors.surfaceContainerHighest,
+            color: colors.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Wrap(
@@ -161,24 +167,7 @@ class _TaskView extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final chunk in task.sentence.split(' '))
-                InkWell(
-                  onTap: solved ? null : () => onWordTap(chunk),
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      // Подсветка слов до ответа: видно, что сюда можно нажать.
-                      color: solved
-                          ? null
-                          : colors.primaryContainer.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(chunk, style: theme.textTheme.titleLarge),
-                  ),
-                ),
+                _wordChip(context, chunk),
             ],
           ),
         ),
@@ -192,6 +181,41 @@ class _TaskView extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  /// Слово предложения: до ответа — кликабельная подсветка primary, после —
+  /// ошибочное слово заменено на правильное и выделено зелёным (Phase 28b).
+  Widget _wordChip(BuildContext context, String chunk) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isWrong = _normalizeWord(chunk) == _normalizeWord(task.wrongWord);
+    final corrected = solved && isWrong;
+    return InkWell(
+      onTap: solved ? null : () => onWordTap(chunk),
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: corrected
+              ? Colors.green.withValues(alpha: 0.15)
+              : solved
+              ? null
+              : colors.primary.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(6),
+          border: corrected
+              ? Border.all(color: Colors.green)
+              : solved
+              ? null
+              : Border.all(color: colors.primary),
+        ),
+        child: Text(
+          corrected ? task.correctWord : chunk,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: solved ? null : FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

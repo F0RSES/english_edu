@@ -1,4 +1,5 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
@@ -14,7 +15,16 @@ Widget host() => ProviderScope(
     computeStreakProvider.overrideWith(
       (ref) async => const StreakInfo(count: 5),
     ),
-    dictionaryEntriesProvider.overrideWith((ref) async => const []),
+    analyticsProvider.overrideWith(
+      (ref) async => Analytics(
+        totalWords: 2071,
+        masteredCount: 7,
+        learningCount: 3,
+        newCount: 2061,
+        hardestWords: const [],
+        last7Days: const [],
+      ),
+    ),
     dailyGoalProvider.overrideWith(
       (ref) async => const DailyGoal(stats: null, target: 60),
     ),
@@ -47,7 +57,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Достижения ('), findsOneWidget);
-    expect(find.text('Все >'), findsOneWidget);
+    expect(find.byTooltip('Все достижения'), findsOneWidget);
+    // chevron_right есть и у карточки помощника — проверяем наличие.
+    expect(find.byIcon(Icons.chevron_right), findsWidgets);
+  });
+
+  testWidgets('words metric shows mastered count, not dictionary size', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    // masteredCount = 7, а не 2071 слово словаря (Phase 28a).
+    expect(find.text('7'), findsOneWidget);
+    expect(find.text('2071'), findsNothing);
+  });
+
+  testWidgets('has no analytics block', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Трудные слова'), findsNothing);
+    expect(find.text('Пока нет провалов'), findsNothing);
+    expect(find.textContaining('Прогноз mastery'), findsNothing);
   });
 
   testWidgets('has no settings controls', (tester) async {

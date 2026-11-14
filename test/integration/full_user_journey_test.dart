@@ -104,7 +104,7 @@ void main() {
 
     // 3. Главная: очередь собрана из двух новых слов.
     expect(find.text('Начать урок'), findsOneWidget);
-    expect(find.text('Error Hunter'), findsOneWidget);
+    expect(find.text('Охота на ошибки'), findsOneWidget);
 
     // 4. Урок: обе карточки оценены кнопкой «Знаю».
     await tester.tap(find.text('Начать урок'));

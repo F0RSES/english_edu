@@ -46,7 +46,51 @@ class HomeScreen extends ConsumerWidget {
                 for (final value in CefrLevel.values)
                   PopupMenuItem<CefrLevel>(
                     value: value,
-                    child: Text('${value.label} — ${value.description}'),
+                    padding: EdgeInsets.zero,
+                    child: Container(
+                      width: 280,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        // Текущий уровень подсвечен и отмечен галочкой
+                        // (Phase 28a).
+                        color: value == level
+                            ? Theme.of(context).colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            value.label,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 12),
+                          // Expanded + ellipsis: длинные описания (C1/C2)
+                          // не распирают меню.
+                          Expanded(
+                            child: Text(
+                              value.description,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ),
+                          if (value == level) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.check,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
               ],
               child: Container(
@@ -73,7 +117,7 @@ class HomeScreen extends ConsumerWidget {
             const Spacer(),
             PopupMenuButton<AppLanguage>(
               tooltip: S.language(lang),
-              icon: const Icon(Icons.language),
+              icon: Text(S.flagFor(lang), style: const TextStyle(fontSize: 20)),
               onSelected: (selected) =>
                   unawaited(_changeLanguage(context, ref, selected)),
               itemBuilder: (context) => [

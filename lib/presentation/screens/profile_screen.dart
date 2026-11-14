@@ -2,10 +2,10 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
-import 'package:english_edu/presentation/widgets/analytics_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,7 +51,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             _Stats(
               streak: ref.watch(computeStreakProvider),
-              words: ref.watch(dictionaryEntriesProvider),
+              analytics: ref.watch(analyticsProvider),
               xp: ref.watch(dailyGoalProvider),
               lang: lang,
             ),
@@ -59,14 +59,6 @@ class ProfileScreen extends ConsumerWidget {
             _Achievements(
               achievements: ref.watch(achievementsProvider),
               lang: lang,
-            ),
-            const SizedBox(height: 16),
-            const Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: AnalyticsSection(),
-              ),
             ),
           ],
         ),
@@ -140,13 +132,13 @@ class _Identity extends StatelessWidget {
 class _Stats extends StatelessWidget {
   const _Stats({
     required this.streak,
-    required this.words,
+    required this.analytics,
     required this.xp,
     required this.lang,
   });
 
   final AsyncValue<StreakInfo> streak;
-  final AsyncValue<List<Object?>> words;
+  final AsyncValue<Analytics> analytics;
   final AsyncValue<DailyGoal> xp;
   final AppLanguage lang;
 
@@ -158,7 +150,11 @@ class _Stats extends StatelessWidget {
         value: '${streak.value?.count ?? 0}',
       ),
       const SizedBox(width: 12),
-      _StatCard(label: S.statWords(lang), value: '${words.value?.length ?? 0}'),
+      // «Слов» — изученные (mastered), а не весь словарь (Phase 28a).
+      _StatCard(
+        label: S.statWords(lang),
+        value: '${analytics.value?.masteredCount ?? 0}',
+      ),
       const SizedBox(width: 12),
       _StatCard(
         label: S.statXp(lang),
@@ -243,9 +239,10 @@ class _Achievements extends StatelessWidget {
                     ),
                   ),
                 ),
-                TextButton(
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  tooltip: S.allAchievementsTooltip(lang),
                   onPressed: () => context.push('/achievements'),
-                  child: Text(S.allAchievements(lang)),
                 ),
               ],
             ),

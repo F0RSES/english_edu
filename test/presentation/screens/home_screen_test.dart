@@ -389,7 +389,7 @@ void main() {
 
     await tester.tap(find.byType(PopupMenuButton<CefrLevel>));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('B1 — Intermediate'));
+    await tester.tap(find.text('B1'));
     await tester.pumpAndSettle();
 
     expect((await settings.get()).preferredLevel, CefrLevel.b1);
@@ -401,7 +401,35 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byTooltip('Язык'), findsOneWidget);
-    expect(find.byIcon(Icons.language), findsOneWidget);
+    // Флаг вместо глобуса (Phase 28a).
+    expect(find.text('🇷🇺'), findsOneWidget);
+    expect(find.byIcon(Icons.language), findsNothing);
+  });
+
+  testWidgets('level menu marks the current level with a check', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<CefrLevel>));
+    await tester.pumpAndSettle();
+
+    // Текущий уровень A1 отмечен галочкой, остальные — нет.
+    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(find.text('Beginner'), findsOneWidget);
+  });
+
+  testWidgets('game tiles have russian titles', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Охота на ошибки'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Охота на ошибки'), findsOneWidget);
+    expect(find.text('Скорость печати'), findsOneWidget);
+    expect(find.text('Мемори'), findsOneWidget);
   });
 
   testWidgets('language switch changes UI strings', (tester) async {

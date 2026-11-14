@@ -102,6 +102,7 @@ void main() {
         S.statWords,
         S.statXp,
         S.allAchievements,
+        S.allAchievementsTooltip,
         S.noAchievements,
         S.analyticsFailed,
         S.metricTotal,
@@ -279,6 +280,17 @@ void main() {
       expect(S.startLesson(AppLanguage.en), 'Start lesson');
       expect(S.wordsToday(5, 10, AppLanguage.en), '5 / 10 words today');
       expect(S.sessionCorrect(3, 5, AppLanguage.en), 'Correct: 3 of 5');
+    });
+
+    test('flags and game titles are localized (Phase 28a)', () {
+      expect(S.flagFor(AppLanguage.ru), '🇷🇺');
+      expect(S.flagFor(AppLanguage.en), '🇬🇧');
+      expect(S.gameTitle('errorHunter', AppLanguage.ru), 'Охота на ошибки');
+      expect(S.gameTitle('typing', AppLanguage.ru), 'Скорость печати');
+      expect(S.gameTitle('memory', AppLanguage.ru), 'Мемори');
+      expect(S.gameTitle('errorHunter', AppLanguage.en), 'Error Hunter');
+      expect(S.allAchievementsTooltip(AppLanguage.ru), 'Все достижения');
+      expect(S.allAchievementsTooltip(AppLanguage.en), 'All achievements');
     });
   });
 }

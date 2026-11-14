@@ -88,12 +88,42 @@ void main() {
     await tester.pumpWidget(harness.app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('en-US'));
+    // Голос выбирается в нижнем листе с RadioListTile (Phase 28a).
+    await tester.tap(find.text('Голос'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('en-GB').last);
+    await tester.tap(find.text('en-GB'));
     await tester.pumpAndSettle();
 
     expect((await harness.settingsRepo.get()).ttsVoice, 'en-GB');
+    expect(find.text('en-GB'), findsOneWidget);
+  });
+
+  testWidgets('reminders section is above backup', (tester) async {
+    // Высокий viewport: весь список настроек построен, скролл не нужен —
+    // координаты заголовков сравниваются напрямую.
+    tester.view.physicalSize = const Size(800, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final harness = Harness();
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    final remindersY = tester.getTopLeft(find.text('Напоминания')).dy;
+    final backupY = tester.getTopLeft(find.text('Резервная копия')).dy;
+    expect(remindersY, lessThan(backupY));
+  });
+
+  testWidgets('has no analytics section', (tester) async {
+    final harness = Harness();
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Короткий онбординг'), 200);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Аналитика'), findsNothing);
+    expect(find.text('Трудные слова'), findsNothing);
   });
 
   testWidgets('moving the speed slider saves settings', (tester) async {

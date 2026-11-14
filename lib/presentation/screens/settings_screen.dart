@@ -5,7 +5,6 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
-import 'package:english_edu/presentation/widgets/analytics_section.dart';
 import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
 import 'package:english_edu/presentation/widgets/export_dialog.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
@@ -83,6 +82,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(S.ttsFailed(lang))));
       }
+    }
+  }
+
+  /// Выбор голоса в нижнем листе (Phase 28a): RadioGroup вместо dropdown.
+  ///
+  /// `RadioGroup` — современный API Flutter 3.47: `groupValue`/`onChanged`
+  /// у самих RadioListTile deprecated.
+  Future<void> _pickVoice(UserSettings settings) async {
+    final voice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: RadioGroup<String>(
+          groupValue: settings.ttsVoice,
+          onChanged: (value) => Navigator.of(sheetContext).pop(value),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final option in _voices)
+                RadioListTile<String>(value: option, title: Text(option)),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (voice != null && voice != settings.ttsVoice) {
+      await _save(settings.copyWith(ttsVoice: voice));
     }
   }
 
@@ -314,20 +339,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: [
                   ListTile(
                     title: Text(S.voice(lang)),
-                    trailing: DropdownButton<String>(
-                      value: _voices.contains(settings.ttsVoice)
-                          ? settings.ttsVoice
-                          : _voices.first,
-                      items: [
-                        for (final voice in _voices)
-                          DropdownMenuItem(value: voice, child: Text(voice)),
-                      ],
-                      onChanged: (voice) {
-                        if (voice != null) {
-                          unawaited(_save(settings.copyWith(ttsVoice: voice)));
-                        }
-                      },
-                    ),
+                    subtitle: Text(settings.ttsVoice),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => unawaited(_pickVoice(settings)),
                   ),
                   ListTile(
                     title: Text(S.speechRate(lang)),
@@ -349,6 +363,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     leading: const Icon(Icons.play_arrow),
                     title: Text(S.check(lang)),
                     onTap: () => unawaited(_testSpeak(settings)),
+                  ),
+                ],
+              ),
+              _SectionHeader(
+                S.remindersSection(lang),
+                icon: Icons.notifications,
+              ),
+              _SettingsCard(
+                children: [
+                  SwitchListTile(
+                    title: Text(S.remindersToggle(lang)),
+                    subtitle: Text(
+                      settings.remindersEnabled
+                          ? S.remindersDaily(_formatTime(settings), lang)
+                          : S.remindersOff(lang),
+                    ),
+                    value: settings.remindersEnabled,
+                    onChanged: (value) =>
+                        unawaited(_toggleReminders(settings, value)),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.schedule),
+                    title: Text(S.reminderTime(lang)),
+                    subtitle: Text(_formatTime(settings)),
+                    onTap: () => unawaited(_pickReminderTime(settings)),
                   ),
                 ],
               ),
@@ -411,33 +450,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: Text(S.howItWorks(lang)),
                     subtitle: Text(S.onboardingTile(lang)),
                     onTap: () => context.push('/onboarding?manual=1'),
-                  ),
-                ],
-              ),
-              _SectionHeader(S.analyticsSection(lang), icon: Icons.analytics),
-              const _SettingsCard(children: [AnalyticsSection()]),
-              _SectionHeader(
-                S.remindersSection(lang),
-                icon: Icons.notifications,
-              ),
-              _SettingsCard(
-                children: [
-                  SwitchListTile(
-                    title: Text(S.remindersToggle(lang)),
-                    subtitle: Text(
-                      settings.remindersEnabled
-                          ? S.remindersDaily(_formatTime(settings), lang)
-                          : S.remindersOff(lang),
-                    ),
-                    value: settings.remindersEnabled,
-                    onChanged: (value) =>
-                        unawaited(_toggleReminders(settings, value)),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.schedule),
-                    title: Text(S.reminderTime(lang)),
-                    subtitle: Text(_formatTime(settings)),
-                    onTap: () => unawaited(_pickReminderTime(settings)),
                   ),
                 ],
               ),

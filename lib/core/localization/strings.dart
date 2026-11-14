@@ -70,6 +70,9 @@ final class S {
   /// Tooltip кнопки выбора языка.
   static String language(AppLanguage l) => _t('language', l);
 
+  /// Флаг языка для кнопки в AppBar (Phase 28a).
+  static String flagFor(AppLanguage l) => l == AppLanguage.ru ? '🇷🇺' : '🇬🇧';
+
   /// Tooltip селектора уровня.
   static String levelTooltip(AppLanguage l) => _t('levelTooltip', l);
 
@@ -184,6 +187,10 @@ final class S {
 
   /// Ссылка «Все >».
   static String allAchievements(AppLanguage l) => _t('profile.all', l);
+
+  /// Tooltip кнопки «все достижения» в профиле (Phase 28a).
+  static String allAchievementsTooltip(AppLanguage l) =>
+      _t('profile.allAchievementsTooltip', l);
 
   /// Заглушка пустых достижений.
   static String noAchievements(AppLanguage l) =>
@@ -718,11 +725,11 @@ final class S {
     'word.one': {'ru': 'слово', 'en': 'word'},
     'word.few': {'ru': 'слова', 'en': 'words'},
     'word.many': {'ru': 'слов', 'en': 'words'},
-    'game.errorHunter': {'ru': 'Error Hunter', 'en': 'Error Hunter'},
+    'game.errorHunter': {'ru': 'Охота на ошибки', 'en': 'Error Hunter'},
     'game.cloze': {'ru': 'Пропуск', 'en': 'Gap fill'},
     'game.scramble': {'ru': 'Собери слово', 'en': 'Word Scramble'},
-    'game.memory': {'ru': 'Memory', 'en': 'Memory'},
-    'game.typing': {'ru': 'Typing', 'en': 'Typing'},
+    'game.memory': {'ru': 'Мемори', 'en': 'Memory'},
+    'game.typing': {'ru': 'Скорость печати', 'en': 'Typing'},
     'game.phrasebook': {'ru': 'Разговорник', 'en': 'Phrasebook'},
     'game.dictation': {'ru': 'Диктант', 'en': 'Dictation'},
     'game.reading': {'ru': 'Чтение', 'en': 'Reading'},
@@ -785,6 +792,10 @@ final class S {
       'en': 'Achievements ({a}/{b})',
     },
     'profile.all': {'ru': 'Все >', 'en': 'All >'},
+    'profile.allAchievementsTooltip': {
+      'ru': 'Все достижения',
+      'en': 'All achievements',
+    },
     'profile.noAchievements': {
       'ru': 'Пока нет достижений. Выполняй задания!',
       'en': 'No achievements yet. Complete challenges!',

@@ -152,6 +152,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
               decoration: InputDecoration(
                 hintText: S.searchHint(lang),
                 prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
                 border: const OutlineInputBorder(),
               ),
               onChanged: (value) => ref
@@ -236,7 +240,17 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     // сужают список, а не заменяют друг друга.
     final filtered = _applyLevel(_applyCategory(_applyTab(entries)));
     if (filtered.isEmpty) {
-      return Center(child: Text(_emptyMessage(lang)));
+      return Center(
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(_emptyMessage(lang)),
+        ),
+      );
     }
     return ListView.builder(
       itemCount: filtered.length,
@@ -273,13 +287,21 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(S.dictionaryLoadFailed(lang)),
-        const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
-      ],
+    child: Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(S.dictionaryLoadFailed(lang)),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
+        ],
+      ),
     ),
   );
 }

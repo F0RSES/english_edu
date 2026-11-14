@@ -47,7 +47,7 @@ class CefrBadge extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.bold,
-          fontSize: dense ? 11 : 13,
+          fontSize: dense ? 11 : 14,
         ),
       ),
     );

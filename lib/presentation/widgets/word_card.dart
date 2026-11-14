@@ -106,43 +106,45 @@ class _WordCardState extends ConsumerState<WordCard> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
+                  Text(
+                    word.term,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Divider(),
+                  // Динамик и транскрипция в одном ряду: карточка не выглядит
+                  // пустой даже для короткого слова (Phase 27c).
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Flexible(
-                        child: Text(
-                          word.term,
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -1,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
                       IconButton(
                         icon: const Icon(Icons.volume_up),
                         tooltip: S.speakTooltip(lang),
                         onPressed: _speak,
                       ),
+                      if (word.transcription case final transcription?)
+                        Flexible(
+                          child: Text(
+                            transcription,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontSize: 20,
+                              fontStyle: FontStyle.italic,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                  if (word.transcription != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      word.transcription!,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 20,
-                        fontStyle: FontStyle.italic,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
                   const SizedBox(height: 24),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
                     child: widget.revealed
-                        ? _Revealed(word: word)
+                        ? _Revealed(word: word, lang: lang)
                         : Text(S.tapToReveal(lang)),
                   ),
                   // Подсказка доступна только после раскрытия: до ответа она
@@ -190,38 +192,56 @@ class _WordCardState extends ConsumerState<WordCard> {
 }
 
 class _Revealed extends StatelessWidget {
-  const _Revealed({required this.word});
+  const _Revealed({required this.word, required this.lang});
 
   final Word word;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
+    // Перевод и пример в одном контейнере с лёгким акцентным фоном:
+    // блок текста не висит на карточке голым текстом (Phase 27c).
+    return Container(
       key: const ValueKey('revealed'),
-      children: [
-        Text(
-          word.translation,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontSize: 28,
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.primary,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        if (word.exampleSentence != null) ...[
-          const SizedBox(height: 12),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
           Text(
-            '«${word.exampleSentence!}»',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 16,
-              fontStyle: FontStyle.italic,
-              color: theme.colorScheme.onSurfaceVariant,
+            word.translation,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary,
             ),
             textAlign: TextAlign.center,
           ),
+          if (word.exampleSentence != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              '«${word.exampleSentence!}»',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 12),
+          Text(
+            S.levelLabel(word.level.label, lang),
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
-      ],
+      ),
     );
   }
 }

@@ -190,27 +190,36 @@ class _TaskView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text.rich(
-              TextSpan(
-                children: _sentenceSpans(
-                  task.sentence,
-                  TextStyle(
-                    decoration: TextDecoration.underline,
-                    decorationColor: theme.colorScheme.primary,
-                    decorationThickness: 2,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                height: 1.45,
-              ),
-            )
-            .animate()
-            .fadeIn(duration: 400.ms)
-            .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+        // Предложение в карточке: текст не висит на голом фоне (Phase 27c).
+        Card(
+          margin: EdgeInsets.zero,
+          color: theme.colorScheme.surfaceContainerHighest,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child:
+                Text.rich(
+                      TextSpan(
+                        children: _sentenceSpans(
+                          task.sentence,
+                          TextStyle(
+                            decoration: TextDecoration.underline,
+                            decorationColor: theme.colorScheme.primary,
+                            decorationThickness: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        height: 1.45,
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+          ),
+        ),
         const SizedBox(height: 28),
         Expanded(
           child: ListView(

@@ -128,33 +128,59 @@ class _TaskView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Найди ошибку и нажми на слово',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Row(
           children: [
-            for (final chunk in task.sentence.split(' '))
-              InkWell(
-                onTap: solved ? null : () => onWordTap(chunk),
-                borderRadius: BorderRadius.circular(6),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 2,
-                  ),
-                  child: Text(chunk, style: theme.textTheme.titleLarge),
+            Icon(Icons.search, size: 16, color: colors.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Найди ошибку и нажми на слово',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 14,
                 ),
               ),
+            ),
           ],
+        ),
+        const SizedBox(height: 16),
+        // Предложение в контейнере: текст не висит на голом фоне (Phase 27c).
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final chunk in task.sentence.split(' '))
+                InkWell(
+                  onTap: solved ? null : () => onWordTap(chunk),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      // Подсветка слов до ответа: видно, что сюда можно нажать.
+                      color: solved
+                          ? null
+                          : colors.primaryContainer.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(chunk, style: theme.textTheme.titleLarge),
+                  ),
+                ),
+            ],
+          ),
         ),
         const Spacer(),
         if (solved)

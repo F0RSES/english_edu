@@ -268,156 +268,178 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           }
           final settings = snapshot.data ?? UserSettings.defaults();
           return ListView(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
               _SectionHeader(S.dailyLimits(lang), icon: Icons.tune),
-              ListTile(
-                title: Text(S.newPerDay(lang)),
-                subtitle: Slider(
-                  max: 50,
-                  divisions: 10,
-                  value: settings.dailyNewLimit.clamp(0, 50).toDouble(),
-                  label: '${settings.dailyNewLimit}',
-                  onChanged: (value) => setState(() {
-                    _settings = Future.value(
-                      settings.copyWith(dailyNewLimit: value.round()),
-                    );
-                  }),
-                  onChangeEnd: (value) =>
-                      _save(settings.copyWith(dailyNewLimit: value.round())),
-                ),
+              _SettingsCard(
+                children: [
+                  ListTile(
+                    title: Text(S.newPerDay(lang)),
+                    subtitle: Slider(
+                      max: 50,
+                      divisions: 10,
+                      value: settings.dailyNewLimit.clamp(0, 50).toDouble(),
+                      label: '${settings.dailyNewLimit}',
+                      onChanged: (value) => setState(() {
+                        _settings = Future.value(
+                          settings.copyWith(dailyNewLimit: value.round()),
+                        );
+                      }),
+                      onChangeEnd: (value) => _save(
+                        settings.copyWith(dailyNewLimit: value.round()),
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    title: Text(S.reviewsPerDay(lang)),
+                    subtitle: Slider(
+                      max: 200,
+                      divisions: 20,
+                      value: settings.dailyReviewLimit.clamp(0, 200).toDouble(),
+                      label: '${settings.dailyReviewLimit}',
+                      onChanged: (value) => setState(() {
+                        _settings = Future.value(
+                          settings.copyWith(dailyReviewLimit: value.round()),
+                        );
+                      }),
+                      onChangeEnd: (value) => _save(
+                        settings.copyWith(dailyReviewLimit: value.round()),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                title: Text(S.reviewsPerDay(lang)),
-                subtitle: Slider(
-                  max: 200,
-                  divisions: 20,
-                  value: settings.dailyReviewLimit.clamp(0, 200).toDouble(),
-                  label: '${settings.dailyReviewLimit}',
-                  onChanged: (value) => setState(() {
-                    _settings = Future.value(
-                      settings.copyWith(dailyReviewLimit: value.round()),
-                    );
-                  }),
-                  onChangeEnd: (value) =>
-                      _save(settings.copyWith(dailyReviewLimit: value.round())),
-                ),
-              ),
-              const Divider(),
               _SectionHeader(S.ttsSection(lang), icon: Icons.volume_up),
-              ListTile(
-                title: Text(S.voice(lang)),
-                trailing: DropdownButton<String>(
-                  value: _voices.contains(settings.ttsVoice)
-                      ? settings.ttsVoice
-                      : _voices.first,
-                  items: [
-                    for (final voice in _voices)
-                      DropdownMenuItem(value: voice, child: Text(voice)),
-                  ],
-                  onChanged: (voice) {
-                    if (voice != null) {
-                      unawaited(_save(settings.copyWith(ttsVoice: voice)));
-                    }
-                  },
-                ),
+              _SettingsCard(
+                children: [
+                  ListTile(
+                    title: Text(S.voice(lang)),
+                    trailing: DropdownButton<String>(
+                      value: _voices.contains(settings.ttsVoice)
+                          ? settings.ttsVoice
+                          : _voices.first,
+                      items: [
+                        for (final voice in _voices)
+                          DropdownMenuItem(value: voice, child: Text(voice)),
+                      ],
+                      onChanged: (voice) {
+                        if (voice != null) {
+                          unawaited(_save(settings.copyWith(ttsVoice: voice)));
+                        }
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    title: Text(S.speechRate(lang)),
+                    subtitle: Slider(
+                      min: 0.1,
+                      divisions: 18,
+                      value: settings.ttsSpeed.clamp(0.1, 1),
+                      label: settings.ttsSpeed.toStringAsFixed(2),
+                      onChanged: (value) => setState(() {
+                        _settings = Future.value(
+                          settings.copyWith(ttsSpeed: value),
+                        );
+                      }),
+                      onChangeEnd: (value) =>
+                          _save(settings.copyWith(ttsSpeed: value)),
+                    ),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.play_arrow),
+                    title: Text(S.check(lang)),
+                    onTap: () => unawaited(_testSpeak(settings)),
+                  ),
+                ],
               ),
-              ListTile(
-                title: Text(S.speechRate(lang)),
-                subtitle: Slider(
-                  min: 0.1,
-                  divisions: 18,
-                  value: settings.ttsSpeed.clamp(0.1, 1),
-                  label: settings.ttsSpeed.toStringAsFixed(2),
-                  onChanged: (value) => setState(() {
-                    _settings = Future.value(
-                      settings.copyWith(ttsSpeed: value),
-                    );
-                  }),
-                  onChangeEnd: (value) =>
-                      _save(settings.copyWith(ttsSpeed: value)),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.play_arrow),
-                title: Text(S.check(lang)),
-                onTap: () => unawaited(_testSpeak(settings)),
-              ),
-              const Divider(),
               _SectionHeader(S.backupSection(lang), icon: Icons.backup),
-              ListTile(
-                leading: const Icon(Icons.emoji_events_outlined),
-                title: Text(S.achievementsTile(lang)),
-                subtitle: Text(S.achievementsSubtitle(lang)),
-                onTap: () => context.push('/achievements'),
+              _SettingsCard(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.emoji_events_outlined),
+                    title: Text(S.achievementsTile(lang)),
+                    subtitle: Text(S.achievementsSubtitle(lang)),
+                    onTap: () => context.push('/achievements'),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.category_outlined),
+                    title: Text(S.categoriesTile(lang)),
+                    subtitle: Text(S.categoriesSubtitle(lang)),
+                    onTap: () => unawaited(_createCategory()),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.upload),
+                    title: Text(S.exportTile(lang)),
+                    subtitle: Text(S.exportSubtitle(lang)),
+                    onTap: () => unawaited(_export()),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.download),
+                    title: Text(S.importTile(lang)),
+                    subtitle: Text(S.importSubtitle(lang)),
+                    onTap: () => unawaited(_import()),
+                  ),
+                ],
               ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.category_outlined),
-                title: Text(S.categoriesTile(lang)),
-                subtitle: Text(S.categoriesSubtitle(lang)),
-                onTap: () => unawaited(_createCategory()),
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.upload),
-                title: Text(S.exportTile(lang)),
-                subtitle: Text(S.exportSubtitle(lang)),
-                onTap: () => unawaited(_export()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.download),
-                title: Text(S.importTile(lang)),
-                subtitle: Text(S.importSubtitle(lang)),
-                onTap: () => unawaited(_import()),
-              ),
-              const Divider(),
               _SectionHeader(S.cloudSection(lang), icon: Icons.cloud_sync),
-              const _CloudSyncSection(),
-              const Divider(),
+              const _SettingsCard(children: [_CloudSyncSection()]),
               _SectionHeader(S.dangerZone(lang), icon: Icons.warning_amber),
-              ListTile(
-                leading: Icon(
-                  Icons.restart_alt,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                title: Text(
-                  S.resetTile(lang),
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-                subtitle: Text(S.resetSubtitle(lang)),
-                onTap: () => unawaited(_reset()),
+              _SettingsCard(
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.restart_alt,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      S.resetTile(lang),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    subtitle: Text(S.resetSubtitle(lang)),
+                    onTap: () => unawaited(_reset()),
+                  ),
+                ],
               ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.school_outlined),
-                title: Text(S.howItWorks(lang)),
-                subtitle: Text(S.onboardingTile(lang)),
-                onTap: () => context.push('/onboarding?manual=1'),
+              _SettingsCard(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.school_outlined),
+                    title: Text(S.howItWorks(lang)),
+                    subtitle: Text(S.onboardingTile(lang)),
+                    onTap: () => context.push('/onboarding?manual=1'),
+                  ),
+                ],
               ),
-              const Divider(),
               _SectionHeader(S.analyticsSection(lang), icon: Icons.analytics),
-              const AnalyticsSection(),
-              const Divider(),
+              const _SettingsCard(children: [AnalyticsSection()]),
               _SectionHeader(
                 S.remindersSection(lang),
                 icon: Icons.notifications,
               ),
-              SwitchListTile(
-                title: Text(S.remindersToggle(lang)),
-                subtitle: Text(
-                  settings.remindersEnabled
-                      ? S.remindersDaily(_formatTime(settings), lang)
-                      : S.remindersOff(lang),
-                ),
-                value: settings.remindersEnabled,
-                onChanged: (value) =>
-                    unawaited(_toggleReminders(settings, value)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.schedule),
-                title: Text(S.reminderTime(lang)),
-                subtitle: Text(_formatTime(settings)),
-                onTap: () => unawaited(_pickReminderTime(settings)),
+              _SettingsCard(
+                children: [
+                  SwitchListTile(
+                    title: Text(S.remindersToggle(lang)),
+                    subtitle: Text(
+                      settings.remindersEnabled
+                          ? S.remindersDaily(_formatTime(settings), lang)
+                          : S.remindersOff(lang),
+                    ),
+                    value: settings.remindersEnabled,
+                    onChanged: (value) =>
+                        unawaited(_toggleReminders(settings, value)),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.schedule),
+                    title: Text(S.reminderTime(lang)),
+                    subtitle: Text(_formatTime(settings)),
+                    onTap: () => unawaited(_pickReminderTime(settings)),
+                  ),
+                ],
               ),
             ],
           );
@@ -425,6 +447,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
+}
+
+/// Карточка секции настроек: фон и скругление вместо голого списка
+/// (Phase 27c). Логика тайлов не меняется — только визуальная группировка.
+class _SettingsCard extends StatelessWidget {
+  const _SettingsCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    clipBehavior: Clip.antiAlias,
+    child: Column(mainAxisSize: MainAxisSize.min, children: children),
+  );
 }
 
 class _SectionHeader extends StatelessWidget {

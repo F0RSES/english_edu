@@ -355,22 +355,33 @@ class _PuzzleView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-              puzzle.translation,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            )
-            .animate()
-            .fadeIn(duration: 350.ms)
-            .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+        // Перевод-подсказка в контейнере с лёгким акцентом (Phase 27c).
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child:
+              Text(
+                    puzzle.translation,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  )
+                  .animate()
+                  .fadeIn(duration: 350.ms)
+                  .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
+        ),
         const SizedBox(height: 8),
         Text(
           'Переведи и собери слово по буквам',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
+            fontSize: 13,
+            fontStyle: FontStyle.italic,
           ),
           textAlign: TextAlign.center,
         ),

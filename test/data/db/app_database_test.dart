@@ -445,6 +445,39 @@ void main() {
     expect(row.preferredLevel, 'a1');
   });
 
+  test('migration v17 to v18 adds nickname and avatar_path', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v18',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v17 = текущая схема без user_settings.nickname/avatar_path.
+    final v17 = AppDatabase.forTesting(NativeDatabase(file));
+    await v17.customStatement(
+      'INSERT INTO user_settings (id, daily_new_limit, daily_review_limit, '
+      'reminders_enabled, reminder_hour, reminder_minute, tts_voice, '
+      'tts_speed, has_seen_onboarding, preferred_level, language, '
+      "updated_at_utc) VALUES (1, 10, 50, 0, 9, 0, 'en-US', 0.5, 0, 'a1', "
+      "'ru', 0)",
+    );
+    await v17.customStatement('ALTER TABLE user_settings DROP COLUMN nickname');
+    await v17.customStatement(
+      'ALTER TABLE user_settings DROP COLUMN avatar_path',
+    );
+    await v17.customStatement('PRAGMA user_version = 17');
+    await v17.close();
+
+    final v18 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v18.close);
+
+    final row = (await v18.select(v18.userSettingsTable).get()).single;
+    // Колонки появились миграцией; старая строка без профиля (null).
+    expect(row.nickname, isNull);
+    expect(row.avatarPath, isNull);
+    expect(row.language, 'ru');
+  });
+
   test('creates all sixteen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);

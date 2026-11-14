@@ -1,6 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
-import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
@@ -9,6 +11,7 @@ import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 /// Профиль — витрина успехов: кто я, сколько сделал, что открыл (Phase 20).
 class ProfileScreen extends ConsumerWidget {
@@ -34,10 +37,7 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _Identity(
-              settings: ref.watch(settingsRepositoryProvider).get(),
-              lang: lang,
-            ),
+            _Identity(lang: lang),
             const SizedBox(height: 16),
             Card(
               margin: EdgeInsets.zero,
@@ -67,17 +67,22 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-/// Аватар и уровень на градиентной подложке.
-class _Identity extends StatelessWidget {
-  const _Identity({required this.settings, required this.lang});
+/// Аватар, никнейм и уровень на градиентной подложке (Phase 28c, ADR-044).
+///
+/// Аватар и никнейм редактируются по явному тапу на карандаш; файл аватара
+/// живёт локально, в настройках хранится только путь.
+class _Identity extends ConsumerWidget {
+  const _Identity({required this.lang});
 
-  final Future<UserSettings> settings;
   final AppLanguage lang;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final settings = ref.watch(settingsProvider).value;
+    final nickname = settings?.nickname;
+    final avatarPath = settings?.avatarPath;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -88,44 +93,268 @@ class _Identity extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
+      child: Column(
         children: [
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: scheme.primary,
-            child: Icon(Icons.person, size: 44, color: scheme.onPrimary),
+          Stack(
+            children: [
+              _avatar(context, ref, avatarPath),
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: IconButton(
+                  tooltip: S.changeAvatar(lang),
+                  style: IconButton.styleFrom(
+                    backgroundColor: scheme.primary,
+                    foregroundColor: scheme.onPrimary,
+                  ),
+                  icon: const Icon(Icons.edit, size: 16),
+                  onPressed: () =>
+                      unawaited(_openAvatarSheet(context, ref, avatarPath)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.learner(lang),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  nickname ?? S.learner(lang),
+                  overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
-                FutureBuilder<UserSettings>(
-                  future: settings,
-                  builder: (context, snapshot) => Text(
-                    S.levelLabel(
-                      snapshot.data?.preferredLevel.label ?? 'A1',
-                      lang,
-                    ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+              IconButton(
+                tooltip: S.enterNickname(lang),
+                icon: const Icon(Icons.edit, size: 18),
+                onPressed: () =>
+                    unawaited(_editNickname(context, ref, nickname)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            S.levelLabel(settings?.preferredLevel.label ?? 'A1', lang),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
             ),
           ),
         ],
       ),
     );
   }
+
+  /// Аватар из файла; отсутствующий файл (например, после импорта снимка)
+  /// даёт fallback-иконку, а не ошибку загрузки изображения.
+  Widget _avatar(BuildContext context, WidgetRef ref, String? avatarPath) {
+    final scheme = Theme.of(context).colorScheme;
+    final fallback = CircleAvatar(
+      radius: 50,
+      backgroundColor: scheme.primary,
+      child: Icon(Icons.person, size: 54, color: scheme.onPrimary),
+    );
+    if (avatarPath == null) {
+      return fallback;
+    }
+    return FutureBuilder<File?>(
+      future: ref.read(avatarStorageProvider).getAvatarFile(avatarPath),
+      builder: (context, snapshot) {
+        final file = snapshot.data;
+        if (file == null) {
+          return fallback;
+        }
+        return CircleAvatar(radius: 50, backgroundImage: FileImage(file));
+      },
+    );
+  }
+
+  /// Лист выбора аватара: галерея, удаление (если есть), отмена.
+  Future<void> _openAvatarSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentPath,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                S.changeAvatar(lang),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(S.gallery(lang)),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                unawaited(_pickAvatar(context, ref, currentPath));
+              },
+            ),
+            if (currentPath != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(S.removeAvatar(lang)),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  unawaited(_removeAvatar(context, ref, currentPath));
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: Text(S.cancel(lang)),
+              onTap: () => Navigator.of(sheetContext).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Выбор фото из галереи: файл копируется в avatars, путь — в настройки.
+  ///
+  /// Старый файл удаляется после успешного сохранения нового, чтобы не
+  /// копить сироты; отмена picker'а ничего не меняет.
+  Future<void> _pickAvatar(
+    BuildContext context,
+    WidgetRef ref,
+    String? oldPath,
+  ) async {
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked == null) {
+        return;
+      }
+      final storage = ref.read(avatarStorageProvider);
+      final path = await storage.saveAvatar(File(picked.path));
+      final repo = ref.read(settingsRepositoryProvider);
+      final settings = await repo.get();
+      await repo.save(settings.copyWith(avatarPath: path));
+      if (oldPath != null && oldPath != path) {
+        await storage.deleteAvatar(oldPath);
+      }
+      ref.invalidate(settingsProvider);
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Avatar pick failed', error, stack);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.saveFailed(lang))));
+      }
+    }
+  }
+
+  /// Удаление аватара: путь обнуляется в настройках, файл удаляется.
+  Future<void> _removeAvatar(
+    BuildContext context,
+    WidgetRef ref,
+    String path,
+  ) async {
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final settings = await repo.get();
+      await repo.save(settings.copyWith(avatarPath: null));
+      await ref.read(avatarStorageProvider).deleteAvatar(path);
+      ref.invalidate(settingsProvider);
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Avatar remove failed', error, stack);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.saveFailed(lang))));
+      }
+    }
+  }
+
+  /// Диалог никнейма: до 30 символов, пустая строка очищает ник.
+  Future<void> _editNickname(
+    BuildContext context,
+    WidgetRef ref,
+    String? current,
+  ) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) =>
+          _NicknameDialog(lang: lang, initial: current ?? ''),
+    );
+    if (result == null || !context.mounted) {
+      return;
+    }
+    final trimmed = result.trim();
+    try {
+      final repo = ref.read(settingsRepositoryProvider);
+      final settings = await repo.get();
+      await repo.save(
+        settings.copyWith(nickname: trimmed.isEmpty ? null : trimmed),
+      );
+      ref.invalidate(settingsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.nicknameSaved(lang))));
+      }
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Nickname save failed', error, stack);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.saveFailed(lang))));
+      }
+    }
+  }
+}
+
+/// Диалог никнейма (Phase 28c): владеет контроллером и освобождает его в
+/// dispose — иначе TextField использует контроллер после dispose во время
+/// анимации закрытия диалога.
+class _NicknameDialog extends StatefulWidget {
+  const _NicknameDialog({required this.lang, required this.initial});
+
+  final AppLanguage lang;
+  final String initial;
+
+  @override
+  State<_NicknameDialog> createState() => _NicknameDialogState();
+}
+
+class _NicknameDialogState extends State<_NicknameDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(S.enterNickname(widget.lang)),
+    content: TextField(
+      controller: _controller,
+      autofocus: true,
+      maxLength: 30,
+      decoration: InputDecoration(hintText: S.enterNickname(widget.lang)),
+      onSubmitted: (value) => Navigator.of(context).pop(value),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text(S.cancel(widget.lang)),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(_controller.text),
+        child: Text(S.saveNickname(widget.lang)),
+      ),
+    ],
+  );
 }
 
 /// Три метрики в тонированных карточках.

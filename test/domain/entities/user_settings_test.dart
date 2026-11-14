@@ -89,5 +89,37 @@ void main() {
         isNot(equals(UserSettings.defaults().copyWith(dailyNewLimit: 11))),
       );
     });
+
+    test('copyWith sets and clears nickname and avatarPath', () {
+      final withProfile = UserSettings.defaults().copyWith(
+        nickname: 'Norman',
+        avatarPath: '/data/avatars/1.jpg',
+      );
+      expect(withProfile.nickname, 'Norman');
+      expect(withProfile.avatarPath, '/data/avatars/1.jpg');
+
+      final cleared = withProfile.copyWith(nickname: null, avatarPath: null);
+      expect(cleared.nickname, isNull);
+      expect(cleared.avatarPath, isNull);
+
+      final kept = withProfile.copyWith(dailyNewLimit: 5);
+      expect(kept.nickname, 'Norman');
+      expect(kept.avatarPath, '/data/avatars/1.jpg');
+    });
+
+    test('equality includes nickname and avatarPath', () {
+      expect(
+        UserSettings.defaults(),
+        isNot(equals(UserSettings.defaults().copyWith(nickname: 'Norman'))),
+      );
+      expect(
+        UserSettings.defaults(),
+        isNot(equals(UserSettings.defaults().copyWith(avatarPath: '/p'))),
+      );
+      expect(
+        UserSettings.defaults().copyWith(nickname: 'Norman').hashCode,
+        UserSettings.defaults().copyWith(nickname: 'Norman').hashCode,
+      );
+    });
   });
 }

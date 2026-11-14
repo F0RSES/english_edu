@@ -239,6 +239,12 @@ void main() {
         S.dontKnowWord,
         S.wordRemoved,
         S.removeConfirmTitle,
+        S.changeAvatar,
+        S.removeAvatar,
+        S.gallery,
+        S.enterNickname,
+        S.nicknameSaved,
+        S.saveNickname,
       ];
       for (final build in simple) {
         for (final lang in AppLanguage.values) {

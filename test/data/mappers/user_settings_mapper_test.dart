@@ -113,4 +113,22 @@ void main() {
       expect(restored.ttsSpeed, speed);
     }
   });
+
+  test('round-trip preserves nickname and avatarPath', () async {
+    final settings = UserSettings.defaults().copyWith(
+      nickname: 'Norman',
+      avatarPath: '/data/avatars/1.jpg',
+    );
+
+    await db
+        .into(db.userSettingsTable)
+        .insertOnConflictUpdate(
+          UserSettingsMapper.toCompanion(settings, updatedAt: updatedAt),
+        );
+    final row = (await db.select(db.userSettingsTable).get()).single;
+
+    expect(row.nickname, 'Norman');
+    expect(row.avatarPath, '/data/avatars/1.jpg');
+    expect(UserSettingsMapper.toDomain(row), settings);
+  });
 }

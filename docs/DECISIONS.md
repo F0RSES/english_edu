@@ -791,6 +791,21 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** новая строка требует перевода на оба языка (полнота проверяется тестами `strings_test`). Переход на ARB в будущем возможен: ключи уже отделены от UI. Экраны игр, чата, онбординга, чтения и достижений остаются на русском до BL-94.
 - **Open questions:** проверка на реальном устройстве, что все строки переключаются (условие перевода в Accepted); оставшиеся экраны — BL-94 (Phase 27d).
 
+### ADR-044: User profile customization
+- **Status:** Proposed
+- **Date:** 2026-11-14
+- **Context:** Пользователь хочет персонализировать профиль: загружать свой аватар и менять никнейм (фидбек: «рядом с именем в профиле кнопка Карандаш»). Аватар — приватные данные; облако в приложении opt-in, учебный цикл офлайновый.
+- **Decision:**
+  - `nickname` и `avatarPath` — nullable-поля `UserSettings` (**schema v18**, миграция с PRAGMA-guard). Ник по умолчанию null, в UI fallback «Learner»; `copyWith` очищает оба поля явным null (sentinel, паттерн `Word.copyWith`) — иначе «Удалить фото» не обнулит путь.
+  - `image_picker` — выбор фото из галереи; `AvatarStorage` (`lib/core/avatar/avatar_storage.dart`) копирует файл в `appDocuments/avatars/{timestamp}.jpg`, в БД хранится только путь. Старый файл удаляется после успешной замены; отсутствующий файл (например, после импорта снимка) даёт fallback-иконку, а не ошибку.
+  - В export/import (**снимок v7**) сохраняются `nickname` и `avatarPath` (путь), но не сам файл: файлы не переносятся между устройствами.
+  - UI профиля: карандаш на аватаре → лист «Галерея / Удалить фото (если есть) / Отмена»; карандаш у ника → диалог TextField (max 30 символов, пустая строка очищает ник).
+- **Alternatives considered:**
+  - (A) Аватар в облаке (Supabase Storage) — отклонено: облако opt-in, аватар должен работать офлайн; синхронизация — BL-97.
+  - (B) Хранить изображение в БД (BLOB) — отклонено: раздувает базу и export-снимок.
+- **Consequences:** +2 зависимости: `image_picker`, `path_provider` (для appDocuments). +2 колонки `user_settings`. Файлы аватаров не попадают в бэкап: после импорта путь может указывать на несуществующий файл — UI показывает иконку.
+- **Open questions:** облачная синхронизация аватара (BL-97); проверка picker'а на реальном устройстве (Android/iOS) до перевода в Accepted.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -837,3 +852,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-041 | Chat with AI bot | Proposed |
 | ADR-042 | Error Helper | Proposed |
 | ADR-043 | Localization strategy | Proposed |
+| ADR-044 | User profile customization | Proposed |

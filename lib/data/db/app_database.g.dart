@@ -2132,6 +2132,28 @@ class $UserSettingsTableTable extends UserSettingsTable
     requiredDuringInsert: false,
     defaultValue: const Constant('ru'),
   );
+  static const VerificationMeta _nicknameMeta = const VerificationMeta(
+    'nickname',
+  );
+  @override
+  late final GeneratedColumn<String> nickname = GeneratedColumn<String>(
+    'nickname',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _avatarPathMeta = const VerificationMeta(
+    'avatarPath',
+  );
+  @override
+  late final GeneratedColumn<String> avatarPath = GeneratedColumn<String>(
+    'avatar_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtUtcMeta = const VerificationMeta(
     'updatedAtUtc',
   );
@@ -2156,6 +2178,8 @@ class $UserSettingsTableTable extends UserSettingsTable
     hasSeenOnboarding,
     preferredLevel,
     language,
+    nickname,
+    avatarPath,
     updatedAtUtc,
   ];
   @override
@@ -2254,6 +2278,18 @@ class $UserSettingsTableTable extends UserSettingsTable
         language.isAcceptableOrUnknown(data['language']!, _languageMeta),
       );
     }
+    if (data.containsKey('nickname')) {
+      context.handle(
+        _nicknameMeta,
+        nickname.isAcceptableOrUnknown(data['nickname']!, _nicknameMeta),
+      );
+    }
+    if (data.containsKey('avatar_path')) {
+      context.handle(
+        _avatarPathMeta,
+        avatarPath.isAcceptableOrUnknown(data['avatar_path']!, _avatarPathMeta),
+      );
+    }
     if (data.containsKey('updated_at_utc')) {
       context.handle(
         _updatedAtUtcMeta,
@@ -2318,6 +2354,14 @@ class $UserSettingsTableTable extends UserSettingsTable
         DriftSqlType.string,
         data['${effectivePrefix}language'],
       )!,
+      nickname: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nickname'],
+      ),
+      avatarPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar_path'],
+      ),
       updatedAtUtc: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at_utc'],
@@ -2368,6 +2412,14 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
   /// Язык интерфейса: 'ru' | 'en' (schema v17, Phase 27b).
   final String language;
 
+  /// Никнейм для профиля; null — показывается fallback «Learner»
+  /// (schema v18, ADR-044).
+  final String? nickname;
+
+  /// Путь к файлу аватара в app documents; сам файл в БД не хранится
+  /// (schema v18, ADR-044).
+  final String? avatarPath;
+
   /// Момент последнего изменения, миллисекунды UTC.
   final int updatedAtUtc;
   const UserSettingsRow({
@@ -2382,6 +2434,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     required this.hasSeenOnboarding,
     required this.preferredLevel,
     required this.language,
+    this.nickname,
+    this.avatarPath,
     required this.updatedAtUtc,
   });
   @override
@@ -2398,6 +2452,12 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     map['has_seen_onboarding'] = Variable<bool>(hasSeenOnboarding);
     map['preferred_level'] = Variable<String>(preferredLevel);
     map['language'] = Variable<String>(language);
+    if (!nullToAbsent || nickname != null) {
+      map['nickname'] = Variable<String>(nickname);
+    }
+    if (!nullToAbsent || avatarPath != null) {
+      map['avatar_path'] = Variable<String>(avatarPath);
+    }
     map['updated_at_utc'] = Variable<int>(updatedAtUtc);
     return map;
   }
@@ -2415,6 +2475,12 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       hasSeenOnboarding: Value(hasSeenOnboarding),
       preferredLevel: Value(preferredLevel),
       language: Value(language),
+      nickname: nickname == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nickname),
+      avatarPath: avatarPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatarPath),
       updatedAtUtc: Value(updatedAtUtc),
     );
   }
@@ -2436,6 +2502,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       hasSeenOnboarding: serializer.fromJson<bool>(json['hasSeenOnboarding']),
       preferredLevel: serializer.fromJson<String>(json['preferredLevel']),
       language: serializer.fromJson<String>(json['language']),
+      nickname: serializer.fromJson<String?>(json['nickname']),
+      avatarPath: serializer.fromJson<String?>(json['avatarPath']),
       updatedAtUtc: serializer.fromJson<int>(json['updatedAtUtc']),
     );
   }
@@ -2454,6 +2522,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
       'hasSeenOnboarding': serializer.toJson<bool>(hasSeenOnboarding),
       'preferredLevel': serializer.toJson<String>(preferredLevel),
       'language': serializer.toJson<String>(language),
+      'nickname': serializer.toJson<String?>(nickname),
+      'avatarPath': serializer.toJson<String?>(avatarPath),
       'updatedAtUtc': serializer.toJson<int>(updatedAtUtc),
     };
   }
@@ -2470,6 +2540,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     bool? hasSeenOnboarding,
     String? preferredLevel,
     String? language,
+    Value<String?> nickname = const Value.absent(),
+    Value<String?> avatarPath = const Value.absent(),
     int? updatedAtUtc,
   }) => UserSettingsRow(
     id: id ?? this.id,
@@ -2483,6 +2555,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     preferredLevel: preferredLevel ?? this.preferredLevel,
     language: language ?? this.language,
+    nickname: nickname.present ? nickname.value : this.nickname,
+    avatarPath: avatarPath.present ? avatarPath.value : this.avatarPath,
     updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
   );
   UserSettingsRow copyWithCompanion(UserSettingsTableCompanion data) {
@@ -2512,6 +2586,10 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           ? data.preferredLevel.value
           : this.preferredLevel,
       language: data.language.present ? data.language.value : this.language,
+      nickname: data.nickname.present ? data.nickname.value : this.nickname,
+      avatarPath: data.avatarPath.present
+          ? data.avatarPath.value
+          : this.avatarPath,
       updatedAtUtc: data.updatedAtUtc.present
           ? data.updatedAtUtc.value
           : this.updatedAtUtc,
@@ -2532,6 +2610,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('preferredLevel: $preferredLevel, ')
           ..write('language: $language, ')
+          ..write('nickname: $nickname, ')
+          ..write('avatarPath: $avatarPath, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -2550,6 +2630,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
     hasSeenOnboarding,
     preferredLevel,
     language,
+    nickname,
+    avatarPath,
     updatedAtUtc,
   );
   @override
@@ -2567,6 +2649,8 @@ class UserSettingsRow extends DataClass implements Insertable<UserSettingsRow> {
           other.hasSeenOnboarding == this.hasSeenOnboarding &&
           other.preferredLevel == this.preferredLevel &&
           other.language == this.language &&
+          other.nickname == this.nickname &&
+          other.avatarPath == this.avatarPath &&
           other.updatedAtUtc == this.updatedAtUtc);
 }
 
@@ -2582,6 +2666,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
   final Value<bool> hasSeenOnboarding;
   final Value<String> preferredLevel;
   final Value<String> language;
+  final Value<String?> nickname;
+  final Value<String?> avatarPath;
   final Value<int> updatedAtUtc;
   const UserSettingsTableCompanion({
     this.id = const Value.absent(),
@@ -2595,6 +2681,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.hasSeenOnboarding = const Value.absent(),
     this.preferredLevel = const Value.absent(),
     this.language = const Value.absent(),
+    this.nickname = const Value.absent(),
+    this.avatarPath = const Value.absent(),
     this.updatedAtUtc = const Value.absent(),
   });
   UserSettingsTableCompanion.insert({
@@ -2609,6 +2697,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     this.hasSeenOnboarding = const Value.absent(),
     this.preferredLevel = const Value.absent(),
     this.language = const Value.absent(),
+    this.nickname = const Value.absent(),
+    this.avatarPath = const Value.absent(),
     required int updatedAtUtc,
   }) : updatedAtUtc = Value(updatedAtUtc);
   static Insertable<UserSettingsRow> custom({
@@ -2623,6 +2713,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Expression<bool>? hasSeenOnboarding,
     Expression<String>? preferredLevel,
     Expression<String>? language,
+    Expression<String>? nickname,
+    Expression<String>? avatarPath,
     Expression<int>? updatedAtUtc,
   }) {
     return RawValuesInsertable({
@@ -2637,6 +2729,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       if (hasSeenOnboarding != null) 'has_seen_onboarding': hasSeenOnboarding,
       if (preferredLevel != null) 'preferred_level': preferredLevel,
       if (language != null) 'language': language,
+      if (nickname != null) 'nickname': nickname,
+      if (avatarPath != null) 'avatar_path': avatarPath,
       if (updatedAtUtc != null) 'updated_at_utc': updatedAtUtc,
     });
   }
@@ -2653,6 +2747,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     Value<bool>? hasSeenOnboarding,
     Value<String>? preferredLevel,
     Value<String>? language,
+    Value<String?>? nickname,
+    Value<String?>? avatarPath,
     Value<int>? updatedAtUtc,
   }) {
     return UserSettingsTableCompanion(
@@ -2667,6 +2763,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       preferredLevel: preferredLevel ?? this.preferredLevel,
       language: language ?? this.language,
+      nickname: nickname ?? this.nickname,
+      avatarPath: avatarPath ?? this.avatarPath,
       updatedAtUtc: updatedAtUtc ?? this.updatedAtUtc,
     );
   }
@@ -2707,6 +2805,12 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
     if (language.present) {
       map['language'] = Variable<String>(language.value);
     }
+    if (nickname.present) {
+      map['nickname'] = Variable<String>(nickname.value);
+    }
+    if (avatarPath.present) {
+      map['avatar_path'] = Variable<String>(avatarPath.value);
+    }
     if (updatedAtUtc.present) {
       map['updated_at_utc'] = Variable<int>(updatedAtUtc.value);
     }
@@ -2727,6 +2831,8 @@ class UserSettingsTableCompanion extends UpdateCompanion<UserSettingsRow> {
           ..write('hasSeenOnboarding: $hasSeenOnboarding, ')
           ..write('preferredLevel: $preferredLevel, ')
           ..write('language: $language, ')
+          ..write('nickname: $nickname, ')
+          ..write('avatarPath: $avatarPath, ')
           ..write('updatedAtUtc: $updatedAtUtc')
           ..write(')'))
         .toString();
@@ -8731,6 +8837,8 @@ typedef $$UserSettingsTableTableCreateCompanionBuilder =
       Value<bool> hasSeenOnboarding,
       Value<String> preferredLevel,
       Value<String> language,
+      Value<String?> nickname,
+      Value<String?> avatarPath,
       required int updatedAtUtc,
     });
 typedef $$UserSettingsTableTableUpdateCompanionBuilder =
@@ -8746,6 +8854,8 @@ typedef $$UserSettingsTableTableUpdateCompanionBuilder =
       Value<bool> hasSeenOnboarding,
       Value<String> preferredLevel,
       Value<String> language,
+      Value<String?> nickname,
+      Value<String?> avatarPath,
       Value<int> updatedAtUtc,
     });
 
@@ -8810,6 +8920,16 @@ class $$UserSettingsTableTableFilterComposer
 
   ColumnFilters<String> get language => $composableBuilder(
     column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nickname => $composableBuilder(
+    column: $table.nickname,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8883,6 +9003,16 @@ class $$UserSettingsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get nickname => $composableBuilder(
+    column: $table.nickname,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => ColumnOrderings(column),
@@ -8945,6 +9075,14 @@ class $$UserSettingsTableTableAnnotationComposer
   GeneratedColumn<String> get language =>
       $composableBuilder(column: $table.language, builder: (column) => column);
 
+  GeneratedColumn<String> get nickname =>
+      $composableBuilder(column: $table.nickname, builder: (column) => column);
+
+  GeneratedColumn<String> get avatarPath => $composableBuilder(
+    column: $table.avatarPath,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get updatedAtUtc => $composableBuilder(
     column: $table.updatedAtUtc,
     builder: (column) => column,
@@ -9002,6 +9140,8 @@ class $$UserSettingsTableTableTableManager
                 Value<bool> hasSeenOnboarding = const Value.absent(),
                 Value<String> preferredLevel = const Value.absent(),
                 Value<String> language = const Value.absent(),
+                Value<String?> nickname = const Value.absent(),
+                Value<String?> avatarPath = const Value.absent(),
                 Value<int> updatedAtUtc = const Value.absent(),
               }) => UserSettingsTableCompanion(
                 id: id,
@@ -9015,6 +9155,8 @@ class $$UserSettingsTableTableTableManager
                 hasSeenOnboarding: hasSeenOnboarding,
                 preferredLevel: preferredLevel,
                 language: language,
+                nickname: nickname,
+                avatarPath: avatarPath,
                 updatedAtUtc: updatedAtUtc,
               ),
           createCompanionCallback:
@@ -9030,6 +9172,8 @@ class $$UserSettingsTableTableTableManager
                 Value<bool> hasSeenOnboarding = const Value.absent(),
                 Value<String> preferredLevel = const Value.absent(),
                 Value<String> language = const Value.absent(),
+                Value<String?> nickname = const Value.absent(),
+                Value<String?> avatarPath = const Value.absent(),
                 required int updatedAtUtc,
               }) => UserSettingsTableCompanion.insert(
                 id: id,
@@ -9043,6 +9187,8 @@ class $$UserSettingsTableTableTableManager
                 hasSeenOnboarding: hasSeenOnboarding,
                 preferredLevel: preferredLevel,
                 language: language,
+                nickname: nickname,
+                avatarPath: avatarPath,
                 updatedAtUtc: updatedAtUtc,
               ),
           withReferenceMapper: (p0) => p0

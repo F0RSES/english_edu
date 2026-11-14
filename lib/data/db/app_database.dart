@@ -5,7 +5,7 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v17: язык интерфейса в настройках (Phase 27b).
+/// Schema v18: никнейм и аватар в настройках (Phase 28c, ADR-044).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
@@ -13,7 +13,8 @@ part 'app_database.g.dart';
 /// v7 — `cloze_tasks`, v8 — `daily_challenges`, v9 — `challenge_streaks`,
 /// v10 — `user_categories`, v11 — `achievements`, v12 — `typing_records`,
 /// v13 — `phrases`, v14 — `stories`, v15 — `chat_messages`,
-/// v16 — `cloze_tasks.options`, v17 — `user_settings.language`.
+/// v16 — `cloze_tasks.options`, v17 — `user_settings.language`,
+/// v18 — `user_settings.nickname` и `user_settings.avatar_path`.
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -44,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -110,6 +111,19 @@ class AppDatabase extends _$AppDatabase {
         );
         if (!hasLanguage) {
           await m.addColumn(userSettingsTable, userSettingsTable.language);
+        }
+      }
+      if (from < 18) {
+        // addColumn не идемпотентен: тесты воссоздают старые схемы из
+        // текущей, и колонки могут уже существовать (паттерн v16/v17).
+        final info = await customSelect("PRAGMA table_info('user_settings')")
+            .get();
+        final columns = info.map((row) => row.read<String>('name')).toSet();
+        if (!columns.contains('nickname')) {
+          await m.addColumn(userSettingsTable, userSettingsTable.nickname);
+        }
+        if (!columns.contains('avatar_path')) {
+          await m.addColumn(userSettingsTable, userSettingsTable.avatarPath);
         }
       }
       if (from < 12) {

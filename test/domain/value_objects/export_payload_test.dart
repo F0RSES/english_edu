@@ -39,8 +39,8 @@ void main() {
       expect(payload.schemaVersion, 1);
     });
 
-    test('currentSchemaVersion is 6', () {
-      expect(ExportPayload.currentSchemaVersion, 6);
+    test('currentSchemaVersion is 7', () {
+      expect(ExportPayload.currentSchemaVersion, 7);
     });
 
     test('is equal when frozenDays match regardless of order', () {

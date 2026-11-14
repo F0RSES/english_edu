@@ -23,6 +23,8 @@ final class UserSettingsMapper {
     hasSeenOnboarding: row.hasSeenOnboarding,
     preferredLevel: CefrLevel.fromLabel(row.preferredLevel),
     language: AppLanguage.fromCode(row.language),
+    nickname: row.nickname,
+    avatarPath: row.avatarPath,
   );
 
   /// Раскладывает настройки в companion.
@@ -46,6 +48,8 @@ final class UserSettingsMapper {
     // Нижний регистр — как DDL-дефолт 'a1' (см. WordMapper).
     preferredLevel: Value(settings.preferredLevel.label.toLowerCase()),
     language: Value(settings.language.code),
+    nickname: Value(settings.nickname),
+    avatarPath: Value(settings.avatarPath),
     updatedAtUtc: Value(updatedAt.toUtc().millisecondsSinceEpoch),
   );
 }

@@ -109,7 +109,7 @@ void main() {
   group('ImportProgress', () {
     test('rejects an unsupported schema version', () async {
       await expectLater(
-        Store().importUseCase(payloadOf(schemaVersion: 7)),
+        Store().importUseCase(payloadOf(schemaVersion: 8)),
         throwsA(isA<ArgumentError>()),
       );
     });

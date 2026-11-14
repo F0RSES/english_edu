@@ -2,6 +2,18 @@ import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:meta/meta.dart';
 
+/// Marker used by nullable [UserSettings.copyWith] parameters to tell
+/// "absent" from an explicit null (паттерн `Word.copyWith`): никнейм и
+/// аватар можно очистить, остальные поля обнуляются только через дефолты.
+const _unset = _Unset();
+
+final class _Unset {
+  const _Unset();
+}
+
+String? _resolveText(Object? value, String? current) =>
+    identical(value, _unset) ? current : value as String?;
+
 /// User preferences that drive the daily session and reminders.
 @immutable
 final class UserSettings {
@@ -17,6 +29,8 @@ final class UserSettings {
     this.hasSeenOnboarding = false,
     this.preferredLevel = CefrLevel.a1,
     this.language = AppLanguage.ru,
+    this.nickname,
+    this.avatarPath,
   }) : assert(dailyNewLimit >= 0, 'dailyNewLimit must be >= 0'),
        assert(dailyReviewLimit >= 0, 'dailyReviewLimit must be >= 0'),
        assert(
@@ -69,7 +83,19 @@ final class UserSettings {
   /// Язык интерфейса (Phase 27b). Учебный контент не переводится.
   final AppLanguage language;
 
+  /// Никнейм в профиле; null — fallback «Learner» (ADR-044).
+  final String? nickname;
+
+  /// Путь к файлу аватара в app documents; null — аватара нет (ADR-044).
+  ///
+  /// В БД и снимках хранится только путь: сам файл локальный и не
+  /// переносится между устройствами.
+  final String? avatarPath;
+
   /// Returns a copy with the given fields replaced.
+  ///
+  /// [nickname] и [avatarPath] очищаются явным null; остальные nullable
+  /// поля сохраняют текущее значение при null.
   UserSettings copyWith({
     int? dailyNewLimit,
     int? dailyReviewLimit,
@@ -81,6 +107,8 @@ final class UserSettings {
     bool? hasSeenOnboarding,
     CefrLevel? preferredLevel,
     AppLanguage? language,
+    Object? nickname = _unset,
+    Object? avatarPath = _unset,
   }) => UserSettings(
     dailyNewLimit: dailyNewLimit ?? this.dailyNewLimit,
     dailyReviewLimit: dailyReviewLimit ?? this.dailyReviewLimit,
@@ -92,6 +120,8 @@ final class UserSettings {
     hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     preferredLevel: preferredLevel ?? this.preferredLevel,
     language: language ?? this.language,
+    nickname: _resolveText(nickname, this.nickname),
+    avatarPath: _resolveText(avatarPath, this.avatarPath),
   );
 
   @override
@@ -107,7 +137,9 @@ final class UserSettings {
           ttsSpeed == other.ttsSpeed &&
           hasSeenOnboarding == other.hasSeenOnboarding &&
           preferredLevel == other.preferredLevel &&
-          language == other.language;
+          language == other.language &&
+          nickname == other.nickname &&
+          avatarPath == other.avatarPath;
 
   @override
   int get hashCode => Object.hash(
@@ -121,6 +153,8 @@ final class UserSettings {
     hasSeenOnboarding,
     preferredLevel,
     language,
+    nickname,
+    avatarPath,
   );
 
   @override

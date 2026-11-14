@@ -240,6 +240,14 @@ class UserSettingsTable extends Table {
   /// Язык интерфейса: 'ru' | 'en' (schema v17, Phase 27b).
   TextColumn get language => text().withDefault(const Constant('ru'))();
 
+  /// Никнейм для профиля; null — показывается fallback «Learner»
+  /// (schema v18, ADR-044).
+  TextColumn get nickname => text().nullable()();
+
+  /// Путь к файлу аватара в app documents; сам файл в БД не хранится
+  /// (schema v18, ADR-044).
+  TextColumn get avatarPath => text().nullable()();
+
   /// Момент последнего изменения, миллисекунды UTC.
   IntColumn get updatedAtUtc => integer()();
 

@@ -48,8 +48,36 @@ Map<String, Object?> firstWord(String json) {
 void main() {
   const codec = ExportPayloadCodec();
 
-  test('currentSchemaVersion is 6', () {
-    expect(ExportPayload.currentSchemaVersion, 6);
+  test('currentSchemaVersion is 7', () {
+    expect(ExportPayload.currentSchemaVersion, 7);
+  });
+
+  test('round-trips nickname and avatarPath in v7', () {
+    final payload = payloadOf(
+      settings: UserSettings.defaults().copyWith(
+        nickname: 'Norman',
+        avatarPath: '/data/avatars/1.jpg',
+      ),
+    );
+
+    final restored = codec.decode(codec.encode(payload));
+
+    expect(restored.settings.nickname, 'Norman');
+    expect(restored.settings.avatarPath, '/data/avatars/1.jpg');
+  });
+
+  test('reads v6 snapshots without profile fields', () {
+    final json = codec.encode(
+      payloadOf(
+        schemaVersion: 6,
+        settings: UserSettings.defaults().copyWith(nickname: 'Norman'),
+      ),
+    );
+
+    final restored = codec.decode(json);
+
+    expect(restored.settings.nickname, isNull);
+    expect(restored.settings.avatarPath, isNull);
   });
 
   test('encode v3 includes word category', () {
@@ -317,7 +345,7 @@ void main() {
   });
 
   test('invalid schemaVersion throws', () {
-    final json = codec.encode(payloadOf(schemaVersion: 7));
+    final json = codec.encode(payloadOf(schemaVersion: 8));
 
     expect(() => codec.decode(json), throwsFormatException);
   });

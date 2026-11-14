@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:english_edu/core/avatar/avatar_storage.dart';
 import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/notifications/notification_service.dart';
@@ -147,6 +148,9 @@ final class OnboardingSeen extends Notifier<bool> {
 final onboardingSeenProvider = NotifierProvider<OnboardingSeen, bool>(
   OnboardingSeen.new,
 );
+
+/// Локальное хранилище аватаров (ADR-044): файлы в appDocuments/avatars.
+final avatarStorageProvider = Provider<AvatarStorage>((ref) => AvatarStorage());
 
 /// Клиент AI-подсказок (ADR-019). Сеть — только по явному действию.
 final aiClientProvider = Provider<AiClient>((ref) => AiClient(http.Client()));

@@ -32,12 +32,13 @@ final class ExportPayload {
   /// Версия схемы, которую пишет приложение.
   ///
   /// v2: `+ frozenDays`; v3: `+ Word.category`; v4: `+ Word.level`;
-  /// v5: `+ UserSettings.preferredLevel`; v6: `+ UserSettings.language`.
+  /// v5: `+ UserSettings.preferredLevel`; v6: `+ UserSettings.language`;
+  /// v7: `+ UserSettings.nickname/avatarPath` (ADR-044).
   /// Старшие снимки совместимы: отсутствующее поле приходит значением по
   /// умолчанию (`category = null`, `level = A1`, `preferredLevel = A1`,
-  /// `language = ru`), версии выше текущей отклоняются импортом как
-  /// неизвестный более новый формат.
-  static const int currentSchemaVersion = 6;
+  /// `language = ru`, `nickname/avatarPath = null`), версии выше текущей
+  /// отклоняются импортом как неизвестный более новый формат.
+  static const int currentSchemaVersion = 7;
 
   /// Version of the export schema; 1 and 2 are supported on import.
   final int schemaVersion;

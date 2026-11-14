@@ -1,4 +1,5 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
@@ -9,30 +10,33 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 
-Widget host() => ProviderScope(
-  overrides: [
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
-    computeStreakProvider.overrideWith(
-      (ref) async => const StreakInfo(count: 5),
-    ),
-    analyticsProvider.overrideWith(
-      (ref) async => Analytics(
-        totalWords: 2071,
-        masteredCount: 7,
-        learningCount: 3,
-        newCount: 2061,
-        hardestWords: const [],
-        last7Days: const [],
-      ),
-    ),
-    dailyGoalProvider.overrideWith(
-      (ref) async => const DailyGoal(stats: null, target: 60),
-    ),
-    achievementsProvider.overrideWith((ref) async => const []),
-    clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
-  ],
-  child: const MaterialApp(home: ProfileScreen()),
-);
+Widget host({UserSettings? settings, FakeSettingsRepository? repository}) =>
+    ProviderScope(
+      overrides: [
+        settingsRepositoryProvider.overrideWithValue(
+          repository ?? FakeSettingsRepository(settings),
+        ),
+        computeStreakProvider.overrideWith(
+          (ref) async => const StreakInfo(count: 5),
+        ),
+        analyticsProvider.overrideWith(
+          (ref) async => Analytics(
+            totalWords: 2071,
+            masteredCount: 7,
+            learningCount: 3,
+            newCount: 2061,
+            hardestWords: const [],
+            last7Days: const [],
+          ),
+        ),
+        dailyGoalProvider.overrideWith(
+          (ref) async => const DailyGoal(stats: null, target: 60),
+        ),
+        achievementsProvider.overrideWith((ref) async => const []),
+        clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
+      ],
+      child: const MaterialApp(home: ProfileScreen()),
+    );
 
 void main() {
   testWidgets('has a back button in the app bar', (tester) async {
@@ -90,5 +94,42 @@ void main() {
     expect(find.byType(Slider), findsNothing);
     expect(find.byType(Switch), findsNothing);
     expect(find.text('Экспорт'), findsNothing);
+  });
+
+  testWidgets('shows nickname from settings', (tester) async {
+    await tester.pumpWidget(
+      host(settings: const UserSettings(nickname: 'Norman')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Norman'), findsOneWidget);
+    expect(find.text('Learner'), findsNothing);
+  });
+
+  testWidgets('tap edit opens dialog', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Введите никнейм'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Сохранить'), findsOneWidget);
+  });
+
+  testWidgets('saving nickname updates settings', (tester) async {
+    final repository = FakeSettingsRepository();
+    await tester.pumpWidget(host(repository: repository));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Введите никнейм'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Norman');
+    await tester.tap(find.text('Сохранить'));
+    await tester.pumpAndSettle();
+
+    expect((await repository.get()).nickname, 'Norman');
+    expect(find.text('Norman'), findsOneWidget);
+    expect(find.text('Никнейм сохранён'), findsOneWidget);
   });
 }

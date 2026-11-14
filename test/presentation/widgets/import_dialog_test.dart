@@ -132,13 +132,13 @@ void main() {
 
     await _paste(
       tester,
-      const ExportPayloadCodec().encode(payload(schemaVersion: 7)),
+      const ExportPayloadCodec().encode(payload(schemaVersion: 8)),
     );
 
     // Версия отсекается уже на разборе JSON: импорт не должен читать формат,
     // которого не знает.
     expect(find.textContaining('Невалидный JSON'), findsOneWidget);
-    expect(find.textContaining('неподдерживаемая версия 7'), findsOneWidget);
+    expect(find.textContaining('неподдерживаемая версия 8'), findsOneWidget);
   });
 
   testWidgets('a v1 snapshot imports with empty frozen days', (tester) async {

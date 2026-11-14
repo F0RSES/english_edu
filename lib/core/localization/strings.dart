@@ -196,6 +196,25 @@ final class S {
   static String noAchievements(AppLanguage l) =>
       _t('profile.noAchievements', l);
 
+  // --- Профиль: никнейм и аватар (Phase 28c, ADR-044) ---
+  /// Tooltip карандаша на аватаре и заголовок листа выбора.
+  static String changeAvatar(AppLanguage l) => _t('profile.changeAvatar', l);
+
+  /// Пункт листа: удалить фото аватара.
+  static String removeAvatar(AppLanguage l) => _t('profile.removeAvatar', l);
+
+  /// Пункт листа: выбрать фото из галереи.
+  static String gallery(AppLanguage l) => _t('profile.gallery', l);
+
+  /// Заголовок и подсказка диалога никнейма.
+  static String enterNickname(AppLanguage l) => _t('profile.enterNickname', l);
+
+  /// SnackBar после сохранения никнейма.
+  static String nicknameSaved(AppLanguage l) => _t('profile.nicknameSaved', l);
+
+  /// Кнопка сохранения никнейма в диалоге.
+  static String saveNickname(AppLanguage l) => _t('profile.saveNickname', l);
+
   /// Название достижения по ключу.
   static String achievementTitle(AchievementType type, AppLanguage l) =>
       _t('achievement.${type.key}', l);
@@ -824,6 +843,13 @@ final class S {
       'ru': 'Пока нет достижений. Выполняй задания!',
       'en': 'No achievements yet. Complete challenges!',
     },
+    // Профиль: никнейм и аватар (Phase 28c, ADR-044).
+    'profile.changeAvatar': {'ru': 'Сменить аватар', 'en': 'Change avatar'},
+    'profile.removeAvatar': {'ru': 'Удалить фото', 'en': 'Remove photo'},
+    'profile.gallery': {'ru': 'Галерея', 'en': 'Gallery'},
+    'profile.enterNickname': {'ru': 'Введите никнейм', 'en': 'Enter nickname'},
+    'profile.nicknameSaved': {'ru': 'Никнейм сохранён', 'en': 'Nickname saved'},
+    'profile.saveNickname': {'ru': 'Сохранить', 'en': 'Save'},
     // Достижения (ключи AchievementType.key).
     'achievement.streak_7': {'ru': '7 дней подряд', 'en': '7-day streak'},
     'achievement.streak_30': {'ru': '30 дней подряд', 'en': '30-day streak'},

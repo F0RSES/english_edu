@@ -33,7 +33,11 @@ const _preferredLevelSinceVersion = 5;
 /// (Phase 27b).
 const _languageSinceVersion = 6;
 
-/// JSON-представление снимка состояния, схема v6 (v1–v5 читаются).
+/// Первая версия снимка, в которой появились `UserSettings.nickname` и
+/// `UserSettings.avatarPath` (Phase 28c, ADR-044).
+const _profileSinceVersion = 7;
+
+/// JSON-представление снимка состояния, схема v7 (v1–v6 читаются).
 ///
 /// Версии и поля слов:
 ///
@@ -45,9 +49,10 @@ const _languageSinceVersion = 6;
 /// | v4 | `Word.level` |
 /// | v5 | `UserSettings.preferredLevel` |
 /// | v6 | `UserSettings.language` |
+/// | v7 | `UserSettings.nickname`, `UserSettings.avatarPath` |
 ///
 /// Старший снимок читается с дефолтами: `frozenDays` пустой, `category` null,
-/// `level` A1, `preferredLevel` A1, `language` ru.
+/// `level` A1, `preferredLevel` A1, `language` ru, `nickname/avatarPath` null.
 ///
 /// Формат принадлежит data-слою (см. `ExportPayload`): домен знает только
 /// структуру, а сериализация живёт рядом с остальными преобразованиями.
@@ -97,6 +102,12 @@ final class ExportPayloadCodec {
       'preferredLevel': settings.preferredLevel.label,
     // В снимках v1–v5 языка интерфейса не было (Phase 27b).
     if (version >= _languageSinceVersion) 'language': settings.language.code,
+    // В снимках v1–v6 никнейма и аватара не было (ADR-044). Путь пишется,
+    // сам файл — нет: файлы не переносятся между устройствами.
+    if (version >= _profileSinceVersion) ...{
+      'nickname': settings.nickname,
+      'avatarPath': settings.avatarPath,
+    },
   };
 
   Map<String, Object?> _wordToJson(Word word, {required int version}) => {
@@ -253,6 +264,12 @@ final class ExportPayloadCodec {
         ttsSpeed: _double(map, 'ttsSpeed'),
         preferredLevel: _preferredLevelFromJson(map, version),
         language: _languageFromJson(map, version),
+        nickname: version >= _profileSinceVersion
+            ? _strOrNull(map, 'nickname')
+            : null,
+        avatarPath: version >= _profileSinceVersion
+            ? _strOrNull(map, 'avatarPath')
+            : null,
       );
 
   /// Уровень пользователя из снимка; в v1–v4 поля не было — получаем A1.

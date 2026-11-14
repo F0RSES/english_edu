@@ -16,8 +16,12 @@ import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
 
-Word word(int id, String term) =>
-    Word(id: WordId(id), term: term, translation: 'перевод$term');
+Word word(int id, String term, {String? category}) => Word(
+  id: WordId(id),
+  term: term,
+  translation: 'перевод$term',
+  category: category,
+);
 
 WordProgress progress(int id, WordStatus status) => WordProgress(
   wordId: WordId(id),
@@ -59,6 +63,13 @@ Widget host({
   ],
   child: const MaterialApp(home: DictionaryScreen()),
 );
+
+/// Слова разных категорий: фильтр должен показывать только выбранную.
+List<Word> categorizedWords() => [
+  word(1, 'apple', category: 'Быт'),
+  word(2, 'invoice', category: 'Бизнес'),
+  word(3, 'server', category: 'IT'),
+];
 
 List<Word> sampleWords() => [
   word(1, 'apple'),
@@ -172,5 +183,33 @@ void main() {
 
     expect(find.text('Не удалось загрузить словарь'), findsOneWidget);
     expect(find.text('Повторить'), findsOneWidget);
+  });
+
+  testWidgets('shows words of every category by default', (tester) async {
+    await tester.pumpWidget(host(words: categorizedWords()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('apple'), findsOneWidget);
+    expect(find.text('invoice'), findsOneWidget);
+    expect(find.text('server'), findsOneWidget);
+  });
+
+  testWidgets('filters by category and returns to all', (tester) async {
+    await tester.pumpWidget(host(words: categorizedWords()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Бизнес'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('invoice'), findsOneWidget);
+    expect(find.text('apple'), findsNothing);
+    expect(find.text('server'), findsNothing);
+
+    // «Все» возвращает весь список.
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Все категории'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('apple'), findsOneWidget);
+    expect(find.text('server'), findsOneWidget);
   });
 }

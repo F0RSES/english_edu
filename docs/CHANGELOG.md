@@ -44,6 +44,8 @@
 - `ExportPayload` v2: `+ frozenDays` (`Set<LocalDate>`), `currentSchemaVersion = 2`; обратная совместимость — снимок v1 читается с пустым `frozenDays`.
 - `ExportPayloadCodec`: `encode` пишет `frozenDays` (`daysSinceEpoch`), `decode` принимает v1 (пусто) и v2 (восстанавливает), версия 3+ — `FormatException`.
 - Заморозки входят в export/import и очищаются сбросом прогресса. **BL-51 закрыт.**
+- `ExportPayload` v3: `Word.category` в снимке (`ExportPayloadCodec` пишет поле начиная с v3); снимки v1/v2 читаются с `category = null`. **BL-57 закрыт.**
+- Тематические категории слов: `Word.category` (nullable), колонка `words.category`, **схема v2 → v3** с миграцией `m.addColumn`. Диалог добавления получил выбор категории, словарь — чипы-фильтр («Все категории», «Бизнес», «IT», «Путешествия», «Быт»). Seed остался без категорий; BL-56 (кастомные категории).
 - Локальные напоминания (ADR-017): `flutter_local_notifications ^22.3.3`, `timezone ^0.11.2`, `flutter_timezone ^5.1.1`.
 - `lib/core/notifications/notification_service.dart` — `NotificationService`, `FlutterNotificationService`, `NoOpNotificationService`; `notificationServiceProvider` (override в `main`).
 - `bootstrapApp`: инициализация таймзон (`initializeTimeZones` + `setLocalLocation`), инициализация плагина с fallback на NoOp и перепланирование напоминания при старте, если оно включено. `BootstrapResult` получил `notificationService`; тесты инжектят `notificationServiceBuilder`.
@@ -51,6 +53,7 @@
 - **BL-38 закрыт**, BL-53 (exact alarms, P3).
 
 ### Fixed
+- Очередь дня строилась только от `WordProgress`, поэтому слова без прогресса (seed и `AddWordDialog`) не попадали в сессию и экран показывал «на сегодня всё» при непустом словаре. `GetTodayQueue` теперь сопоставляет все слова с прогрессом: newWords = слова без прогресса или со статусом `newWord`, due = прогресс с наступившим `dueAt` вне `newWord`.
 - README: количество ADR исправлено с 6 на 16 (фактически ADR-001…ADR-016).
 - BL-41: `computeStreakProvider` / `getTodayQueueProvider` переведены в `FutureProvider` (UseCase-провайдеры переименованы в `computeStreakUseCaseProvider` / `getTodayQueueUseCaseProvider`). `HomeScreen` использует `AsyncValue.when` вместо `FutureBuilder`, `LessonScreen` инвалидирует серию, очередь и цель после сессии и при закрытии — главный экран видит прогресс сразу после урока.
 - ADR-001 «Core stack» — Accepted.
@@ -120,6 +123,7 @@
 - ARCHITECTURE — таблицы `Word` и `SettingsRepository` приведены к коду, путь `lib/domain/usecases/`.
 
 ### Verified
+- [host] Phase 4 (categories): `flutter analyze` — 0 issues; `flutter test` — 434 passed; `flutter build apk --debug` — `✓ Built build/app/outputs/flutter-apk/app-debug.apk` (8.7 s), без KGP-предупреждений.
 - [host] 1.1a.0: Dart 3.13.4 stable, linux_x64.
 - [host] 1.1a.0: `dart pub get` — resolved 50 dependencies (very_good_analysis 11.0.0, test 1.33.0).
 - [host] 1.1a.0: `dart analyze` — 0 issues.

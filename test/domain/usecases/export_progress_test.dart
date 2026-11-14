@@ -23,8 +23,12 @@ import 'fakes/fake_word_repository.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-Word word(int id) =>
-    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
+Word word(int id, {String? category}) => Word(
+  id: WordId(id),
+  term: 'term$id',
+  translation: 'перевод$id',
+  category: category,
+);
 
 WordProgress progressOf(int id, WordStatus status) => WordProgress(
   wordId: WordId(id),
@@ -114,6 +118,13 @@ void main() {
     test('leaves frozen days empty when there are none', () async {
       final payload = await exportOf().call();
       expect(payload.frozenDays, isEmpty);
+    });
+
+    test('includes categories', () async {
+      final payload = await exportOf(seedWords: [word(1, category: 'Бизнес')])
+          .call();
+
+      expect(payload.words.single.category, 'Бизнес');
     });
 
     test('stamps exportedAt in UTC', () async {

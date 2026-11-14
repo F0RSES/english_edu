@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,6 +35,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
   final _transcription = TextEditingController();
   final _example = TextEditingController();
   String? _partOfSpeech;
+  String? _category;
   String? _error;
 
   @override
@@ -95,6 +97,7 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
           transcription: _optional(_transcription.text),
           partOfSpeech: _partOfSpeech,
           exampleSentence: _optional(_example.text),
+          category: _category,
         ),
       );
       if (!mounted) {
@@ -141,6 +144,19 @@ class _AddWordDialogState extends ConsumerState<AddWordDialog> {
                 DropdownMenuItem(value: option, child: Text(option)),
             ],
             onChanged: (value) => setState(() => _partOfSpeech = value),
+          ),
+          DropdownButtonFormField<String?>(
+            initialValue: _category,
+            // Пустое значение = «без категории»: показываем подпись, иначе
+            // поле выглядит незаполненным.
+            hint: const Text(noCategoryLabel),
+            decoration: const InputDecoration(labelText: 'Категория'),
+            items: [
+              const DropdownMenuItem<String?>(child: Text(noCategoryLabel)),
+              for (final option in wordCategories)
+                DropdownMenuItem<String?>(value: option, child: Text(option)),
+            ],
+            onChanged: (value) => setState(() => _category = value),
           ),
           TextField(
             controller: _example,

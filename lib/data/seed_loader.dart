@@ -80,6 +80,8 @@ final class JsonSeedLoader implements SeedLoader {
       transcription: item['transcription'] as String?,
       partOfSpeech: item['partOfSpeech'] as String?,
       exampleSentence: item['exampleSentence'] as String?,
+      // Поле необязательное: seed v1 его не содержит (20 слов без категорий).
+      category: item['category'] as String?,
     );
   }
 }

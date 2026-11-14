@@ -26,6 +26,7 @@ Dart-код в документе не приводится: сигнатуры 
 | transcription | `String?` | IPA-транскрипция |
 | partOfSpeech | `String?` | Часть речи, если известна |
 | exampleSentence | `String?` | Пример употребления на английском |
+| category | `String?` | Тематическая категория: «Бизнес», «IT», «Путешествия», «Быт»; null — без категории |
 
 ### WordProgress
 Текущее состояние изучения слова: одна запись на слово. Конструктор non-const: assert на `DateTime.isUtc` не является potentially-constant выражением.
@@ -182,7 +183,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 | Use case | Сигнатура | Поведение |
 |---|---|---|
-| GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | due по `dueAt` asc, newWords по `firstSeenAt` asc, оба обрезаны `dailyReviewLimit` / `dailyNewLimit`; слова со статусом `newWord` исключены из due |
+| GetTodayQueue | `GetTodayQueue({required WordRepository words, required ProgressRepository progress, required SettingsRepository settings, required DateTime Function() clock})` → `Future<TodayQueue>` | слова и прогресс сопоставляются по `wordId`: newWords — слова без прогресса или со статусом `newWord` (порядок: `firstSeenAt` asc, затем слова без прогресса по `id`), due — прогресс с наступившим `dueAt` вне `newWord` (порядок: `dueAt` asc); оба списка обрезаны `dailyNewLimit` / `dailyReviewLimit` |
 | RecordReview | `RecordReview({required ProgressRepository progress, required ReviewLogRepository reviewLog, required StatsRepository stats, required WordRepository words, required SrsCalculator srs, required ReviewLogId Function() nextLogId, required DateTime Function() clock})` → `Future<CardState>` | проверяет существование слова; создаёт или обновляет прогресс, пишет ReviewLog, поднимает DailyStats. Статус: mastered при `reps ≥ 5 && intervalDays ≥ 21` (Anki-style mature); `lapses` не блокирует — история провалов не мешает mastered. Иначе learning: после любого ответа слово уже видели, `newWord` только до первого ответа |
 | ExportProgress | `ExportProgress({settings, progress, reviewLog, stats, words, frozen, clock})` → `Future<ExportPayload>` | снимок всей базы через `getAll`; не зависит от перечисления статусов и диапазонов дат; `schemaVersion = ExportPayload.currentSchemaVersion` (2, есть `frozenDays`) |
 | ImportProgress | `ImportProgress({words, progress, reviewLog, settings, stats, frozen})` → `Future<void>` | REPLACE через `replaceAll`; валидирует `schemaVersion in 1..2` и `exportedAt.isUtc`; порядок settings → words → progress → logs → stats → frozen; v1 приходит с пустыми заморозками; атомарность per-repo |
@@ -194,11 +195,11 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v2 — шесть таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` (v1→v2) только добавляет `frozen_days` — существующие таблицы не пересоздаются.
+Схема v3 — шесть таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
-| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement) | `idx_words_term` |
+| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement); `category` nullable (v3) | `idx_words_term` |
 | `word_progresses` | `WordProgressRow` | `wordId` → `words.id` ON DELETE CASCADE | `idx_word_progress_due`, `idx_word_progress_status` |
 | `review_logs` | `ReviewLogRow` | `id` | `idx_review_logs_word`, `idx_review_logs_reviewed` |
 | `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |

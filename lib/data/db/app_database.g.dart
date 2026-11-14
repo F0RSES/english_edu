@@ -70,6 +70,17 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -78,6 +89,7 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     transcription,
     partOfSpeech,
     exampleSentence,
+    category,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -140,6 +152,12 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         ),
       );
     }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
     return context;
   }
 
@@ -173,6 +191,10 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         DriftSqlType.string,
         data['${effectivePrefix}example_sentence'],
       ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
     );
   }
 
@@ -200,6 +222,11 @@ class Word extends DataClass implements Insertable<Word> {
 
   /// Пример употребления.
   final String? exampleSentence;
+
+  /// Тематическая категория слова; null — без категории (schema v3).
+  ///
+  /// Список категорий фиксирован в UI; пользовательские категории — BL-56.
+  final String? category;
   const Word({
     required this.id,
     required this.term,
@@ -207,6 +234,7 @@ class Word extends DataClass implements Insertable<Word> {
     this.transcription,
     this.partOfSpeech,
     this.exampleSentence,
+    this.category,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -222,6 +250,9 @@ class Word extends DataClass implements Insertable<Word> {
     }
     if (!nullToAbsent || exampleSentence != null) {
       map['example_sentence'] = Variable<String>(exampleSentence);
+    }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
     }
     return map;
   }
@@ -240,6 +271,9 @@ class Word extends DataClass implements Insertable<Word> {
       exampleSentence: exampleSentence == null && nullToAbsent
           ? const Value.absent()
           : Value(exampleSentence),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
     );
   }
 
@@ -255,6 +289,7 @@ class Word extends DataClass implements Insertable<Word> {
       transcription: serializer.fromJson<String?>(json['transcription']),
       partOfSpeech: serializer.fromJson<String?>(json['partOfSpeech']),
       exampleSentence: serializer.fromJson<String?>(json['exampleSentence']),
+      category: serializer.fromJson<String?>(json['category']),
     );
   }
   @override
@@ -267,6 +302,7 @@ class Word extends DataClass implements Insertable<Word> {
       'transcription': serializer.toJson<String?>(transcription),
       'partOfSpeech': serializer.toJson<String?>(partOfSpeech),
       'exampleSentence': serializer.toJson<String?>(exampleSentence),
+      'category': serializer.toJson<String?>(category),
     };
   }
 
@@ -277,6 +313,7 @@ class Word extends DataClass implements Insertable<Word> {
     Value<String?> transcription = const Value.absent(),
     Value<String?> partOfSpeech = const Value.absent(),
     Value<String?> exampleSentence = const Value.absent(),
+    Value<String?> category = const Value.absent(),
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -288,6 +325,7 @@ class Word extends DataClass implements Insertable<Word> {
     exampleSentence: exampleSentence.present
         ? exampleSentence.value
         : this.exampleSentence,
+    category: category.present ? category.value : this.category,
   );
   Word copyWithCompanion(WordsCompanion data) {
     return Word(
@@ -305,6 +343,7 @@ class Word extends DataClass implements Insertable<Word> {
       exampleSentence: data.exampleSentence.present
           ? data.exampleSentence.value
           : this.exampleSentence,
+      category: data.category.present ? data.category.value : this.category,
     );
   }
 
@@ -316,7 +355,8 @@ class Word extends DataClass implements Insertable<Word> {
           ..write('translation: $translation, ')
           ..write('transcription: $transcription, ')
           ..write('partOfSpeech: $partOfSpeech, ')
-          ..write('exampleSentence: $exampleSentence')
+          ..write('exampleSentence: $exampleSentence, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -329,6 +369,7 @@ class Word extends DataClass implements Insertable<Word> {
     transcription,
     partOfSpeech,
     exampleSentence,
+    category,
   );
   @override
   bool operator ==(Object other) =>
@@ -339,7 +380,8 @@ class Word extends DataClass implements Insertable<Word> {
           other.translation == this.translation &&
           other.transcription == this.transcription &&
           other.partOfSpeech == this.partOfSpeech &&
-          other.exampleSentence == this.exampleSentence);
+          other.exampleSentence == this.exampleSentence &&
+          other.category == this.category);
 }
 
 class WordsCompanion extends UpdateCompanion<Word> {
@@ -349,6 +391,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
   final Value<String?> transcription;
   final Value<String?> partOfSpeech;
   final Value<String?> exampleSentence;
+  final Value<String?> category;
   const WordsCompanion({
     this.id = const Value.absent(),
     this.term = const Value.absent(),
@@ -356,6 +399,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.transcription = const Value.absent(),
     this.partOfSpeech = const Value.absent(),
     this.exampleSentence = const Value.absent(),
+    this.category = const Value.absent(),
   });
   WordsCompanion.insert({
     this.id = const Value.absent(),
@@ -364,6 +408,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.transcription = const Value.absent(),
     this.partOfSpeech = const Value.absent(),
     this.exampleSentence = const Value.absent(),
+    this.category = const Value.absent(),
   }) : term = Value(term),
        translation = Value(translation);
   static Insertable<Word> custom({
@@ -373,6 +418,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Expression<String>? transcription,
     Expression<String>? partOfSpeech,
     Expression<String>? exampleSentence,
+    Expression<String>? category,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -381,6 +427,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       if (transcription != null) 'transcription': transcription,
       if (partOfSpeech != null) 'part_of_speech': partOfSpeech,
       if (exampleSentence != null) 'example_sentence': exampleSentence,
+      if (category != null) 'category': category,
     });
   }
 
@@ -391,6 +438,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Value<String?>? transcription,
     Value<String?>? partOfSpeech,
     Value<String?>? exampleSentence,
+    Value<String?>? category,
   }) {
     return WordsCompanion(
       id: id ?? this.id,
@@ -399,6 +447,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       transcription: transcription ?? this.transcription,
       partOfSpeech: partOfSpeech ?? this.partOfSpeech,
       exampleSentence: exampleSentence ?? this.exampleSentence,
+      category: category ?? this.category,
     );
   }
 
@@ -423,6 +472,9 @@ class WordsCompanion extends UpdateCompanion<Word> {
     if (exampleSentence.present) {
       map['example_sentence'] = Variable<String>(exampleSentence.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
     return map;
   }
 
@@ -434,7 +486,8 @@ class WordsCompanion extends UpdateCompanion<Word> {
           ..write('translation: $translation, ')
           ..write('transcription: $transcription, ')
           ..write('partOfSpeech: $partOfSpeech, ')
-          ..write('exampleSentence: $exampleSentence')
+          ..write('exampleSentence: $exampleSentence, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -3189,6 +3242,7 @@ typedef $$WordsTableCreateCompanionBuilder = WordsCompanion Function({
   Value<String?> transcription,
   Value<String?> partOfSpeech,
   Value<String?> exampleSentence,
+  Value<String?> category,
 });
 typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<int> id,
@@ -3197,6 +3251,7 @@ typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<String?> transcription,
   Value<String?> partOfSpeech,
   Value<String?> exampleSentence,
+  Value<String?> category,
 });
 
 final class $$WordsTableReferences
@@ -3257,6 +3312,11 @@ class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
 
   ColumnFilters<String> get exampleSentence => $composableBuilder(
     column: $table.exampleSentence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3324,6 +3384,11 @@ class $$WordsTableOrderingComposer
     column: $table.exampleSentence,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$WordsTableAnnotationComposer
@@ -3360,6 +3425,9 @@ class $$WordsTableAnnotationComposer
     column: $table.exampleSentence,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 
   Expression<T> wordProgressesRefs<T extends Object>(
     Expression<T> Function($$WordProgressesTableAnnotationComposer a) f,
@@ -3421,6 +3489,7 @@ class $$WordsTableTableManager
                 Value<String?> transcription = const Value.absent(),
                 Value<String?> partOfSpeech = const Value.absent(),
                 Value<String?> exampleSentence = const Value.absent(),
+                Value<String?> category = const Value.absent(),
               }) => WordsCompanion(
                 id: id,
                 term: term,
@@ -3428,6 +3497,7 @@ class $$WordsTableTableManager
                 transcription: transcription,
                 partOfSpeech: partOfSpeech,
                 exampleSentence: exampleSentence,
+                category: category,
               ),
           createCompanionCallback:
               ({
@@ -3437,6 +3507,7 @@ class $$WordsTableTableManager
                 Value<String?> transcription = const Value.absent(),
                 Value<String?> partOfSpeech = const Value.absent(),
                 Value<String?> exampleSentence = const Value.absent(),
+                Value<String?> category = const Value.absent(),
               }) => WordsCompanion.insert(
                 id: id,
                 term: term,
@@ -3444,6 +3515,7 @@ class $$WordsTableTableManager
                 transcription: transcription,
                 partOfSpeech: partOfSpeech,
                 exampleSentence: exampleSentence,
+                category: category,
               ),
           withReferenceMapper: (p0) => p0
               .map(

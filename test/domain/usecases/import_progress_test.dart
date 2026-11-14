@@ -22,8 +22,12 @@ import 'fakes/fake_word_repository.dart';
 final now = DateTime.utc(2024, 5, 15, 12);
 final today = LocalDate.fromDateTime(now.toLocal());
 
-Word word(int id) =>
-    Word(id: WordId(id), term: 'term$id', translation: 'перевод$id');
+Word word(int id, {String? category}) => Word(
+  id: WordId(id),
+  term: 'term$id',
+  translation: 'перевод$id',
+  category: category,
+);
 
 WordProgress progressOf(int id) => WordProgress(
   wordId: WordId(id),
@@ -103,7 +107,7 @@ void main() {
   group('ImportProgress', () {
     test('rejects an unsupported schema version', () async {
       await expectLater(
-        Store().importUseCase(payloadOf(schemaVersion: 3)),
+        Store().importUseCase(payloadOf(schemaVersion: 4)),
         throwsA(isA<ArgumentError>()),
       );
     });
@@ -135,6 +139,17 @@ void main() {
       await target.importUseCase(await source.exportUseCase());
 
       expect(await target.frozen.getAll(), await source.frozen.getAll());
+    });
+
+    test('restores categories from a v3 payload', () async {
+      final store = Store();
+
+      await store.importUseCase(
+        payloadOf(schemaVersion: 3, words: [word(1, category: 'Быт')]),
+      );
+
+      final imported = await store.words.getById(const WordId(1));
+      expect(imported!.category, 'Быт');
     });
 
     test('rejects a non-UTC exportedAt', () async {

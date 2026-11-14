@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
+import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,8 @@ class DictionaryScreen extends ConsumerStatefulWidget {
 class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   final _search = TextEditingController();
   DictionaryTab _tab = DictionaryTab.all;
+  // null — фильтр по категории выключен («Все»).
+  String? _selectedCategory;
 
   @override
   void dispose() {
@@ -53,6 +56,18 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
             if (entry.status == WordStatus.mastered) entry,
         ],
       };
+
+  /// Оставляет слова выбранной категории; при `null` не фильтрует.
+  List<DictionaryEntry> _applyCategory(List<DictionaryEntry> entries) {
+    final category = _selectedCategory;
+    if (category == null) {
+      return entries;
+    }
+    return [
+      for (final entry in entries)
+        if (entry.word.category == category) entry,
+    ];
+  }
 
   void _reload() => ref.invalidate(dictionaryEntriesProvider);
 
@@ -93,6 +108,25 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
                 ref.read(dictionarySearchQueryProvider.notifier).update(value),
           ),
         ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              for (final category in <String?>[null, ...wordCategories])
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(category ?? 'Все категории'),
+                    selected: _selectedCategory == category,
+                    onSelected: (_) =>
+                        setState(() => _selectedCategory = category),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
         SegmentedButton<DictionaryTab>(
           segments: const [
             ButtonSegment(value: DictionaryTab.all, label: Text('Все')),
@@ -120,7 +154,7 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   );
 
   Widget _buildList(List<DictionaryEntry> entries) {
-    final filtered = _applyTab(entries);
+    final filtered = _applyCategory(_applyTab(entries));
     if (filtered.isEmpty) {
       return Center(child: Text(_emptyMessage()));
     }
@@ -136,6 +170,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   String _emptyMessage() {
     if (_search.text.trim().isNotEmpty) {
       return 'Ничего не найдено';
+    }
+    if (_selectedCategory != null) {
+      return 'В этой категории пока пусто';
     }
     if (_tab != DictionaryTab.all) {
       return 'В этой вкладке пока пусто';

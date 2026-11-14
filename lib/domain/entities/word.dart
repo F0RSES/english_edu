@@ -25,6 +25,7 @@ final class Word {
     this.transcription,
     this.partOfSpeech,
     this.exampleSentence,
+    this.category,
   }) : assert(term.length > 0, 'term must not be empty'),
        assert(translation.length > 0, 'translation must not be empty');
 
@@ -46,6 +47,12 @@ final class Word {
   /// Example usage in English.
   final String? exampleSentence;
 
+  /// Тематическая категория; null — без категории.
+  ///
+  /// Пример: «Бизнес», «IT», «Путешествия», «Быт». Список фиксирован в UI,
+  /// пользовательские категории — BL-56.
+  final String? category;
+
   /// Returns a copy with the given fields replaced.
   ///
   /// Nullable fields are cleared by passing null explicitly; omitting them
@@ -57,6 +64,7 @@ final class Word {
     Object? transcription = _unset,
     Object? partOfSpeech = _unset,
     Object? exampleSentence = _unset,
+    Object? category = _unset,
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -64,6 +72,7 @@ final class Word {
     transcription: _resolveText(transcription, this.transcription),
     partOfSpeech: _resolveText(partOfSpeech, this.partOfSpeech),
     exampleSentence: _resolveText(exampleSentence, this.exampleSentence),
+    category: _resolveText(category, this.category),
   );
 
   @override
@@ -75,7 +84,8 @@ final class Word {
           translation == other.translation &&
           transcription == other.transcription &&
           partOfSpeech == other.partOfSpeech &&
-          exampleSentence == other.exampleSentence;
+          exampleSentence == other.exampleSentence &&
+          category == other.category;
 
   @override
   int get hashCode => Object.hash(
@@ -85,6 +95,7 @@ final class Word {
     transcription,
     partOfSpeech,
     exampleSentence,
+    category,
   );
 
   @override

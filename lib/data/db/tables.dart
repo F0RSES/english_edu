@@ -26,6 +26,11 @@ class Words extends Table {
   /// Пример употребления.
   TextColumn get exampleSentence => text().nullable()();
 
+  /// Тематическая категория слова; null — без категории (schema v3).
+  ///
+  /// Список категорий фиксирован в UI; пользовательские категории — BL-56.
+  TextColumn get category => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

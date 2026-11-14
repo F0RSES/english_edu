@@ -17,6 +17,7 @@ final class WordMapper {
     transcription: row.transcription,
     partOfSpeech: row.partOfSpeech,
     exampleSentence: row.exampleSentence,
+    category: row.category,
   );
 
   /// Раскладывает сущность в companion для insert/update.
@@ -27,5 +28,6 @@ final class WordMapper {
     transcription: Value(word.transcription),
     partOfSpeech: Value(word.partOfSpeech),
     exampleSentence: Value(word.exampleSentence),
+    category: Value(word.category),
   );
 }

@@ -5,10 +5,11 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v2: добавлена `frozen_days` (ADR-015).
+/// Schema v3: у слова появилась необязательная `category` (ADR-002 миграции).
 ///
-/// `onCreate` создаёт все таблицы, `onUpgrade` только добавляет новые:
-/// существующие таблицы v1 не пересоздаются, данные переживают миграцию.
+/// История: v2 добавила `frozen_days` (ADR-015), v3 — колонку `words.category`.
+/// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
+/// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
   tables: [
     Words,
@@ -27,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -35,6 +36,9 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.createTable(frozenDays);
+      }
+      if (from < 3) {
+        await m.addColumn(words, words.category);
       }
     },
     // SQLite не проверяет внешние ключи, пока их не включат явно.

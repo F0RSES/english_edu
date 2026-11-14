@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
+import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,6 +69,41 @@ void main() {
     expect(saved, isNotNull);
     expect(saved!.term, 'book');
     expect(saved.translation, 'книга');
+  });
+
+  testWidgets('selecting category saves word with category', (tester) async {
+    final repo = FakeWordRepository();
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'invoice');
+    await tester.enterText(find.byType(TextField).at(1), 'счёт');
+    // Поле категории — единственный дропдаун с nullable значением.
+    await tester.tap(find.byType(DropdownButtonFormField<String?>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Бизнес').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    final saved = (await repo.getAll()).single;
+    expect(saved.term, 'invoice');
+    expect(saved.category, 'Бизнес');
+  });
+
+  testWidgets('keeps category null when nothing is selected', (tester) async {
+    final repo = FakeWordRepository();
+    await tester.pumpWidget(host(repo));
+    await openDialog(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'book');
+    await tester.enterText(find.byType(TextField).at(1), 'книга');
+    // Пока категория не выбрана, поле показывает подпись пустого значения.
+    expect(find.text(noCategoryLabel), findsOneWidget);
+    await tester.tap(find.text('Добавить'));
+    await tester.pumpAndSettle();
+
+    expect((await repo.getAll()).single.category, isNull);
   });
 
   testWidgets('warns about an existing term', (tester) async {

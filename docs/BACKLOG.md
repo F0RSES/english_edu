@@ -55,6 +55,9 @@
 | BL-51 | P2 | Phase 5e — заморозки не входят в export/import (формат v1) и не очищаются `ResetProgress` | импорт снимка не оставляет «висячих» заморозок; сброс прогресса обнуляет `frozen_days` | Done |
 | BL-53 | P3 | Phase 6c — если тестеры пожалуются на неточность напоминаний: `AndroidScheduleMode.exact` + `SCHEDULE_EXACT_ALARM` + `requestExactAlarmsPermission()` | точное время на Android 14+, инструкция по разрешению в UI | Todo |
 | BL-54 | P2 | Phase 6c — миграция `flutter_tts` 4.2.5 → `stts` 1.3.4: flutter_tts применяет Kotlin Gradle Plugin, будущие версии Flutter перестанут такие плагины собирать | `flutter build apk --debug` зелёный без предупреждения KGP, `SttsTtsService`, analyze=0, тесты без изменений | Done |
+| BL-55 | P3 | Если словарь вырастет: `GetTodayQueue` читает `words.getAll()` + `progress.getAll()` целиком и фильтрует в памяти | SQL-выборка с JOIN и LIMIT, замер на 10k слов | Todo |
+| BL-56 | P3 | Phase 5 — кастомные категории: пользователь создаёт свои, сейчас список фиксирован (`wordCategories`) | добавление/переименование категории сохраняется в БД, фильтр и диалог берут список из репозитория | Todo |
+| BL-57 | P2 | Export/import теряет `Word.category`: `ExportPayloadCodec` сериализует только v2-поля, формат снимка не расширен | `category` в JSON снимка + round-trip тест; при необходимости — payload schema v3 и ADR | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

@@ -171,5 +171,66 @@ void main() {
       expect(ids(queue.due), [2]);
       expect(ids(queue.newWords), [1]);
     });
+
+    test('word without progress appears in newWords', () async {
+      final queue = await queueOf(
+        words: [word(1), word(2)],
+        progress: const [],
+      ).call();
+
+      expect(ids(queue.newWords), [1, 2]);
+      expect(queue.due, isEmpty);
+    });
+
+    test('orders words without progress by id', () async {
+      final queue = await queueOf(
+        words: [word(3), word(1), word(2)],
+        progress: const [],
+      ).call();
+
+      expect(ids(queue.newWords), [1, 2, 3]);
+    });
+
+    test('puts already introduced words before fresh ones', () async {
+      final queue = await queueOf(
+        words: [word(1), word(2)],
+        progress: [newProgress(2, const Duration(days: 1))],
+      ).call();
+
+      expect(ids(queue.newWords), [2, 1]);
+    });
+
+    test('daily limits apply to words without progress', () async {
+      final queue = await queueOf(
+        words: [word(1), word(2), word(3)],
+        progress: const [],
+        settings: UserSettings.defaults().copyWith(dailyNewLimit: 2),
+      ).call();
+
+      expect(ids(queue.newWords), [1, 2]);
+    });
+
+    test('due word with progress appears in due', () async {
+      final queue = await queueOf(
+        words: [word(1)],
+        progress: [dueProgress(1, const Duration(hours: -1))],
+      ).call();
+
+      expect(ids(queue.due), [1]);
+      expect(queue.newWords, isEmpty);
+    });
+
+    test('newWord status filters out from due even when overdue', () async {
+      final overdue = WordProgress(
+        wordId: const WordId(1),
+        cardState: CardState.initial(now.subtract(const Duration(hours: 2))),
+        status: WordStatus.newWord,
+        firstSeenAt: now.subtract(const Duration(days: 1)),
+      );
+      final queue = await queueOf(words: [word(1)], progress: [overdue]).call();
+
+      expect(queue.due, isEmpty);
+      expect(ids(queue.newWords), [1]);
+    });
   });
 }

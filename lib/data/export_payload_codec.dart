@@ -13,7 +13,13 @@ import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 
-/// JSON-представление снимка состояния, схема v1.
+/// Первая версия снимка, в которой появился `frozenDays`.
+const _frozenDaysSinceVersion = 2;
+
+/// Первая версия снимка, в которой появился `Word.category`.
+const _categorySinceVersion = 3;
+
+/// JSON-представление снимка состояния, схема v3 (v1 и v2 читаются).
 ///
 /// Формат принадлежит data-слою (см. `ExportPayload`): домен знает только
 /// структуру, а сериализация живёт рядом с остальными преобразованиями.
@@ -31,7 +37,10 @@ final class ExportPayloadCodec {
     'schemaVersion': payload.schemaVersion,
     'exportedAt': payload.exportedAt.toUtc().toIso8601String(),
     'settings': _settingsToJson(payload.settings),
-    'words': [for (final word in payload.words) _wordToJson(word)],
+    'words': [
+      for (final word in payload.words)
+        _wordToJson(word, version: payload.schemaVersion),
+    ],
     'progress': [for (final item in payload.progress) _progressToJson(item)],
     'logs': [for (final log in payload.logs) _logToJson(log)],
     'stats': [for (final stats in payload.stats) _statsToJson(stats)],
@@ -48,13 +57,15 @@ final class ExportPayloadCodec {
     'ttsSpeed': settings.ttsSpeed,
   };
 
-  Map<String, Object?> _wordToJson(Word word) => {
+  Map<String, Object?> _wordToJson(Word word, {required int version}) => {
     'id': word.id.value,
     'term': word.term,
     'translation': word.translation,
     'transcription': word.transcription,
     'partOfSpeech': word.partOfSpeech,
     'exampleSentence': word.exampleSentence,
+    // В снимках v1/v2 поля не было: не пишем его и для обратной совместимости.
+    if (version >= _categorySinceVersion) 'category': word.category,
   };
 
   Map<String, Object?> _progressToJson(WordProgress progress) => {
@@ -104,13 +115,16 @@ final class ExportPayloadCodec {
     }
     final root = _asMap(raw, 'корень');
     final version = _int(root, 'schemaVersion');
+    if (version < 1 || version > ExportPayload.currentSchemaVersion) {
+      throw FormatException('schemaVersion: неподдерживаемая версия $version');
+    }
     return ExportPayload(
       schemaVersion: version,
       exportedAt: _date(root, 'exportedAt'),
       settings: _settingsFromJson(_asMap(root['settings'], 'settings')),
       words: [
         for (final item in _list(root, 'words'))
-          _wordFromJson(_asMap(item, 'words[]')),
+          _wordFromJson(_asMap(item, 'words[]'), version),
       ],
       progress: [
         for (final item in _list(root, 'progress'))
@@ -130,19 +144,13 @@ final class ExportPayloadCodec {
 
   /// Заморозки: появились в v2, в v1 их не было.
   Set<LocalDate> _frozenDaysFromJson(Map<String, Object?> root, int version) {
-    switch (version) {
-      case 1:
-        return const <LocalDate>{};
-      case ExportPayload.currentSchemaVersion:
-        return {
-          for (final item in _list(root, 'frozenDays'))
-            LocalDate(_asInt(item, 'frozenDays[]')),
-        };
-      default:
-        throw FormatException(
-          'schemaVersion: неподдерживаемая версия $version',
-        );
+    if (version < _frozenDaysSinceVersion) {
+      return const <LocalDate>{};
     }
+    return {
+      for (final item in _list(root, 'frozenDays'))
+        LocalDate(_asInt(item, 'frozenDays[]')),
+    };
   }
 
   UserSettings _settingsFromJson(Map<String, Object?> map) => UserSettings(
@@ -155,13 +163,17 @@ final class ExportPayloadCodec {
     ttsSpeed: _double(map, 'ttsSpeed'),
   );
 
-  Word _wordFromJson(Map<String, Object?> map) => Word(
+  Word _wordFromJson(Map<String, Object?> map, int version) => Word(
     id: WordId(_int(map, 'id')),
     term: _str(map, 'term'),
     translation: _str(map, 'translation'),
     transcription: _strOrNull(map, 'transcription'),
     partOfSpeech: _strOrNull(map, 'partOfSpeech'),
     exampleSentence: _strOrNull(map, 'exampleSentence'),
+    // В v1/v2 категории не было — читаем только из снимков v3+.
+    category: version >= _categorySinceVersion
+        ? _strOrNull(map, 'category')
+        : null,
   );
 
   WordProgress _progressFromJson(Map<String, Object?> map) => WordProgress(

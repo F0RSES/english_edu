@@ -120,13 +120,13 @@ void main() {
 
     await _paste(
       tester,
-      const ExportPayloadCodec().encode(payload(schemaVersion: 3)),
+      const ExportPayloadCodec().encode(payload(schemaVersion: 4)),
     );
 
     // Версия отсекается уже на разборе JSON: импорт не должен читать формат,
     // которого не знает.
     expect(find.textContaining('Невалидный JSON'), findsOneWidget);
-    expect(find.textContaining('неподдерживаемая версия 3'), findsOneWidget);
+    expect(find.textContaining('неподдерживаемая версия 4'), findsOneWidget);
   });
 
   testWidgets('a v1 snapshot imports with empty frozen days', (tester) async {
@@ -140,6 +140,23 @@ void main() {
     expect(find.text('Импорт'), findsNothing);
     expect(await harness.words.getById(const WordId(1)), isNotNull);
     expect(await harness.frozen.getAll(), isEmpty);
+  });
+
+  testWidgets('a v2 snapshot imports words without categories', (tester) async {
+    final harness = Harness();
+    await _open(tester, harness);
+
+    await _paste(
+      tester,
+      const ExportPayloadCodec().encode(payload(schemaVersion: 2)),
+    );
+    await tester.tap(find.text('Продолжить'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Импорт'), findsNothing);
+    final imported = await harness.words.getById(const WordId(1));
+    expect(imported, isNotNull);
+    expect(imported!.category, isNull);
   });
 
   testWidgets('valid JSON asks for confirmation', (tester) async {

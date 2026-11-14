@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:test/test.dart';
@@ -71,10 +71,11 @@ void main() {
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = File('${dir.path}/app.sqlite');
 
-    // v1 = полная схема без frozen_days. Создаём её через createAll и удаляем
-    // только новую таблицу: DDL остальных таблиц остаётся настоящим.
+    // v1 = текущая схема без всего, что добавили v2 и v3: DDL остальных
+    // таблиц остаётся настоящим, правим только отличия версий.
     final v1 = AppDatabase.forTesting(NativeDatabase(file));
     await v1.customStatement('DROP TABLE frozen_days');
+    await v1.customStatement('ALTER TABLE words DROP COLUMN category');
     await v1
         .into(v1.dailyStatsTable)
         .insert(
@@ -90,6 +91,35 @@ void main() {
     expect(await v2.select(v2.frozenDays).get(), isEmpty);
     // Данные v1 пережили миграцию.
     expect(await v2.select(v2.dailyStatsTable).get(), hasLength(1));
+  });
+
+  test('migration v2 to v3 adds the category column', () async {
+    final dir = Directory.systemTemp.createTempSync('english_edu_migration_v3');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v2 = текущая схема без words.category.
+    final v2 = AppDatabase.forTesting(NativeDatabase(file));
+    await v2
+        .into(v2.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'book',
+            translation: 'книга',
+          ),
+        );
+    await v2.customStatement('ALTER TABLE words DROP COLUMN category');
+    await v2.customStatement('PRAGMA user_version = 2');
+    await v2.close();
+
+    final v3 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v3.close);
+
+    final row = (await v3.select(v3.words).get()).single;
+    // Колонка появилась миграцией и у старой строки она null.
+    expect(row.category, isNull);
+    expect(row.term, 'book');
   });
 
   test('inserts and reads a word with every column', () async {

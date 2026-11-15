@@ -108,8 +108,11 @@ class _Identity extends ConsumerWidget {
                 child: IconButton(
                   tooltip: S.personalization(lang),
                   style: IconButton.styleFrom(
-                    backgroundColor: scheme.primary,
-                    foregroundColor: scheme.onPrimary,
+                    // Контрастная подложка: на аватаре цвета primary карандаш
+                    // сливался с фоном (Phase 30a).
+                    backgroundColor: scheme.surface,
+                    foregroundColor: scheme.primary,
+                    side: BorderSide(color: scheme.outlineVariant),
                   ),
                   icon: const Icon(Icons.edit, size: 16),
                   onPressed: () => unawaited(

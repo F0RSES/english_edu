@@ -5,12 +5,14 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/repositories/settings_repository.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
+import 'package:english_edu/domain/usecases/check_achievements.dart';
 import 'package:english_edu/domain/usecases/get_smart_review_queue.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/get_weak_words_queue.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
+import 'package:english_edu/domain/value_objects/achievement_type.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -24,6 +26,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../core/fakes/fake_crash_reporter.dart';
+import '../domain/usecases/fakes/fake_achievement_repository.dart';
+import '../domain/usecases/fakes/fake_challenge_streak_repository.dart';
+import '../domain/usecases/fakes/fake_chat_repository.dart';
 import '../domain/usecases/fakes/fake_daily_challenge_repository.dart';
 import '../domain/usecases/fakes/fake_frozen_days_repository.dart';
 import '../domain/usecases/fakes/fake_progress_repository.dart';
@@ -31,6 +36,7 @@ import '../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../domain/usecases/fakes/fake_settings_repository.dart';
 import '../domain/usecases/fakes/fake_srs_calculator.dart';
 import '../domain/usecases/fakes/fake_stats_repository.dart';
+import '../domain/usecases/fakes/fake_typing_record_repository.dart';
 import '../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -83,11 +89,16 @@ final class Harness {
     List<WordProgress> progress = const [],
     SettingsRepository? settings,
     SrsCalculator? srs,
+    this.withAchievements = false,
   }) : wordRepo = FakeWordRepository(words),
        progressRepo = FakeProgressRepository(progress),
        logRepo = FakeReviewLogRepository(),
        settingsRepo = settings ?? FakeSettingsRepository(),
        srs = srs ?? const FakeSrsCalculator();
+
+  /// Включает CheckAchievements в RecordReview: тест инвалидации достижений
+  /// (Phase 30a). По умолчанию выключен, чтобы тосты не мешали остальным.
+  final bool withAchievements;
 
   final FakeWordRepository wordRepo;
   final FakeProgressRepository progressRepo;
@@ -96,7 +107,20 @@ final class Harness {
   final SettingsRepository settingsRepo;
   final SrsCalculator srs;
   final FakeCrashReporter crashReporter = FakeCrashReporter();
+  final FakeAchievementRepository achievementRepo = FakeAchievementRepository();
   var _nextId = 1;
+
+  late final CheckAchievements _checkAchievements = CheckAchievements(
+    achievements: achievementRepo,
+    stats: statsRepo,
+    progress: progressRepo,
+    frozen: FakeFrozenDaysRepository(),
+    challengeStreak: FakeChallengeStreakRepository(),
+    reviewLogs: logRepo,
+    chat: FakeChatRepository(),
+    typing: FakeTypingRecordRepository(),
+    clock: () => now,
+  );
 
   Widget app({Widget? home}) => ProviderScope(
     overrides: [
@@ -137,6 +161,7 @@ final class Harness {
             repo: FakeDailyChallengeRepository(),
             clock: () => now,
           ),
+          checkAchievements: withAchievements ? _checkAchievements : null,
         ),
       ),
       undoLastReviewProvider.overrideWithValue(
@@ -149,6 +174,9 @@ final class Harness {
       // Главный экран читает серию из тех же репозиториев: без этих
       // override инвалидация нечего пересчитывать.
       statsRepositoryProvider.overrideWithValue(statsRepo),
+      wordRepositoryProvider.overrideWithValue(wordRepo),
+      progressRepositoryProvider.overrideWithValue(progressRepo),
+      achievementRepositoryProvider.overrideWithValue(achievementRepo),
       frozenDaysRepositoryProvider.overrideWithValue(
         FakeFrozenDaysRepository(),
       ),
@@ -504,5 +532,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Умное повторение'), findsOneWidget);
+  });
+
+  testWidgets('invalidates achievements and analytics after the session', (
+    tester,
+  ) async {
+    final harness = Harness(
+      words: [word(1)],
+      progress: [due(1)],
+      withAchievements: true,
+    );
+
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(LessonScreen)),
+    );
+
+    // До ответа: 30 слотов, ничего не открыто, статистика пустая.
+    final before = await container.read(achievementsProvider.future);
+    expect(before, hasLength(AchievementType.values.length));
+    expect(before.where((item) => item.isUnlocked), isEmpty);
+    final analyticsBefore = await container.read(analyticsProvider.future);
+    expect(
+      analyticsBefore.last7Days.fold<int>(
+        0,
+        (sum, day) => sum + day.totalAnswers,
+      ),
+      0,
+    );
+
+    await tester.tap(find.text('Знаю'));
+    await tester.pump();
+    // Тост достижения живёт 3 секунды: даём таймеру сработать.
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+
+    // После сессии кэш сброшен: firstLesson открыт, статистика обновилась.
+    final after = await container.read(achievementsProvider.future);
+    expect(after, hasLength(AchievementType.values.length));
+    expect(
+      after
+          .firstWhere((item) => item.type == AchievementType.firstLesson)
+          .isUnlocked,
+      isTrue,
+    );
+    final analyticsAfter = await container.read(analyticsProvider.future);
+    expect(
+      analyticsAfter.last7Days.fold<int>(
+        0,
+        (sum, day) => sum + day.totalAnswers,
+      ),
+      1,
+    );
   });
 }

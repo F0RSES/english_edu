@@ -93,6 +93,7 @@ import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/achievement_type.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
@@ -742,10 +743,21 @@ final checkAchievementsProvider = Provider<CheckAchievements>(
   ),
 );
 
-/// Достижения как async-данные экрана.
-final achievementsProvider = FutureProvider<List<Achievement>>(
-  (ref) => ref.watch(achievementRepositoryProvider).getAll(),
-);
+/// Достижения как async-данные экрана: всегда все типы (ADR-035, Phase 30a).
+///
+/// БД хранит только достижения с ненулевым прогрессом; недостающие
+/// дополняются нулевыми в памяти, чтобы UI показывал «N/30» и заблокированные
+/// карточки, а не «0/0» на пустой базе. Один запрос + мерж в памяти, без N+1.
+final achievementsProvider = FutureProvider<List<Achievement>>((ref) async {
+  final stored = await ref.watch(achievementRepositoryProvider).getAll();
+  final byKey = {for (final item in stored) item.type.key: item};
+  final now = ref.watch(clockProvider)().toUtc();
+  return [
+    for (final type in AchievementType.values)
+      byKey[type.key] ??
+          Achievement(type: type, progress: 0, lastUpdatedAt: now),
+  ];
+});
 
 /// Хранилище категорий слов (ADR-034, schema v10).
 final userCategoryRepositoryProvider = Provider<UserCategoryRepository>(

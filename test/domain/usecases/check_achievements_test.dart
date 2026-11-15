@@ -1,9 +1,14 @@
 import 'package:english_edu/domain/entities/daily_stats.dart';
+import 'package:english_edu/domain/entities/review_log.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/usecases/check_achievements.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/achievement_type.dart';
+import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
+import 'package:english_edu/domain/value_objects/review_grade.dart';
+import 'package:english_edu/domain/value_objects/review_log_id.dart';
+import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:test/test.dart';
 
 import 'fakes/fake_challenge_streak_repository.dart';
@@ -91,5 +96,40 @@ void main() {
     final stored = await repo.getByType(AchievementType.streak7);
     expect(stored!.progress, 3);
     expect(stored.isUnlocked, isFalse);
+  });
+
+  test('should_unlock_first_lesson_on_first_answer', () async {
+    final repo = FakeAchievementRepository();
+    final check = CheckAchievements(
+      achievements: repo,
+      stats: FakeStatsRepository(),
+      progress: FakeProgressRepository(),
+      frozen: FakeFrozenDaysRepository(),
+      challengeStreak: FakeChallengeStreakRepository(),
+      reviewLogs: FakeReviewLogRepository([
+        ReviewLog(
+          id: const ReviewLogId(1),
+          wordId: const WordId(1),
+          reviewedAt: now,
+          grade: ReviewGrade.good,
+          previousCardState: CardState.initial(now),
+          newCardState: CardState.initial(now),
+        ),
+      ]),
+      chat: FakeChatRepository(),
+      typing: FakeTypingRecordRepository(),
+      clock: () => now,
+    );
+
+    final unlocked = await check();
+
+    expect(
+      unlocked.map((item) => item.type),
+      contains(AchievementType.firstLesson),
+    );
+    expect(
+      (await repo.getByType(AchievementType.firstLesson))!.isUnlocked,
+      isTrue,
+    );
   });
 }

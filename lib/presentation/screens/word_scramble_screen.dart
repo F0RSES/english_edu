@@ -215,7 +215,10 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
         ..invalidate(computeStreakProvider)
         ..invalidate(getTodayQueueProvider)
         ..invalidate(weakWordsQueueProvider)
-        ..invalidate(dailyGoalProvider);
+        ..invalidate(dailyGoalProvider)
+        // Профиль читает ачивки и аналитику (Phase 30a).
+        ..invalidate(achievementsProvider)
+        ..invalidate(analyticsProvider);
     } on Object catch (error, stack) {
       ref
           .read(loggerProvider)

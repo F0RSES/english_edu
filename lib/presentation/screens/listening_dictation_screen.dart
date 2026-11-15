@@ -210,7 +210,10 @@ class _ListeningDictationScreenState
       ..invalidate(computeStreakProvider)
       ..invalidate(getTodayQueueProvider)
       ..invalidate(weakWordsQueueProvider)
-      ..invalidate(dailyGoalProvider);
+      ..invalidate(dailyGoalProvider)
+      // Профиль читает ачивки и аналитику (Phase 30a).
+      ..invalidate(achievementsProvider)
+      ..invalidate(analyticsProvider);
   }
 
   /// Переход к следующему слову (или диалог итогов после последнего).

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_achievement_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 
 Widget host({
@@ -40,7 +41,9 @@ Widget host({
     dailyGoalProvider.overrideWith(
       (ref) async => const DailyGoal(stats: null, target: 60),
     ),
-    achievementsProvider.overrideWith((ref) async => const []),
+    achievementRepositoryProvider.overrideWithValue(
+      FakeAchievementRepository(),
+    ),
     clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
   ],
   child: const MaterialApp(home: ProfileScreen()),
@@ -206,5 +209,13 @@ void main() {
 
     expect(find.text('Сменить никнейм'), findsOneWidget);
     expect(find.text('Галерея'), findsOneWidget);
+  });
+
+  testWidgets('renders 0/30 if none unlocked', (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Достижения (0/30)'), findsOneWidget);
+    expect(find.text('Пока нет достижений. Выполняй задания!'), findsOneWidget);
   });
 }

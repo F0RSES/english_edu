@@ -85,7 +85,11 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       ..invalidate(weakWordsQueueProvider)
       ..invalidate(smartReviewQueueProvider)
       ..invalidate(smartReviewTodayQueueProvider)
-      ..invalidate(dailyGoalProvider);
+      ..invalidate(dailyGoalProvider)
+      // Профиль читает ачивки и аналитику: без сброса они живут своей
+      // жизнью после урока (Phase 30a).
+      ..invalidate(achievementsProvider)
+      ..invalidate(analyticsProvider);
   }
 
   /// Закрывает урок, предварительно помечая данные главного экрана устаревшими.

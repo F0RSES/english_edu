@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_achievement_repository.dart';
+
 final moment = DateTime.utc(2024, 5, 15, 12);
 
 Achievement item(AchievementType type, {int progress = 0, bool open = false}) =>
@@ -48,5 +50,24 @@ void main() {
 
     expect(find.text('Разблокировано (1)'), findsOneWidget);
     expect(find.text('В процессе (1)'), findsOneWidget);
+  });
+
+  testWidgets('renders 30 achievement slots from empty storage', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          achievementRepositoryProvider.overrideWithValue(
+            FakeAchievementRepository(),
+          ),
+        ],
+        child: const MaterialApp(home: AchievementsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Разблокировано (0)'), findsOneWidget);
+    expect(find.text('В процессе (30)'), findsOneWidget);
   });
 }

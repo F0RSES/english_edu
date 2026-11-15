@@ -11,6 +11,8 @@ import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/achievement_type.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
@@ -181,6 +183,40 @@ void main() {
     addTearDown(custom.dispose);
 
     expect(custom.read(assetBundleProvider), same(bundle));
+  });
+
+  test('achievementsProvider fills all 30 types from an empty DB', () async {
+    final items = await container.read(achievementsProvider.future);
+
+    expect(items, hasLength(AchievementType.values.length));
+    expect(
+      items.every((item) => item.progress == 0 && !item.isUnlocked),
+      isTrue,
+    );
+  });
+
+  test('achievementsProvider keeps stored rows and fills the rest', () async {
+    final moment = DateTime.utc(2024, 5, 15, 12);
+    await container
+        .read(achievementRepositoryProvider)
+        .save(
+          Achievement(
+            type: AchievementType.streak7,
+            progress: 7,
+            unlockedAt: moment,
+            lastUpdatedAt: moment,
+          ),
+        );
+
+    final items = await container.read(achievementsProvider.future);
+
+    expect(items, hasLength(AchievementType.values.length));
+    final streak = items.firstWhere(
+      (item) => item.type == AchievementType.streak7,
+    );
+    expect(streak.progress, 7);
+    expect(streak.isUnlocked, isTrue);
+    expect(items.where((item) => item.progress == 0), hasLength(29));
   });
 }
 

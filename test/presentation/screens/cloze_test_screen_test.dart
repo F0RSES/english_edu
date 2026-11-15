@@ -8,7 +8,7 @@ import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../domain/usecases/fakes/fake_cloze_generator.dart';
 import '../../domain/usecases/fakes/fake_cloze_task_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
+import '../../domain/usecases/fakes/fake_translation_generator.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -54,6 +55,9 @@ Widget host({
         ),
       ),
       settingsRepositoryProvider.overrideWithValue(settingsRepository),
+      translationGeneratorProvider.overrideWithValue(
+        FakeTranslationGenerator(),
+      ),
     ],
     child: MaterialApp(home: home ?? const ClozeTestScreen()),
   );
@@ -89,8 +93,8 @@ void main() {
     await tester.tap(find.text('eats'));
     await tester.pump();
 
-    // Красная карточка + helper card.
-    expect(find.text('Неверно'), findsOneWidget);
+    // Красная карточка варианта + раскрытое слово с ботом (Phase 30b).
+    expect(find.byType(AiWordHelper), findsOneWidget);
     final context = tester.element(find.text('eats'));
     final expected = Theme.of(context).colorScheme.errorContainer;
     final material = tester.widget<Material>(
@@ -104,7 +108,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    // После раскрытия слова 'eat' есть и в helper, и в варианте: тапаем
+    // именно карточку варианта по ключу.
+    await tester.tap(find.byKey(const ValueKey('option-eat')));
     await tester.pumpAndSettle();
 
     expect(find.text('Следующее задание'), findsOneWidget);
@@ -138,26 +144,30 @@ void main() {
     expect(find.text(_task.sentence), findsOneWidget);
   });
 
-  testWidgets('robot icon appears only after a wrong answer', (tester) async {
+  testWidgets('word helper appears only after a wrong answer', (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsNothing);
+    expect(find.byType(AiWordHelper), findsNothing);
 
     await tester.tap(find.text('eats'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
+    expect(find.byType(AiWordHelper), findsOneWidget);
   });
 
-  testWidgets('shows dont know button before answer', (tester) async {
+  testWidgets('shows add-to-dictionary button before and after answer', (
+    tester,
+  ) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    expect(find.text('Не знаю слово'), findsOneWidget);
-    final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
-    expect(helper.revealWord, isFalse);
-    expect(helper.word, 'eat');
+    expect(find.text('Добавить в словарь'), findsOneWidget);
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Добавить в словарь'), findsOneWidget);
   });
 
   testWidgets('shows helper after answer', (tester) async {
@@ -170,6 +180,7 @@ void main() {
     final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
     expect(helper.revealWord, isTrue);
     expect(helper.word, 'eat');
+    expect(helper.iconSize, 16);
   });
 
   testWidgets('uses only preferredLevel words', (tester) async {
@@ -267,5 +278,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('add-to-dictionary opens bulk sheet with five words', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Добавить в словарь'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BulkDictionarySheet), findsOneWidget);
+    expect(find.text('Слова в задании'), findsOneWidget);
+    for (final option in _task.options) {
+      expect(
+        find.descendant(
+          of: find.byType(BulkDictionarySheet),
+          matching: find.text(option),
+        ),
+        findsOneWidget,
+      );
+    }
   });
 }

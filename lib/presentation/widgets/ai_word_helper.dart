@@ -19,13 +19,21 @@ class AiWordHelper extends ConsumerStatefulWidget {
   ///
   /// [revealWord] = false — до ответа в игре: вместо слова кнопка
   /// «Не знаю слово», чтобы не раскрывать ответ раньше времени.
-  const AiWordHelper({required this.word, this.revealWord = true, super.key});
+  const AiWordHelper({
+    required this.word,
+    this.revealWord = true,
+    this.iconSize = 20,
+    super.key,
+  });
 
   /// Слово, которое переводим.
   final String word;
 
   /// Показывать ли само слово до запроса перевода.
   final bool revealWord;
+
+  /// Размер иконки бота: у пропуска в cloze — компактнее (Phase 30b).
+  final double iconSize;
 
   @override
   ConsumerState<AiWordHelper> createState() => _AiWordHelperState();
@@ -97,13 +105,17 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (_loading)
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+              SizedBox(
+                width: widget.iconSize,
+                height: widget.iconSize,
+                child: const CircularProgressIndicator(strokeWidth: 2),
               )
             else
-              Icon(Icons.smart_toy, color: scheme.primary, size: 20),
+              Icon(
+                Icons.smart_toy,
+                color: scheme.primary,
+                size: widget.iconSize,
+              ),
             const SizedBox(width: 6),
             Text(
               widget.word,

@@ -6,7 +6,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -41,8 +41,9 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
   /// Идёт пауза после неверного выбора: тапы заблокированы.
   bool _waiting = false;
 
-  /// Последний неверный вариант: контекст для помощника (ADR-042).
-  String? _lastWrongOption;
+  /// Правильное слово раскрыто в предложении после неверного ответа
+  /// и живёт до следующего задания (Phase 30b).
+  bool _revealed = false;
 
   /// Меняется при ошибке: новый ключ перезапускает shake-анимацию.
   int _shakeKey = 0;
@@ -79,7 +80,7 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
       _solved = false;
       _wrongOption = null;
       _waiting = false;
-      _lastWrongOption = null;
+      _revealed = false;
       _task = null;
     });
     try {
@@ -122,14 +123,13 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
       setState(() {
         _solved = true;
         _wrongOption = null;
-        _lastWrongOption = null;
       });
       return;
     }
     unawaited(HapticFeedback.heavyImpact());
     setState(() {
       _wrongOption = option;
-      _lastWrongOption = option;
+      _revealed = true;
       _waiting = true;
       _shakeKey++;
     });
@@ -158,9 +158,10 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
             : _TaskView(
                 task: task,
                 solved: _solved,
+                revealed: _revealed,
                 wrongOption: _wrongOption,
-                lastWrongOption: _lastWrongOption,
                 shakeKey: _shakeKey,
+                lang: lang,
                 onChoose: (option) => unawaited(_choose(task, option)),
                 onNext: () => unawaited(_load()),
               ),
@@ -173,9 +174,10 @@ class _TaskView extends StatelessWidget {
   const _TaskView({
     required this.task,
     required this.solved,
+    required this.revealed,
     required this.wrongOption,
-    required this.lastWrongOption,
     required this.shakeKey,
+    required this.lang,
     required this.onChoose,
     required this.onNext,
   });
@@ -185,9 +187,10 @@ class _TaskView extends StatelessWidget {
 
   final ClozeTask task;
   final bool solved;
+  final bool revealed;
   final String? wrongOption;
-  final String? lastWrongOption;
   final int shakeKey;
+  final AppLanguage lang;
   final ValueChanged<String> onChoose;
   final VoidCallback onNext;
 
@@ -216,6 +219,9 @@ class _TaskView extends StatelessWidget {
                             decorationThickness: 2,
                             color: theme.colorScheme.primary,
                           ),
+                          revealedWord: revealed || solved
+                              ? task.correctWord
+                              : null,
                         ),
                       ),
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -227,9 +233,9 @@ class _TaskView extends StatelessWidget {
                     .animate()
                     .fadeIn(duration: 400.ms)
                     .slideY(begin: 0.2, end: 0, curve: Curves.easeOutCubic),
-                if (solved) ...[
+                if (revealed || solved) ...[
                   const SizedBox(height: 12),
-                  AiWordHelper(word: task.correctWord),
+                  AiWordHelper(word: task.correctWord, iconSize: 16),
                 ],
               ],
             ),
@@ -254,21 +260,17 @@ class _TaskView extends StatelessWidget {
                     onTap: () => onChoose(option),
                   ),
                 ),
-              if (lastWrongOption != null && !solved) ...[
-                const SizedBox(height: 4),
-                _errorCard(context),
-              ],
-              // Помощник после карточки ошибки: ошибка должна оставаться
-              // в видимой области списка, а не уезжать в cache extent.
-              if (!solved)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: AiWordHelper(
-                    word: task.correctWord,
-                    revealWord: false,
-                  ),
-                ),
             ],
+          ),
+        ),
+        // Массовое добавление слов задания доступно до и после ответа
+        // и не уезжает за viewport списка (Phase 30b).
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: FilledButton.tonalIcon(
+            onPressed: () => unawaited(_openBulkSheet(context)),
+            icon: const Icon(Icons.menu_book),
+            label: Text(S.addToDictionary(lang)),
           ),
         ),
         if (solved)
@@ -296,40 +298,29 @@ class _TaskView extends StatelessWidget {
   bool _isCorrect(String option) =>
       option.trim().toLowerCase() == task.correctWord.trim().toLowerCase();
 
-  /// Карточка ошибки с кнопкой помощника: живёт до следующего выбора (ADR-042).
-  Widget _errorCard(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Неверно',
-              style: TextStyle(color: colors.onErrorContainer),
-            ),
-          ),
-          ErrorHelperButton(
-            gameType: 'cloze_test',
-            context:
-                'Предложение: "${task.sentence}". '
-                'Пользователь выбрал: "$lastWrongOption". '
-                'Правильный ответ: "${task.correctWord}".',
-          ),
-        ],
-      ),
-    );
-  }
+  /// Лист массового добавления: 70% экрана, слова задания (Phase 30b).
+  Future<void> _openBulkSheet(BuildContext context) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (_) => BulkDictionarySheet(words: task.options),
+      );
 
   /// Разбивает предложение на спаны, подчёркивая только пропуск.
   ///
   /// Плоский текст остаётся исходным (`toPlainText`), поэтому поиск по тексту
   /// в тестах и для accessibility видит то же предложение.
-  List<InlineSpan> _sentenceSpans(String sentence, TextStyle blankStyle) {
+  List<InlineSpan> _sentenceSpans(
+    String sentence,
+    TextStyle blankStyle, {
+    String? revealedWord,
+  }) {
     final spans = <InlineSpan>[];
     var rest = sentence;
     while (true) {
@@ -341,7 +332,17 @@ class _TaskView extends StatelessWidget {
       if (index > 0) {
         spans.add(TextSpan(text: rest.substring(0, index)));
       }
-      spans.add(TextSpan(text: _blank, style: blankStyle));
+      spans.add(
+        TextSpan(
+          text: revealedWord ?? _blank,
+          style: revealedWord == null
+              ? blankStyle
+              : blankStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.none,
+                ),
+        ),
+      );
       rest = rest.substring(index + _blank.length);
       if (rest.isEmpty) {
         return spans;

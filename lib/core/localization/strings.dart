@@ -223,6 +223,9 @@ final class S {
   static String changeNickname(AppLanguage l) =>
       _t('profile.changeNickname', l);
 
+  /// Заголовок листа массового добавления слов (Phase 30b).
+  static String wordsInTask(AppLanguage l) => _t('bulk.wordsInTask', l);
+
   /// Название достижения по ключу.
   static String achievementTitle(AchievementType type, AppLanguage l) =>
       _t('achievement.${type.key}', l);
@@ -866,6 +869,7 @@ final class S {
       'ru': 'Сменить никнейм',
       'en': 'Change nickname',
     },
+    'bulk.wordsInTask': {'ru': 'Слова в задании', 'en': 'Words in the task'},
     // Достижения (ключи AchievementType.key).
     'achievement.streak_7': {'ru': '7 дней подряд', 'en': '7-day streak'},
     'achievement.streak_30': {'ru': '30 дней подряд', 'en': '30-day streak'},

@@ -83,19 +83,20 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
 
   Future<void> _showWin(MemoryGame game) async {
     unawaited(HapticFeedback.mediumImpact());
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final restart = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Победа!'),
-        content: Text('Все пары найдены за ${game.moves} ходов.'),
+        title: Text(S.memoryVictory(lang)),
+        content: Text(S.memoryVictoryBody(game.moves, lang)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Выйти'),
+            child: Text(S.commonExit(lang)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Заново'),
+            child: Text(S.memoryRestart(lang)),
           ),
         ],
       ),
@@ -122,7 +123,7 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
           Center(
             child: Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Text('Ходы: ${game?.moves ?? 0}'),
+              child: Text(S.memoryMoves(game?.moves ?? 0, lang)),
             ),
           ),
         ],
@@ -130,7 +131,7 @@ class _WordMatchScreenState extends ConsumerState<WordMatchScreen> {
       body: game == null
           ? const Center(child: CircularProgressIndicator())
           : game.cards.isEmpty
-          ? const Center(child: Text('Добавьте слова в словарь'))
+          ? Center(child: Text(S.commonEmptyDictionary(lang)))
           : Padding(
               padding: const EdgeInsets.all(16),
               child: GridView.builder(

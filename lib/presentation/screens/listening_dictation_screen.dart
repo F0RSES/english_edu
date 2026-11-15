@@ -126,8 +126,10 @@ class _ListeningDictationScreenState
     } on Object catch (error, stack) {
       ref.read(loggerProvider).warn('Dictation TTS failed', error, stack);
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Озвучка недоступна')));
+        final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.dictationTtsUnavailable(lang))),
+        );
       }
     }
   }
@@ -234,25 +236,26 @@ class _ListeningDictationScreenState
   }
 
   Future<void> _showSummary() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Сессия завершена'),
-        content: Text('Верно: $_correctCount из ${_queue.length}'),
+        title: Text(S.sessionDone(lang)),
+        content: Text(S.sessionCorrect(_correctCount, _queue.length, lang)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.go('/');
             },
-            child: const Text('Готово'),
+            child: Text(S.sessionFinish(lang)),
           ),
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               unawaited(_load());
             },
-            child: const Text('Ещё раз'),
+            child: Text(S.commonAgain(lang)),
           ),
         ],
       ),
@@ -281,7 +284,7 @@ class _ListeningDictationScreenState
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : word == null
-            ? _ErrorState(onRetry: _load)
+            ? _ErrorState(lang: lang, onRetry: _load)
             : SingleChildScrollView(
                 child: _DictationView(
                   word: word,
@@ -290,6 +293,7 @@ class _ListeningDictationScreenState
                   hasError: _hasError,
                   shakeKey: _shakeKey,
                   pulseKey: _pulseKey,
+                  lang: lang,
                   onRepeat: _repeat,
                   onCheck: () => unawaited(_check()),
                   onNext: _nextWord,
@@ -315,6 +319,7 @@ class _DictationView extends StatelessWidget {
     required this.hasError,
     required this.shakeKey,
     required this.pulseKey,
+    required this.lang,
     required this.onRepeat,
     required this.onCheck,
     required this.onNext,
@@ -327,6 +332,7 @@ class _DictationView extends StatelessWidget {
   final bool hasError;
   final int shakeKey;
   final int pulseKey;
+  final AppLanguage lang;
   final VoidCallback onRepeat;
   final VoidCallback onCheck;
   final VoidCallback onNext;
@@ -356,7 +362,7 @@ class _DictationView extends StatelessWidget {
                   .scale(begin: const Offset(0.85, 0.85)),
               const SizedBox(height: 8),
               Text(
-                'Нажми, чтобы услышать ещё раз',
+                S.dictationRepeatHint(lang),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -388,7 +394,7 @@ class _DictationView extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          child: Text(revealed ? 'Следующее слово' : 'Проверить'),
+          child: Text(revealed ? S.dictationNextWord(lang) : S.check(lang)),
         ),
       ],
     );
@@ -420,7 +426,7 @@ class _DictationView extends StatelessWidget {
       decoration: InputDecoration(
         filled: true,
         fillColor: colors.surfaceContainerHighest,
-        hintText: 'Введите слово...',
+        hintText: S.dictationHint(lang),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
@@ -493,8 +499,9 @@ class _RevealedAnswer extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.lang, required this.onRetry});
 
+  final AppLanguage lang;
   final VoidCallback onRetry;
 
   @override
@@ -502,9 +509,9 @@ class _ErrorState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось загрузить'),
+        Text(S.commonLoadFailed(lang)),
         const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
       ],
     ),
   );

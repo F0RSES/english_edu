@@ -136,6 +136,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     if (_finishing) {
       return;
     }
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     _finishing = true;
     _ticker?.cancel();
     _watch.stop();
@@ -151,9 +152,8 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     } on Object {
       if (mounted) {
         setState(() => _finishing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Не удалось сохранить результат')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.typingSaveFailed(lang))));
       }
       return;
     }
@@ -164,24 +164,24 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     final again = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Заезд завершён'),
+        title: Text(S.typingRunDone(lang)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('WPM: ${record.wpm}'),
-            Text('Точность: ${record.accuracyPercent}%'),
-            Text('Очки: ${record.score}'),
+            Text(S.typingWpm(record.wpm, lang)),
+            Text(S.typingAccuracy(record.accuracyPercent, lang)),
+            Text(S.typingScore(record.score, lang)),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Выйти'),
+            child: Text(S.commonExit(lang)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Ещё раз'),
+            child: Text(S.commonAgain(lang)),
           ),
         ],
       ),
@@ -208,7 +208,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
       body: session == null
           ? const Center(child: CircularProgressIndicator())
           : current == null
-          ? const Center(child: Text('Добавьте слова в словарь'))
+          ? Center(child: Text(S.commonEmptyDictionary(lang)))
           : Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -250,7 +250,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                       ),
                   if (_lastWrongWord != null) ...[
                     const SizedBox(height: 16),
-                    _errorCard(context, _lastWrongWord!, _lastWrongInput),
+                    _errorCard(context, _lastWrongWord!, _lastWrongInput, lang),
                   ],
                 ],
               ),
@@ -259,7 +259,12 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
   }
 
   /// Карточка ошибки с кнопкой помощника (ADR-042).
-  Widget _errorCard(BuildContext context, Word word, String input) {
+  Widget _errorCard(
+    BuildContext context,
+    Word word,
+    String input,
+    AppLanguage lang,
+  ) {
     final colors = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -271,7 +276,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
         children: [
           Expanded(
             child: Text(
-              'Неверно',
+              S.incorrect(lang),
               style: TextStyle(color: colors.onErrorContainer),
             ),
           ),

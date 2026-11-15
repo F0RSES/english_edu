@@ -107,12 +107,23 @@ void main() {
     expect(find.text('Мемори'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
-      host(settings: const UserSettings(language: AppLanguage.en)),
+      host(
+        wordCount: 1,
+        settings: const UserSettings(language: AppLanguage.en),
+      ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Memory'), findsOneWidget);
+    expect(find.text('Moves: 0'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('memory-card-0')));
+    await tester.tap(find.byKey(const ValueKey('memory-card-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Victory!'), findsOneWidget);
+    expect(find.text('Restart'), findsOneWidget);
   });
 }

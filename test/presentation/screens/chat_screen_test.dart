@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/domain/entities/chat_message.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:english_edu/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +31,14 @@ http.Response okResponse() => http.Response(
 Widget host({
   required FakeChatRepository chat,
   required http.Client httpClient,
+  UserSettings? settings,
 }) => ProviderScope(
   overrides: [
     chatRepositoryProvider.overrideWithValue(chat),
     aiClientProvider.overrideWithValue(AiClient(httpClient)),
-    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
     clockProvider.overrideWithValue(() => _now),
   ],
   child: const MaterialApp(home: ChatScreen()),
@@ -146,5 +151,33 @@ void main() {
     expect(chat.messages, isEmpty);
     expect(find.text('Старое сообщение'), findsNothing);
     expect(find.text(_greeting), findsOneWidget);
+  });
+
+  testWidgets('switches to EN labels when lang=en', (tester) async {
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) async => okResponse()),
+        settings: const UserSettings(language: AppLanguage.en),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Assistant'), findsOneWidget);
+    expect(
+      find.text('Hi! I can help you with English. Ask me anything.'),
+      findsOneWidget,
+    );
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.decoration?.hintText, 'Ask about English...');
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Clear history'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clear history?'), findsOneWidget);
+    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text('Clear'), findsOneWidget);
   });
 }

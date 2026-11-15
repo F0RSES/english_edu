@@ -307,12 +307,17 @@ void main() {
     expect(find.text('Собери слово'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
       host(settings: const UserSettings(language: AppLanguage.en)),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Word Scramble'), findsOneWidget);
+    expect(find.text('Clear'), findsOneWidget);
+    expect(
+      find.text('Translate and assemble the word letter by letter'),
+      findsOneWidget,
+    );
   });
 }

@@ -72,12 +72,14 @@ void main() {
     expect(find.text('Разговорник'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
       host(settings: const UserSettings(language: AppLanguage.en)),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Phrasebook'), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'All'), findsOneWidget);
+    expect(find.text('Search'), findsOneWidget);
   });
 }

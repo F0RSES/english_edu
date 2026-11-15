@@ -222,7 +222,7 @@ void main() {
     expect(find.text('Охота на ошибки'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
       host(
         FakeErrorTaskGenerator(task()),
@@ -232,5 +232,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Error Hunter'), findsOneWidget);
+    expect(find.text('Find the error and tap the word'), findsOneWidget);
+
+    await tester.tap(find.text('has'));
+    await tester.pumpAndSettle();
+    expect(find.text('What is the correct form?'), findsOneWidget);
+
+    await tester.tap(find.text('have').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Next task'), findsOneWidget);
   });
 }

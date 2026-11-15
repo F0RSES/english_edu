@@ -33,6 +33,16 @@ void main() {
       (l) => S.sessionCorrect(3, 5, l),
       (l) => S.sessionXp(40, l),
       (l) => S.removeConfirmBody('apple', l),
+      (l) => S.scrambleCorrectCount(3, l),
+      (l) => S.typingAccuracy(95, l),
+      (l) => S.typingScore(120, l),
+      (l) => S.typingWpm(40, l),
+      (l) => S.memoryVictoryBody(12, l),
+      (l) => S.memoryMoves(7, l),
+      (l) => S.achievementsUnlocked(3, l),
+      (l) => S.achievementsInProgress(27, l),
+      (l) => S.readingAddedWords(2, l),
+      (l) => S.readingAddWords(5, l),
     ];
 
     test('parameterized strings leave no placeholders in either language', () {
@@ -322,6 +332,96 @@ void main() {
       expect(S.gameTitle('dictation', AppLanguage.ru), 'Аудио-диктант');
       expect(S.gameTitle('typing', AppLanguage.en), 'Typing Speed');
       expect(S.gameTitle('cloze', AppLanguage.en), 'Gap fill');
+    });
+
+    test('every Phase 31 key has ru and en translations (BL-94)', () {
+      final entries = <String, String Function(AppLanguage)>{
+        'common.nextTask': S.commonNextTask,
+        'common.loadFailed': S.commonLoadFailed,
+        'common.emptyDictionary': S.commonEmptyDictionary,
+        'common.again': S.commonAgain,
+        'common.exit': S.commonExit,
+        'game.errorHunter.instruction': S.errorHunterInstruction,
+        'game.errorHunter.howCorrect': S.errorHunterHowCorrect,
+        'game.errorHunter.generateFailed': S.errorHunterGenerateFailed,
+        'game.scramble.instruction': S.scrambleInstruction,
+        'game.scramble.clear': S.scrambleClear,
+        'game.scramble.correctCount': (l) => S.scrambleCorrectCount(3, l),
+        'game.scramble.preparing': S.scramblePreparing,
+        'game.dictation.ttsUnavailable': S.dictationTtsUnavailable,
+        'game.dictation.repeatHint': S.dictationRepeatHint,
+        'game.dictation.nextWord': S.dictationNextWord,
+        'game.dictation.hint': S.dictationHint,
+        'game.typing.saveFailed': S.typingSaveFailed,
+        'game.typing.runDone': S.typingRunDone,
+        'game.typing.accuracy': (l) => S.typingAccuracy(95, l),
+        'game.typing.score': (l) => S.typingScore(120, l),
+        'game.typing.wpm': (l) => S.typingWpm(40, l),
+        'game.memory.victory': S.memoryVictory,
+        'game.memory.victoryBody': (l) => S.memoryVictoryBody(12, l),
+        'game.memory.moves': (l) => S.memoryMoves(7, l),
+        'game.memory.restart': S.memoryRestart,
+        'game.phrasebook.notLoaded': S.phrasebookNotLoaded,
+        'game.phrasebook.loadFailed': S.phrasebookLoadFailed,
+        'game.phrasebook.search': S.phrasebookSearch,
+        'game.phrasebook.all': S.phrasebookAll,
+        'game.phrasebook.nothingFound': S.phrasebookNothingFound,
+        'game.reading.notLoaded': S.readingNotLoaded,
+        'game.reading.loadFailed': S.readingLoadFailed,
+        'game.reading.showTranslation': S.readingShowTranslation,
+        'game.reading.hideTranslation': S.readingHideTranslation,
+        'game.reading.unknownWords': S.readingUnknownWords,
+        'game.reading.addFailed': S.readingAddFailed,
+        'game.reading.parseFailed': S.readingParseFailed,
+        'game.reading.allInDictionary': S.readingAllInDictionary,
+        'game.reading.addedWords': (l) => S.readingAddedWords(2, l),
+        'game.reading.addWords': (l) => S.readingAddWords(5, l),
+        'achievements.title': S.achievementsTitle,
+        'achievements.loadFailed': S.achievementsLoadFailed,
+        'achievements.unlocked': (l) => S.achievementsUnlocked(3, l),
+        'achievements.inProgress': (l) => S.achievementsInProgress(27, l),
+        'achievements.emptyUnlocked': S.achievementsEmptyUnlocked,
+        'achievements.allUnlocked': S.achievementsAllUnlocked,
+        'chat.historyLoadFailed': S.chatHistoryLoadFailed,
+        'chat.replyFailed': S.chatReplyFailed,
+        'chat.clearTitle': S.chatClearTitle,
+        'chat.clearBody': S.chatClearBody,
+        'chat.clear': S.chatClear,
+        'chat.clearHistory': S.chatClearHistory,
+        'chat.hint': S.chatHint,
+        'chat.greeting': S.chatGreeting,
+        'onboarding.slide1Title': S.onboardingSlide1Title,
+        'onboarding.slide1Body': S.onboardingSlide1Body,
+        'onboarding.slide2Title': S.onboardingSlide2Title,
+        'onboarding.slide2Body': S.onboardingSlide2Body,
+        'onboarding.slide3Title': S.onboardingSlide3Title,
+        'onboarding.slide3Body': S.onboardingSlide3Body,
+        'onboarding.howItWorks': S.onboardingHowItWorks,
+        'onboarding.skip': S.onboardingSkip,
+        'onboarding.start': S.onboardingStart,
+        'onboarding.levelTitle': S.onboardingLevelTitle,
+        'onboarding.levelBody': S.onboardingLevelBody,
+      };
+      for (final entry in entries.entries) {
+        for (final lang in AppLanguage.values) {
+          final value = entry.value(lang);
+          expect(value, isNotEmpty, reason: '${entry.key} $lang');
+          // Без перевода fallback вернул бы сам ключ.
+          expect(value, isNot(equals(entry.key)), reason: '${entry.key} $lang');
+        }
+      }
+    });
+
+    test('readingWordUnit declines Russian word forms', () {
+      expect(S.readingWordUnit(1, AppLanguage.ru), 'слово');
+      expect(S.readingWordUnit(3, AppLanguage.ru), 'слова');
+      expect(S.readingWordUnit(5, AppLanguage.ru), 'слов');
+    });
+
+    test('readingWordUnit uses word/words in English', () {
+      expect(S.readingWordUnit(1, AppLanguage.en), 'word');
+      expect(S.readingWordUnit(2, AppLanguage.en), 'words');
+      expect(S.readingWordUnit(5, AppLanguage.en), 'words');
     });
   });
 }

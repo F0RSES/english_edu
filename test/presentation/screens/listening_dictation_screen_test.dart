@@ -281,10 +281,13 @@ void main() {
     expect(find.text('Аудио-диктант'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(Harness(lang: AppLanguage.en).app());
     await tester.pumpAndSettle();
 
     expect(find.text('Dictation'), findsOneWidget);
+    expect(find.text('Check'), findsOneWidget);
+    expect(find.text('Enter the word...'), findsOneWidget);
+    expect(find.text('Tap to hear it again'), findsOneWidget);
   });
 }

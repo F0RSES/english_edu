@@ -1,6 +1,8 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/story.dart';
+import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/reading_screen.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 const _story = Story(
@@ -23,10 +26,16 @@ FakeWordRepository wordsWithKnown() => FakeWordRepository([
   const Word(id: WordId(2), term: 'seven', translation: 'семь'),
 ]);
 
-Widget host(FakeWordRepository words) => ProviderScope(
-  overrides: [wordRepositoryProvider.overrideWithValue(words)],
-  child: const MaterialApp(home: ReadingScreen(story: _story)),
-);
+Widget host(FakeWordRepository words, {UserSettings? settings}) =>
+    ProviderScope(
+      overrides: [
+        wordRepositoryProvider.overrideWithValue(words),
+        settingsRepositoryProvider.overrideWithValue(
+          FakeSettingsRepository(settings),
+        ),
+      ],
+      child: const MaterialApp(home: ReadingScreen(story: _story)),
+    );
 
 void main() {
   testWidgets('renders title and text', (tester) async {
@@ -61,5 +70,27 @@ void main() {
 
     // wake и seven известны; drink и coffee — нет.
     expect(find.text('Добавить 2 слова'), findsOneWidget);
+  });
+
+  testWidgets('switches to EN labels when lang=en', (tester) async {
+    await tester.pumpWidget(
+      host(
+        wordsWithKnown(),
+        settings: const UserSettings(language: AppLanguage.en),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Show translation'), findsOneWidget);
+    expect(find.text('Unknown words'), findsOneWidget);
+
+    await tester.tap(find.text('Show translation'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hide translation'), findsOneWidget);
+
+    await tester.tap(find.text('Unknown words'));
+    await tester.pumpAndSettle();
+    expect(find.text('Add 2 words'), findsOneWidget);
+    expect(find.text('Close'), findsOneWidget);
   });
 }

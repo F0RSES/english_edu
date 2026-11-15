@@ -156,7 +156,7 @@ void main() {
     expect(find.text('Скорость печати'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
       host(
         _FakeRecords(),
@@ -166,6 +166,14 @@ void main() {
     await settleFrames(tester);
 
     expect(find.text('Typing Speed'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'apple');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(find.text('Run complete'), findsOneWidget);
+    expect(find.text('Again'), findsOneWidget);
+    expect(find.text('Exit'), findsOneWidget);
   });
 
   testWidgets('no SnackBar after correct answer', (tester) async {

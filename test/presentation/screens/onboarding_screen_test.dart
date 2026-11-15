@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:flutter/material.dart';
@@ -95,5 +96,28 @@ void main() {
 
     expect((await settings.get()).hasSeenOnboarding, isTrue);
     expect(find.text('home'), findsOneWidget);
+  });
+
+  testWidgets('switches to EN labels when lang=en', (tester) async {
+    await tester.pumpWidget(
+      host(
+        FakeSettingsRepository(const UserSettings(language: AppLanguage.en)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('How it works'), findsOneWidget);
+    expect(find.text('Learn words easily'), findsOneWidget);
+    expect(find.text('Next'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
+
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('What is your level?'), findsOneWidget);
+    expect(find.text('Start'), findsOneWidget);
+    expect(find.text('Next'), findsNothing);
   });
 }

@@ -212,13 +212,18 @@ void main() {
     expect(find.text('Заполни пропуск'), findsOneWidget);
   });
 
-  testWidgets('app bar title switches to English', (tester) async {
+  testWidgets('switches to EN labels when lang=en', (tester) async {
     await tester.pumpWidget(
       host(settings: const UserSettings(language: AppLanguage.en)),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Gap fill'), findsOneWidget);
+    expect(find.text('Add to dictionary'), findsOneWidget);
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+    expect(find.text('Next task'), findsOneWidget);
   });
 
   testWidgets('no SnackBar after correct answer', (tester) async {

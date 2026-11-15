@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
-import 'package:english_edu/core/text/plural.dart';
 import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
@@ -62,7 +61,7 @@ class _ReadingListScreenState extends ConsumerState<ReadingListScreen> {
         title: Text(S.gameTitle('reading', lang)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: S.back(lang),
           onPressed: () => context.pop(),
         ),
       ),
@@ -86,11 +85,11 @@ class _ReadingListScreenState extends ConsumerState<ReadingListScreen> {
           Expanded(
             child: stories.when(
               data: (items) => items.isEmpty
-                  ? const Center(child: Text('Рассказы не загружены'))
-                  : _StoryList(stories: items),
+                  ? Center(child: Text(S.readingNotLoaded(lang)))
+                  : _StoryList(stories: items, lang: lang),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) =>
-                  const Center(child: Text('Не удалось загрузить рассказы')),
+                  Center(child: Text(S.readingLoadFailed(lang))),
             ),
           ),
         ],
@@ -100,9 +99,10 @@ class _ReadingListScreenState extends ConsumerState<ReadingListScreen> {
 }
 
 class _StoryList extends StatelessWidget {
-  const _StoryList({required this.stories});
+  const _StoryList({required this.stories, required this.lang});
 
   final List<Story> stories;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) => ListView.builder(
@@ -111,7 +111,7 @@ class _StoryList extends StatelessWidget {
     itemBuilder: (context, index) {
       final story = stories[index];
       final count = story.wordCount;
-      final unit = pluralize(count, one: 'слово', few: 'слова', many: 'слов');
+      final unit = S.readingWordUnit(count, lang);
       return Card(
         margin: const EdgeInsets.only(bottom: 8),
         child: ListTile(

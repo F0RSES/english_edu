@@ -1,7 +1,8 @@
 import 'package:english_edu/core/di/providers.dart';
-import 'package:english_edu/core/text/plural.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,12 +26,13 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final story = widget.story;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
       appBar: AppBar(
         title: Text(story.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Назад',
+          tooltip: S.back(lang),
           onPressed: () => context.pop(),
         ),
       ),
@@ -57,7 +59,9 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
               onPressed: () =>
                   setState(() => _showTranslation = !_showTranslation),
               child: Text(
-                _showTranslation ? 'Скрыть перевод' : 'Показать перевод',
+                _showTranslation
+                    ? S.readingHideTranslation(lang)
+                    : S.readingShowTranslation(lang),
               ),
             ),
             if (_showTranslation) ...[
@@ -79,9 +83,10 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
             OutlinedButton(
               onPressed: () => showDialog<void>(
                 context: context,
-                builder: (context) => _UnknownWordsDialog(story: story),
+                builder: (context) =>
+                    _UnknownWordsDialog(story: story, lang: lang),
               ),
-              child: const Text('Незнакомые слова'),
+              child: Text(S.readingUnknownWords(lang)),
             ),
           ],
         ),
@@ -92,9 +97,10 @@ class _ReadingScreenState extends ConsumerState<ReadingScreen> {
 
 /// Диалог незнакомых слов: список из текста рассказа и добавление в словарь.
 class _UnknownWordsDialog extends ConsumerStatefulWidget {
-  const _UnknownWordsDialog({required this.story});
+  const _UnknownWordsDialog({required this.story, required this.lang});
 
   final Story story;
+  final AppLanguage lang;
 
   @override
   ConsumerState<_UnknownWordsDialog> createState() =>
@@ -129,21 +135,15 @@ class _UnknownWordsDialogState extends ConsumerState<_UnknownWordsDialog> {
       }
       ref.invalidate(dictionaryEntriesProvider);
       Navigator.of(context).pop();
-      final unit = pluralize(
-        words.length,
-        one: 'слово',
-        few: 'слова',
-        many: 'слов',
-      );
       messenger.showSnackBar(
-        SnackBar(content: Text('Добавлено ${words.length} $unit')),
+        SnackBar(content: Text(S.readingAddedWords(words.length, widget.lang))),
       );
     } on Object catch (error, stack) {
       ref.read(loggerProvider).error('Add unknown words failed', error, stack);
       if (mounted) {
         setState(() => _adding = false);
         messenger.showSnackBar(
-          const SnackBar(content: Text('Не удалось добавить слова')),
+          SnackBar(content: Text(S.readingAddFailed(widget.lang))),
         );
       }
     }
@@ -151,7 +151,7 @@ class _UnknownWordsDialogState extends ConsumerState<_UnknownWordsDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Незнакомые слова'),
+    title: Text(S.readingUnknownWords(widget.lang)),
     content: SizedBox(
       width: double.maxFinite,
       child: FutureBuilder<List<String>>(
@@ -164,11 +164,11 @@ class _UnknownWordsDialogState extends ConsumerState<_UnknownWordsDialog> {
             );
           }
           if (snapshot.hasError) {
-            return const Text('Не удалось разобрать текст');
+            return Text(S.readingParseFailed(widget.lang));
           }
           final words = snapshot.data ?? const <String>[];
           if (words.isEmpty) {
-            return const Text('Все слова в тексте уже в словаре.');
+            return Text(S.readingAllInDictionary(widget.lang));
           }
           return ListView(
             shrinkWrap: true,
@@ -183,7 +183,7 @@ class _UnknownWordsDialogState extends ConsumerState<_UnknownWordsDialog> {
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Закрыть'),
+        child: Text(S.close(widget.lang)),
       ),
       FutureBuilder<List<String>>(
         future: _unknown,
@@ -192,15 +192,9 @@ class _UnknownWordsDialogState extends ConsumerState<_UnknownWordsDialog> {
           if (words.isEmpty) {
             return const SizedBox.shrink();
           }
-          final unit = pluralize(
-            words.length,
-            one: 'слово',
-            few: 'слова',
-            many: 'слов',
-          );
           return FilledButton(
             onPressed: _adding ? null : () => _add(words),
-            child: Text('Добавить ${words.length} $unit'),
+            child: Text(S.readingAddWords(words.length, widget.lang)),
           );
         },
       ),

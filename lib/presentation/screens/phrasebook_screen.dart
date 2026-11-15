@@ -12,37 +12,36 @@ class PhrasebookScreen extends ConsumerWidget {
   const PhrasebookScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        S.gameTitle(
-          'phrasebook',
-          ref.watch(languageProvider).value ?? AppLanguage.ru,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(S.gameTitle('phrasebook', lang)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: S.back(lang),
+          onPressed: () => context.pop(),
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        tooltip: 'Назад',
-        onPressed: () => context.pop(),
-      ),
-    ),
-    body: ref
-        .watch(phrasesProvider)
-        .when(
-          data: (phrases) => phrases.isEmpty
-              ? const Center(child: Text('Фразы не загружены'))
-              : _PhrasebookBody(phrases: phrases),
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) =>
-              const Center(child: Text('Не удалось загрузить фразы')),
-        ),
-  );
+      body: ref
+          .watch(phrasesProvider)
+          .when(
+            data: (phrases) => phrases.isEmpty
+                ? Center(child: Text(S.phrasebookNotLoaded(lang)))
+                : _PhrasebookBody(phrases: phrases, lang: lang),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) =>
+                Center(child: Text(S.phrasebookLoadFailed(lang))),
+          ),
+    );
+  }
 }
 
 class _PhrasebookBody extends StatefulWidget {
-  const _PhrasebookBody({required this.phrases});
+  const _PhrasebookBody({required this.phrases, required this.lang});
 
   final List<Phrase> phrases;
+  final AppLanguage lang;
 
   @override
   State<_PhrasebookBody> createState() => _PhrasebookBodyState();
@@ -94,9 +93,9 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: TextField(
               controller: _search,
-              decoration: const InputDecoration(
-                labelText: 'Поиск',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                labelText: S.phrasebookSearch(widget.lang),
+                prefixIcon: const Icon(Icons.search),
               ),
               onChanged: (value) => setState(() => _query = value),
             ),
@@ -118,7 +117,9 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text(level?.toUpperCase() ?? 'Все'),
+                      label: Text(
+                        level?.toUpperCase() ?? S.phrasebookAll(widget.lang),
+                      ),
                       selected: _selectedLevel == level,
                       onSelected: (_) => setState(() => _selectedLevel = level),
                     ),
@@ -130,20 +131,21 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
           TabBar(
             isScrollable: true,
             tabs: [
-              const Tab(text: 'Все'),
+              Tab(text: S.phrasebookAll(widget.lang)),
               for (final category in categories) Tab(text: category),
             ],
           ),
           Expanded(
             child: TabBarView(
               children: [
-                _PhraseList(items: _visible(widget.phrases)),
+                _PhraseList(items: _visible(widget.phrases), lang: widget.lang),
                 for (final category in categories)
                   _PhraseList(
                     items: _visible([
                       for (final item in widget.phrases)
                         if (item.category == category) item,
                     ]),
+                    lang: widget.lang,
                   ),
               ],
             ),
@@ -155,14 +157,15 @@ class _PhrasebookBodyState extends State<_PhrasebookBody> {
 }
 
 class _PhraseList extends StatelessWidget {
-  const _PhraseList({required this.items});
+  const _PhraseList({required this.items, required this.lang});
 
   final List<Phrase> items;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(child: Text('Ничего не найдено'));
+      return Center(child: Text(S.phrasebookNothingFound(lang)));
     }
     final theme = Theme.of(context);
     return ListView.builder(

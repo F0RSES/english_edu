@@ -5,7 +5,7 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v18: никнейм и аватар в настройках (Phase 28c, ADR-044).
+/// Schema v19: сброс устаревшего кэша cloze_tasks (Phase 32).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
@@ -14,7 +14,8 @@ part 'app_database.g.dart';
 /// v10 — `user_categories`, v11 — `achievements`, v12 — `typing_records`,
 /// v13 — `phrases`, v14 — `stories`, v15 — `chat_messages`,
 /// v16 — `cloze_tasks.options`, v17 — `user_settings.language`,
-/// v18 — `user_settings.nickname` и `user_settings.avatar_path`.
+/// v18 — `user_settings.nickname` и `user_settings.avatar_path`,
+/// v19 — очистка `cloze_tasks` (Phase 32: обновлён AI-промпт).
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -45,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -125,6 +126,13 @@ class AppDatabase extends _$AppDatabase {
         if (!columns.contains('avatar_path')) {
           await m.addColumn(userSettingsTable, userSettingsTable.avatarPath);
         }
+      }
+      if (from < 19) {
+        // AI-промпт обновлён: старые задания невалидны (все 5 вариантов
+        // могли подходить по смыслу). Кэш расходный — перегенерируется
+        // по запросу. delete — метод самой БД: у Migrator нет построчного
+        // удаления, только deleteTable (DROP).
+        await delete(clozeTasks).go();
       }
       if (from < 12) {
         await m.createTable(typingRecords);

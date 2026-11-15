@@ -410,10 +410,13 @@ void main() {
     final v16 = AppDatabase.forTesting(NativeDatabase(file));
     addTearDown(v16.close);
 
-    final row = (await v16.select(v16.clozeTasks).get()).single;
-    // Колонка появилась миграцией; старая строка без вариантов (null).
-    expect(row.options, isNull);
-    expect(row.sentence, 'I ___ apples.');
+    // Колонка появилась миграцией v15→v16.
+    final info = await v16
+        .customSelect("PRAGMA table_info('cloze_tasks')")
+        .get();
+    expect(info.any((row) => row.read<String>('name') == 'options'), isTrue);
+    // Дочистка v19: устаревший кэш не переживает апгрейд (Phase 32).
+    expect(await v16.select(v16.clozeTasks).get(), isEmpty);
   });
 
   test('migration v16 to v17 adds the language column', () async {
@@ -476,6 +479,47 @@ void main() {
     expect(row.nickname, isNull);
     expect(row.avatarPath, isNull);
     expect(row.language, 'ru');
+  });
+
+  test('migration v18 to v19 clears the cloze cache', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v19',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v18 = текущая схема со старым заданием в кэше.
+    final v18 = AppDatabase.forTesting(NativeDatabase(file));
+    await v18
+        .into(v18.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'apple',
+            translation: 'яблоко',
+          ),
+        );
+    await v18
+        .into(v18.clozeTasks)
+        .insert(
+          ClozeTasksCompanion.insert(
+            wordId: const Value(1),
+            sentence: 'I have ___ apples.',
+            answer: 'five',
+            options: const Value('["five","two","three","four","six"]'),
+            createdAtUtc: _nowMs,
+          ),
+        );
+    await v18.customStatement('PRAGMA user_version = 18');
+    await v18.close();
+
+    final v19 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v19.close);
+
+    // Кэш очищен: новые задания придут от обновлённого AI-промпта.
+    expect(await v19.select(v19.clozeTasks).get(), isEmpty);
+    // Словарь очистка не затрагивает.
+    expect(await v19.select(v19.words).get(), hasLength(1));
   });
 
   test('creates all sixteen tables on open', () async {

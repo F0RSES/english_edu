@@ -12,7 +12,6 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/word_scramble_screen.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,6 +24,7 @@ import '../../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_srs_calculator.dart';
 import '../../domain/usecases/fakes/fake_stats_repository.dart';
+import '../../domain/usecases/fakes/fake_translation_generator.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 Word word(int id, String term, String translation) =>
@@ -57,6 +57,9 @@ final class _Harness {
     overrides: [
       wordRepositoryProvider.overrideWithValue(wordRepo),
       settingsRepositoryProvider.overrideWithValue(settingsRepo),
+      translationGeneratorProvider.overrideWithValue(
+        FakeTranslationGenerator(),
+      ),
       generateScramblePuzzlesProvider.overrideWithValue(
         GenerateScramblePuzzles(
           words: wordRepo,
@@ -182,7 +185,8 @@ void main() {
     await tapLetters(tester, 'elppa');
     await tester.pump();
 
-    expect(find.text('Неверно'), findsOneWidget);
+    // Карточка «Неверно» удалена: ошибка видна по тряске (Phase 30c).
+    expect(find.text('Неверно'), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();
@@ -265,24 +269,21 @@ void main() {
     expect(log.grade, ReviewGrade.again);
   });
 
-  testWidgets('robot icon appears after the first wrong attempt', (
-    tester,
-  ) async {
+  testWidgets('add-to-dictionary button opens word sheet', (tester) async {
     await tester.pumpWidget(host(words: [word(1, 'apple', 'яблоко')]));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsNothing);
+    // Кнопка видна всегда, под облаком букв (Phase 30c).
+    expect(find.text('Добавить в словарь'), findsOneWidget);
 
-    await tapLetters(tester, 'elppa');
-    await tester.pump();
-
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
-
-    // Карточка переживает сброс ответа через 800 мс (ADR-042).
-    await tester.pump(const Duration(milliseconds: 900));
+    await tester.tap(find.text('Добавить в словарь'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
+    // Модалка перевода загаданного слова с add/remove.
+    expect(find.text('apple'), findsOneWidget);
+    expect(find.text('учреждение'), findsOneWidget);
+    // Слово уже в словаре хоста: кнопка показывает корзину, а не плюс.
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
   });
 
   testWidgets('long word answer field wraps without overflow', (tester) async {

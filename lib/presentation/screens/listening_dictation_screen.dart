@@ -6,7 +6,7 @@ import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -282,22 +282,24 @@ class _ListeningDictationScreenState
             ? const Center(child: CircularProgressIndicator())
             : word == null
             ? _ErrorState(onRetry: _load)
-            : _DictationView(
-                word: word,
-                controller: _controller,
-                revealed: _revealed,
-                hasError: _hasError,
-                shakeKey: _shakeKey,
-                pulseKey: _pulseKey,
-                onRepeat: _repeat,
-                onCheck: () => unawaited(_check()),
-                onNext: _nextWord,
-                onChanged: () {
-                  // Пользователь правит ввод — красная рамка больше не нужна.
-                  if (_hasError) {
-                    setState(() => _hasError = false);
-                  }
-                },
+            : SingleChildScrollView(
+                child: _DictationView(
+                  word: word,
+                  controller: _controller,
+                  revealed: _revealed,
+                  hasError: _hasError,
+                  shakeKey: _shakeKey,
+                  pulseKey: _pulseKey,
+                  onRepeat: _repeat,
+                  onCheck: () => unawaited(_check()),
+                  onNext: _nextWord,
+                  onChanged: () {
+                    // Пользователь правит ввод — красная рамка больше не нужна.
+                    if (_hasError) {
+                      setState(() => _hasError = false);
+                    }
+                  },
+                ),
               ),
       ),
     );
@@ -364,11 +366,14 @@ class _DictationView extends StatelessWidget {
         ),
         const SizedBox(height: 40),
         _field(context),
+        const SizedBox(height: 16),
+        // Добавление текущего слова в словарь (Phase 30c).
+        AddToDictionaryButton(word: word.term),
         if (revealed) ...[
           const SizedBox(height: 16),
           _RevealedAnswer(word: word),
           const SizedBox(height: 12),
-          _errorCard(context),
+          AiWordHelper(word: word.term, iconSize: 16),
         ],
         const SizedBox(height: 16),
         FilledButton(
@@ -386,34 +391,6 @@ class _DictationView extends StatelessWidget {
           child: Text(revealed ? 'Следующее слово' : 'Проверить'),
         ),
       ],
-    );
-  }
-
-  /// Карточка ошибки с кнопкой помощника: живёт до следующего слова (ADR-042).
-  Widget _errorCard(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Неверно',
-              style: TextStyle(color: colors.onErrorContainer),
-            ),
-          ),
-          ErrorHelperButton(
-            gameType: 'listening',
-            context:
-                'Слово: "${word.term}". '
-                'Пользователь ввёл: "${controller.text}".',
-          ),
-        ],
-      ),
     );
   }
 

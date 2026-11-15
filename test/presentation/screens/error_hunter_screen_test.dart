@@ -8,13 +8,14 @@ import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_error_task_generator.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
+import '../../domain/usecases/fakes/fake_translation_generator.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 ErrorHunterTask task() => ErrorHunterTask(
@@ -40,6 +41,7 @@ Widget host(
     settingsRepositoryProvider.overrideWithValue(
       FakeSettingsRepository(settings),
     ),
+    translationGeneratorProvider.overrideWithValue(FakeTranslationGenerator()),
   ],
   child: const MaterialApp(home: ErrorHunterScreen()),
 );
@@ -111,7 +113,8 @@ void main() {
     await tester.tap(find.text('had'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Неверно'), findsOneWidget);
+    expect(find.text('Неверно'), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
     expect(find.text('Следующее задание'), findsNothing);
     expect(find.text('book'), findsOneWidget);
   });
@@ -130,18 +133,37 @@ void main() {
     expect(find.text('Повторить'), findsOneWidget);
   });
 
-  testWidgets('robot icon appears after a wrong option', (tester) async {
+  testWidgets('word helper appears at the corrected word after solve', (
+    tester,
+  ) async {
     await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsNothing);
+    expect(find.byType(AiWordHelper), findsNothing);
 
     await tester.tap(find.text('has'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('had'));
+    await tester.tap(find.text('have').last);
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
+    final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
+    expect(helper.word, 'have');
+    expect(helper.iconSize, 16);
+  });
+
+  testWidgets('bot icon opens translation sheet', (tester) async {
+    await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('has'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('have').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(AiWordHelper));
+    await tester.pumpAndSettle();
+
+    expect(find.text('учреждение'), findsOneWidget);
   });
 
   testWidgets('uses only preferredLevel words', (tester) async {
@@ -176,11 +198,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('has'), findsNothing);
-    expect(find.text('have'), findsOneWidget);
+    // 'have' есть и в зелёном чипе, и в helper: проверяем чип предложения.
+    final haveInSentence = find.descendant(
+      of: find.byType(Wrap),
+      matching: find.text('have'),
+    );
+    expect(haveInSentence, findsOneWidget);
     final container = tester.widget<Container>(
-      find
-          .ancestor(of: find.text('have'), matching: find.byType(Container))
-          .first,
+      find.ancestor(of: haveInSentence, matching: find.byType(Container)).first,
     );
     expect(
       container.decoration,

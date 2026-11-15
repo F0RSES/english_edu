@@ -12,7 +12,7 @@ import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,6 +26,7 @@ import '../../domain/usecases/fakes/fake_review_log_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_srs_calculator.dart';
 import '../../domain/usecases/fakes/fake_stats_repository.dart';
+import '../../domain/usecases/fakes/fake_translation_generator.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 final now = DateTime.utc(2024, 5, 15, 12);
@@ -76,6 +77,9 @@ final class Harness {
       generateDictationQueueProvider.overrideWithValue(queue),
       ttsProvider.overrideWithValue(tts),
       settingsRepositoryProvider.overrideWithValue(settings),
+      translationGeneratorProvider.overrideWithValue(
+        FakeTranslationGenerator(),
+      ),
       statsRepositoryProvider.overrideWithValue(stats),
       frozenDaysRepositoryProvider.overrideWithValue(
         FakeFrozenDaysRepository(),
@@ -168,10 +172,12 @@ void main() {
 
     await typeAndCheck(tester, 'aple');
 
-    expect(find.text('Неверно'), findsOneWidget);
-    expect(find.text('apple'), findsOneWidget);
+    // Карточка «Неверно» удалена; у раскрытого слова — бот (Phase 30c).
+    expect(find.text('Неверно'), findsNothing);
+    expect(find.text('apple'), findsWidgets);
     expect(find.text('/ˈæpl/'), findsOneWidget);
     expect(find.text('Следующее слово'), findsOneWidget);
+    expect(find.byType(AiWordHelper), findsOneWidget);
 
     // Доанимация раскрытого ответа: иначе остаётся pending timer.
     await tester.pumpAndSettle();
@@ -253,18 +259,19 @@ void main() {
     expect(find.text('Верно: 1 из 1'), findsOneWidget);
   });
 
-  testWidgets('robot icon appears after a wrong answer', (tester) async {
+  testWidgets('add-to-dictionary button opens word sheet', (tester) async {
     final harness = Harness();
     await tester.pumpWidget(harness.app());
     await tester.pumpAndSettle();
 
-    expect(find.byType(ErrorHelperButton), findsNothing);
+    // Кнопка видна всегда, под полем ввода (Phase 30c).
+    expect(find.text('Добавить в словарь'), findsOneWidget);
 
-    await typeAndCheck(tester, 'aple');
-
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
-
+    await tester.tap(find.text('Добавить в словарь'));
     await tester.pumpAndSettle();
+
+    expect(find.text('apple'), findsOneWidget);
+    expect(find.text('учреждение'), findsOneWidget);
   });
 
   testWidgets('app bar title is Russian by default', (tester) async {

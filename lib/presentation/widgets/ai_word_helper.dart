@@ -49,33 +49,22 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
     }
     final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _loading = true);
-    final WordTranslation translation;
-    try {
-      translation = await ref
-          .read(translationGeneratorProvider)
-          .translate(widget.word);
-    } on Object catch (error, stack) {
-      ref.read(loggerProvider).warn('Word translation failed', error, stack);
-      if (mounted) {
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(S.hintFailed(lang))));
-      }
-      return;
-    }
+    final translation = await fetchWordTranslation(context, ref, widget.word);
     if (!mounted) {
       return;
     }
     // Loading снимается до открытия листа: иначе спиннер под модалкой
     // анимируется бесконечно и pumpAndSettle в тестах не завершается.
     setState(() => _loading = false);
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) => _sheetContent(sheetContext, translation, lang),
+    if (translation == null) {
+      return;
+    }
+    await _openTranslationModal(
+      context,
+      widget.word,
+      translation,
+      lang,
+      revealWord: widget.revealWord,
     );
   }
 
@@ -130,14 +119,26 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
       ),
     );
   }
+}
 
-  /// Содержимое листа: перевод, транскрипция, часть речи, пример и кнопки.
-  Widget _sheetContent(
-    BuildContext sheetContext,
-    WordTranslation translation,
-    AppLanguage lang,
-  ) {
-    final scheme = Theme.of(sheetContext).colorScheme;
+/// Содержимое листа перевода: слово, перевод, транскрипция, часть речи,
+/// пример и кнопки add/remove (Phase 30c: общий для AiWordHelper и игр).
+class _WordTranslationSheet extends StatelessWidget {
+  const _WordTranslationSheet({
+    required this.word,
+    required this.translation,
+    required this.lang,
+    this.revealWord = true,
+  });
+
+  final String word;
+  final WordTranslation translation;
+  final AppLanguage lang;
+  final bool revealWord;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -160,9 +161,9 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
                 ],
               ),
               const SizedBox(height: 16),
-              if (widget.revealWord) ...[
+              if (revealWord) ...[
                 Text(
-                  widget.word,
+                  word,
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -200,13 +201,10 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  _AddRemoveWordButton(
-                    word: widget.word,
-                    translation: translation,
-                  ),
+                  _AddRemoveWordButton(word: word, translation: translation),
                   const Spacer(),
                   TextButton(
-                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    onPressed: () => Navigator.of(context).pop(),
                     child: Text(S.close(lang)),
                   ),
                 ],
@@ -215,6 +213,126 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Запрашивает словарный перевод слова через прокси (Phase 30c).
+///
+/// При ошибке показывает SnackBar и возвращает null: игра не должна
+/// ломаться из-за недоступности прокси (паттерн ADR-019).
+Future<WordTranslation?> fetchWordTranslation(
+  BuildContext context,
+  WidgetRef ref,
+  String word,
+) async {
+  final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+  try {
+    return await ref.read(translationGeneratorProvider).translate(word);
+  } on Object catch (error, stack) {
+    ref.read(loggerProvider).warn('Word translation failed', error, stack);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.hintFailed(lang))));
+    }
+    return null;
+  }
+}
+
+/// Открывает модалку перевода слова с add/remove (Phase 30c).
+///
+/// Общая точка входа для кнопок «Добавить в словарь» в играх: модалка
+/// та же, что у AiWordHelper.
+Future<void> showWordTranslationSheet(
+  BuildContext context,
+  WidgetRef ref,
+  String word, {
+  bool revealWord = true,
+}) async {
+  final translation = await fetchWordTranslation(context, ref, word);
+  if (translation == null || !context.mounted) {
+    return;
+  }
+  final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+  await _openTranslationModal(
+    context,
+    word,
+    translation,
+    lang,
+    revealWord: revealWord,
+  );
+}
+
+Future<void> _openTranslationModal(
+  BuildContext context,
+  String word,
+  WordTranslation translation,
+  AppLanguage lang, {
+  bool revealWord = true,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  ),
+  builder: (_) => _WordTranslationSheet(
+    word: word,
+    translation: translation,
+    lang: lang,
+    revealWord: revealWord,
+  ),
+);
+
+/// Кнопка «Добавить в словарь» для игр (Phase 30c).
+///
+/// Открывает модалку перевода одного слова с add/remove — унификация
+/// с Cloze Test: одно слово, одна модалка, без дублирующих карточек.
+class AddToDictionaryButton extends ConsumerStatefulWidget {
+  /// Создаёт кнопку для слова [word].
+  const AddToDictionaryButton({required this.word, super.key});
+
+  /// Слово, которое можно добавить в словарь.
+  final String word;
+
+  @override
+  ConsumerState<AddToDictionaryButton> createState() =>
+      _AddToDictionaryButtonState();
+}
+
+class _AddToDictionaryButtonState extends ConsumerState<AddToDictionaryButton> {
+  bool _loading = false;
+
+  Future<void> _open() async {
+    if (_loading) {
+      return;
+    }
+    setState(() => _loading = true);
+    final translation = await fetchWordTranslation(context, ref, widget.word);
+    if (!mounted) {
+      return;
+    }
+    // Спиннер снимается до открытия листа: иначе pumpAndSettle не завершится.
+    setState(() => _loading = false);
+    if (translation == null) {
+      return;
+    }
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    await _openTranslationModal(context, widget.word, translation, lang);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    return FilledButton.tonalIcon(
+      onPressed: _loading ? null : () => unawaited(_open()),
+      icon: _loading
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.menu_book),
+      label: Text(S.addToDictionary(lang)),
     );
   }
 }

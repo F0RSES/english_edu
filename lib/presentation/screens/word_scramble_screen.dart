@@ -6,7 +6,7 @@ import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/scramble_puzzle.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -56,13 +56,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
   /// `again`, чтобы пользователь мог пойти дальше.
   int _wrongAttempts = 0;
 
-  /// Карточка помощника видна после первой неудачной попытки и живёт до
-  /// победы или скипа слова (ADR-042).
-  bool _helperVisible = false;
-
-  /// Последняя неудачная сборка: контекст для объяснения.
-  String _lastWrongAnswer = '';
-
   /// Слова, чей прогресс уже записан в этой сессии (ADR-028).
   final Set<WordId> _recorded = {};
 
@@ -106,8 +99,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _used = [];
       _hasError = false;
       _wrongAttempts = 0;
-      _helperVisible = false;
-      _lastWrongAnswer = '';
       _recorded.clear();
     });
     try {
@@ -159,7 +150,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
         _correctCount++;
         _pulseKey++;
         _waiting = true;
-        _helperVisible = false;
       });
       unawaited(_record(puzzle.word, ReviewGrade.good));
       await Future<void>.delayed(_feedbackDelay);
@@ -176,11 +166,9 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _shakeKey++;
       _waiting = true;
       _wrongAttempts++;
-      _helperVisible = true;
-      _lastWrongAnswer = _userAnswer.join();
     });
-    // «Неверно» показывает persistent-карточка под полем: SnackBar исчезает,
-    // а объяснение нужно позже (ADR-042).
+    // Ошибка видна по красной тряске поля; перевод и добавление слова —
+    // через кнопку «Добавить в словарь» (Phase 30c).
     // Слово провалено, если не собралось с трёх попыток: только тогда оно
     // уходит в SRS как `again`, чтобы одна опечатка не портила расписание.
     if (_wrongAttempts >= _failedAttempts) {
@@ -235,8 +223,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       _userAnswer = [];
       _hasError = false;
       _wrongAttempts = 0;
-      _helperVisible = false;
-      _lastWrongAnswer = '';
       _used = List<bool>.filled(
         next < _puzzles.length ? _puzzles[next].scrambled.length : 0,
         false,
@@ -320,8 +306,6 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
                 shakeKey: _shakeKey,
                 pulseKey: _pulseKey,
                 correctCount: _correctCount,
-                helperVisible: _helperVisible,
-                lastWrongAnswer: _lastWrongAnswer,
                 onTapLetter: _selectLetter,
                 onClear: _clear,
               ),
@@ -340,8 +324,6 @@ class _PuzzleView extends StatelessWidget {
     required this.shakeKey,
     required this.pulseKey,
     required this.correctCount,
-    required this.helperVisible,
-    required this.lastWrongAnswer,
     required this.onTapLetter,
     required this.onClear,
   });
@@ -353,8 +335,6 @@ class _PuzzleView extends StatelessWidget {
   final int shakeKey;
   final int pulseKey;
   final int correctCount;
-  final bool helperVisible;
-  final String lastWrongAnswer;
   final ValueChanged<int> onTapLetter;
   final VoidCallback onClear;
 
@@ -396,7 +376,6 @@ class _PuzzleView extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         _answerField(context),
-        if (helperVisible) ...[const SizedBox(height: 12), _errorCard(context)],
         const SizedBox(height: 24),
         Wrap(
           alignment: WrapAlignment.center,
@@ -424,7 +403,10 @@ class _PuzzleView extends StatelessWidget {
               ),
           ],
         ).animate(delay: 150.ms).fadeIn(duration: 350.ms),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        // Добавление загаданного слова в словарь (Phase 30c).
+        AddToDictionaryButton(word: puzzle.solution),
+        const SizedBox(height: 8),
         Row(
           children: [
             TextButton.icon(
@@ -442,34 +424,6 @@ class _PuzzleView extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  /// Карточка ошибки с кнопкой помощника (ADR-042).
-  Widget _errorCard(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: colors.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Неверно',
-              style: TextStyle(color: colors.onErrorContainer),
-            ),
-          ),
-          ErrorHelperButton(
-            gameType: 'word_scramble',
-            context:
-                'Нужно было собрать: "${puzzle.solution}". '
-                'Пользователь собрал: "$lastWrongAnswer".',
-          ),
-        ],
-      ),
     );
   }
 

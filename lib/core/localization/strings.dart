@@ -725,6 +725,266 @@ final class S {
   static String removeConfirmBody(String term, AppLanguage l) =>
       _t('aiHelper.removeBody', l).replaceFirst('{term}', term);
 
+  // --- Общие строки игр (Phase 31, BL-94) ---
+  /// Кнопка перехода к следующему заданию.
+  static String commonNextTask(AppLanguage l) => _t('common.nextTask', l);
+
+  /// Заглушка ошибки загрузки.
+  static String commonLoadFailed(AppLanguage l) => _t('common.loadFailed', l);
+
+  /// Пустой словарь в игре.
+  static String commonEmptyDictionary(AppLanguage l) =>
+      _t('common.emptyDictionary', l);
+
+  /// Кнопка повторного заезда.
+  static String commonAgain(AppLanguage l) => _t('common.again', l);
+
+  /// Кнопка выхода из игры.
+  static String commonExit(AppLanguage l) => _t('common.exit', l);
+
+  // --- Error Hunter ---
+  /// Инструкция игры.
+  static String errorHunterInstruction(AppLanguage l) =>
+      _t('game.errorHunter.instruction', l);
+
+  /// Заголовок листа вариантов.
+  static String errorHunterHowCorrect(AppLanguage l) =>
+      _t('game.errorHunter.howCorrect', l);
+
+  /// Ошибка генерации задания.
+  static String errorHunterGenerateFailed(AppLanguage l) =>
+      _t('game.errorHunter.generateFailed', l);
+
+  // --- Scramble ---
+  /// Инструкция игры.
+  static String scrambleInstruction(AppLanguage l) =>
+      _t('game.scramble.instruction', l);
+
+  /// Кнопка очистки ответа.
+  static String scrambleClear(AppLanguage l) => _t('game.scramble.clear', l);
+
+  /// Счётчик верных слов.
+  static String scrambleCorrectCount(int n, AppLanguage l) =>
+      _t('game.scramble.correctCount', l).replaceFirst('{n}', '$n');
+
+  /// Заглушка загрузки задания.
+  static String scramblePreparing(AppLanguage l) =>
+      _t('game.scramble.preparing', l);
+
+  // --- Dictation ---
+  /// TTS недоступен.
+  static String dictationTtsUnavailable(AppLanguage l) =>
+      _t('game.dictation.ttsUnavailable', l);
+
+  /// Подсказка повторного прослушивания.
+  static String dictationRepeatHint(AppLanguage l) =>
+      _t('game.dictation.repeatHint', l);
+
+  /// Кнопка следующего слова.
+  static String dictationNextWord(AppLanguage l) =>
+      _t('game.dictation.nextWord', l);
+
+  /// Подсказка поля ввода.
+  static String dictationHint(AppLanguage l) => _t('game.dictation.hint', l);
+
+  // --- Typing ---
+  /// Ошибка сохранения рекорда.
+  static String typingSaveFailed(AppLanguage l) =>
+      _t('game.typing.saveFailed', l);
+
+  /// Заголовок итогов заезда.
+  static String typingRunDone(AppLanguage l) => _t('game.typing.runDone', l);
+
+  /// Точность в процентах.
+  static String typingAccuracy(int n, AppLanguage l) =>
+      _t('game.typing.accuracy', l).replaceFirst('{n}', '$n');
+
+  /// Очки заезда.
+  static String typingScore(int n, AppLanguage l) =>
+      _t('game.typing.score', l).replaceFirst('{n}', '$n');
+
+  /// Скорость: WPM — аббревиатура, не переводится.
+  static String typingWpm(int n, AppLanguage l) =>
+      _t('game.typing.wpm', l).replaceFirst('{n}', '$n');
+
+  // --- Memory ---
+  /// Заголовок победы.
+  static String memoryVictory(AppLanguage l) => _t('game.memory.victory', l);
+
+  /// Текст победы с числом ходов.
+  static String memoryVictoryBody(int n, AppLanguage l) =>
+      _t('game.memory.victoryBody', l).replaceFirst('{n}', '$n');
+
+  /// Счётчик ходов.
+  static String memoryMoves(int n, AppLanguage l) =>
+      _t('game.memory.moves', l).replaceFirst('{n}', '$n');
+
+  /// Кнопка рестарта.
+  static String memoryRestart(AppLanguage l) => _t('game.memory.restart', l);
+
+  // --- Phrasebook ---
+  /// Фразы не загружены.
+  static String phrasebookNotLoaded(AppLanguage l) =>
+      _t('game.phrasebook.notLoaded', l);
+
+  /// Ошибка загрузки фраз.
+  static String phrasebookLoadFailed(AppLanguage l) =>
+      _t('game.phrasebook.loadFailed', l);
+
+  /// Подсказка поиска.
+  static String phrasebookSearch(AppLanguage l) =>
+      _t('game.phrasebook.search', l);
+
+  /// Вкладка/фильтр «Все».
+  static String phrasebookAll(AppLanguage l) => _t('game.phrasebook.all', l);
+
+  /// Ничего не найдено.
+  static String phrasebookNothingFound(AppLanguage l) =>
+      _t('game.phrasebook.nothingFound', l);
+
+  // --- Reading ---
+  /// Рассказы не загружены.
+  static String readingNotLoaded(AppLanguage l) =>
+      _t('game.reading.notLoaded', l);
+
+  /// Ошибка загрузки рассказов.
+  static String readingLoadFailed(AppLanguage l) =>
+      _t('game.reading.loadFailed', l);
+
+  /// Кнопка показа перевода.
+  static String readingShowTranslation(AppLanguage l) =>
+      _t('game.reading.showTranslation', l);
+
+  /// Кнопка скрытия перевода.
+  static String readingHideTranslation(AppLanguage l) =>
+      _t('game.reading.hideTranslation', l);
+
+  /// Незнакомые слова (кнопка и диалог).
+  static String readingUnknownWords(AppLanguage l) =>
+      _t('game.reading.unknownWords', l);
+
+  /// Ошибка добавления слов.
+  static String readingAddFailed(AppLanguage l) =>
+      _t('game.reading.addFailed', l);
+
+  /// Ошибка разбора текста.
+  static String readingParseFailed(AppLanguage l) =>
+      _t('game.reading.parseFailed', l);
+
+  /// Все слова уже в словаре.
+  static String readingAllInDictionary(AppLanguage l) =>
+      _t('game.reading.allInDictionary', l);
+
+  /// Единица счёта слов: ru — склонение, en — word/words.
+  static String readingWordUnit(int n, AppLanguage l) => l == AppLanguage.ru
+      ? pluralize(n, one: 'слово', few: 'слова', many: 'слов')
+      : (n == 1 ? 'word' : 'words');
+
+  /// SnackBar «Добавлено N слов».
+  static String readingAddedWords(int n, AppLanguage l) => _t(
+    'game.reading.addedWords',
+    l,
+  ).replaceFirst('{n}', '$n').replaceFirst('{unit}', readingWordUnit(n, l));
+
+  /// Кнопка «Добавить N слов».
+  static String readingAddWords(int n, AppLanguage l) => _t(
+    'game.reading.addWords',
+    l,
+  ).replaceFirst('{n}', '$n').replaceFirst('{unit}', readingWordUnit(n, l));
+
+  // --- Achievements ---
+  /// Заголовок экрана достижений.
+  static String achievementsTitle(AppLanguage l) => _t('achievements.title', l);
+
+  /// Ошибка загрузки достижений.
+  static String achievementsLoadFailed(AppLanguage l) =>
+      _t('achievements.loadFailed', l);
+
+  /// Заголовок секции открытых.
+  static String achievementsUnlocked(int n, AppLanguage l) =>
+      _t('achievements.unlocked', l).replaceFirst('{n}', '$n');
+
+  /// Заголовок секции в процессе.
+  static String achievementsInProgress(int n, AppLanguage l) =>
+      _t('achievements.inProgress', l).replaceFirst('{n}', '$n');
+
+  /// Заглушка пустой секции открытых.
+  static String achievementsEmptyUnlocked(AppLanguage l) =>
+      _t('achievements.emptyUnlocked', l);
+
+  /// Все достижения открыты.
+  static String achievementsAllUnlocked(AppLanguage l) =>
+      _t('achievements.allUnlocked', l);
+
+  // --- Chat ---
+  /// Ошибка загрузки истории.
+  static String chatHistoryLoadFailed(AppLanguage l) =>
+      _t('chat.historyLoadFailed', l);
+
+  /// Ошибка получения ответа.
+  static String chatReplyFailed(AppLanguage l) => _t('chat.replyFailed', l);
+
+  /// Заголовок подтверждения очистки.
+  static String chatClearTitle(AppLanguage l) => _t('chat.clearTitle', l);
+
+  /// Текст подтверждения очистки.
+  static String chatClearBody(AppLanguage l) => _t('chat.clearBody', l);
+
+  /// Кнопка очистки.
+  static String chatClear(AppLanguage l) => _t('chat.clear', l);
+
+  /// Кнопка очистки истории.
+  static String chatClearHistory(AppLanguage l) => _t('chat.clearHistory', l);
+
+  /// Подсказка поля ввода.
+  static String chatHint(AppLanguage l) => _t('chat.hint', l);
+
+  /// Приветствие помощника.
+  static String chatGreeting(AppLanguage l) => _t('chat.greeting', l);
+
+  // --- Onboarding ---
+  /// Заголовок первого слайда.
+  static String onboardingSlide1Title(AppLanguage l) =>
+      _t('onboarding.slide1Title', l);
+
+  /// Текст первого слайда.
+  static String onboardingSlide1Body(AppLanguage l) =>
+      _t('onboarding.slide1Body', l);
+
+  /// Заголовок второго слайда.
+  static String onboardingSlide2Title(AppLanguage l) =>
+      _t('onboarding.slide2Title', l);
+
+  /// Текст второго слайда.
+  static String onboardingSlide2Body(AppLanguage l) =>
+      _t('onboarding.slide2Body', l);
+
+  /// Заголовок третьего слайда.
+  static String onboardingSlide3Title(AppLanguage l) =>
+      _t('onboarding.slide3Title', l);
+
+  /// Текст третьего слайда.
+  static String onboardingSlide3Body(AppLanguage l) =>
+      _t('onboarding.slide3Body', l);
+
+  /// Заголовок «Как это работает».
+  static String onboardingHowItWorks(AppLanguage l) =>
+      _t('onboarding.howItWorks', l);
+
+  /// Кнопка пропуска.
+  static String onboardingSkip(AppLanguage l) => _t('onboarding.skip', l);
+
+  /// Кнопка старта.
+  static String onboardingStart(AppLanguage l) => _t('onboarding.start', l);
+
+  /// Заголовок выбора уровня.
+  static String onboardingLevelTitle(AppLanguage l) =>
+      _t('onboarding.levelTitle', l);
+
+  /// Текст выбора уровня.
+  static String onboardingLevelBody(AppLanguage l) =>
+      _t('onboarding.levelBody', l);
+
   // --- Плюрализация ---
   static String _dayForm(int count, AppLanguage l) => pluralize(
     count,
@@ -1346,6 +1606,221 @@ final class S {
       'en':
           'The word "{term}" will be removed from the dictionary with its '
           'progress.',
+    },
+    // Общие строки игр (Phase 31, BL-94).
+    'common.nextTask': {'ru': 'Следующее задание', 'en': 'Next task'},
+    'common.loadFailed': {'ru': 'Не удалось загрузить', 'en': 'Failed to load'},
+    'common.emptyDictionary': {
+      'ru': 'Добавьте слова в словарь',
+      'en': 'Add words to the dictionary',
+    },
+    'common.again': {'ru': 'Ещё раз', 'en': 'Again'},
+    'common.exit': {'ru': 'Выйти', 'en': 'Exit'},
+    // Error Hunter.
+    'game.errorHunter.instruction': {
+      'ru': 'Найди ошибку и нажми на слово',
+      'en': 'Find the error and tap the word',
+    },
+    'game.errorHunter.howCorrect': {
+      'ru': 'Как правильно?',
+      'en': 'What is the correct form?',
+    },
+    'game.errorHunter.generateFailed': {
+      'ru': 'Не удалось сгенерировать задание, попробуйте еще раз',
+      'en': 'Failed to generate the task, please try again',
+    },
+    // Scramble.
+    'game.scramble.instruction': {
+      'ru': 'Переведи и собери слово по буквам',
+      'en': 'Translate and assemble the word letter by letter',
+    },
+    'game.scramble.clear': {'ru': 'Очистить', 'en': 'Clear'},
+    'game.scramble.correctCount': {'ru': '{n} верно', 'en': '{n} correct'},
+    'game.scramble.preparing': {
+      'ru': 'Готовим задание...',
+      'en': 'Preparing the task...',
+    },
+    // Dictation.
+    'game.dictation.ttsUnavailable': {
+      'ru': 'Озвучка недоступна',
+      'en': 'Speech is unavailable',
+    },
+    'game.dictation.repeatHint': {
+      'ru': 'Нажми, чтобы услышать ещё раз',
+      'en': 'Tap to hear it again',
+    },
+    'game.dictation.nextWord': {'ru': 'Следующее слово', 'en': 'Next word'},
+    'game.dictation.hint': {
+      'ru': 'Введите слово...',
+      'en': 'Enter the word...',
+    },
+    // Typing.
+    'game.typing.saveFailed': {
+      'ru': 'Не удалось сохранить результат',
+      'en': 'Failed to save the result',
+    },
+    'game.typing.runDone': {'ru': 'Заезд завершён', 'en': 'Run complete'},
+    'game.typing.accuracy': {'ru': 'Точность: {n}%', 'en': 'Accuracy: {n}%'},
+    'game.typing.score': {'ru': 'Очки: {n}', 'en': 'Score: {n}'},
+    'game.typing.wpm': {'ru': 'WPM: {n}', 'en': 'WPM: {n}'},
+    // Memory.
+    'game.memory.victory': {'ru': 'Победа!', 'en': 'Victory!'},
+    'game.memory.victoryBody': {
+      'ru': 'Все пары найдены за {n} ходов.',
+      'en': 'All pairs found in {n} moves.',
+    },
+    'game.memory.moves': {'ru': 'Ходы: {n}', 'en': 'Moves: {n}'},
+    'game.memory.restart': {'ru': 'Заново', 'en': 'Restart'},
+    // Phrasebook.
+    'game.phrasebook.notLoaded': {
+      'ru': 'Фразы не загружены',
+      'en': 'Phrases not loaded',
+    },
+    'game.phrasebook.loadFailed': {
+      'ru': 'Не удалось загрузить фразы',
+      'en': 'Failed to load phrases',
+    },
+    'game.phrasebook.search': {'ru': 'Поиск', 'en': 'Search'},
+    'game.phrasebook.all': {'ru': 'Все', 'en': 'All'},
+    'game.phrasebook.nothingFound': {
+      'ru': 'Ничего не найдено',
+      'en': 'Nothing found',
+    },
+    // Reading.
+    'game.reading.notLoaded': {
+      'ru': 'Рассказы не загружены',
+      'en': 'Stories not loaded',
+    },
+    'game.reading.loadFailed': {
+      'ru': 'Не удалось загрузить рассказы',
+      'en': 'Failed to load stories',
+    },
+    'game.reading.showTranslation': {
+      'ru': 'Показать перевод',
+      'en': 'Show translation',
+    },
+    'game.reading.hideTranslation': {
+      'ru': 'Скрыть перевод',
+      'en': 'Hide translation',
+    },
+    'game.reading.unknownWords': {
+      'ru': 'Незнакомые слова',
+      'en': 'Unknown words',
+    },
+    'game.reading.addFailed': {
+      'ru': 'Не удалось добавить слова',
+      'en': 'Failed to add the words',
+    },
+    'game.reading.parseFailed': {
+      'ru': 'Не удалось разобрать текст',
+      'en': 'Failed to parse the text',
+    },
+    'game.reading.allInDictionary': {
+      'ru': 'Все слова в тексте уже в словаре.',
+      'en': 'All words in the text are already in the dictionary.',
+    },
+    'game.reading.addedWords': {
+      'ru': 'Добавлено {n} {unit}',
+      'en': 'Added {n} {unit}',
+    },
+    'game.reading.addWords': {
+      'ru': 'Добавить {n} {unit}',
+      'en': 'Add {n} {unit}',
+    },
+    // Achievements.
+    'achievements.title': {'ru': 'Достижения', 'en': 'Achievements'},
+    'achievements.loadFailed': {
+      'ru': 'Не удалось загрузить достижения',
+      'en': 'Failed to load achievements',
+    },
+    'achievements.unlocked': {
+      'ru': 'Разблокировано ({n})',
+      'en': 'Unlocked ({n})',
+    },
+    'achievements.inProgress': {
+      'ru': 'В процессе ({n})',
+      'en': 'In progress ({n})',
+    },
+    'achievements.emptyUnlocked': {
+      'ru': 'Пока пусто — начни с серии дней.',
+      'en': 'Nothing yet — start with a day streak.',
+    },
+    'achievements.allUnlocked': {
+      'ru': 'Все достижения открыты!',
+      'en': 'All achievements unlocked!',
+    },
+    // Chat.
+    'chat.historyLoadFailed': {
+      'ru': 'Не удалось загрузить историю',
+      'en': 'Failed to load history',
+    },
+    'chat.replyFailed': {
+      'ru': 'Не удалось получить ответ, проверьте интернет',
+      'en': 'Failed to get a reply, check your internet',
+    },
+    'chat.clearTitle': {'ru': 'Очистить историю?', 'en': 'Clear history?'},
+    'chat.clearBody': {
+      'ru': 'Все сообщения чата будут удалены.',
+      'en': 'All chat messages will be deleted.',
+    },
+    'chat.clear': {'ru': 'Очистить', 'en': 'Clear'},
+    'chat.clearHistory': {'ru': 'Очистить историю', 'en': 'Clear history'},
+    'chat.hint': {
+      'ru': 'Спроси про английский...',
+      'en': 'Ask about English...',
+    },
+    'chat.greeting': {
+      'ru': 'Привет! Я помогу разобраться с английским. Спроси что-нибудь.',
+      'en': 'Hi! I can help you with English. Ask me anything.',
+    },
+    // Onboarding.
+    'onboarding.slide1Title': {
+      'ru': 'Учи слова легко',
+      'en': 'Learn words easily',
+    },
+    'onboarding.slide1Body': {
+      'ru':
+          'Свайп вправо — «знаю», влево — «не знаю». '
+          'Приложение само решает, когда показать слово снова.',
+      'en':
+          'Swipe right for "know", left for "don\'t know". '
+          'The app decides when to show the word again.',
+    },
+    'onboarding.slide2Title': {'ru': 'AI-подсказки', 'en': 'AI hints'},
+    'onboarding.slide2Body': {
+      'ru':
+          'Не запоминается слово? Нажмите «Подсказка» — ассоциацию '
+          'придумает AI. Запрос уходит только по вашему нажатию.',
+      'en':
+          'Can\'t remember a word? Tap "Hint" and AI will come up '
+          'with an association. The request is sent only on your tap.',
+    },
+    'onboarding.slide3Title': {
+      'ru': 'Играй и запоминай',
+      'en': 'Play and remember',
+    },
+    'onboarding.slide3Body': {
+      'ru':
+          '«Охота на ошибки»: найдите ошибку в предложении и выберите '
+          'правильный вариант. Пять минут между делами.',
+      'en':
+          '"Error Hunter": find the error in a sentence and pick the '
+          'correct option. Five minutes between tasks.',
+    },
+    'onboarding.howItWorks': {'ru': 'Как это работает', 'en': 'How it works'},
+    'onboarding.skip': {'ru': 'Пропустить', 'en': 'Skip'},
+    'onboarding.start': {'ru': 'Начать', 'en': 'Start'},
+    'onboarding.levelTitle': {
+      'ru': 'Какой у тебя уровень?',
+      'en': 'What is your level?',
+    },
+    'onboarding.levelBody': {
+      'ru':
+          'Новые слова подбираются не выше выбранного уровня. '
+          'Слова, которые вы уже учите, не фильтруются.',
+      'en':
+          'New words are picked no higher than the selected level. '
+          'Words you are already learning are not filtered.',
     },
   };
 }

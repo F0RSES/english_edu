@@ -154,7 +154,7 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : task == null
-            ? _ErrorState(onRetry: _load)
+            ? _ErrorState(lang: lang, onRetry: _load)
             : _TaskView(
                 task: task,
                 solved: _solved,
@@ -288,7 +288,7 @@ class _TaskView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text('Следующее задание'),
+              child: Text(S.commonNextTask(lang)),
             ),
           ),
       ],
@@ -433,8 +433,9 @@ class _OptionCard extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.lang, required this.onRetry});
 
+  final AppLanguage lang;
   final VoidCallback onRetry;
 
   @override
@@ -442,9 +443,9 @@ class _ErrorState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось загрузить'),
+        Text(S.commonLoadFailed(lang)),
         const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
       ],
     ),
   );

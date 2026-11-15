@@ -247,25 +247,26 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
   }
 
   Future<void> _showSummary() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Сессия завершена'),
-        content: Text('Верно: $_correctCount из ${_puzzles.length}'),
+        title: Text(S.sessionDone(lang)),
+        content: Text(S.sessionCorrect(_correctCount, _puzzles.length, lang)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.go('/');
             },
-            child: const Text('Готово'),
+            child: Text(S.sessionFinish(lang)),
           ),
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               unawaited(_load());
             },
-            child: const Text('Ещё раз'),
+            child: Text(S.commonAgain(lang)),
           ),
         ],
       ),
@@ -295,9 +296,9 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: _isLoading
-            ? const _Loading()
+            ? _Loading(lang: lang)
             : puzzle == null
-            ? _ErrorState(onRetry: _load)
+            ? _ErrorState(lang: lang, onRetry: _load)
             : _PuzzleView(
                 puzzle: puzzle,
                 answer: _userAnswer,
@@ -306,6 +307,7 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
                 shakeKey: _shakeKey,
                 pulseKey: _pulseKey,
                 correctCount: _correctCount,
+                lang: lang,
                 onTapLetter: _selectLetter,
                 onClear: _clear,
               ),
@@ -324,6 +326,7 @@ class _PuzzleView extends StatelessWidget {
     required this.shakeKey,
     required this.pulseKey,
     required this.correctCount,
+    required this.lang,
     required this.onTapLetter,
     required this.onClear,
   });
@@ -335,6 +338,7 @@ class _PuzzleView extends StatelessWidget {
   final int shakeKey;
   final int pulseKey;
   final int correctCount;
+  final AppLanguage lang;
   final ValueChanged<int> onTapLetter;
   final VoidCallback onClear;
 
@@ -366,7 +370,7 @@ class _PuzzleView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Переведи и собери слово по буквам',
+          S.scrambleInstruction(lang),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
             fontSize: 13,
@@ -412,11 +416,11 @@ class _PuzzleView extends StatelessWidget {
             TextButton.icon(
               onPressed: onClear,
               icon: const Icon(Icons.backspace_outlined),
-              label: const Text('Очистить'),
+              label: Text(S.scrambleClear(lang)),
             ),
             const Spacer(),
             Text(
-              '$correctCount верно',
+              S.scrambleCorrectCount(correctCount, lang),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -515,24 +519,27 @@ class _AnswerSquare extends StatelessWidget {
 }
 
 class _Loading extends StatelessWidget {
-  const _Loading();
+  const _Loading({required this.lang});
+
+  final AppLanguage lang;
 
   @override
-  Widget build(BuildContext context) => const Center(
+  Widget build(BuildContext context) => Center(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircularProgressIndicator(),
-        SizedBox(height: 12),
-        Text('Готовим задание...'),
+        const CircularProgressIndicator(),
+        const SizedBox(height: 12),
+        Text(S.scramblePreparing(lang)),
       ],
     ),
   );
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.lang, required this.onRetry});
 
+  final AppLanguage lang;
   final VoidCallback onRetry;
 
   @override
@@ -540,9 +547,9 @@ class _ErrorState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось загрузить'),
+        Text(S.commonLoadFailed(lang)),
         const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
       ],
     ),
   );

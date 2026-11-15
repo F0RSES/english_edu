@@ -102,7 +102,10 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
     }
     final solved = await showModalBottomSheet<bool>(
       context: context,
-      builder: (sheetContext) => _OptionsSheet(task: task),
+      builder: (sheetContext) => _OptionsSheet(
+        task: task,
+        lang: ref.read(languageProvider).value ?? AppLanguage.ru,
+      ),
     );
     if (solved != true || !mounted) {
       return;
@@ -121,10 +124,11 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : task == null
-            ? _ErrorState(onRetry: _load)
+            ? _ErrorState(lang: lang, onRetry: _load)
             : _TaskView(
                 task: task,
                 solved: _solved,
+                lang: lang,
                 onWordTap: (chunk) => _onWordTap(task, chunk),
                 onNext: _load,
               ),
@@ -137,12 +141,14 @@ class _TaskView extends StatelessWidget {
   const _TaskView({
     required this.task,
     required this.solved,
+    required this.lang,
     required this.onWordTap,
     required this.onNext,
   });
 
   final ErrorHunterTask task;
   final bool solved;
+  final AppLanguage lang;
   final void Function(String chunk) onWordTap;
   final VoidCallback onNext;
 
@@ -159,7 +165,7 @@ class _TaskView extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Найди ошибку и нажми на слово',
+                S.errorHunterInstruction(lang),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colors.onSurfaceVariant,
                   fontSize: 14,
@@ -203,7 +209,7 @@ class _TaskView extends StatelessWidget {
             width: double.infinity,
             child: FilledButton(
               onPressed: onNext,
-              child: const Text('Следующее задание'),
+              child: Text(S.commonNextTask(lang)),
             ),
           ),
       ],
@@ -247,8 +253,9 @@ class _TaskView extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.lang, required this.onRetry});
 
+  final AppLanguage lang;
   final VoidCallback onRetry;
 
   @override
@@ -256,9 +263,9 @@ class _ErrorState extends StatelessWidget {
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Не удалось сгенерировать задание, попробуйте еще раз'),
+        Text(S.errorHunterGenerateFailed(lang)),
         const SizedBox(height: 8),
-        FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+        FilledButton(onPressed: onRetry, child: Text(S.retry(lang))),
       ],
     ),
   );
@@ -269,9 +276,10 @@ class _ErrorState extends StatelessWidget {
 /// Лист не закрывается на ошибке — можно попробовать снова, не открывая
 /// заново. При верном ответе закрывается сам и отдаёт `true`.
 class _OptionsSheet extends StatefulWidget {
-  const _OptionsSheet({required this.task});
+  const _OptionsSheet({required this.task, required this.lang});
 
   final ErrorHunterTask task;
+  final AppLanguage lang;
 
   @override
   State<_OptionsSheet> createState() => _OptionsSheetState();
@@ -310,9 +318,9 @@ class _OptionsSheetState extends State<_OptionsSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('Как правильно?'),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(S.errorHunterHowCorrect(widget.lang)),
           ),
           for (final option in widget.task.options)
             ListTile(

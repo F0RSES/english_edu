@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -17,27 +19,21 @@ class _Slide {
   final String body;
 }
 
-const _slides = <_Slide>[
+List<_Slide> _slides(AppLanguage lang) => <_Slide>[
   _Slide(
     icon: Icons.style_outlined,
-    title: 'Учи слова легко',
-    body:
-        'Свайп вправо — «знаю», влево — «не знаю». '
-        'Приложение само решает, когда показать слово снова.',
+    title: S.onboardingSlide1Title(lang),
+    body: S.onboardingSlide1Body(lang),
   ),
   _Slide(
     icon: Icons.lightbulb_outline,
-    title: 'AI-подсказки',
-    body:
-        'Не запоминается слово? Нажмите «Подсказка» — ассоциацию '
-        'придумает AI. Запрос уходит только по вашему нажатию.',
+    title: S.onboardingSlide2Title(lang),
+    body: S.onboardingSlide2Body(lang),
   ),
   _Slide(
     icon: Icons.sports_esports_outlined,
-    title: 'Играй и запоминай',
-    body:
-        '«Охота на ошибки»: найдите ошибку в предложении и выберите '
-        'правильный вариант. Пять минут между делами.',
+    title: S.onboardingSlide3Title(lang),
+    body: S.onboardingSlide3Body(lang),
   ),
 ];
 
@@ -61,7 +57,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   CefrLevel _selectedLevel = CefrLevel.a1;
 
   /// Всего страниц: знакомство + выбор уровня.
-  int get _pageCount => _slides.length + 1;
+  int _pageCount(AppLanguage lang) => _slides(lang).length + 1;
 
   @override
   void dispose() {
@@ -94,7 +90,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _next() {
-    if (_page >= _pageCount - 1) {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    if (_page >= _pageCount(lang) - 1) {
       unawaited(_finish());
       return;
     }
@@ -107,14 +104,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isLast = _page == _pageCount - 1;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    final slides = _slides(lang);
+    final isLast = _page == _pageCount(lang) - 1;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Как это работает'),
+        title: Text(S.onboardingHowItWorks(lang)),
         actions: [
           TextButton(
             onPressed: () => unawaited(_finish()),
-            child: const Text('Пропустить'),
+            child: Text(S.onboardingSkip(lang)),
           ),
         ],
       ),
@@ -123,17 +122,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Expanded(
             child: PageView.builder(
               controller: _controller,
-              itemCount: _pageCount,
+              itemCount: _pageCount(lang),
               onPageChanged: (index) => setState(() => _page = index),
               itemBuilder: (context, index) {
-                if (index == _slides.length) {
+                if (index == slides.length) {
                   return _LevelPage(
                     selected: _selectedLevel,
+                    lang: lang,
                     onChanged: (level) =>
                         setState(() => _selectedLevel = level),
                   );
                 }
-                final slide = _slides[index];
+                final slide = slides[index];
                 return Padding(
                   padding: const EdgeInsets.all(32),
                   child: Column(
@@ -172,7 +172,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           AnimatedSmoothIndicator(
             activeIndex: _page,
-            count: _pageCount,
+            count: _pageCount(lang),
             effect: ExpandingDotsEffect(
               dotHeight: 8,
               activeDotColor: theme.colorScheme.primary,
@@ -183,7 +183,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             padding: const EdgeInsets.all(24),
             child: FilledButton(
               onPressed: _next,
-              child: Text(isLast ? 'Начать' : 'Далее'),
+              child: Text(isLast ? S.onboardingStart(lang) : S.next(lang)),
             ),
           ),
         ],
@@ -198,9 +198,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 /// Выбор уходит наверх через [onChanged]: экран держит одно состояние на все
 /// страницы и сохраняет его в настройки одним вызовом.
 class _LevelPage extends StatelessWidget {
-  const _LevelPage({required this.selected, required this.onChanged});
+  const _LevelPage({
+    required this.selected,
+    required this.lang,
+    required this.onChanged,
+  });
 
   final CefrLevel selected;
+  final AppLanguage lang;
   final ValueChanged<CefrLevel> onChanged;
 
   @override
@@ -217,14 +222,13 @@ class _LevelPage extends StatelessWidget {
               .scale(begin: const Offset(0.8, 0.8)),
           const SizedBox(height: 32),
           Text(
-            'Какой у тебя уровень?',
+            S.onboardingLevelTitle(lang),
             style: theme.textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
-            'Новые слова подбираются не выше выбранного уровня. '
-            'Слова, которые вы уже учите, не фильтруются.',
+            S.onboardingLevelBody(lang),
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

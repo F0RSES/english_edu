@@ -1,5 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,18 +13,23 @@ class AchievementsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stored = ref.watch(achievementsProvider);
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     return Scaffold(
-      appBar: AppBar(title: const Text('Достижения')),
+      appBar: AppBar(title: Text(S.achievementsTitle(lang))),
       body: stored.when(
-        data: (items) => _buildBody(context, items),
+        data: (items) => _buildBody(context, items, lang),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) =>
-            const Center(child: Text('Не удалось загрузить достижения')),
+            Center(child: Text(S.achievementsLoadFailed(lang))),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, List<Achievement> items) {
+  Widget _buildBody(
+    BuildContext context,
+    List<Achievement> items,
+    AppLanguage lang,
+  ) {
     final unlocked = [
       for (final item in items)
         if (item.isUnlocked) item,
@@ -35,24 +42,24 @@ class AchievementsScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _SectionHeader('Разблокировано (${unlocked.length})'),
+        _SectionHeader(S.achievementsUnlocked(unlocked.length, lang)),
         const SizedBox(height: 12),
         if (unlocked.isEmpty)
-          const Text('Пока пусто — начни с серии дней.')
+          Text(S.achievementsEmptyUnlocked(lang))
         else
-          _grid(unlocked),
+          _grid(unlocked, lang),
         const SizedBox(height: 24),
-        _SectionHeader('В процессе (${inProgress.length})'),
+        _SectionHeader(S.achievementsInProgress(inProgress.length, lang)),
         const SizedBox(height: 12),
         if (inProgress.isEmpty)
-          const Text('Все достижения открыты!')
+          Text(S.achievementsAllUnlocked(lang))
         else
-          _grid(inProgress),
+          _grid(inProgress, lang),
       ],
     );
   }
 
-  Widget _grid(List<Achievement> items) => GridView.builder(
+  Widget _grid(List<Achievement> items, AppLanguage lang) => GridView.builder(
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -62,7 +69,8 @@ class AchievementsScreen extends ConsumerWidget {
       childAspectRatio: 0.9,
     ),
     itemCount: items.length,
-    itemBuilder: (context, index) => _AchievementCard(item: items[index]),
+    itemBuilder: (context, index) =>
+        _AchievementCard(item: items[index], lang: lang),
   );
 }
 
@@ -81,9 +89,10 @@ class _SectionHeader extends StatelessWidget {
 
 /// Карточка одного достижения: иконка, название и прогресс.
 class _AchievementCard extends StatelessWidget {
-  const _AchievementCard({required this.item});
+  const _AchievementCard({required this.item, required this.lang});
 
   final Achievement item;
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +114,7 @@ class _AchievementCard extends StatelessWidget {
           Text(item.type.icon, style: const TextStyle(fontSize: 28)),
           const SizedBox(height: 6),
           Text(
-            item.type.title,
+            S.achievementTitle(item.type, lang),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,

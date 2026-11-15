@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/chat_message.dart';
+import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,9 +57,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось загрузить историю')),
-      );
+      final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.chatHistoryLoadFailed(lang))));
     }
   }
 
@@ -72,11 +74,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _controller.clear();
     } on Object catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Не удалось получить ответ, проверьте интернет'),
-          ),
-        );
+        final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(S.chatReplyFailed(lang))));
       }
     } finally {
       if (mounted) {
@@ -90,19 +90,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _clearHistory() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Очистить историю?'),
-        content: const Text('Все сообщения чата будут удалены.'),
+        title: Text(S.chatClearTitle(lang)),
+        content: Text(S.chatClearBody(lang)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Отмена'),
+            child: Text(S.cancel(lang)),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Очистить'),
+            child: Text(S.chatClear(lang)),
           ),
         ],
       ),
@@ -131,13 +132,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final showGreeting = _messages.isEmpty;
     final greetingOffset = showGreeting ? 1 : 0;
     final itemCount = _messages.length + greetingOffset + (_isSending ? 1 : 0);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Помощник'),
+        title: Text(S.assistant(lang)),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -145,10 +147,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 unawaited(_clearHistory());
               }
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: _clearAction,
-                child: Text('Очистить историю'),
+                child: Text(S.chatClearHistory(lang)),
               ),
             ],
           ),
@@ -163,7 +165,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemCount: itemCount,
               itemBuilder: (context, index) {
                 if (showGreeting && index == 0) {
-                  return const _GreetingBubble();
+                  return _GreetingBubble(lang: lang);
                 }
                 final messageIndex = index - greetingOffset;
                 if (messageIndex >= _messages.length) {
@@ -186,9 +188,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       maxLines: 4,
                       keyboardType: TextInputType.multiline,
                       textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        hintText: 'Спроси про английский...',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: S.chatHint(lang),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ),
@@ -242,7 +244,9 @@ class _MessageBubble extends StatelessWidget {
 
 /// Приветствие-заглушка: только UI, в БД не сохраняется.
 class _GreetingBubble extends StatelessWidget {
-  const _GreetingBubble();
+  const _GreetingBubble({required this.lang});
+
+  final AppLanguage lang;
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +264,7 @@ class _GreetingBubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          'Привет! Я помогу разобраться с английским. Спроси что-нибудь.',
+          S.chatGreeting(lang),
           style: TextStyle(color: scheme.onSurface),
         ),
       ),

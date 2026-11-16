@@ -1522,7 +1522,8 @@
       "exampleSentence": "I like good food.",
       "sourceId": "ngsl-auto",
       "autoTranslated": true,
-      "level": "A1"
+      "level": "A1",
+      "synonyms": ["meal"]
     },
     {
       "id": 140,
@@ -2699,7 +2700,8 @@
       "exampleSentence": "I eat a meal at home.",
       "sourceId": "ngsl-auto",
       "autoTranslated": true,
-      "level": "A1"
+      "level": "A1",
+      "synonyms": ["food"]
     },
     {
       "id": 247,

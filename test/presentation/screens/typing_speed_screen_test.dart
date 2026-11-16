@@ -34,32 +34,36 @@ final class _FakeRecords implements TypingRecordRepository {
   }
 }
 
-Widget host(TypingRecordRepository records, {UserSettings? settings}) =>
-    ProviderScope(
-      overrides: [
-        settingsRepositoryProvider.overrideWithValue(
-          FakeSettingsRepository(settings),
+Widget host(
+  TypingRecordRepository records, {
+  UserSettings? settings,
+  List<Word>? words,
+}) => ProviderScope(
+  overrides: [
+    settingsRepositoryProvider.overrideWithValue(
+      FakeSettingsRepository(settings),
+    ),
+    generateTypingSessionProvider.overrideWithValue(
+      GenerateTypingSession(
+        words: FakeWordRepository(
+          words ??
+              [const Word(id: WordId(1), term: 'apple', translation: 'яблоко')],
         ),
-        generateTypingSessionProvider.overrideWithValue(
-          GenerateTypingSession(
-            words: FakeWordRepository([
-              const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
-            ]),
-            settings: FakeSettingsRepository(),
-            random: Random(1),
-            wordsCount: 1,
-          ),
-        ),
-        saveTypingRecordProvider.overrideWithValue(
-          SaveTypingRecord(
-            records: records,
-            clock: () => DateTime.utc(2024, 5, 15, 12),
-          ),
-        ),
-        bestTypingRecordProvider.overrideWith((ref) async => null),
-      ],
-      child: const MaterialApp(home: TypingSpeedScreen()),
-    );
+        settings: FakeSettingsRepository(),
+        random: Random(1),
+        wordsCount: 1,
+      ),
+    ),
+    saveTypingRecordProvider.overrideWithValue(
+      SaveTypingRecord(
+        records: records,
+        clock: () => DateTime.utc(2024, 5, 15, 12),
+      ),
+    ),
+    bestTypingRecordProvider.overrideWith((ref) async => null),
+  ],
+  child: const MaterialApp(home: TypingSpeedScreen()),
+);
 
 /// Кадры вместо `pumpAndSettle`: экран держит `Timer.periodic`, и settle
 /// не дождётся тишины.
@@ -185,5 +189,40 @@ void main() {
     await settleFrames(tester);
 
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('shows letter count and first letter hint', (tester) async {
+    await tester.pumpWidget(host(_FakeRecords()));
+    await settleFrames(tester);
+
+    // apple: 5 букв, первая «a» — подсказка отсекает синонимы.
+    expect(find.text('5 букв, a...'), findsOneWidget);
+  });
+
+  testWidgets('accepts a synonym as the correct answer', (tester) async {
+    final records = _FakeRecords();
+    await tester.pumpWidget(
+      host(
+        records,
+        words: [
+          const Word(
+            id: WordId(1),
+            term: 'meal',
+            translation: 'еда',
+            synonyms: ['food'],
+          ),
+        ],
+      ),
+    );
+    await settleFrames(tester);
+
+    expect(find.text('4 буквы, m...'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'food');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(find.text('Заезд завершён'), findsOneWidget);
+    expect(records.saved.single.correctCount, 1);
   });
 }

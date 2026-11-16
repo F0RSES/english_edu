@@ -28,6 +28,7 @@ final class Word {
     this.exampleSentence,
     this.category,
     this.level = CefrLevel.a1,
+    this.synonyms = const [],
   }) : assert(term.length > 0, 'term must not be empty'),
        assert(translation.length > 0, 'translation must not be empty');
 
@@ -61,6 +62,11 @@ final class Word {
   /// уровня, а A1 — безопасная середина для новичка.
   final CefrLevel level;
 
+  /// Синонимы термина (Phase 36a): допустимые альтернативные ответы в играх.
+  ///
+  /// Пустой список — синонимов нет; сравнение — без учёта регистра.
+  final List<String> synonyms;
+
   /// Returns a copy with the given fields replaced.
   ///
   /// Nullable fields are cleared by passing null explicitly; omitting them
@@ -74,6 +80,7 @@ final class Word {
     Object? exampleSentence = _unset,
     Object? category = _unset,
     CefrLevel? level,
+    List<String>? synonyms,
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -83,6 +90,7 @@ final class Word {
     exampleSentence: _resolveText(exampleSentence, this.exampleSentence),
     category: _resolveText(category, this.category),
     level: level ?? this.level,
+    synonyms: synonyms ?? this.synonyms,
   );
 
   @override
@@ -96,7 +104,8 @@ final class Word {
           partOfSpeech == other.partOfSpeech &&
           exampleSentence == other.exampleSentence &&
           category == other.category &&
-          level == other.level;
+          level == other.level &&
+          _sameSynonyms(synonyms, other.synonyms);
 
   @override
   int get hashCode => Object.hash(
@@ -108,7 +117,20 @@ final class Word {
     exampleSentence,
     category,
     level,
+    Object.hashAll(synonyms),
   );
+
+  static bool _sameSynonyms(List<String> left, List<String> right) {
+    if (left.length != right.length) {
+      return false;
+    }
+    for (var index = 0; index < left.length; index++) {
+      if (left[index] != right[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   String toString() => 'Word(${id.value}, "$term" → "$translation")';

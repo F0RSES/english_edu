@@ -108,4 +108,51 @@ void main() {
 
     expect(row.term, 'i');
   });
+
+  test('round-trips synonyms as a JSON array', () async {
+    const word = domain.Word(
+      id: WordId(11),
+      term: 'meal',
+      translation: 'еда',
+      synonyms: ['food', 'repast'],
+    );
+
+    await db.into(db.words).insert(WordMapper.toCompanion(word));
+    final row = (await db.select(db.words).get()).single;
+
+    expect(row.synonyms, '["food","repast"]');
+    expect(WordMapper.toDomain(row), word);
+  });
+
+  test('null synonyms read as an empty list', () async {
+    await db
+        .into(db.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(12),
+            term: 'meal',
+            translation: 'еда',
+          ),
+        );
+    final row = (await db.select(db.words).get()).single;
+
+    expect(row.synonyms, isNull);
+    expect(WordMapper.toDomain(row).synonyms, isEmpty);
+  });
+
+  test('malformed synonyms json reads as an empty list', () async {
+    await db
+        .into(db.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(13),
+            term: 'meal',
+            translation: 'еда',
+            synonyms: const Value('not json'),
+          ),
+        );
+    final row = (await db.select(db.words).get()).single;
+
+    expect(WordMapper.toDomain(row).synonyms, isEmpty);
+  });
 }

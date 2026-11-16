@@ -542,6 +542,37 @@ void main() {
     expect(await v20.select(v20.wordTranslations).get(), isEmpty);
   });
 
+  test('migration v20 to v21 adds the synonyms column', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v21',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v20 = текущая схема без колонки синонимов.
+    final v20 = AppDatabase.forTesting(NativeDatabase(file));
+    await v20
+        .into(v20.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'meal',
+            translation: 'еда',
+          ),
+        );
+    await v20.customStatement('ALTER TABLE words DROP COLUMN synonyms');
+    await v20.customStatement('PRAGMA user_version = 20');
+    await v20.close();
+
+    final v21 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v21.close);
+
+    final row = (await v21.select(v21.words).get()).single;
+    // Колонка появилась миграцией; старое слово без синонимов (null).
+    expect(row.synonyms, isNull);
+    expect(row.term, 'meal');
+  });
+
   test('creates all seventeen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);

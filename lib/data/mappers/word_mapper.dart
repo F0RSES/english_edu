@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
@@ -20,6 +22,7 @@ final class WordMapper {
     exampleSentence: row.exampleSentence,
     category: row.category,
     level: CefrLevel.fromLabel(row.level),
+    synonyms: _synonymsFrom(row.synonyms),
   );
 
   /// Раскладывает сущность в companion для insert/update.
@@ -34,5 +37,29 @@ final class WordMapper {
     // Метка пишется в нижнем регистре: DDL-дефолт 'a1' и данные не должны
     // расходиться регистром (CefrLevel.fromLabel читает оба).
     level: Value(word.level.label.toLowerCase()),
+    synonyms: Value(word.synonyms.isEmpty ? null : jsonEncode(word.synonyms)),
   );
+
+  /// Синонимы из JSON-строки; null или битый JSON — пустой список.
+  ///
+  /// Битый JSON возможен только при ручной правке БД: слово должно
+  /// загрузиться, а не уронить словарь.
+  static List<String> _synonymsFrom(String? raw) {
+    if (raw == null) {
+      return const [];
+    }
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return const [];
+    }
+    if (decoded is! List) {
+      return const [];
+    }
+    return [
+      for (final item in decoded)
+        if (item is String && item.trim().isNotEmpty) item.trim(),
+    ];
+  }
 }

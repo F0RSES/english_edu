@@ -75,6 +75,30 @@ void main() {
     expect(_mergedSeedWords, greaterThan(2000));
   });
 
+  test('parses synonyms when present and defaults to empty', () async {
+    final loader = loaderFor(
+      JsonAssetBundle(
+        jsonEncode(
+          seedJson([
+            {
+              ...seedWord(1, 'meal'),
+              'synonyms': ['food', 'repast'],
+            },
+            seedWord(2, 'book'),
+          ]),
+        ),
+      ),
+    );
+
+    expect(await loader.loadIfEmpty(), 2);
+    final all = await words.getAll();
+    expect(all.firstWhere((w) => w.term == 'meal').synonyms, [
+      'food',
+      'repast',
+    ]);
+    expect(all.firstWhere((w) => w.term == 'book').synonyms, isEmpty);
+  });
+
   test('does not duplicate on a second call', () async {
     final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
 

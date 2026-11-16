@@ -431,5 +431,17 @@ void main() {
       expect(S.readingWordUnit(2, AppLanguage.en), 'words');
       expect(S.readingWordUnit(5, AppLanguage.en), 'words');
     });
+
+    test('typingLetterHint declines Russian letter forms', () {
+      expect(S.typingLetterHint(1, 'm', AppLanguage.ru), '1 буква, m...');
+      expect(S.typingLetterHint(2, 'm', AppLanguage.ru), '2 буквы, m...');
+      expect(S.typingLetterHint(4, 'm', AppLanguage.ru), '4 буквы, m...');
+      expect(S.typingLetterHint(5, 'a', AppLanguage.ru), '5 букв, a...');
+    });
+
+    test('typingLetterHint uses letter/letters in English', () {
+      expect(S.typingLetterHint(1, 'm', AppLanguage.en), '1 letter, m...');
+      expect(S.typingLetterHint(4, 'm', AppLanguage.en), '4 letters, m...');
+    });
   });
 }

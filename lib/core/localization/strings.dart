@@ -818,6 +818,17 @@ final class S {
   static String typingWpm(int n, AppLanguage l) =>
       _t('game.typing.wpm', l).replaceFirst('{n}', '$n');
 
+  /// Подсказка к переводу: «4 буквы, m...» / «4 letters, m...» (Phase 36a).
+  ///
+  /// Метод, а не ключ _data: формы склонения собираются на месте,
+  /// как в readingWordUnit.
+  static String typingLetterHint(int count, String first, AppLanguage l) {
+    final unit = l == AppLanguage.ru
+        ? pluralize(count, one: 'буква', few: 'буквы', many: 'букв')
+        : (count == 1 ? 'letter' : 'letters');
+    return '$count $unit, $first...';
+  }
+
   // --- Memory ---
   /// Заголовок победы.
   static String memoryVictory(AppLanguage l) => _t('game.memory.victory', l);

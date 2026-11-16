@@ -86,6 +86,7 @@ final class JsonSeedLoader implements SeedLoader {
       // Поле необязательное: seed v1 его не содержит (20 слов без категорий).
       category: item['category'] as String?,
       level: _level(item),
+      synonyms: _synonyms(item),
     );
   }
 
@@ -109,5 +110,27 @@ final class JsonSeedLoader implements SeedLoader {
       }
     }
     throw StateError('Seed word has unknown level: $raw');
+  }
+
+  /// Синонимы слова: необязательное поле seed (Phase 36a).
+  ///
+  /// Старые seed-файлы поля не содержат — пустой список. Не-массив или
+  /// не-строки — ошибка контента, как и у уровня.
+  List<String> _synonyms(Map<String, Object?> item) {
+    final raw = item['synonyms'];
+    if (raw == null) {
+      return const [];
+    }
+    if (raw is! List) {
+      throw StateError('Seed word "synonyms" must be an array');
+    }
+    final result = <String>[];
+    for (final entry in raw) {
+      if (entry is! String) {
+        throw StateError('Seed word "synonyms" entries must be strings');
+      }
+      result.add(entry.trim());
+    }
+    return result;
   }
 }

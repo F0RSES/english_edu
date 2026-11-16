@@ -5,7 +5,7 @@ import 'package:english_edu/data/db/tables.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v20: кэш словарных переводов word_translations (Phase 33, BL-96).
+/// Schema v21: синонимы слов words.synonyms (Phase 36a).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
@@ -16,7 +16,8 @@ part 'app_database.g.dart';
 /// v16 — `cloze_tasks.options`, v17 — `user_settings.language`,
 /// v18 — `user_settings.nickname` и `user_settings.avatar_path`,
 /// v19 — очистка `cloze_tasks` (Phase 32: обновлён AI-промпт),
-/// v20 — `word_translations` (Phase 33, BL-96).
+/// v20 — `word_translations` (Phase 33, BL-96),
+/// v21 — `words.synonyms` (Phase 36a).
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -48,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -138,6 +139,17 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 20) {
         await m.createTable(wordTranslations);
+      }
+      if (from < 21) {
+        // addColumn не идемпотентен: тесты воссоздают старые схемы из
+        // текущей, и synonyms может уже существовать (паттерн v16–v18).
+        final info = await customSelect("PRAGMA table_info('words')").get();
+        final hasSynonyms = info.any(
+          (row) => row.read<String>('name') == 'synonyms',
+        );
+        if (!hasSynonyms) {
+          await m.addColumn(words, words.synonyms);
+        }
       }
       if (from < 12) {
         await m.createTable(typingRecords);

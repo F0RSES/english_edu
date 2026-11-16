@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
@@ -102,9 +103,8 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
       return;
     }
 
-    final typed = value.trim().toLowerCase();
-    final expected = word.term.trim().toLowerCase();
-    final wasCorrect = typed == expected;
+    // Правильность считает домен: экран и сессия не должны расходиться.
+    final wasCorrect = SubmitTypingAnswer.matches(word, value);
 
     if (wasCorrect) {
       _lastWrongWord = null;
@@ -224,6 +224,19 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Подсказка отсекает синонимы: «еда» — meal, а не food.
+                  Text(
+                    S.typingLetterHint(
+                      current.term.length,
+                      current.term.substring(0, 1),
+                      lang,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 24),

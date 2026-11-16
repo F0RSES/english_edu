@@ -37,6 +37,9 @@ class Words extends Table {
   /// измениться, а миграция чужого файла с числом стала бы неоднозначной.
   TextColumn get level => text().withDefault(const Constant('a1'))();
 
+  /// Синонимы термина JSON-массивом строк; null — синонимов нет (schema v21).
+  TextColumn get synonyms => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

@@ -91,6 +91,17 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     requiredDuringInsert: false,
     defaultValue: const Constant('a1'),
   );
+  static const VerificationMeta _synonymsMeta = const VerificationMeta(
+    'synonyms',
+  );
+  @override
+  late final GeneratedColumn<String> synonyms = GeneratedColumn<String>(
+    'synonyms',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -101,6 +112,7 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
     exampleSentence,
     category,
     level,
+    synonyms,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -175,6 +187,12 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         level.isAcceptableOrUnknown(data['level']!, _levelMeta),
       );
     }
+    if (data.containsKey('synonyms')) {
+      context.handle(
+        _synonymsMeta,
+        synonyms.isAcceptableOrUnknown(data['synonyms']!, _synonymsMeta),
+      );
+    }
     return context;
   }
 
@@ -216,6 +234,10 @@ class $WordsTable extends Words with TableInfo<$WordsTable, Word> {
         DriftSqlType.string,
         data['${effectivePrefix}level'],
       )!,
+      synonyms: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}synonyms'],
+      ),
     );
   }
 
@@ -254,6 +276,9 @@ class Word extends DataClass implements Insertable<Word> {
   /// Хранится как текст, а не как индекс enum: порядок значений в коде может
   /// измениться, а миграция чужого файла с числом стала бы неоднозначной.
   final String level;
+
+  /// Синонимы термина JSON-массивом строк; null — синонимов нет (schema v21).
+  final String? synonyms;
   const Word({
     required this.id,
     required this.term,
@@ -263,6 +288,7 @@ class Word extends DataClass implements Insertable<Word> {
     this.exampleSentence,
     this.category,
     required this.level,
+    this.synonyms,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -283,6 +309,9 @@ class Word extends DataClass implements Insertable<Word> {
       map['category'] = Variable<String>(category);
     }
     map['level'] = Variable<String>(level);
+    if (!nullToAbsent || synonyms != null) {
+      map['synonyms'] = Variable<String>(synonyms);
+    }
     return map;
   }
 
@@ -304,6 +333,9 @@ class Word extends DataClass implements Insertable<Word> {
           ? const Value.absent()
           : Value(category),
       level: Value(level),
+      synonyms: synonyms == null && nullToAbsent
+          ? const Value.absent()
+          : Value(synonyms),
     );
   }
 
@@ -321,6 +353,7 @@ class Word extends DataClass implements Insertable<Word> {
       exampleSentence: serializer.fromJson<String?>(json['exampleSentence']),
       category: serializer.fromJson<String?>(json['category']),
       level: serializer.fromJson<String>(json['level']),
+      synonyms: serializer.fromJson<String?>(json['synonyms']),
     );
   }
   @override
@@ -335,6 +368,7 @@ class Word extends DataClass implements Insertable<Word> {
       'exampleSentence': serializer.toJson<String?>(exampleSentence),
       'category': serializer.toJson<String?>(category),
       'level': serializer.toJson<String>(level),
+      'synonyms': serializer.toJson<String?>(synonyms),
     };
   }
 
@@ -347,6 +381,7 @@ class Word extends DataClass implements Insertable<Word> {
     Value<String?> exampleSentence = const Value.absent(),
     Value<String?> category = const Value.absent(),
     String? level,
+    Value<String?> synonyms = const Value.absent(),
   }) => Word(
     id: id ?? this.id,
     term: term ?? this.term,
@@ -360,6 +395,7 @@ class Word extends DataClass implements Insertable<Word> {
         : this.exampleSentence,
     category: category.present ? category.value : this.category,
     level: level ?? this.level,
+    synonyms: synonyms.present ? synonyms.value : this.synonyms,
   );
   Word copyWithCompanion(WordsCompanion data) {
     return Word(
@@ -379,6 +415,7 @@ class Word extends DataClass implements Insertable<Word> {
           : this.exampleSentence,
       category: data.category.present ? data.category.value : this.category,
       level: data.level.present ? data.level.value : this.level,
+      synonyms: data.synonyms.present ? data.synonyms.value : this.synonyms,
     );
   }
 
@@ -392,7 +429,8 @@ class Word extends DataClass implements Insertable<Word> {
           ..write('partOfSpeech: $partOfSpeech, ')
           ..write('exampleSentence: $exampleSentence, ')
           ..write('category: $category, ')
-          ..write('level: $level')
+          ..write('level: $level, ')
+          ..write('synonyms: $synonyms')
           ..write(')'))
         .toString();
   }
@@ -407,6 +445,7 @@ class Word extends DataClass implements Insertable<Word> {
     exampleSentence,
     category,
     level,
+    synonyms,
   );
   @override
   bool operator ==(Object other) =>
@@ -419,7 +458,8 @@ class Word extends DataClass implements Insertable<Word> {
           other.partOfSpeech == this.partOfSpeech &&
           other.exampleSentence == this.exampleSentence &&
           other.category == this.category &&
-          other.level == this.level);
+          other.level == this.level &&
+          other.synonyms == this.synonyms);
 }
 
 class WordsCompanion extends UpdateCompanion<Word> {
@@ -431,6 +471,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
   final Value<String?> exampleSentence;
   final Value<String?> category;
   final Value<String> level;
+  final Value<String?> synonyms;
   const WordsCompanion({
     this.id = const Value.absent(),
     this.term = const Value.absent(),
@@ -440,6 +481,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.exampleSentence = const Value.absent(),
     this.category = const Value.absent(),
     this.level = const Value.absent(),
+    this.synonyms = const Value.absent(),
   });
   WordsCompanion.insert({
     this.id = const Value.absent(),
@@ -450,6 +492,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     this.exampleSentence = const Value.absent(),
     this.category = const Value.absent(),
     this.level = const Value.absent(),
+    this.synonyms = const Value.absent(),
   }) : term = Value(term),
        translation = Value(translation);
   static Insertable<Word> custom({
@@ -461,6 +504,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Expression<String>? exampleSentence,
     Expression<String>? category,
     Expression<String>? level,
+    Expression<String>? synonyms,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -471,6 +515,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       if (exampleSentence != null) 'example_sentence': exampleSentence,
       if (category != null) 'category': category,
       if (level != null) 'level': level,
+      if (synonyms != null) 'synonyms': synonyms,
     });
   }
 
@@ -483,6 +528,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
     Value<String?>? exampleSentence,
     Value<String?>? category,
     Value<String>? level,
+    Value<String?>? synonyms,
   }) {
     return WordsCompanion(
       id: id ?? this.id,
@@ -493,6 +539,7 @@ class WordsCompanion extends UpdateCompanion<Word> {
       exampleSentence: exampleSentence ?? this.exampleSentence,
       category: category ?? this.category,
       level: level ?? this.level,
+      synonyms: synonyms ?? this.synonyms,
     );
   }
 
@@ -523,6 +570,9 @@ class WordsCompanion extends UpdateCompanion<Word> {
     if (level.present) {
       map['level'] = Variable<String>(level.value);
     }
+    if (synonyms.present) {
+      map['synonyms'] = Variable<String>(synonyms.value);
+    }
     return map;
   }
 
@@ -536,7 +586,8 @@ class WordsCompanion extends UpdateCompanion<Word> {
           ..write('partOfSpeech: $partOfSpeech, ')
           ..write('exampleSentence: $exampleSentence, ')
           ..write('category: $category, ')
-          ..write('level: $level')
+          ..write('level: $level, ')
+          ..write('synonyms: $synonyms')
           ..write(')'))
         .toString();
   }
@@ -7948,6 +7999,7 @@ typedef $$WordsTableCreateCompanionBuilder = WordsCompanion Function({
   Value<String?> exampleSentence,
   Value<String?> category,
   Value<String> level,
+  Value<String?> synonyms,
 });
 typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<int> id,
@@ -7958,6 +8010,7 @@ typedef $$WordsTableUpdateCompanionBuilder = WordsCompanion Function({
   Value<String?> exampleSentence,
   Value<String?> category,
   Value<String> level,
+  Value<String?> synonyms,
 });
 
 final class $$WordsTableReferences
@@ -8064,6 +8117,11 @@ class $$WordsTableFilterComposer extends Composer<_$AppDatabase, $WordsTable> {
 
   ColumnFilters<String> get level => $composableBuilder(
     column: $table.level,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get synonyms => $composableBuilder(
+    column: $table.synonyms,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8191,6 +8249,11 @@ class $$WordsTableOrderingComposer
     column: $table.level,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get synonyms => $composableBuilder(
+    column: $table.synonyms,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$WordsTableAnnotationComposer
@@ -8233,6 +8296,9 @@ class $$WordsTableAnnotationComposer
 
   GeneratedColumn<String> get level =>
       $composableBuilder(column: $table.level, builder: (column) => column);
+
+  GeneratedColumn<String> get synonyms =>
+      $composableBuilder(column: $table.synonyms, builder: (column) => column);
 
   Expression<T> wordProgressesRefs<T extends Object>(
     Expression<T> Function($$WordProgressesTableAnnotationComposer a) f,
@@ -8350,6 +8416,7 @@ class $$WordsTableTableManager
                 Value<String?> exampleSentence = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 Value<String> level = const Value.absent(),
+                Value<String?> synonyms = const Value.absent(),
               }) => WordsCompanion(
                 id: id,
                 term: term,
@@ -8359,6 +8426,7 @@ class $$WordsTableTableManager
                 exampleSentence: exampleSentence,
                 category: category,
                 level: level,
+                synonyms: synonyms,
               ),
           createCompanionCallback:
               ({
@@ -8370,6 +8438,7 @@ class $$WordsTableTableManager
                 Value<String?> exampleSentence = const Value.absent(),
                 Value<String?> category = const Value.absent(),
                 Value<String> level = const Value.absent(),
+                Value<String?> synonyms = const Value.absent(),
               }) => WordsCompanion.insert(
                 id: id,
                 term: term,
@@ -8379,6 +8448,7 @@ class $$WordsTableTableManager
                 exampleSentence: exampleSentence,
                 category: category,
                 level: level,
+                synonyms: synonyms,
               ),
           withReferenceMapper: (p0) => p0
               .map(

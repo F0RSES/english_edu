@@ -67,6 +67,35 @@ void main() {
       expect(base.copyWith(), equals(base));
     });
 
+    test('defaults synonyms to an empty list', () {
+      expect(base.synonyms, isEmpty);
+    });
+
+    test('equality and hashCode cover synonyms', () {
+      const withSynonyms = Word(
+        id: WordId(1),
+        term: 'book',
+        translation: 'книга',
+        synonyms: ['booklet'],
+      );
+      expect(withSynonyms, isNot(base));
+      expect(
+        withSynonyms,
+        equals(withSynonyms.copyWith(synonyms: ['booklet'])),
+      );
+      expect(
+        withSynonyms.hashCode,
+        withSynonyms.copyWith(synonyms: ['booklet']).hashCode,
+      );
+    });
+
+    test('copyWith replaces synonyms and keeps the rest', () {
+      final updated = base.copyWith(synonyms: ['tome']);
+      expect(updated.synonyms, ['tome']);
+      expect(updated.term, base.term);
+      expect(base.synonyms, isEmpty);
+    });
+
     test('renders id, term and translation', () {
       expect(base.toString(), 'Word(1, "book" → "книга")');
     });

@@ -11,6 +11,7 @@ import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
 import 'package:english_edu/domain/usecases/import_progress.dart';
 import 'package:english_edu/domain/usecases/record_review.dart';
+import 'package:english_edu/domain/usecases/translate_word.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/achievement_type.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
@@ -80,6 +81,11 @@ void main() {
     expect(container.read(computeStreakUseCaseProvider), isA<ComputeStreak>());
     expect(container.read(exportProgressProvider), isA<ExportProgress>());
     expect(container.read(importProgressProvider), isA<ImportProgress>());
+  });
+
+  test('translation generator is wrapped with the cache (BL-96)', () {
+    expect(container.read(translationGeneratorProvider), isA<TranslateWord>());
+    expect(container.read(wordTranslationRepositoryProvider), isNotNull);
   });
 
   test('computeStreakProvider exposes async state', () async {

@@ -5,8 +5,9 @@ Offline-first мобильное приложение для изучения а
 
 ## Status
 
-**Phase 23 — Reading Mode** (6 игр + разговорник + чтение; 2071 слово,
-209 фраз, 34 рассказа). APK собирается, iOS — нет. 869 тестов, analyze=0.
+**Phase 33** (8 игр + 3 режима урока + ежедневное задание; 2071 слово,
+209 фраз, 34 рассказа). Схема v20, 43 ADR. APK собирается, iOS — нет.
+984 теста, analyze=0.
 
 ## Features
 
@@ -22,10 +23,14 @@ Offline-first мобильное приложение для изучения а
 - Reading Mode: 34 рассказа A1/A2/B1, перевод по кнопке, незнакомые слова — в словарь
 - Phrasebook: 209 фраз по категориям, поиск
 - Typing Speed: тренировка печати, WPM и точность, локальные рекорды
-- Achievements: 9 достижений за прогресс
+- Achievements: 30 достижений за прогресс
 - Daily Challenge: ежедневное задание и серия челленджей
 - Smart Review: умное повторение трудных и давно не виденных слов
 - Cloud Sync: Supabase, opt-in, ручной push/pull прогресса
+- RU/EN интерфейс: переключатель языка в AppBar, все 12 экранов локализованы
+- Аватар и никнейм в профиле (локально, без облака)
+- Cloze Test: 5 вариантов, раскрытие слова после ответа, массовое добавление в словарь
+- Кэш AI-переводов: повторный перевод слова — без сети (офлайн)
 - Полностью offline-first
 
 ## Environment
@@ -40,7 +45,7 @@ Offline-first мобильное приложение для изучения а
 
     flutter pub get
     flutter run                # device/emulator
-    flutter test               # 869 passed
+    flutter test               # 984 passed
     bash scripts/ci.sh         # CI
 
 ## Sentry (опционально)
@@ -196,7 +201,7 @@ flutter build apk --debug \
 ## Architecture
 
 - Presentation (Flutter) → Domain (pure Dart) → Data (Drift)
-- 41 ADR + архитектурные решения — docs/DECISIONS.md
+- 43 ADR + архитектурные решения — docs/DECISIONS.md
 - Contracts — docs/ARCHITECTURE.md
 - Dependency versions — ADR-007
 
@@ -209,6 +214,8 @@ flutter build apk --debug \
 - [ ] Phase 7: публикация (Google Play, App Store).
 - [x] Phase 8: AI-помощник (DeepSeek proxy).
 - [x] Phase 12: облачная синхронизация прогресса (Supabase, опционально).
+- [x] Phase 14–30: игры и режимы, daily challenge, 30 достижений, чат, error helper.
+- [x] Phase 27–33: RU/EN локализация, аватар/никнейм, Cloze UX, кэш переводов.
 
 ## Тестирование беты
 

@@ -740,7 +740,7 @@ Architecture Decision Records: один ADR — одно решение.
 - **Open questions:** озвучка рассказа через TTS (BL-87).
 
 ### ADR-041: Chat with AI bot
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-13
 - **Context:** Нужен интерактивный помощник для вопросов про английский. Приложение ходит через прокси (ADR-019), ключ модели живёт на сервере. История сообщений — локально (Drift), в облако не синхронизируется.
 - **Decision:**
@@ -757,7 +757,7 @@ Architecture Decision Records: один ADR — одно решение.
 - **Open questions:** rate limiting (BL-89), оффлайн-кэш ответов (BL-90).
 
 ### ADR-042: Error Helper
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-13
 - **Context:** Пользователь ошибается в игре, но не понимает почему. Нужна контекстная помощь через AI, не блокирующая игру.
 - **Decision:**
@@ -776,7 +776,7 @@ Architecture Decision Records: один ADR — одно решение.
 ---
 
 ### ADR-043: Localization strategy
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-14
 - **Context:** Интерфейс только на русском; англоязычный пользователь не может пользоваться приложением. Полноценный l10n (`flutter_localizations` + ARB + `intl`) тянет кодоген и новые зависимости ради ~200 строк. Учебный контент уже на английском и в переводе не нуждается.
 - **Decision:**
@@ -788,12 +788,12 @@ Architecture Decision Records: один ADR — одно решение.
 - **Alternatives considered:**
   - `flutter_localizations` + ARB + `intl` — отклонено для MVP: кодоген, новые зависимости и отдельный build-step ради плоской карты «ключ → строка».
   - Хранить язык отдельно от настроек — отклонено: язык — пользовательская настройка, место рядом с остальными и в export.
-- **Consequences:** новая строка требует перевода на оба языка (полнота проверяется тестами `strings_test`). Переход на ARB в будущем возможен: ключи уже отделены от UI. Экраны игр, чата, онбординга, чтения и достижений остаются на русском до BL-94.
+- **Consequences:** новая строка требует перевода на оба языка (полнота проверяется тестами `strings_test`). Переход на ARB в будущем возможен: ключи уже отделены от UI. Экраны игр, чата, онбординга, чтения и достижений локализованы в Phase 31 (BL-94 Done).
 - CEFR labels (label/description) не локализуются — это стандарт: `CefrLevel.description` остаётся английским при любом языке UI.
-- **Open questions:** проверка на реальном устройстве, что все строки переключаются (условие перевода в Accepted); оставшиеся экраны — BL-94 (Phase 27d).
+- **Open questions:** — (Accepted по решению владельца в Phase 33; BL-94 закрыт).
 
 ### ADR-044: User profile customization
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-14
 - **Context:** Пользователь хочет персонализировать профиль: загружать свой аватар и менять никнейм (фидбек: «рядом с именем в профиле кнопка Карандаш»). Аватар — приватные данные; облако в приложении opt-in, учебный цикл офлайновый.
 - **Decision:**
@@ -805,7 +805,7 @@ Architecture Decision Records: один ADR — одно решение.
   - (A) Аватар в облаке (Supabase Storage) — отклонено: облако opt-in, аватар должен работать офлайн; синхронизация — BL-97.
   - (B) Хранить изображение в БД (BLOB) — отклонено: раздувает базу и export-снимок.
 - **Consequences:** +2 зависимости: `image_picker`, `path_provider` (для appDocuments). +2 колонки `user_settings`. Файлы аватаров не попадают в бэкап: после импорта путь может указывать на несуществующий файл — UI показывает иконку.
-- **Open questions:** облачная синхронизация аватара (BL-97); проверка picker'а на реальном устройстве (Android/iOS) до перевода в Accepted.
+- **Open questions:** облачная синхронизация аватара (BL-97).
 
 ## Реестр
 
@@ -850,7 +850,7 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-037 | Typing Speed | Accepted |
 | ADR-038 | Phrasebook | Accepted |
 | ADR-039 | Reading Mode | Accepted |
-| ADR-041 | Chat with AI bot | Proposed |
-| ADR-042 | Error Helper | Proposed |
-| ADR-043 | Localization strategy | Proposed |
-| ADR-044 | User profile customization | Proposed |
+| ADR-041 | Chat with AI bot | Accepted |
+| ADR-042 | Error Helper | Accepted |
+| ADR-043 | Localization strategy | Accepted |
+| ADR-044 | User profile customization | Accepted |

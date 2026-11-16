@@ -7375,6 +7375,462 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessageRow> {
   }
 }
 
+class $WordTranslationsTable extends WordTranslations
+    with TableInfo<$WordTranslationsTable, WordTranslationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WordTranslationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _termMeta = const VerificationMeta('term');
+  @override
+  late final GeneratedColumn<String> term = GeneratedColumn<String>(
+    'term',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _translationMeta = const VerificationMeta(
+    'translation',
+  );
+  @override
+  late final GeneratedColumn<String> translation = GeneratedColumn<String>(
+    'translation',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _partOfSpeechMeta = const VerificationMeta(
+    'partOfSpeech',
+  );
+  @override
+  late final GeneratedColumn<String> partOfSpeech = GeneratedColumn<String>(
+    'part_of_speech',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _transcriptionMeta = const VerificationMeta(
+    'transcription',
+  );
+  @override
+  late final GeneratedColumn<String> transcription = GeneratedColumn<String>(
+    'transcription',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _exampleMeta = const VerificationMeta(
+    'example',
+  );
+  @override
+  late final GeneratedColumn<String> example = GeneratedColumn<String>(
+    'example',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtUtcMeta = const VerificationMeta(
+    'createdAtUtc',
+  );
+  @override
+  late final GeneratedColumn<int> createdAtUtc = GeneratedColumn<int>(
+    'created_at_utc',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    term,
+    translation,
+    partOfSpeech,
+    transcription,
+    example,
+    createdAtUtc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'word_translations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WordTranslationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('term')) {
+      context.handle(
+        _termMeta,
+        term.isAcceptableOrUnknown(data['term']!, _termMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_termMeta);
+    }
+    if (data.containsKey('translation')) {
+      context.handle(
+        _translationMeta,
+        translation.isAcceptableOrUnknown(
+          data['translation']!,
+          _translationMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_translationMeta);
+    }
+    if (data.containsKey('part_of_speech')) {
+      context.handle(
+        _partOfSpeechMeta,
+        partOfSpeech.isAcceptableOrUnknown(
+          data['part_of_speech']!,
+          _partOfSpeechMeta,
+        ),
+      );
+    }
+    if (data.containsKey('transcription')) {
+      context.handle(
+        _transcriptionMeta,
+        transcription.isAcceptableOrUnknown(
+          data['transcription']!,
+          _transcriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('example')) {
+      context.handle(
+        _exampleMeta,
+        example.isAcceptableOrUnknown(data['example']!, _exampleMeta),
+      );
+    }
+    if (data.containsKey('created_at_utc')) {
+      context.handle(
+        _createdAtUtcMeta,
+        createdAtUtc.isAcceptableOrUnknown(
+          data['created_at_utc']!,
+          _createdAtUtcMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtUtcMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {term};
+  @override
+  WordTranslationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WordTranslationRow(
+      term: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}term'],
+      )!,
+      translation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}translation'],
+      )!,
+      partOfSpeech: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_of_speech'],
+      ),
+      transcription: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transcription'],
+      ),
+      example: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}example'],
+      ),
+      createdAtUtc: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at_utc'],
+      )!,
+    );
+  }
+
+  @override
+  $WordTranslationsTable createAlias(String alias) {
+    return $WordTranslationsTable(attachedDatabase, alias);
+  }
+}
+
+class WordTranslationRow extends DataClass
+    implements Insertable<WordTranslationRow> {
+  /// Английский термин — ключ кэша.
+  final String term;
+
+  /// Русский перевод.
+  final String translation;
+
+  /// Часть речи, если прокси её вернул.
+  final String? partOfSpeech;
+
+  /// Транскрипция, если прокси её вернул.
+  final String? transcription;
+
+  /// Пример употребления, если прокси его вернул.
+  final String? example;
+
+  /// Момент сохранения, миллисекунды UTC.
+  final int createdAtUtc;
+  const WordTranslationRow({
+    required this.term,
+    required this.translation,
+    this.partOfSpeech,
+    this.transcription,
+    this.example,
+    required this.createdAtUtc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['term'] = Variable<String>(term);
+    map['translation'] = Variable<String>(translation);
+    if (!nullToAbsent || partOfSpeech != null) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech);
+    }
+    if (!nullToAbsent || transcription != null) {
+      map['transcription'] = Variable<String>(transcription);
+    }
+    if (!nullToAbsent || example != null) {
+      map['example'] = Variable<String>(example);
+    }
+    map['created_at_utc'] = Variable<int>(createdAtUtc);
+    return map;
+  }
+
+  WordTranslationsCompanion toCompanion(bool nullToAbsent) {
+    return WordTranslationsCompanion(
+      term: Value(term),
+      translation: Value(translation),
+      partOfSpeech: partOfSpeech == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partOfSpeech),
+      transcription: transcription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transcription),
+      example: example == null && nullToAbsent
+          ? const Value.absent()
+          : Value(example),
+      createdAtUtc: Value(createdAtUtc),
+    );
+  }
+
+  factory WordTranslationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WordTranslationRow(
+      term: serializer.fromJson<String>(json['term']),
+      translation: serializer.fromJson<String>(json['translation']),
+      partOfSpeech: serializer.fromJson<String?>(json['partOfSpeech']),
+      transcription: serializer.fromJson<String?>(json['transcription']),
+      example: serializer.fromJson<String?>(json['example']),
+      createdAtUtc: serializer.fromJson<int>(json['createdAtUtc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'term': serializer.toJson<String>(term),
+      'translation': serializer.toJson<String>(translation),
+      'partOfSpeech': serializer.toJson<String?>(partOfSpeech),
+      'transcription': serializer.toJson<String?>(transcription),
+      'example': serializer.toJson<String?>(example),
+      'createdAtUtc': serializer.toJson<int>(createdAtUtc),
+    };
+  }
+
+  WordTranslationRow copyWith({
+    String? term,
+    String? translation,
+    Value<String?> partOfSpeech = const Value.absent(),
+    Value<String?> transcription = const Value.absent(),
+    Value<String?> example = const Value.absent(),
+    int? createdAtUtc,
+  }) => WordTranslationRow(
+    term: term ?? this.term,
+    translation: translation ?? this.translation,
+    partOfSpeech: partOfSpeech.present ? partOfSpeech.value : this.partOfSpeech,
+    transcription: transcription.present
+        ? transcription.value
+        : this.transcription,
+    example: example.present ? example.value : this.example,
+    createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+  );
+  WordTranslationRow copyWithCompanion(WordTranslationsCompanion data) {
+    return WordTranslationRow(
+      term: data.term.present ? data.term.value : this.term,
+      translation: data.translation.present
+          ? data.translation.value
+          : this.translation,
+      partOfSpeech: data.partOfSpeech.present
+          ? data.partOfSpeech.value
+          : this.partOfSpeech,
+      transcription: data.transcription.present
+          ? data.transcription.value
+          : this.transcription,
+      example: data.example.present ? data.example.value : this.example,
+      createdAtUtc: data.createdAtUtc.present
+          ? data.createdAtUtc.value
+          : this.createdAtUtc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordTranslationRow(')
+          ..write('term: $term, ')
+          ..write('translation: $translation, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('transcription: $transcription, ')
+          ..write('example: $example, ')
+          ..write('createdAtUtc: $createdAtUtc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    term,
+    translation,
+    partOfSpeech,
+    transcription,
+    example,
+    createdAtUtc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WordTranslationRow &&
+          other.term == this.term &&
+          other.translation == this.translation &&
+          other.partOfSpeech == this.partOfSpeech &&
+          other.transcription == this.transcription &&
+          other.example == this.example &&
+          other.createdAtUtc == this.createdAtUtc);
+}
+
+class WordTranslationsCompanion extends UpdateCompanion<WordTranslationRow> {
+  final Value<String> term;
+  final Value<String> translation;
+  final Value<String?> partOfSpeech;
+  final Value<String?> transcription;
+  final Value<String?> example;
+  final Value<int> createdAtUtc;
+  final Value<int> rowid;
+  const WordTranslationsCompanion({
+    this.term = const Value.absent(),
+    this.translation = const Value.absent(),
+    this.partOfSpeech = const Value.absent(),
+    this.transcription = const Value.absent(),
+    this.example = const Value.absent(),
+    this.createdAtUtc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WordTranslationsCompanion.insert({
+    required String term,
+    required String translation,
+    this.partOfSpeech = const Value.absent(),
+    this.transcription = const Value.absent(),
+    this.example = const Value.absent(),
+    required int createdAtUtc,
+    this.rowid = const Value.absent(),
+  }) : term = Value(term),
+       translation = Value(translation),
+       createdAtUtc = Value(createdAtUtc);
+  static Insertable<WordTranslationRow> custom({
+    Expression<String>? term,
+    Expression<String>? translation,
+    Expression<String>? partOfSpeech,
+    Expression<String>? transcription,
+    Expression<String>? example,
+    Expression<int>? createdAtUtc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (term != null) 'term': term,
+      if (translation != null) 'translation': translation,
+      if (partOfSpeech != null) 'part_of_speech': partOfSpeech,
+      if (transcription != null) 'transcription': transcription,
+      if (example != null) 'example': example,
+      if (createdAtUtc != null) 'created_at_utc': createdAtUtc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WordTranslationsCompanion copyWith({
+    Value<String>? term,
+    Value<String>? translation,
+    Value<String?>? partOfSpeech,
+    Value<String?>? transcription,
+    Value<String?>? example,
+    Value<int>? createdAtUtc,
+    Value<int>? rowid,
+  }) {
+    return WordTranslationsCompanion(
+      term: term ?? this.term,
+      translation: translation ?? this.translation,
+      partOfSpeech: partOfSpeech ?? this.partOfSpeech,
+      transcription: transcription ?? this.transcription,
+      example: example ?? this.example,
+      createdAtUtc: createdAtUtc ?? this.createdAtUtc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (term.present) {
+      map['term'] = Variable<String>(term.value);
+    }
+    if (translation.present) {
+      map['translation'] = Variable<String>(translation.value);
+    }
+    if (partOfSpeech.present) {
+      map['part_of_speech'] = Variable<String>(partOfSpeech.value);
+    }
+    if (transcription.present) {
+      map['transcription'] = Variable<String>(transcription.value);
+    }
+    if (example.present) {
+      map['example'] = Variable<String>(example.value);
+    }
+    if (createdAtUtc.present) {
+      map['created_at_utc'] = Variable<int>(createdAtUtc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WordTranslationsCompanion(')
+          ..write('term: $term, ')
+          ..write('translation: $translation, ')
+          ..write('partOfSpeech: $partOfSpeech, ')
+          ..write('transcription: $transcription, ')
+          ..write('example: $example, ')
+          ..write('createdAtUtc: $createdAtUtc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7401,6 +7857,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PhrasesTable phrases = $PhrasesTable(this);
   late final $StoriesTable stories = $StoriesTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $WordTranslationsTable wordTranslations = $WordTranslationsTable(
+    this,
+  );
   late final Index idxWordsTerm = Index(
     'idx_words_term',
     'CREATE INDEX idx_words_term ON words (term)',
@@ -7446,6 +7905,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     phrases,
     stories,
     chatMessages,
+    wordTranslations,
     idxWordsTerm,
     idxWordProgressDue,
     idxWordProgressStatus,
@@ -11958,6 +12418,254 @@ typedef $$ChatMessagesTableProcessedTableManager =
       ChatMessageRow,
       PrefetchHooks Function()
     >;
+typedef $$WordTranslationsTableCreateCompanionBuilder =
+    WordTranslationsCompanion Function({
+      required String term,
+      required String translation,
+      Value<String?> partOfSpeech,
+      Value<String?> transcription,
+      Value<String?> example,
+      required int createdAtUtc,
+      Value<int> rowid,
+    });
+typedef $$WordTranslationsTableUpdateCompanionBuilder =
+    WordTranslationsCompanion Function({
+      Value<String> term,
+      Value<String> translation,
+      Value<String?> partOfSpeech,
+      Value<String?> transcription,
+      Value<String?> example,
+      Value<int> createdAtUtc,
+      Value<int> rowid,
+    });
+
+class $$WordTranslationsTableFilterComposer
+    extends Composer<_$AppDatabase, $WordTranslationsTable> {
+  $$WordTranslationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get example => $composableBuilder(
+    column: $table.example,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WordTranslationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WordTranslationsTable> {
+  $$WordTranslationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get term => $composableBuilder(
+    column: $table.term,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get example => $composableBuilder(
+    column: $table.example,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WordTranslationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WordTranslationsTable> {
+  $$WordTranslationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get term =>
+      $composableBuilder(column: $table.term, builder: (column) => column);
+
+  GeneratedColumn<String> get translation => $composableBuilder(
+    column: $table.translation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get partOfSpeech => $composableBuilder(
+    column: $table.partOfSpeech,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get transcription => $composableBuilder(
+    column: $table.transcription,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get example =>
+      $composableBuilder(column: $table.example, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAtUtc => $composableBuilder(
+    column: $table.createdAtUtc,
+    builder: (column) => column,
+  );
+}
+
+class $$WordTranslationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WordTranslationsTable,
+          WordTranslationRow,
+          $$WordTranslationsTableFilterComposer,
+          $$WordTranslationsTableOrderingComposer,
+          $$WordTranslationsTableAnnotationComposer,
+          $$WordTranslationsTableCreateCompanionBuilder,
+          $$WordTranslationsTableUpdateCompanionBuilder,
+          (
+            WordTranslationRow,
+            BaseReferences<
+              _$AppDatabase,
+              $WordTranslationsTable,
+              WordTranslationRow
+            >,
+          ),
+          WordTranslationRow,
+          PrefetchHooks Function()
+        > {
+  $$WordTranslationsTableTableManager(
+    _$AppDatabase db,
+    $WordTranslationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WordTranslationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WordTranslationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WordTranslationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> term = const Value.absent(),
+                Value<String> translation = const Value.absent(),
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> transcription = const Value.absent(),
+                Value<String?> example = const Value.absent(),
+                Value<int> createdAtUtc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WordTranslationsCompanion(
+                term: term,
+                translation: translation,
+                partOfSpeech: partOfSpeech,
+                transcription: transcription,
+                example: example,
+                createdAtUtc: createdAtUtc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String term,
+                required String translation,
+                Value<String?> partOfSpeech = const Value.absent(),
+                Value<String?> transcription = const Value.absent(),
+                Value<String?> example = const Value.absent(),
+                required int createdAtUtc,
+                Value<int> rowid = const Value.absent(),
+              }) => WordTranslationsCompanion.insert(
+                term: term,
+                translation: translation,
+                partOfSpeech: partOfSpeech,
+                transcription: transcription,
+                example: example,
+                createdAtUtc: createdAtUtc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WordTranslationsTable, WordTranslationRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $WordTranslationsTable,
+                    WordTranslationRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WordTranslationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WordTranslationsTable,
+      WordTranslationRow,
+      $$WordTranslationsTableFilterComposer,
+      $$WordTranslationsTableOrderingComposer,
+      $$WordTranslationsTableAnnotationComposer,
+      $$WordTranslationsTableCreateCompanionBuilder,
+      $$WordTranslationsTableUpdateCompanionBuilder,
+      (
+        WordTranslationRow,
+        BaseReferences<
+          _$AppDatabase,
+          $WordTranslationsTable,
+          WordTranslationRow
+        >,
+      ),
+      WordTranslationRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11994,4 +12702,6 @@ class $AppDatabaseManager {
       $$StoriesTableTableManager(_db, _db.stories);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$WordTranslationsTableTableManager get wordTranslations =>
+      $$WordTranslationsTableTableManager(_db, _db.wordTranslations);
 }

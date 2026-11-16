@@ -541,3 +541,34 @@ class ChatMessages extends Table {
   /// Момент создания, миллисекунды UTC.
   IntColumn get createdAtUtc => integer()();
 }
+
+/// Кэш словарных переводов (BL-96, Phase 33): одна запись на термин.
+///
+/// Внешнего ключа на `words` нет: переводятся и слова вне словаря (варианты
+/// игр), поэтому кэш переживает удаление слова.
+@DataClassName('WordTranslationRow')
+class WordTranslations extends Table {
+  @override
+  String get tableName => 'word_translations';
+
+  /// Английский термин — ключ кэша.
+  TextColumn get term => text()();
+
+  /// Русский перевод.
+  TextColumn get translation => text()();
+
+  /// Часть речи, если прокси её вернул.
+  TextColumn get partOfSpeech => text().nullable()();
+
+  /// Транскрипция, если прокси её вернул.
+  TextColumn get transcription => text().nullable()();
+
+  /// Пример употребления, если прокси его вернул.
+  TextColumn get example => text().nullable()();
+
+  /// Момент сохранения, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+
+  @override
+  Set<Column> get primaryKey => {term};
+}

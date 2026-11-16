@@ -1,6 +1,6 @@
 # Architecture
 
-Карта контрактов доменного слоя. Здесь описаны типы и сигнатуры; реализации появятся в 1.1a–1.1c.
+Карта контрактов доменного слоя. Здесь описаны типы и сигнатуры.
 Dart-код в документе не приводится: сигнатуры даны псевдо-Dart в backticks.
 
 ## Слои
@@ -299,6 +299,7 @@ XP и признак «верно» считаются в домене: `XpRules
 - `lib/domain/services/hint_generator.dart` — `HintGenerator` (интерфейс) + `AiClient` (data, реализация через прокси): domain не импортирует `package:http` (ADR-019).
 - `lib/domain/services/error_task_generator.dart` — `ErrorTaskGenerator` (интерфейс, Phase 8) + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с). Задание — `ErrorHunterTask` (VO с `fromJson`: `sentence`, `wrongWord`, `correctWord`, `options`). `correctWord` читается из ответа, если прокси его присылает; иначе выводится как первый вариант ≠ `wrongWord` (текущий контракт прокси, BL-59) и обязан присутствовать в `options`.
 - `lib/data/repositories/drift_word_hint_repository.dart` — кэш подсказок `word_hints` (schema v4), время создания приходит из домена.
+- `lib/domain/usecases/translate_word.dart` — `TranslateWord` (BL-96, schema v20): кэш `word_translations` → AI → кэш, реализует `TranslationGenerator`; ошибка AI не кэшируется (паттерн `GetWordHint`). Контракт — `WordTranslationRepository`, реализация — `drift_word_translation_repository.dart` (UTC-валидация).
 - `lib/domain/services/cloud_sync_service.dart` — `CloudSyncService` (`push`/`pull`/`sync`), `SyncReport`, `CloudSyncException` и заглушка `UnavailableCloudSyncService` (ADR-022). Реализация — `lib/data/sync/supabase_cloud_sync_service.dart`: слияние по `updatedAtUtc = lastReviewedAt ?? firstSeenAt`, строка с равной меткой не перезаписывается.
 - `lib/domain/services/cloud_auth_service.dart` — `CloudAuthService` (`isAvailable`, `email`, `authChanges`, `signInWithMagicLink`, `signOut`); Supabase-реализация в `lib/data/sync/supabase_cloud_auth_service.dart`, magic link возвращается по схеме `io.supabase.englishedu://login-callback/` из манифеста.
 - `lib/data/sync/remote_progress_row.dart` — DTO строки `user_progress` + интерфейс `RemoteProgressStore` (`fetchAll`/`upsertAll`). Транспорт отделён от Supabase, чтобы слияние тестировалось без сети.
@@ -326,26 +327,26 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 
 ## File layout
 
-Текущее дерево (Phase 23):
+Текущее дерево (Phase 33):
 
 - `lib/main.dart` — точка входа: `bootstrapApp` (crash reporting → seed → покрытие пропущенного дня → настройки → напоминания), `ProviderScope`, `MaterialApp.router`
-- `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `text/plural.dart`
-- `lib/core/di/providers.dart` — Riverpod-провайдеры (63), без codegen (BL-26)
+- `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `avatar/`, `localization/`, `text/plural.dart`
+- `lib/core/di/providers.dart` — Riverpod-провайдеры (97), без codegen (BL-26)
 - `lib/domain/entities/` — 8 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`, `chat_message`
-- `lib/domain/value_objects/` — 32 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`
-- `lib/domain/repositories/` — 16 контрактов репозиториев
-- `lib/domain/services/` — 7 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `cloud_auth_service`, `cloud_sync_service`
+- `lib/domain/value_objects/` — 34 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`, `app_language`, `word_translation`
+- `lib/domain/repositories/` — 17 контрактов репозиториев
+- `lib/domain/services/` — 8 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `word_translator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — 31 use case
-- `lib/data/db/` — Drift: 16 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v15, `app_database.g.dart` коммитится (ADR-008)
+- `lib/domain/usecases/` — 32 use case
+- `lib/data/db/` — Drift: 17 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v20, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
-- `lib/data/repositories/` — 16 Drift-реализаций контрактов
+- `lib/data/repositories/` — 17 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 16 виджетов
+- `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 17 виджетов
 - `lib/presentation/router.dart` — GoRouter, 19 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 120 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `test/` — 126 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 8 скриптов + 2 библиотеки: `generate_seed.dart`, `generate_phrases.dart`, `generate_stories.dart`, `merge_seeds.dart`, `merge_phrases.dart`, `merge_stories.dart`, `validate_seed.dart`, `review_seed.dart` + `validate_seed_lib.dart`, `review_seed_lib.dart`; `manual_review_overrides.json` — данные ручного ревью переводов
 - `assets/seed/` — `words_v2.json` (2071 слово), `phrases_v1.json` (209 фраз), `stories_v1.json` (34 рассказа); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
@@ -354,7 +355,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 ## Verification
 
 - `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
-- `flutter test` — зелёный (869 тестов: 645 `test()` + 224 `testWidgets()`, 120 файлов).
+- `flutter test` — зелёный (984 теста: 705 `test()` + 279 `testWidgets()`, 126 файлов).
 - Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
 - Покрытие domain ≥ 80% — с момента появления реализаций.
 - `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).
@@ -362,9 +363,9 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 ## Non-goals
 
 - Cloud sync: Supabase (ADR-022). Opt-in, локальная БД — источник истины. Синхронизируется только `WordProgress`.
-- Multi-language — только пара en→ru, другие языки вне scope.
+- Multi-language — UI ru/en (ADR-043); контент — пара en→ru, другие языки вне scope.
 - Web / desktop — только мобильные платформы.
-- AI-функции — Phase 8, post-launch, только через прокси.
+- AI-функции — только через прокси (ADR-019); учебный цикл работает офлайн.
 
 ## История версий схемы
 
@@ -388,3 +389,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v14 | `stories` | ADR-039 |
 | v15 | `chat_messages` | ADR-041 |
 | v16 | `cloze_tasks.options` | ADR-025 (Phase 26b) |
+| v17 | `user_settings.language` | ADR-043 (Phase 27b) |
+| v18 | `user_settings.nickname`, `user_settings.avatar_path` | ADR-044 (Phase 28c) |
+| v19 | Очистка `cloze_tasks` (обновлён AI-промпт) | Phase 32 |
+| v20 | `word_translations` (кэш переводов) | BL-96 (Phase 33) |

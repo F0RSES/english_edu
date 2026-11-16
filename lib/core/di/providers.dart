@@ -26,6 +26,7 @@ import 'package:english_edu/data/repositories/drift_typing_record_repository.dar
 import 'package:english_edu/data/repositories/drift_user_category_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_hint_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
+import 'package:english_edu/data/repositories/drift_word_translation_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/data/sync/supabase_cloud_auth_service.dart';
 import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
@@ -51,6 +52,7 @@ import 'package:english_edu/domain/repositories/typing_record_repository.dart';
 import 'package:english_edu/domain/repositories/user_category_repository.dart';
 import 'package:english_edu/domain/repositories/word_hint_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
+import 'package:english_edu/domain/repositories/word_translation_repository.dart';
 import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloud_auth_service.dart';
 import 'package:english_edu/domain/services/cloud_sync_service.dart';
@@ -89,6 +91,7 @@ import 'package:english_edu/domain/usecases/reset_progress.dart';
 import 'package:english_edu/domain/usecases/save_typing_record.dart';
 import 'package:english_edu/domain/usecases/send_chat_message.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
+import 'package:english_edu/domain/usecases/translate_word.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
@@ -191,9 +194,16 @@ final errorExplainerProvider = Provider<ErrorExplainer>(
   (ref) => ref.watch(aiClientProvider),
 );
 
-/// Словарный перевод слова; реализация — `AiClient` (Phase 28b).
+/// Словарный перевод слова: кэш → AI → кэш (BL-96, schema v20).
+///
+/// UI читает этот же провайдер (Phase 28b), поэтому кэш подключается без
+/// правок виджетов и их тестовых override.
 final translationGeneratorProvider = Provider<TranslationGenerator>(
-  (ref) => ref.watch(aiClientProvider),
+  (ref) => TranslateWord(
+    translations: ref.watch(wordTranslationRepositoryProvider),
+    generator: ref.watch(aiClientProvider),
+    clock: ref.watch(clockProvider),
+  ),
 );
 
 /// Кэш заданий «Заполни пропуск» (ADR-025, schema v7).
@@ -223,6 +233,11 @@ final getWordHintProvider = Provider<GetWordHint>(
     generator: ref.watch(hintGeneratorProvider),
     clock: ref.watch(clockProvider),
   ),
+);
+
+/// Кэш словарных переводов (BL-96, schema v20).
+final wordTranslationRepositoryProvider = Provider<WordTranslationRepository>(
+  (ref) => DriftWordTranslationRepository(ref.watch(appDatabaseProvider)),
 );
 
 /// Логгер приложения.

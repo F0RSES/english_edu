@@ -522,7 +522,27 @@ void main() {
     expect(await v19.select(v19.words).get(), hasLength(1));
   });
 
-  test('creates all sixteen tables on open', () async {
+  test('migration v19 to v20 creates the word_translations table', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v20',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v19 = текущая схема без кэша переводов.
+    final v19 = AppDatabase.forTesting(NativeDatabase(file));
+    await v19.customStatement('DROP TABLE word_translations');
+    await v19.customStatement('PRAGMA user_version = 19');
+    await v19.close();
+
+    final v20 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v20.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v20.select(v20.wordTranslations).get(), isEmpty);
+  });
+
+  test('creates all seventeen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);
     expect(await db.select(db.reviewLogs).get(), isEmpty);
@@ -539,6 +559,7 @@ void main() {
     expect(await db.select(db.phrases).get(), isEmpty);
     expect(await db.select(db.stories).get(), isEmpty);
     expect(await db.select(db.chatMessages).get(), isEmpty);
+    expect(await db.select(db.wordTranslations).get(), isEmpty);
   });
 
   test('migration v1 to v2 creates the frozen_days table', () async {

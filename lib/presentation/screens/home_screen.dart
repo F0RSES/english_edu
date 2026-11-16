@@ -157,9 +157,15 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2),
               const SizedBox(height: 16),
+              _buildSectionHeader(
+                context,
+                Icons.school_outlined,
+                S.sectionStudy(lang),
+              ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
+              const SizedBox(height: 12),
               _buildHero(context, ref, lang),
-              const SizedBox(height: 16),
               if (weakCount > 0 || smartCount > 0) ...[
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     if (weakCount > 0)
@@ -184,31 +190,26 @@ class HomeScreen extends ConsumerWidget {
                       ),
                   ],
                 ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
-                const SizedBox(height: 24),
               ],
-              Row(
-                children: [
-                  Icon(
-                    Icons.gamepad_outlined,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    S.games(lang),
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              _buildStudy(
+                context,
+                lang,
               ).animate().fadeIn(delay: 250.ms, duration: 300.ms),
+              const SizedBox(height: 24),
+              _buildSectionHeader(
+                context,
+                Icons.gamepad_outlined,
+                S.sectionGames(lang),
+              ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
               const SizedBox(height: 12),
               _buildGames(
                 context,
                 lang,
-              ).animate().fadeIn(delay: 300.ms, duration: 300.ms),
+              ).animate().fadeIn(delay: 350.ms, duration: 300.ms),
               const SizedBox(height: 24),
               const DailyChallengeCard().animate().fadeIn(
-                delay: 350.ms,
+                delay: 400.ms,
                 duration: 300.ms,
               ),
             ],
@@ -353,6 +354,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           );
 
+  /// Сетка игр: 6 режимов; новая игра добавляется записью списка (Phase 34).
   Widget _buildGames(BuildContext context, AppLanguage lang) => GridView.count(
     crossAxisCount: 3,
     shrinkWrap: true,
@@ -383,6 +385,13 @@ class HomeScreen extends ConsumerWidget {
             _openGame(context, '/word-scramble', HapticFeedback.selectionClick),
       ),
       _GameCard(
+        title: S.gameTitle('dictation', lang),
+        icon: Icons.hearing,
+        color: Colors.orange,
+        onTap: () =>
+            _openGame(context, '/listening', HapticFeedback.selectionClick),
+      ),
+      _GameCard(
         title: S.gameTitle('memory', lang),
         icon: Icons.memory,
         color: Colors.indigo,
@@ -396,20 +405,18 @@ class HomeScreen extends ConsumerWidget {
         onTap: () =>
             _openGame(context, '/typing-speed', HapticFeedback.selectionClick),
       ),
-      _GameCard(
-        title: S.gameTitle('phrasebook', lang),
-        icon: Icons.forum,
-        color: Colors.teal,
-        onTap: () =>
-            _openGame(context, '/phrasebook', HapticFeedback.selectionClick),
-      ),
-      _GameCard(
-        title: S.gameTitle('dictation', lang),
-        icon: Icons.hearing,
-        color: Colors.orange,
-        onTap: () =>
-            _openGame(context, '/listening', HapticFeedback.selectionClick),
-      ),
+    ],
+  );
+
+  /// Режимы обучения: чтение и разговорник (Phase 34).
+  Widget _buildStudy(BuildContext context, AppLanguage lang) => GridView.count(
+    crossAxisCount: 2,
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    mainAxisSpacing: 12,
+    crossAxisSpacing: 12,
+    childAspectRatio: 1.3,
+    children: [
       _GameCard(
         title: S.gameTitle('reading', lang),
         icon: Icons.book,
@@ -417,8 +424,38 @@ class HomeScreen extends ConsumerWidget {
         onTap: () =>
             _openGame(context, '/reading', HapticFeedback.selectionClick),
       ),
+      _GameCard(
+        title: S.gameTitle('phrasebook', lang),
+        icon: Icons.forum,
+        color: Colors.teal,
+        onTap: () =>
+            _openGame(context, '/phrasebook', HapticFeedback.selectionClick),
+      ),
     ],
   );
+
+  /// Заголовок секции: иконка + текст 18 bold primary (Phase 34).
+  Widget _buildSectionHeader(
+    BuildContext context,
+    IconData icon,
+    String title,
+  ) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Row(
+      children: [
+        Icon(icon, size: 22, color: primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: primary,
+          ),
+        ),
+      ],
+    );
+  }
 
   /// Тактильный отклик и переход.
   ///
@@ -576,7 +613,7 @@ class _PillButton extends StatelessWidget {
   );
 }
 
-/// Плитка игры в сетке «Игры».
+/// Плитка режима в сетке секции («Обучение» / «Тренировки»).
 class _GameCard extends StatelessWidget {
   const _GameCard({
     required this.title,

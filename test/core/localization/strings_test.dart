@@ -88,7 +88,8 @@ void main() {
         S.back,
         S.startLesson,
         S.words,
-        S.games,
+        S.sectionStudy,
+        S.sectionGames,
         S.check,
         S.next,
         S.incorrect,
@@ -305,6 +306,10 @@ void main() {
       expect(S.startLesson(AppLanguage.en), 'Start lesson');
       expect(S.wordsToday(5, 10, AppLanguage.en), '5 / 10 words today');
       expect(S.sessionCorrect(3, 5, AppLanguage.en), 'Correct: 3 of 5');
+      expect(S.sectionStudy(AppLanguage.ru), 'Обучение');
+      expect(S.sectionStudy(AppLanguage.en), 'Study');
+      expect(S.sectionGames(AppLanguage.ru), 'Тренировки');
+      expect(S.sectionGames(AppLanguage.en), 'Practice');
     });
 
     test('flags and game titles are localized (Phase 28a)', () {

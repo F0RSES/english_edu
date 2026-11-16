@@ -37,8 +37,11 @@ final class S {
   /// Слово «слов» в строках счётчиков.
   static String words(AppLanguage l) => _t('words', l);
 
-  /// Заголовок секции игр.
-  static String games(AppLanguage l) => _t('games', l);
+  /// Заголовок секции «Обучение» на главной (Phase 34).
+  static String sectionStudy(AppLanguage l) => _t('section.study', l);
+
+  /// Заголовок секции «Тренировки» на главной (Phase 34).
+  static String sectionGames(AppLanguage l) => _t('section.games', l);
 
   /// Кнопка «Проверить».
   static String check(AppLanguage l) => _t('check', l);
@@ -1016,7 +1019,8 @@ final class S {
     'back': {'ru': 'Назад', 'en': 'Back'},
     'startLesson': {'ru': 'Начать урок', 'en': 'Start lesson'},
     'words': {'ru': 'слов', 'en': 'words'},
-    'games': {'ru': 'Игры', 'en': 'Games'},
+    'section.study': {'ru': 'Обучение', 'en': 'Study'},
+    'section.games': {'ru': 'Тренировки', 'en': 'Practice'},
     'check': {'ru': 'Проверить', 'en': 'Check'},
     'next': {'ru': 'Далее', 'en': 'Next'},
     'incorrect': {'ru': 'Неверно', 'en': 'Wrong'},

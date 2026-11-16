@@ -153,6 +153,43 @@ Widget app({
         builder: (context, state) =>
             const Scaffold(body: Text('экран профиля')),
       ),
+      GoRoute(
+        path: '/reading',
+        builder: (context, state) => const Scaffold(body: Text('экран чтения')),
+      ),
+      GoRoute(
+        path: '/phrasebook',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран разговорника')),
+      ),
+      GoRoute(
+        path: '/error-hunter',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран охоты на ошибки')),
+      ),
+      GoRoute(
+        path: '/cloze-test',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран пропуска')),
+      ),
+      GoRoute(
+        path: '/word-scramble',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран сборки слова')),
+      ),
+      GoRoute(
+        path: '/listening',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран диктанта')),
+      ),
+      GoRoute(
+        path: '/word-match',
+        builder: (context, state) => const Scaffold(body: Text('экран мемори')),
+      ),
+      GoRoute(
+        path: '/typing-speed',
+        builder: (context, state) => const Scaffold(body: Text('экран печати')),
+      ),
     ],
   );
   return ProviderScope(
@@ -438,7 +475,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // До переключения — русские строки.
-    expect(find.text('Игры'), findsOneWidget);
+    expect(find.text('Обучение'), findsOneWidget);
+    expect(find.text('Тренировки'), findsOneWidget);
     expect(find.text('Начать урок'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Язык'));
@@ -447,9 +485,63 @@ void main() {
     await tester.pumpAndSettle();
 
     // После переключения — английские, и настройка сохранена.
-    expect(find.text('Games'), findsOneWidget);
+    expect(find.text('Study'), findsOneWidget);
+    expect(find.text('Practice'), findsOneWidget);
     expect(find.text('Start lesson'), findsOneWidget);
-    expect(find.text('Игры'), findsNothing);
+    expect(find.text('Обучение'), findsNothing);
+    expect(find.text('Тренировки'), findsNothing);
     expect((await settings.get()).language, AppLanguage.en);
+  });
+
+  testWidgets('shows study and practice section headers', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Обучение'), findsOneWidget);
+    expect(find.text('Тренировки'), findsOneWidget);
+    expect(find.byIcon(Icons.school_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.gamepad_outlined), findsOneWidget);
+    // Hero-кнопка остаётся в секции «Обучение».
+    expect(find.text('Начать урок'), findsOneWidget);
+  });
+
+  testWidgets('study cards open reading and phrasebook', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    for (final (title, marker) in [
+      ('Чтение', 'экран чтения'),
+      ('Разговорник', 'экран разговорника'),
+    ]) {
+      await tester.ensureVisible(find.text(title));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(title));
+      await tester.pumpAndSettle();
+      expect(find.text(marker), findsOneWidget);
+      GoRouter.of(tester.element(find.text(marker))).pop();
+      await tester.pumpAndSettle();
+    }
+  });
+
+  testWidgets('game cards open their routes', (tester) async {
+    await tester.pumpWidget(app(words: [word(1)]));
+    await tester.pumpAndSettle();
+
+    for (final (title, marker) in [
+      ('Охота на ошибки', 'экран охоты на ошибки'),
+      ('Заполни пропуск', 'экран пропуска'),
+      ('Собери слово', 'экран сборки слова'),
+      ('Аудио-диктант', 'экран диктанта'),
+      ('Мемори', 'экран мемори'),
+      ('Скорость печати', 'экран печати'),
+    ]) {
+      await tester.ensureVisible(find.text(title));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(title));
+      await tester.pumpAndSettle();
+      expect(find.text(marker), findsOneWidget);
+      GoRouter.of(tester.element(find.text(marker))).pop();
+      await tester.pumpAndSettle();
+    }
   });
 }

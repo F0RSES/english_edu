@@ -205,14 +205,14 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v16 — шестнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041), v15→v16 добавляет `cloze_tasks.options` (ADR-025) — существующие таблицы и данные не пересоздаются.
+Схема v21 — семнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041), v15→v16 добавляет `cloze_tasks.options` (ADR-025), v16→v17 добавляет `user_settings.language` (ADR-043), v17→v18 добавляет `user_settings.nickname` и `avatar_path` (ADR-044), v18→v19 очищает `cloze_tasks` (Phase 32), v19→v20 создаёт `word_translations` (BL-96), v20→v21 добавляет `words.synonyms` (Phase 36a) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
-| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement); `category` nullable (v3); `level` текст `a0`…`c2`, default `a1` (v6, ADR-023) | `idx_words_term` |
+| `words` | `Word` | `id` (из `WordId.value`, без autoIncrement); `category` nullable (v3); `level` текст `a0`…`c2`, default `a1` (v6, ADR-023); `synonyms` JSON-массив nullable (v21, Phase 36a) | `idx_words_term` |
 | `word_progresses` | `WordProgressRow` | `wordId` → `words.id` ON DELETE CASCADE | `idx_word_progress_due`, `idx_word_progress_status` |
 | `review_logs` | `ReviewLogRow` | `id` | `idx_review_logs_word`, `idx_review_logs_reviewed` |
-| `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)` | нет |
+| `user_settings` | `UserSettingsRow` | `id` + `CHECK (id = 1)`; `language` (v17, ADR-043), `nickname`/`avatar_path` nullable (v18, ADR-044) | нет |
 | `daily_stats` | `DailyStatsRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`) | нет |
 | `frozen_days` | `FrozenDayRow` | `dateEpochDays` (`LocalDate.daysSinceEpoch`), схема v2 | нет |
 | `word_hints` | `WordHintRow` | `wordId` → `words.id` ON DELETE CASCADE, схема v4 | нет |
@@ -225,6 +225,7 @@ Dart-код в документе не приводится: сигнатуры 
 | `phrases` | `PhraseRow` | `id` (autoIncrement); колонки `phrase`, `translation`, `category`, `level`, `createdAtUtc`; схема v13 | нет |
 | `stories` | `StoryRow` | `id` (autoIncrement); колонки `title`, `text` (getter `content`), `translation`, `level`, `createdAtUtc`; схема v14 | нет |
 | `chat_messages` | `ChatMessageRow` | `id` (autoIncrement); колонки `role` ('user'/'assistant'), `content`, `createdAtUtc`; схема v15 | `idx_chat_messages_created` |
+| `word_translations` | `WordTranslationRow` | `term` (TEXT PK); колонки `translation`, `partOfSpeech`/`transcription`/`example` nullable, `createdAtUtc`; схема v20 (BL-96); без FK на `words` — кэш переживает удаление слова | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -300,6 +301,8 @@ XP и признак «верно» считаются в домене: `XpRules
 - `lib/domain/services/error_task_generator.dart` — `ErrorTaskGenerator` (интерфейс, Phase 8) + `AiClient.generateErrorTask` (прокси `type: error_hunter`, таймаут 15 с). Задание — `ErrorHunterTask` (VO с `fromJson`: `sentence`, `wrongWord`, `correctWord`, `options`). `correctWord` читается из ответа, если прокси его присылает; иначе выводится как первый вариант ≠ `wrongWord` (текущий контракт прокси, BL-59) и обязан присутствовать в `options`.
 - `lib/data/repositories/drift_word_hint_repository.dart` — кэш подсказок `word_hints` (schema v4), время создания приходит из домена.
 - `lib/domain/usecases/translate_word.dart` — `TranslateWord` (BL-96, schema v20): кэш `word_translations` → AI → кэш, реализует `TranslationGenerator`; ошибка AI не кэшируется (паттерн `GetWordHint`). Контракт — `WordTranslationRepository`, реализация — `drift_word_translation_repository.dart` (UTC-валидация).
+- `lib/data/db/tables.dart` — `WordTranslations` (schema v20, BL-96): `term` PK, `translation`, `partOfSpeech`/`transcription`/`example` nullable, `createdAtUtc`; без FK на `words` — кэш переживает удаление слова. `words.synonyms` (schema v21, Phase 36a) — JSON-массив строк, null — синонимов нет.
+- `lib/domain/services/sentence_generator.dart` — `SentenceGenerator` (Phase 35) + `AiClient.generateSentencePuzzle` (прокси `type: sentence_builder`, таймаут 15 с). Задание — `SentencePuzzle` (VO: `sentence`, `shuffledWords`, `translation`). `GenerateSentencePuzzle` перемешивает слова; `GenerateListeningSentence` (Phase 36b) — без перемешки: предложение вводится целиком под TTS.
 - `lib/domain/services/cloud_sync_service.dart` — `CloudSyncService` (`push`/`pull`/`sync`), `SyncReport`, `CloudSyncException` и заглушка `UnavailableCloudSyncService` (ADR-022). Реализация — `lib/data/sync/supabase_cloud_sync_service.dart`: слияние по `updatedAtUtc = lastReviewedAt ?? firstSeenAt`, строка с равной меткой не перезаписывается.
 - `lib/domain/services/cloud_auth_service.dart` — `CloudAuthService` (`isAvailable`, `email`, `authChanges`, `signInWithMagicLink`, `signOut`); Supabase-реализация в `lib/data/sync/supabase_cloud_auth_service.dart`, magic link возвращается по схеме `io.supabase.englishedu://login-callback/` из манифеста.
 - `lib/data/sync/remote_progress_row.dart` — DTO строки `user_progress` + интерфейс `RemoteProgressStore` (`fetchAll`/`upsertAll`). Транспорт отделён от Supabase, чтобы слияние тестировалось без сети.
@@ -327,26 +330,26 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 
 ## File layout
 
-Текущее дерево (Phase 33):
+Текущее дерево (Phase 37a):
 
 - `lib/main.dart` — точка входа: `bootstrapApp` (crash reporting → seed → покрытие пропущенного дня → настройки → напоминания), `ProviderScope`, `MaterialApp.router`
 - `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `avatar/`, `localization/`, `text/plural.dart`
-- `lib/core/di/providers.dart` — Riverpod-провайдеры (97), без codegen (BL-26)
+- `lib/core/di/providers.dart` — Riverpod-провайдеры (100), без codegen (BL-26)
 - `lib/domain/entities/` — 8 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`, `chat_message`
-- `lib/domain/value_objects/` — 34 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`, `app_language`, `word_translation`
+- `lib/domain/value_objects/` — 35 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`, `app_language`, `word_translation`, `sentence_puzzle`
 - `lib/domain/repositories/` — 17 контрактов репозиториев
-- `lib/domain/services/` — 8 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `word_translator`, `cloud_auth_service`, `cloud_sync_service`
+- `lib/domain/services/` — 9 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `word_translator`, `sentence_generator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
-- `lib/domain/usecases/` — 32 use case
-- `lib/data/db/` — Drift: 17 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v20, `app_database.g.dart` коммитится (ADR-008)
+- `lib/domain/usecases/` — 34 use case
+- `lib/data/db/` — Drift: 17 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v21, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
 - `lib/data/repositories/` — 17 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
-- `lib/presentation/screens/` — 17 экранов; `lib/presentation/widgets/` — 17 виджетов
-- `lib/presentation/router.dart` — GoRouter, 19 маршрутов + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
-- `test/` — 126 файлов тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
+- `lib/presentation/screens/` — 19 экранов; `lib/presentation/widgets/` — 17 виджетов
+- `lib/presentation/router.dart` — GoRouter, 21 маршрут + гейт онбординга; `theme.dart` — Material 3 + Inter (офлайн)
+- `test/` — 131 файл тестов, зеркалят структуру `lib/`; `test/integration/` — сквозные сценарии и performance baseline
 - `tools/` — 8 скриптов + 2 библиотеки: `generate_seed.dart`, `generate_phrases.dart`, `generate_stories.dart`, `merge_seeds.dart`, `merge_phrases.dart`, `merge_stories.dart`, `validate_seed.dart`, `review_seed.dart` + `validate_seed_lib.dart`, `review_seed_lib.dart`; `manual_review_overrides.json` — данные ручного ревью переводов
 - `assets/seed/` — `words_v2.json` (2071 слово), `phrases_v1.json` (209 фраз), `stories_v1.json` (34 рассказа); `words_v1.json` и `words_<level>.json` — входные данные merge, в APK не попадают
 
@@ -355,7 +358,7 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 ## Verification
 
 - `flutter analyze` — ноль issues, ноль `// ignore` (с Phase 2a; в Phase 1 был `dart analyze`).
-- `flutter test` — зелёный (984 теста: 705 `test()` + 279 `testWidgets()`, 126 файлов).
+- `flutter test` — зелёный (1042 теста: 741 `test()` + 301 `testWidgets()`, 131 файл).
 - Границы слоя: в `lib/domain/` нет импортов Flutter, Drift и пакетов слоя data. Проверяется линтером и CI.
 - Покрытие domain ≥ 80% — с момента появления реализаций.
 - `flutter analyze` и `flutter test` — с Phase 2a (Flutter bootstrap, ADR-006); в Phase 1 домен проверялся через `dart analyze` / `dart test`. `bash scripts/ci.sh` — локальная проверка (format + analyze + test).
@@ -393,3 +396,4 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v18 | `user_settings.nickname`, `user_settings.avatar_path` | ADR-044 (Phase 28c) |
 | v19 | Очистка `cloze_tasks` (обновлён AI-промпт) | Phase 32 |
 | v20 | `word_translations` (кэш переводов) | BL-96 (Phase 33) |
+| v21 | `words.synonyms` (JSON-массив, синонимы для Typing Speed) | Phase 36a |

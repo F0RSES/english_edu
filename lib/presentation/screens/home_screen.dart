@@ -408,9 +408,9 @@ class HomeScreen extends ConsumerWidget {
     ],
   );
 
-  /// Режимы обучения: чтение и разговорник (Phase 34).
+  /// Режимы обучения: чтение, разговорник, сборка предложений (Phase 34–35).
   Widget _buildStudy(BuildContext context, AppLanguage lang) => GridView.count(
-    crossAxisCount: 2,
+    crossAxisCount: 3,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     mainAxisSpacing: 12,
@@ -430,6 +430,16 @@ class HomeScreen extends ConsumerWidget {
         color: Colors.teal,
         onTap: () =>
             _openGame(context, '/phrasebook', HapticFeedback.selectionClick),
+      ),
+      _GameCard(
+        title: S.gameSentenceBuilder(lang),
+        icon: Icons.text_fields,
+        color: Colors.pinkAccent,
+        onTap: () => _openGame(
+          context,
+          '/sentence-builder',
+          HapticFeedback.selectionClick,
+        ),
       ),
     ],
   );

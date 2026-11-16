@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:http/http.dart' as http;
@@ -266,6 +267,53 @@ void main() {
 
     await expectLater(
       client.translate('facility'),
+      throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
+    );
+  });
+
+  test(
+    'generateSentencePuzzle parses JSON and posts the sentence type',
+    () async {
+      Object? capturedBody;
+      final client = AiClient(
+        MockClient((request) async {
+          capturedBody = jsonDecode(request.body);
+          return jsonResponse({
+            'sentence': 'I eat an apple every day',
+            'translation': 'Я ем яблоко каждый день',
+          }, 200);
+        }),
+        random: Random(3),
+      );
+
+      final puzzle = await client.generateSentencePuzzle('eat', level: 'A1');
+
+      expect(capturedBody, {'type': 'sentence_builder', 'word': 'A1 - eat'});
+      expect(puzzle.sentence, 'I eat an apple every day');
+      expect(puzzle.translation, 'Я ем яблоко каждый день');
+      final expected = puzzle.sentence.split(' ')..sort();
+      expect([...puzzle.shuffledWords]..sort(), expected);
+    },
+  );
+
+  test('generateSentencePuzzle throws on missing translation', () async {
+    final client = AiClient(
+      MockClient((_) async => jsonResponse({'sentence': 'I eat apples'}, 200)),
+    );
+
+    await expectLater(
+      client.generateSentencePuzzle('eat', level: 'A1'),
+      throwsA(isA<AiException>()),
+    );
+  });
+
+  test('generateSentencePuzzle throws AiException on 500', () async {
+    final client = AiClient(
+      MockClient((_) async => http.Response('boom', 500)),
+    );
+
+    await expectLater(
+      client.generateSentencePuzzle('eat', level: 'A1'),
       throwsA(isA<AiException>().having((e) => e.statusCode, 'status', 500)),
     );
   });

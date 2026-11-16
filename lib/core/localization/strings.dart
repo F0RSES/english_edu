@@ -101,6 +101,10 @@ final class S {
   /// Название плитки игры по ключу.
   static String gameTitle(String game, AppLanguage l) => _t('game.$game', l);
 
+  /// Название игры «Собери предложение» (Phase 35).
+  static String gameSentenceBuilder(AppLanguage l) =>
+      _t('game.sentenceBuilder', l);
+
   // --- Серия ---
   /// Призыв начать серию при нуле.
   static String streakStart(AppLanguage l) => _t('streak.start', l);
@@ -774,6 +778,10 @@ final class S {
   static String scramblePreparing(AppLanguage l) =>
       _t('game.scramble.preparing', l);
 
+  /// Инструкция игры «Собери предложение» (Phase 35).
+  static String sentenceInstruction(AppLanguage l) =>
+      _t('game.sentenceBuilder.instruction', l);
+
   // --- Dictation ---
   /// TTS недоступен.
   static String dictationTtsUnavailable(AppLanguage l) =>
@@ -1051,6 +1059,10 @@ final class S {
     'game.phrasebook': {'ru': 'Разговорник', 'en': 'Phrasebook'},
     'game.dictation': {'ru': 'Аудио-диктант', 'en': 'Dictation'},
     'game.reading': {'ru': 'Чтение', 'en': 'Reading'},
+    'game.sentenceBuilder': {
+      'ru': 'Собери предложение',
+      'en': 'Sentence Builder',
+    },
     // Серия.
     'streak.start': {
       'ru': 'Начни серию сегодня',
@@ -1643,6 +1655,10 @@ final class S {
     'game.scramble.preparing': {
       'ru': 'Готовим задание...',
       'en': 'Preparing the task...',
+    },
+    'game.sentenceBuilder.instruction': {
+      'ru': 'Собери предложение из слов',
+      'en': 'Assemble the sentence',
     },
     // Dictation.
     'game.dictation.ttsUnavailable': {

@@ -60,6 +60,7 @@ import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
+import 'package:english_edu/domain/services/sentence_generator.dart';
 import 'package:english_edu/domain/services/word_translator.dart';
 import 'package:english_edu/domain/srs/sm2_srs_calculator.dart';
 import 'package:english_edu/domain/srs/srs_calculator.dart';
@@ -75,6 +76,7 @@ import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_error_task.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
+import 'package:english_edu/domain/usecases/generate_sentence_puzzle.dart';
 import 'package:english_edu/domain/usecases/generate_typing_session.dart';
 import 'package:english_edu/domain/usecases/get_analytics.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
@@ -523,6 +525,26 @@ final generateDictationQueueProvider = Provider<GenerateDictationQueue>(
 final generateScramblePuzzlesProvider = Provider<GenerateScramblePuzzles>(
   (ref) => GenerateScramblePuzzles(
     words: ref.watch(wordRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    random: Random(),
+  ),
+);
+
+/// Генератор заданий «Собери предложение»; реализация — `AiClient`
+/// (Phase 35). Вызывается только когда у слова нет exampleSentence.
+final sentenceGeneratorProvider = Provider<SentenceGenerator>(
+  (ref) => ref.watch(aiClientProvider),
+);
+
+/// Задание «Собери предложение»: exampleSentence офлайн, иначе AI
+/// (Phase 35).
+///
+/// `Random()` без seed: порядок слов должен меняться от сессии к сессии.
+/// Тесты подменяют провайдер целиком, поэтому seed здесь не нужен.
+final generateSentencePuzzleProvider = Provider<GenerateSentencePuzzle>(
+  (ref) => GenerateSentencePuzzle(
+    words: ref.watch(wordRepositoryProvider),
+    generator: ref.watch(sentenceGeneratorProvider),
     settings: ref.watch(settingsRepositoryProvider),
     random: Random(),
   ),

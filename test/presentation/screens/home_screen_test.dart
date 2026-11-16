@@ -163,6 +163,11 @@ Widget app({
             const Scaffold(body: Text('экран разговорника')),
       ),
       GoRoute(
+        path: '/sentence-builder',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран сборки предложения')),
+      ),
+      GoRoute(
         path: '/error-hunter',
         builder: (context, state) =>
             const Scaffold(body: Text('экран охоты на ошибки')),
@@ -505,13 +510,14 @@ void main() {
     expect(find.text('Начать урок'), findsOneWidget);
   });
 
-  testWidgets('study cards open reading and phrasebook', (tester) async {
+  testWidgets('study cards open their routes', (tester) async {
     await tester.pumpWidget(app(words: [word(1)]));
     await tester.pumpAndSettle();
 
     for (final (title, marker) in [
       ('Чтение', 'экран чтения'),
       ('Разговорник', 'экран разговорника'),
+      ('Собери предложение', 'экран сборки предложения'),
     ]) {
       await tester.ensureVisible(find.text(title));
       await tester.pumpAndSettle();

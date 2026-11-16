@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:english_edu/domain/services/chat_generator.dart';
 import 'package:english_edu/domain/services/cloze_generator.dart';
 import 'package:english_edu/domain/services/error_explainer.dart';
 import 'package:english_edu/domain/services/error_task_generator.dart';
 import 'package:english_edu/domain/services/hint_generator.dart';
+import 'package:english_edu/domain/services/sentence_generator.dart';
 import 'package:english_edu/domain/services/word_translator.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
+import 'package:english_edu/domain/value_objects/sentence_puzzle.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:http/http.dart' as http;
 
@@ -48,6 +51,9 @@ const _translateType = 'translate_word';
 /// Таймаут перевода: словарная статья генерируется дольше подсказки.
 const _translateTimeout = Duration(seconds: 15);
 
+/// Значение поля `type` для задания «Собери предложение» (Phase 35).
+const _sentenceType = 'sentence_builder';
+
 /// Ошибка AI-подсказки: сеть, статус ответа или неожиданный формат.
 ///
 /// Отдельный тип нужен, чтобы UI отличал «нет подсказки» от прочих сбоев и не
@@ -80,12 +86,15 @@ final class AiClient
         ClozeGenerator,
         ChatGenerator,
         ErrorExplainer,
-        TranslationGenerator {
+        TranslationGenerator,
+        SentenceGenerator {
   /// Создаёт клиент поверх переданного `http.Client`: тесты подставляют
-  /// `MockClient`, приложение — реальный клиент.
-  AiClient(this._client);
+  /// `MockClient`, приложение — реальный клиент. [random] инжектится для
+  /// детерминированной перемешки слов в заданиях (Phase 35).
+  AiClient(this._client, {Random? random}) : _random = random ?? Random();
 
   final http.Client _client;
+  final Random _random;
 
   /// Запрашивает ассоциацию для [word] (контракт [HintGenerator]).
   ///
@@ -343,6 +352,60 @@ final class AiClient
       partOfSpeech: _optionalText(decoded['partOfSpeech']),
       transcription: _optionalText(decoded['transcription']),
       example: _optionalText(decoded['example']),
+    );
+  }
+
+  /// Запрашивает задание «Собери предложение» для [word] уровня [level]
+  /// (контракт [SentenceGenerator], Phase 35).
+  ///
+  /// Уровень уходит в поле `word` вместе со словом: прокси принимает только
+  /// это поле (паттерн Phase 27a). Слова перемешиваются здесь — домен
+  /// получает готовое задание.
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустые
+  /// поля; таймаут пробрасывается как [TimeoutException].
+  @override
+  Future<SentencePuzzle> generateSentencePuzzle(
+    String word, {
+    required String level,
+  }) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'type': _sentenceType, 'word': '$level - $word'}),
+        )
+        .timeout(_taskTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final sentence = decoded['sentence'];
+    final translation = decoded['translation'];
+    if (sentence is! String || sentence.trim().isEmpty) {
+      throw const AiException('AI proxy returned no sentence');
+    }
+    if (translation is! String || translation.trim().isEmpty) {
+      throw const AiException('AI proxy returned no translation');
+    }
+    final tokens = sentence.trim().split(RegExp(r'\s+'));
+    return SentencePuzzle(
+      sentence: tokens.join(' '),
+      shuffledWords: [...tokens]..shuffle(_random),
+      translation: translation,
     );
   }
 

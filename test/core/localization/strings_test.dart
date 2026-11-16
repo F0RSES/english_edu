@@ -258,6 +258,8 @@ void main() {
         S.saveNickname,
         S.personalization,
         S.changeNickname,
+        S.gameSentenceBuilder,
+        S.sentenceInstruction,
       ];
       for (final build in simple) {
         for (final lang in AppLanguage.values) {
@@ -276,6 +278,7 @@ void main() {
         'phrasebook',
         'dictation',
         'reading',
+        'sentenceBuilder',
       ];
       for (final game in games) {
         for (final lang in AppLanguage.values) {

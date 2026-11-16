@@ -13,6 +13,7 @@ import 'package:english_edu/presentation/screens/phrasebook_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
 import 'package:english_edu/presentation/screens/reading_list_screen.dart';
 import 'package:english_edu/presentation/screens/reading_screen.dart';
+import 'package:english_edu/presentation/screens/sentence_builder_screen.dart';
 import 'package:english_edu/presentation/screens/settings_screen.dart';
 import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
 import 'package:english_edu/presentation/screens/word_match_screen.dart';
@@ -96,6 +97,11 @@ final routerProvider = Provider<GoRouter>(
         path: '/word-scramble',
         pageBuilder: (context, state) =>
             _fadeScalePage(state, const WordScrambleScreen()),
+      ),
+      GoRoute(
+        path: '/sentence-builder',
+        pageBuilder: (context, state) =>
+            _fadeScalePage(state, const SentenceBuilderScreen()),
       ),
       GoRoute(
         path: '/weak-words',

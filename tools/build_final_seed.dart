@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Целевые квоты (Phase 38b): всего 9500 слов.
+/// Целевые квоты (Phase 38c): всего 6500 новых слов.
 const _quotas = <String, int>{
-  'A0': 2000,
-  'A1': 2000,
-  'A2': 2000,
+  'A0': 500,
+  'A1': 1000,
+  'A2': 1500,
   'B1': 1250,
   'B2': 1250,
   'C1': 500,
@@ -25,18 +25,26 @@ const _sources = <({String name, String path})>[
 
 const _seedPath = 'assets/seed/words_v2.json';
 const _outputPath = 'final_seed.csv';
+const _oxfordPath = 'oxford5000.txt';
 
-/// Собирает финальный словарь из трёх источников (Phase 38b).
+/// Эвристика позиции oxford5000: первые 1000 → A1, следующие 1000 → A2,
+/// остальные → B1 (грубая оценка: точных уровней в списке нет).
+const _oxfordA1Limit = 1000;
+const _oxfordA2Limit = 2000;
+
+/// Собирает финальный словарь из четырёх источников (Phase 38c).
 ///
 /// Читает lingvoberry.csv, cefrj.csv, octanove.csv (колонки word/headword
 /// и cefr/level определяются по заголовку; BOM, `#`-комментарии и кавычки
 /// обрабатываются), дедуплицирует (trim + lowercase, первое вхождение
 /// побеждает) и исключает слова, уже имеющиеся в `assets/seed/words_v2.json`.
 ///
-/// Распределение (исправление бага Phase 38a): сначала каждый уровень
-/// резервирует свои слова до квоты (излишек обрезается), затем недобор
-/// добирается из остатков следующих уровней — уровень не отдаёт слова,
-/// пока не заполнил собственную квоту. Пишет `final_seed.csv`
+/// Распределение: каждый уровень резервирует свои слова до квоты (излишек
+/// обрезается), недобор добирается из остатков ТОЛЬКО следующего уровня
+/// (A0←A1, A1←A2, A2←B1...). Оставшийся недобор закрывает четвёртый
+/// источник — oxford5000.txt (плоский список): уровень определяется
+/// позицией в файле (первые 1000 → A1, следующие 1000 → A2, остальные →
+/// B1), доноры — свой и следующий уровень. Пишет `final_seed.csv`
 /// (word,level,source) и печатает подробную статистику.
 void main() {
   final existing = _existingTerms();
@@ -133,6 +141,58 @@ void main() {
   ].join(' ');
   stdout.writeln('Уникальные слова по уровням после дедупа: $poolSizes');
 
+  // Четвёртый источник — fallback: только на недобор после основных трёх.
+  final oxfordFile = File(_oxfordPath);
+  if (!oxfordFile.existsSync()) {
+    stderr.writeln('Нет $_oxfordPath: положите список слов в корень проекта.');
+    exit(1);
+  }
+  final oxfordPools = <String, List<String>>{
+    'A1': <String>[],
+    'A2': <String>[],
+    'B1': <String>[],
+  };
+  var oxfordLines = 0;
+  var oxfordAdded = 0;
+  var oxfordExisting = 0;
+  var oxfordDuplicates = 0;
+  var position = 0;
+  final oxfordRaw = const LineSplitter().convert(
+    oxfordFile.readAsStringSync().replaceFirst('\uFEFF', ''),
+  );
+  for (final line in oxfordRaw) {
+    final word = line.trim().toLowerCase();
+    if (word.isEmpty || word.startsWith('#')) {
+      continue;
+    }
+    position++;
+    oxfordLines++;
+    if (existing.contains(word)) {
+      oxfordExisting++;
+      continue;
+    }
+    if (!seen.add(word)) {
+      oxfordDuplicates++;
+      continue;
+    }
+    final home = position <= _oxfordA1Limit
+        ? 'A1'
+        : position <= _oxfordA2Limit
+        ? 'A2'
+        : 'B1';
+    oxfordPools[home]!.add(word);
+    oxfordAdded++;
+  }
+  stdout
+    ..writeln(
+      'oxford5000: строк $oxfordLines, добавлено $oxfordAdded, '
+      'уже в seed $oxfordExisting, дубликаты $oxfordDuplicates',
+    )
+    ..writeln(
+      'oxford5000 эвристика: A1=${oxfordPools['A1']!.length} '
+      'A2=${oxfordPools['A2']!.length} B1=${oxfordPools['B1']!.length}',
+    );
+
   final cursors = <String, int>{for (final level in _levelOrder) level: 0};
   final assigned = <String, List<(String, String)>>{
     for (final level in _levelOrder) level: <(String, String)>[],
@@ -151,26 +211,62 @@ void main() {
     ownCounts[target] = take;
   }
 
-  // Шаг 2: недобор добирается из остатков следующих уровней: донор отдаёт
-  // только то, что осталось после его собственной квоты (исправление 38a).
+  // Шаг 2: недобор добирается из остатков ТОЛЬКО следующего уровня:
+  // A0←A1, A1←A2, A2←B1... — без дальнего каскада (Phase 38c). Донор
+  // отдаёт только то, что осталось после его собственной квоты (фикс 38a).
   final fills = <String, Map<String, int>>{};
   for (var t = 0; t < _levelOrder.length; t++) {
     final target = _levelOrder[t];
     final quota = _quotas[target]!;
     var written = assigned[target]!.length;
-    for (var d = t + 1; d < _levelOrder.length && written < quota; d++) {
-      final donor = _levelOrder[d];
-      final pool = pools[donor]!;
-      var fromDonor = 0;
-      while (written < quota && cursors[donor]! < pool.length) {
-        assigned[target]!.add(pool[cursors[donor]!]);
-        cursors[donor] = cursors[donor]! + 1;
+    if (t + 1 >= _levelOrder.length || written >= quota) {
+      continue;
+    }
+    final donor = _levelOrder[t + 1];
+    final pool = pools[donor]!;
+    var fromDonor = 0;
+    while (written < quota && cursors[donor]! < pool.length) {
+      assigned[target]!.add(pool[cursors[donor]!]);
+      cursors[donor] = cursors[donor]! + 1;
+      written++;
+      fromDonor++;
+    }
+    if (fromDonor > 0) {
+      (fills[target] ??= <String, int>{})[donor] = fromDonor;
+    }
+  }
+
+  // Шаг 3: oxford5000 — fallback только на оставшийся недобор. Доноры:
+  // свой эвристический уровень и следующий; у A0 своих oxford-слов нет,
+  // поэтому он берёт только из A1 (правило доноров).
+  final oxfordCursors = <String, int>{'A1': 0, 'A2': 0, 'B1': 0};
+  final oxfordFills = <String, int>{};
+  for (var t = 0; t < _levelOrder.length; t++) {
+    final target = _levelOrder[t];
+    final quota = _quotas[target]!;
+    var written = assigned[target]!.length;
+    if (written >= quota) {
+      continue;
+    }
+    final donors = <String>[
+      if (oxfordPools.containsKey(target)) target,
+      if (t + 1 < _levelOrder.length) _levelOrder[t + 1],
+    ];
+    var fromOxford = 0;
+    for (final donor in donors) {
+      final pool = oxfordPools[donor];
+      if (pool == null) {
+        continue;
+      }
+      while (written < quota && oxfordCursors[donor]! < pool.length) {
+        assigned[target]!.add((pool[oxfordCursors[donor]!], 'oxford5000'));
+        oxfordCursors[donor] = oxfordCursors[donor]! + 1;
         written++;
-        fromDonor++;
+        fromOxford++;
       }
-      if (fromDonor > 0) {
-        (fills[target] ??= <String, int>{})[donor] = fromDonor;
-      }
+    }
+    if (fromOxford > 0) {
+      oxfordFills[target] = fromOxford;
     }
   }
 
@@ -193,9 +289,12 @@ void main() {
     if (shortfall > 0) {
       shortfalls.add('$target — $shortfall');
     }
+    final oxfordPart = oxfordFills[target] == null
+        ? ''
+        : ' + oxford ${oxfordFills[target]}';
     stdout.writeln(
-      '  $target: свои ${ownCounts[target]} + добивание [$fillText] = '
-      '$written / $quota'
+      '  $target: свои ${ownCounts[target]} + добивание [$fillText]'
+      '$oxfordPart = $written / $quota'
       '${shortfall > 0 ? ', недобор $shortfall' : ''}',
     );
   }
@@ -219,6 +318,7 @@ void main() {
       '# Octanove Vocabulary Profile '
       '(github.com/openlanguageprofiles/olp-en-cefrj), CC BY-SA 4.0.',
     )
+    ..writeln('# Oxford 5000 (Oxford University Press) — fallback-источник.')
     ..writeln('# level — целевой уровень квоты, source — происхождение слова.')
     ..writeln('word,level,source');
   for (final target in _levelOrder) {

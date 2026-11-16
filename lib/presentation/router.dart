@@ -8,6 +8,7 @@ import 'package:english_edu/presentation/screens/error_hunter_screen.dart';
 import 'package:english_edu/presentation/screens/home_screen.dart';
 import 'package:english_edu/presentation/screens/lesson_screen.dart';
 import 'package:english_edu/presentation/screens/listening_dictation_screen.dart';
+import 'package:english_edu/presentation/screens/listening_v2_screen.dart';
 import 'package:english_edu/presentation/screens/onboarding_screen.dart';
 import 'package:english_edu/presentation/screens/phrasebook_screen.dart';
 import 'package:english_edu/presentation/screens/profile_screen.dart';
@@ -92,6 +93,11 @@ final routerProvider = Provider<GoRouter>(
         path: '/listening',
         pageBuilder: (context, state) =>
             _fadePage(state, const ListeningDictationScreen()),
+      ),
+      GoRoute(
+        path: '/listening-v2',
+        pageBuilder: (context, state) =>
+            _fadeScalePage(state, const ListeningV2Screen()),
       ),
       GoRoute(
         path: '/word-scramble',

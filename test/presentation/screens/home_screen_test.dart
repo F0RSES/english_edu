@@ -168,6 +168,11 @@ Widget app({
             const Scaffold(body: Text('экран сборки предложения')),
       ),
       GoRoute(
+        path: '/listening-v2',
+        builder: (context, state) =>
+            const Scaffold(body: Text('экран диктанта предложений')),
+      ),
+      GoRoute(
         path: '/error-hunter',
         builder: (context, state) =>
             const Scaffold(body: Text('экран охоты на ошибки')),
@@ -518,6 +523,7 @@ void main() {
       ('Чтение', 'экран чтения'),
       ('Разговорник', 'экран разговорника'),
       ('Собери предложение', 'экран сборки предложения'),
+      ('Аудио-диктант предложений', 'экран диктанта предложений'),
     ]) {
       await tester.ensureVisible(find.text(title));
       await tester.pumpAndSettle();

@@ -408,9 +408,10 @@ class HomeScreen extends ConsumerWidget {
     ],
   );
 
-  /// Режимы обучения: чтение, разговорник, сборка предложений (Phase 34–35).
+  /// Режимы обучения: чтение, разговорник, сборка и диктант предложений
+  /// (Phase 34–36b). Сетка 2×2: четыре карточки.
   Widget _buildStudy(BuildContext context, AppLanguage lang) => GridView.count(
-    crossAxisCount: 3,
+    crossAxisCount: 2,
     shrinkWrap: true,
     physics: const NeverScrollableScrollPhysics(),
     mainAxisSpacing: 12,
@@ -440,6 +441,13 @@ class HomeScreen extends ConsumerWidget {
           '/sentence-builder',
           HapticFeedback.selectionClick,
         ),
+      ),
+      _GameCard(
+        title: S.gameListeningV2(lang),
+        icon: Icons.headphones,
+        color: Colors.blueGrey,
+        onTap: () =>
+            _openGame(context, '/listening-v2', HapticFeedback.selectionClick),
       ),
     ],
   );

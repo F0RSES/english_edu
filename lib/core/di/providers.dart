@@ -74,6 +74,7 @@ import 'package:english_edu/domain/usecases/extract_unknown_words.dart';
 import 'package:english_edu/domain/usecases/flip_memory_card.dart';
 import 'package:english_edu/domain/usecases/generate_dictation_queue.dart';
 import 'package:english_edu/domain/usecases/generate_error_task.dart';
+import 'package:english_edu/domain/usecases/generate_listening_sentence.dart';
 import 'package:english_edu/domain/usecases/generate_memory_game.dart';
 import 'package:english_edu/domain/usecases/generate_scramble_puzzles.dart';
 import 'package:english_edu/domain/usecases/generate_sentence_puzzle.dart';
@@ -543,6 +544,20 @@ final sentenceGeneratorProvider = Provider<SentenceGenerator>(
 /// Тесты подменяют провайдер целиком, поэтому seed здесь не нужен.
 final generateSentencePuzzleProvider = Provider<GenerateSentencePuzzle>(
   (ref) => GenerateSentencePuzzle(
+    words: ref.watch(wordRepositoryProvider),
+    generator: ref.watch(sentenceGeneratorProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    random: Random(),
+  ),
+);
+
+/// Задание «Аудио-диктант предложений»: exampleSentence офлайн, иначе AI
+/// (Phase 36b). Без перемешивания: предложение вводится целиком.
+///
+/// `Random()` без seed: предложения должны меняться от сессии к сессии.
+/// Тесты подменяют провайдер целиком.
+final generateListeningSentenceProvider = Provider<GenerateListeningSentence>(
+  (ref) => GenerateListeningSentence(
     words: ref.watch(wordRepositoryProvider),
     generator: ref.watch(sentenceGeneratorProvider),
     settings: ref.watch(settingsRepositoryProvider),

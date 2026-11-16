@@ -782,6 +782,24 @@ final class S {
   static String sentenceInstruction(AppLanguage l) =>
       _t('game.sentenceBuilder.instruction', l);
 
+  /// Название игры «Аудио-диктант предложений» (Phase 36b).
+  static String gameListeningV2(AppLanguage l) => _t('game.listeningV2', l);
+
+  /// Инструкция «Аудио-диктанта предложений».
+  static String listeningInstruction(AppLanguage l) =>
+      _t('game.listeningV2.instruction', l);
+
+  /// Кнопка показа перевода-подсказки.
+  static String listeningShowTranslation(AppLanguage l) =>
+      _t('game.listeningV2.showTranslation', l);
+
+  /// Подсказка поля ввода диктанта предложений.
+  static String listeningHint(AppLanguage l) => _t('game.listeningV2.hint', l);
+
+  /// Карточка после неверного ответа: показывает правильное предложение.
+  static String listeningWrongAnswer(String sentence, AppLanguage l) =>
+      _t('game.listeningV2.wrongAnswer', l).replaceFirst('{s}', sentence);
+
   // --- Dictation ---
   /// TTS недоступен.
   static String dictationTtsUnavailable(AppLanguage l) =>
@@ -1073,6 +1091,10 @@ final class S {
     'game.sentenceBuilder': {
       'ru': 'Собери предложение',
       'en': 'Sentence Builder',
+    },
+    'game.listeningV2': {
+      'ru': 'Аудио-диктант предложений',
+      'en': 'Sentence Dictation',
     },
     // Серия.
     'streak.start': {
@@ -1670,6 +1692,22 @@ final class S {
     'game.sentenceBuilder.instruction': {
       'ru': 'Собери предложение из слов',
       'en': 'Assemble the sentence',
+    },
+    'game.listeningV2.instruction': {
+      'ru': 'Прослушай и запиши предложение',
+      'en': 'Listen and write',
+    },
+    'game.listeningV2.showTranslation': {
+      'ru': 'Показать перевод',
+      'en': 'Show translation',
+    },
+    'game.listeningV2.hint': {
+      'ru': 'Введите предложение...',
+      'en': 'Enter the sentence...',
+    },
+    'game.listeningV2.wrongAnswer': {
+      'ru': 'Неверно. Правильно: {s}',
+      'en': 'Wrong. Correct: {s}',
     },
     // Dictation.
     'game.dictation.ttsUnavailable': {

@@ -43,6 +43,7 @@ void main() {
       (l) => S.achievementsInProgress(27, l),
       (l) => S.readingAddedWords(2, l),
       (l) => S.readingAddWords(5, l),
+      (l) => S.listeningWrongAnswer('I eat an apple.', l),
     ];
 
     test('parameterized strings leave no placeholders in either language', () {
@@ -260,6 +261,10 @@ void main() {
         S.changeNickname,
         S.gameSentenceBuilder,
         S.sentenceInstruction,
+        S.gameListeningV2,
+        S.listeningInstruction,
+        S.listeningShowTranslation,
+        S.listeningHint,
       ];
       for (final build in simple) {
         for (final lang in AppLanguage.values) {
@@ -279,6 +284,7 @@ void main() {
         'dictation',
         'reading',
         'sentenceBuilder',
+        'listeningV2',
       ];
       for (final game in games) {
         for (final lang in AppLanguage.values) {

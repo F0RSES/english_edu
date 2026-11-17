@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -16,6 +17,15 @@ const _requestDelay = Duration(milliseconds: 200);
 
 /// Одна повторная попытка при ошибке: всего два запроса на слово.
 const _attempts = 2;
+
+/// Явный таймаут каждой фазы запроса: connectionTimeout/idleTimeout у
+/// HttpClient не ограничивают ожидание ответа активного соединения
+/// (dart-sdk lib/_http/http.dart), без этого Worker может подвесить запуск.
+const _requestTimeout = Duration(seconds: 15);
+
+/// Промежуточный результат полного запуска: переживает обрыв процесса.
+const _checkpointPath = 'words_v3_checkpoint.json';
+const _checkpointEvery = 100;
 
 /// Атрибуция источников final_seed.csv: CC BY-SA требует лицензий в seed.
 const _sourceMeta = <String, ({String name, String license, String url})>{
@@ -59,14 +69,21 @@ typedef _TranslationFields = ({
 /// Ключ API не нужен: запросы идут в Cloudflare Worker (ADR-019), ключ модели
 /// живёт на прокси. Сеть нужна только этому скрипту; приложение офлайновое.
 ///
-/// На каждое новое слово — POST {type: translate_word, word}: одна повторная
-/// попытка при ошибке, задержка 200 мс между запросами. Провал после retry —
-/// warning и пропуск слова, запуск продолжается. Новые слова помечаются
-/// `autoTranslated: true` (машинный перевод, pending review — BL-21).
+/// На каждое новое слово — POST {type: translate_word, word}: явный таймаут
+/// 15 с на фазу запроса, одна повторная попытка при ошибке (таймаут не
+/// ретраится — сразу следующее слово), задержка 200 мс между запросами.
+/// Провал — warning и пропуск слова, запуск продолжается. Новые слова
+/// помечаются `autoTranslated: true` (машинный перевод, pending review —
+/// BL-21).
+///
+/// Каждые 100 обработанных слов промежуточный результат пишется в
+/// `words_v3_checkpoint.json`. При перезапуске существующий чекпоинт
+/// становится базой: уже сгенерированные слова пропускаются, id продолжаются.
+/// Чекпоинт после успеха не удаляется: повторный запуск доберёт только
+/// пропущенные и новые слова; начать заново — удалить файл вручную.
 ///
 /// Выход — seed формата words_v2 (schemaVersion, sources, words; sourceId
-/// ссылается на sources). JSON пишется только в конце: чекпоинтов нет, обрыв
-/// длинного запуска теряет прогресс. Если новых слов нет, файл не пишется.
+/// ссылается на sources). Если новых слов нет, файл не пишется.
 Future<void> main(List<String> args) async {
   if (args.length < 2 || args.length > 3) {
     stderr.writeln(
@@ -127,9 +144,52 @@ Future<void> main(List<String> args) async {
     return;
   }
 
+  // Чекпоинт прошлого запуска — эффективная база: уже сгенерированные слова
+  // не запрашиваются повторно. Повреждённый файл — явная ошибка, а не
+  // молчаливая потеря прогресса.
+  var effectiveWords = baseWords;
+  var effectiveSources = baseSources;
+  final checkpointFile = File(_checkpointPath);
+  if (checkpointFile.existsSync()) {
+    final Object? checkpoint;
+    try {
+      checkpoint = jsonDecode(checkpointFile.readAsStringSync());
+    } on FormatException catch (error) {
+      stderr.writeln(
+        'ERROR: checkpoint повреждён (${error.message}); '
+        'удалите $_checkpointPath, чтобы начать заново',
+      );
+      exitCode = 1;
+      return;
+    }
+    if (checkpoint is! Map<String, Object?>) {
+      stderr.writeln('ERROR: checkpoint root must be a JSON object');
+      exitCode = 1;
+      return;
+    }
+    final checkpointWords = checkpoint['words'];
+    final checkpointSources = checkpoint['sources'];
+    if (checkpointWords is! List ||
+        checkpointWords.isEmpty ||
+        checkpointSources is! List) {
+      stderr.writeln(
+        'ERROR: checkpoint "words" must be a non-empty array '
+        'and "sources" an array',
+      );
+      exitCode = 1;
+      return;
+    }
+    effectiveWords = checkpointWords;
+    effectiveSources = checkpointSources;
+    stdout.writeln(
+      'Checkpoint найден: ${checkpointWords.length} слов — '
+      'уже сгенерированные пропускаются',
+    );
+  }
+
   final existing = <String>{};
   var maxId = 0;
-  for (final item in baseWords) {
+  for (final item in effectiveWords) {
     if (item is! Map<String, Object?>) {
       stderr.writeln('ERROR: base seed word must be an object');
       exitCode = 1;
@@ -244,6 +304,9 @@ Future<void> main(List<String> args) async {
       if (index > 0) {
         await Future<void>.delayed(_requestDelay);
       }
+      stdout.writeln(
+        'Requesting: ${entry.term} (${index + 1}/${candidates.length})',
+      );
       final fields = await _translate(client, entry.term);
       if (fields == null) {
         failed++;
@@ -267,15 +330,47 @@ Future<void> main(List<String> args) async {
       });
       nextId++;
       usedSources.add(entry.source);
-      stdout.writeln(
-        'Word ${index + 1}/${candidates.length}: '
-        '${entry.term} → ${fields.translation}',
-      );
+      stdout.writeln('Got response: ${entry.term} → ${fields.translation}');
+      if ((index + 1) % _checkpointEvery == 0) {
+        await _writeJson(_checkpointPath, <String, Object?>{
+          'schemaVersion': base['schemaVersion'],
+          'sources': _mergedSources(effectiveSources, usedSources),
+          'words': [...effectiveWords, ...generated],
+        });
+        stdout.writeln(
+          'Checkpoint: ${generated.length} новых слов → $_checkpointPath',
+        );
+      }
     }
   } finally {
     client.close(force: true);
   }
 
+  final payload = <String, Object?>{
+    'schemaVersion': base['schemaVersion'],
+    'sources': _mergedSources(effectiveSources, usedSources),
+    'words': [...effectiveWords, ...generated],
+  };
+  await _writeJson(args[1], payload);
+
+  for (final warning in warnings) {
+    stderr.writeln('WARNING: $warning');
+  }
+  stdout
+    ..writeln(
+      'Сгенерировано: ${generated.length}, пропущено из-за ошибок: $failed, '
+      'уже в seed: $skippedExisting, дубликаты в CSV: $skippedDuplicates',
+    )
+    ..writeln(
+      'Записано: ${args[1]} (${effectiveWords.length + generated.length} слов)',
+    );
+}
+
+/// Источники базы плюс атрибуция реально использованных новых источников.
+List<Object?> _mergedSources(
+  List<Object?> baseSources,
+  Set<String> usedSources,
+) {
   final sources = [...baseSources];
   for (final meta in _sourceMeta.entries) {
     if (!usedSources.contains(meta.key)) {
@@ -293,31 +388,19 @@ Future<void> main(List<String> args) async {
       });
     }
   }
+  return sources;
+}
 
-  final payload = <String, Object?>{
-    'schemaVersion': base['schemaVersion'],
-    'sources': sources,
-    'words': [...baseWords, ...generated],
-  };
+/// Пишет seed-JSON с отступами; общий путь финального файла и чекпоинтов.
+Future<void> _writeJson(String path, Map<String, Object?> payload) async {
   await File(
-    args[1],
+    path,
   ).writeAsString('${const JsonEncoder.withIndent('  ').convert(payload)}\n');
-
-  for (final warning in warnings) {
-    stderr.writeln('WARNING: $warning');
-  }
-  stdout
-    ..writeln(
-      'Сгенерировано: ${generated.length}, пропущено из-за ошибок: $failed, '
-      'уже в seed: $skippedExisting, дубликаты в CSV: $skippedDuplicates',
-    )
-    ..writeln(
-      'Записано: ${args[1]} (${baseWords.length + generated.length} слов)',
-    );
 }
 
 /// Запрашивает перевод у прокси; при ошибке повторяет один раз.
 ///
+/// Таймаут не ретраится: зависший ответ сразу ведёт к следующему слову.
 /// `null` — слово не обогащено (warning уже напечатан), запуск продолжается.
 Future<_TranslationFields?> _translate(HttpClient client, String term) async {
   for (var attempt = 0; attempt < _attempts; attempt++) {
@@ -326,6 +409,9 @@ Future<_TranslationFields?> _translate(HttpClient client, String term) async {
     }
     try {
       return await _requestTranslation(client, term);
+    } on TimeoutException {
+      stderr.writeln('Timeout: $term');
+      return null;
     } on Object catch (error) {
       if (attempt == _attempts - 1) {
         stderr.writeln('WARNING: $term: $error');
@@ -339,13 +425,26 @@ Future<_TranslationFields> _requestTranslation(
   HttpClient client,
   String term,
 ) async {
-  final request = await client.postUrl(Uri.parse(_proxyUrl));
+  final request = await client
+      .postUrl(Uri.parse(_proxyUrl))
+      .timeout(_requestTimeout);
   request.headers.contentType = ContentType.json;
   request.write(
     jsonEncode(<String, Object?>{'type': _translateType, 'word': term}),
   );
-  final response = await request.close();
-  final body = await response.transform(utf8.decoder).join();
+  final HttpClientResponse response;
+  final String body;
+  try {
+    response = await request.close().timeout(_requestTimeout);
+    body = await response
+        .transform(utf8.decoder)
+        .join()
+        .timeout(_requestTimeout);
+  } on TimeoutException {
+    // Без abort зависший запрос держит сокет в пуле HttpClient.
+    request.abort();
+    rethrow;
+  }
   if (response.statusCode != HttpStatus.ok) {
     // В диагностику идут только статус и начало тела: без заголовков и URI.
     throw HttpException('HTTP ${response.statusCode}: ${_truncate(body)}');

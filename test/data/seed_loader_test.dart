@@ -173,6 +173,16 @@ void main() {
     expect(first.exampleSentence, 'The cat is on the mat.');
   });
 
+  test('seed words carry thematic categories (Phase 39b)', () async {
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+
+    final all = await words.getAll();
+    final categorized = all.where((word) => word.category != null).length;
+    // Точное число фиксирует контент: случайная потеря тегов ловится сразу.
+    expect(categorized, 2323);
+    expect(all.firstWhere((word) => word.term == 'apple').category, 'food');
+  });
+
   test('defaults a missing level to a1', () async {
     final bundle = JsonAssetBundle(jsonEncode(seedJson([seedWord(1, 'book')])));
 

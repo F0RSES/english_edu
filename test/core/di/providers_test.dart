@@ -6,6 +6,7 @@ import 'package:english_edu/data/db/app_database.dart';
 import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
+import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/usecases/compute_streak.dart';
 import 'package:english_edu/domain/usecases/export_progress.dart';
 import 'package:english_edu/domain/usecases/get_today_queue.dart';
@@ -14,9 +15,12 @@ import 'package:english_edu/domain/usecases/record_review.dart';
 import 'package:english_edu/domain/usecases/translate_word.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/achievement_type.dart';
+import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/domain/value_objects/word_category.dart';
+import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,6 +51,69 @@ void main() {
     container.dispose();
     await db.close();
   });
+
+  test(
+    'dictionaryEntriesProvider filters by level and category together',
+    () async {
+      final words = container.read(wordRepositoryProvider);
+      await words.insertMany([
+        const domain.Word(
+          id: WordId(1),
+          term: 'apple',
+          translation: 'яблоко',
+          category: 'Еда',
+        ),
+        const domain.Word(
+          id: WordId(2),
+          term: 'banana',
+          translation: 'банан',
+          category: 'Еда',
+          level: CefrLevel.a2,
+        ),
+        const domain.Word(
+          id: WordId(3),
+          term: 'run',
+          translation: 'бежать',
+          partOfSpeech: 'verb',
+        ),
+      ]);
+
+      expect(
+        await container.read(dictionaryEntriesProvider.future),
+        hasLength(3),
+      );
+
+      container
+          .read(dictionaryLevelFilterProvider.notifier)
+          .update(CefrLevel.a1);
+      expect(
+        await container.read(dictionaryEntriesProvider.future),
+        hasLength(2),
+      );
+
+      container
+          .read(dictionaryCategoryFilterProvider.notifier)
+          .update(WordCategory.food);
+      final food = await container.read(dictionaryEntriesProvider.future);
+      expect(food, hasLength(1));
+      expect(food.single.word.term, 'apple');
+
+      container
+          .read(dictionaryCategoryFilterProvider.notifier)
+          .update(WordCategory.verbs);
+      final verbsA1 = await container.read(dictionaryEntriesProvider.future);
+      expect(verbsA1.single.word.term, 'run');
+
+      container
+          .read(dictionaryLevelFilterProvider.notifier)
+          .update(CefrLevel.a2);
+      expect(await container.read(dictionaryEntriesProvider.future), isEmpty);
+
+      container.read(dictionaryLevelFilterProvider.notifier).update(null);
+      final verbs = await container.read(dictionaryEntriesProvider.future);
+      expect(verbs.single.word.term, 'run');
+    },
+  );
 
   test('all providers resolve without errors', () {
     expect(container.read(clockProvider), isNotNull);

@@ -3,9 +3,9 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
+import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
-import 'package:english_edu/presentation/widgets/word_categories.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,8 +23,10 @@ enum DictionaryTab {
   mastered,
 }
 
-/// Словарь: список, поиск, фильтр по статусу, добавление слова.
+/// Словарь: список, поиск, двойной фильтр (CEFR + категория), добавление слова.
 ///
+/// Уровень и категория фильтруются в `dictionaryEntriesProvider` (Phase 39a)
+/// и складываются по AND; вкладка статуса применяется локально.
 /// «Все» — все слова. «Изучаю» — `status.learning`. «Выучено» —
 /// `status.mastered`. Слова без прогресса (`status == null`) видны только во
 /// вкладке «Все» и помечены как новые.
@@ -36,13 +38,12 @@ class DictionaryScreen extends ConsumerStatefulWidget {
   ConsumerState<DictionaryScreen> createState() => _DictionaryScreenState();
 }
 
+/// Высота ряда чипов категорий: ChoiceChip плюс вертикальные отступы.
+const _categoryRowHeight = 48.0;
+
 class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   final _search = TextEditingController();
   DictionaryTab _tab = DictionaryTab.all;
-  // null — фильтр по категории выключен («Все»).
-  String? _selectedCategory;
-  // null — фильтр по уровню выключен («Все уровни»).
-  CefrLevel? _selectedLevel;
 
   @override
   void dispose() {
@@ -62,30 +63,6 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
             if (entry.status == WordStatus.mastered) entry,
         ],
       };
-
-  /// Оставляет слова выбранной категории; при `null` не фильтрует.
-  List<DictionaryEntry> _applyCategory(List<DictionaryEntry> entries) {
-    final category = _selectedCategory;
-    if (category == null) {
-      return entries;
-    }
-    return [
-      for (final entry in entries)
-        if (entry.word.category == category) entry,
-    ];
-  }
-
-  /// Оставляет слова выбранного уровня; при `null` не фильтрует.
-  List<DictionaryEntry> _applyLevel(List<DictionaryEntry> entries) {
-    final level = _selectedLevel;
-    if (level == null) {
-      return entries;
-    }
-    return [
-      for (final entry in entries)
-        if (entry.word.level == level) entry,
-    ];
-  }
 
   void _reload() => ref.invalidate(dictionaryEntriesProvider);
 
@@ -107,24 +84,14 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     _showMessage(S.wordAdded(lang));
   }
 
-  /// Имена категорий для фильтра (ADR-034).
-  ///
-  /// Пока список читается из БД, показывается базовый набор: фильтр не должен
-  /// исчезать и «прыгать» при каждом открытии экрана.
-  List<String> _categoryNames(WidgetRef ref) => ref
-      .watch(userCategoriesProvider)
-      .when(
-        data: (categories) => [for (final item in categories) item.name],
-        loading: () => wordCategories,
-        error: (error, stack) => wordCategories,
-      );
-
   void _showMessage(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   @override
   Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
+    final selectedLevel = ref.watch(dictionaryLevelFilterProvider);
+    final selectedCategory = ref.watch(dictionaryCategoryFilterProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(S.dictionary(lang)),
@@ -168,34 +135,50 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                for (final category in <String?>[null, ..._categoryNames(ref)])
+                for (final level in <CefrLevel?>[null, ...CefrLevel.values])
                   Padding(
                     padding: const EdgeInsets.only(right: 12),
                     child: ChoiceChip(
-                      label: Text(category ?? S.allCategories(lang)),
-                      selected: _selectedCategory == category,
-                      onSelected: (_) =>
-                          setState(() => _selectedCategory = category),
+                      label: Text(level?.label ?? S.allLevels(lang)),
+                      selected: selectedLevel == level,
+                      onSelected: (_) => ref
+                          .read(dictionaryLevelFilterProvider.notifier)
+                          .update(level),
                     ),
                   ),
               ],
             ),
           ),
           const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                for (final level in <CefrLevel?>[null, ...CefrLevel.values])
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: ChoiceChip(
-                      label: Text(level?.label ?? S.allLevels(lang)),
-                      selected: _selectedLevel == level,
-                      onSelected: (_) => setState(() => _selectedLevel = level),
+                Text(S.filterCategories(lang)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: _categoryRowHeight,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final category in WordCategory.values)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: ChoiceChip(
+                              label: Text(_categoryLabel(category, lang)),
+                              selected: selectedCategory == category,
+                              onSelected: (_) => ref
+                                  .read(
+                                    dictionaryCategoryFilterProvider.notifier,
+                                  )
+                                  .update(category),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -236,9 +219,9 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   }
 
   Widget _buildList(List<DictionaryEntry> entries, AppLanguage lang) {
-    // Категория, уровень и вкладка складываются по AND: выбранные фильтры
-    // сужают список, а не заменяют друг друга.
-    final filtered = _applyLevel(_applyCategory(_applyTab(entries)));
+    // Уровень и категория уже отфильтрованы провайдером (Phase 39a);
+    // вкладка применяется локально и сужает список по AND.
+    final filtered = _applyTab(entries);
     if (filtered.isEmpty) {
       return Center(
         child: Container(
@@ -266,10 +249,10 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     if (_search.text.trim().isNotEmpty) {
       return S.emptySearch(lang);
     }
-    if (_selectedCategory != null) {
+    if (ref.read(dictionaryCategoryFilterProvider) != WordCategory.all) {
       return S.emptyCategory(lang);
     }
-    if (_selectedLevel != null) {
+    if (ref.read(dictionaryLevelFilterProvider) != null) {
       return S.emptyLevel(lang);
     }
     if (_tab != DictionaryTab.all) {
@@ -277,6 +260,34 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     }
     return S.emptyDictionary(lang);
   }
+
+  /// Метка категории через S: доменный enum не хранит UI-строки (ADR-043).
+  String _categoryLabel(WordCategory category, AppLanguage lang) =>
+      switch (category) {
+        WordCategory.all => S.filterAll(lang),
+        WordCategory.animals => S.categoryAnimals(lang),
+        WordCategory.nature => S.categoryNature(lang),
+        WordCategory.food => S.categoryFood(lang),
+        WordCategory.verbs => S.categoryVerbs(lang),
+        WordCategory.adverbs => S.categoryAdverbs(lang),
+        WordCategory.adjectives => S.categoryAdjectives(lang),
+        WordCategory.home => S.categoryHome(lang),
+        WordCategory.clothes => S.categoryClothes(lang),
+        WordCategory.hobbies => S.categoryHobbies(lang),
+        WordCategory.datetime => S.categoryDatetime(lang),
+        WordCategory.languages => S.categoryLanguages(lang),
+        WordCategory.countries => S.categoryCountries(lang),
+        WordCategory.colors => S.categoryColors(lang),
+        WordCategory.transport => S.categoryTransport(lang),
+        WordCategory.computers => S.categoryComputers(lang),
+        WordCategory.travel => S.categoryTravel(lang),
+        WordCategory.health => S.categoryHealth(lang),
+        WordCategory.body => S.categoryBody(lang),
+        WordCategory.weather => S.categoryWeather(lang),
+        WordCategory.school => S.categorySchool(lang),
+        WordCategory.professions => S.categoryProfessions(lang),
+        WordCategory.family => S.categoryFamily(lang),
+      };
 }
 
 class _ErrorState extends StatelessWidget {

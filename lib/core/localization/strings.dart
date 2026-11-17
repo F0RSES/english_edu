@@ -480,6 +480,101 @@ final class S {
   /// Чип «Все уровни».
   static String allLevels(AppLanguage l) => _t('dictionary.allLevels', l);
 
+  /// Чип «Все» в рядах фильтров словаря (Phase 39a).
+  static String filterAll(AppLanguage l) => _t('dictionary.filterAll', l);
+
+  /// Метка ряда категорий словаря (Phase 39a).
+  static String filterCategories(AppLanguage l) =>
+      _t('dictionary.filterCategories', l);
+
+  /// Категория «Животные» (Phase 39a).
+  static String categoryAnimals(AppLanguage l) =>
+      _t('dictionary.category.animals', l);
+
+  /// Категория «Природа» (Phase 39a).
+  static String categoryNature(AppLanguage l) =>
+      _t('dictionary.category.nature', l);
+
+  /// Категория «Еда» (Phase 39a).
+  static String categoryFood(AppLanguage l) =>
+      _t('dictionary.category.food', l);
+
+  /// Категория «Глаголы» (Phase 39a).
+  static String categoryVerbs(AppLanguage l) =>
+      _t('dictionary.category.verbs', l);
+
+  /// Категория «Наречия» (Phase 39a).
+  static String categoryAdverbs(AppLanguage l) =>
+      _t('dictionary.category.adverbs', l);
+
+  /// Категория «Прилагательные» (Phase 39a).
+  static String categoryAdjectives(AppLanguage l) =>
+      _t('dictionary.category.adjectives', l);
+
+  /// Категория «Дом» (Phase 39a).
+  static String categoryHome(AppLanguage l) =>
+      _t('dictionary.category.home', l);
+
+  /// Категория «Одежда» (Phase 39a).
+  static String categoryClothes(AppLanguage l) =>
+      _t('dictionary.category.clothes', l);
+
+  /// Категория «Хобби» (Phase 39a).
+  static String categoryHobbies(AppLanguage l) =>
+      _t('dictionary.category.hobbies', l);
+
+  /// Категория «Дата и время» (Phase 39a).
+  static String categoryDatetime(AppLanguage l) =>
+      _t('dictionary.category.datetime', l);
+
+  /// Категория «Языки» (Phase 39a).
+  static String categoryLanguages(AppLanguage l) =>
+      _t('dictionary.category.languages', l);
+
+  /// Категория «Страны» (Phase 39a).
+  static String categoryCountries(AppLanguage l) =>
+      _t('dictionary.category.countries', l);
+
+  /// Категория «Цвета» (Phase 39a).
+  static String categoryColors(AppLanguage l) =>
+      _t('dictionary.category.colors', l);
+
+  /// Категория «Транспорт» (Phase 39a).
+  static String categoryTransport(AppLanguage l) =>
+      _t('dictionary.category.transport', l);
+
+  /// Категория «Компьютеры» (Phase 39a).
+  static String categoryComputers(AppLanguage l) =>
+      _t('dictionary.category.computers', l);
+
+  /// Категория «Путешествия» (Phase 39a).
+  static String categoryTravel(AppLanguage l) =>
+      _t('dictionary.category.travel', l);
+
+  /// Категория «Здоровье» (Phase 39a).
+  static String categoryHealth(AppLanguage l) =>
+      _t('dictionary.category.health', l);
+
+  /// Категория «Тело» (Phase 39a).
+  static String categoryBody(AppLanguage l) =>
+      _t('dictionary.category.body', l);
+
+  /// Категория «Погода» (Phase 39a).
+  static String categoryWeather(AppLanguage l) =>
+      _t('dictionary.category.weather', l);
+
+  /// Категория «Школа» (Phase 39a).
+  static String categorySchool(AppLanguage l) =>
+      _t('dictionary.category.school', l);
+
+  /// Категория «Профессии» (Phase 39a).
+  static String categoryProfessions(AppLanguage l) =>
+      _t('dictionary.category.professions', l);
+
+  /// Категория «Семья» (Phase 39a).
+  static String categoryFamily(AppLanguage l) =>
+      _t('dictionary.category.family', l);
+
   /// Пустой результат поиска.
   static String emptySearch(AppLanguage l) => _t('dictionary.emptySearch', l);
 
@@ -1474,6 +1569,33 @@ final class S {
     'dictionary.mastered': {'ru': 'Выучено', 'en': 'Mastered'},
     'dictionary.allCategories': {'ru': 'Все категории', 'en': 'All categories'},
     'dictionary.allLevels': {'ru': 'Все уровни', 'en': 'All levels'},
+    'dictionary.filterAll': {'ru': 'Все', 'en': 'All'},
+    'dictionary.filterCategories': {'ru': 'Категории', 'en': 'Categories'},
+    'dictionary.category.animals': {'ru': 'Животные', 'en': 'Animals'},
+    'dictionary.category.nature': {'ru': 'Природа', 'en': 'Nature'},
+    'dictionary.category.food': {'ru': 'Еда', 'en': 'Food'},
+    'dictionary.category.verbs': {'ru': 'Глаголы', 'en': 'Verbs'},
+    'dictionary.category.adverbs': {'ru': 'Наречия', 'en': 'Adverbs'},
+    'dictionary.category.adjectives': {
+      'ru': 'Прилагательные',
+      'en': 'Adjectives',
+    },
+    'dictionary.category.home': {'ru': 'Дом', 'en': 'Home'},
+    'dictionary.category.clothes': {'ru': 'Одежда', 'en': 'Clothes'},
+    'dictionary.category.hobbies': {'ru': 'Хобби', 'en': 'Hobbies'},
+    'dictionary.category.datetime': {'ru': 'Дата и время', 'en': 'Date & Time'},
+    'dictionary.category.languages': {'ru': 'Языки', 'en': 'Languages'},
+    'dictionary.category.countries': {'ru': 'Страны', 'en': 'Countries'},
+    'dictionary.category.colors': {'ru': 'Цвета', 'en': 'Colors'},
+    'dictionary.category.transport': {'ru': 'Транспорт', 'en': 'Transport'},
+    'dictionary.category.computers': {'ru': 'Компьютеры', 'en': 'Computers'},
+    'dictionary.category.travel': {'ru': 'Путешествия', 'en': 'Travel'},
+    'dictionary.category.health': {'ru': 'Здоровье', 'en': 'Health'},
+    'dictionary.category.body': {'ru': 'Тело', 'en': 'Body'},
+    'dictionary.category.weather': {'ru': 'Погода', 'en': 'Weather'},
+    'dictionary.category.school': {'ru': 'Школа', 'en': 'School'},
+    'dictionary.category.professions': {'ru': 'Профессии', 'en': 'Professions'},
+    'dictionary.category.family': {'ru': 'Семья', 'en': 'Family'},
     'dictionary.emptySearch': {
       'ru': 'Ничего не найдено',
       'en': 'Nothing found',

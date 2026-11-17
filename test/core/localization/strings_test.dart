@@ -426,6 +426,46 @@ void main() {
       }
     });
 
+    test(
+      'every category filter key has ru and en translations (Phase 39a)',
+      () {
+        final categoryKeys = <String Function(AppLanguage)>[
+          S.filterAll,
+          S.filterCategories,
+          S.categoryAnimals,
+          S.categoryNature,
+          S.categoryFood,
+          S.categoryVerbs,
+          S.categoryAdverbs,
+          S.categoryAdjectives,
+          S.categoryHome,
+          S.categoryClothes,
+          S.categoryHobbies,
+          S.categoryDatetime,
+          S.categoryLanguages,
+          S.categoryCountries,
+          S.categoryColors,
+          S.categoryTransport,
+          S.categoryComputers,
+          S.categoryTravel,
+          S.categoryHealth,
+          S.categoryBody,
+          S.categoryWeather,
+          S.categorySchool,
+          S.categoryProfessions,
+          S.categoryFamily,
+        ];
+        for (final build in categoryKeys) {
+          for (final lang in AppLanguage.values) {
+            final value = build(lang);
+            expect(value, isNotEmpty);
+            // Fallback вернул бы ключ — значит перевода нет.
+            expect(value, isNot(contains('dictionary.')));
+          }
+        }
+      },
+    );
+
     test('readingWordUnit declines Russian word forms', () {
       expect(S.readingWordUnit(1, AppLanguage.ru), 'слово');
       expect(S.readingWordUnit(3, AppLanguage.ru), 'слова');

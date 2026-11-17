@@ -114,6 +114,7 @@ import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
+import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -676,6 +677,28 @@ final class DictionarySearchQuery extends Notifier<String> {
   void update(String value) => state = value;
 }
 
+/// Выбранный уровень фильтра словаря; null — «Все уровни» (Phase 39a).
+final class DictionaryLevelFilter extends Notifier<CefrLevel?> {
+  @override
+  CefrLevel? build() => null;
+
+  /// Заменяет выбранный уровень.
+  // Намеренно не сеттер: паттерн DictionarySearchQuery.
+  // ignore: use_setters_to_change_properties
+  void update(CefrLevel? value) => state = value;
+}
+
+/// Выбранная категория фильтра словаря; all — фильтр выключен (Phase 39a).
+final class DictionaryCategoryFilter extends Notifier<WordCategory> {
+  @override
+  WordCategory build() => WordCategory.all;
+
+  /// Заменяет выбранную категорию.
+  // Намеренно не сеттер: паттерн DictionarySearchQuery.
+  // ignore: use_setters_to_change_properties
+  void update(WordCategory value) => state = value;
+}
+
 /// Сборка партии «Memory» (ADR-036).
 ///
 /// `Random()` без seed: расклад должен меняться от партии к партии.
@@ -841,14 +864,30 @@ final userCategoriesProvider = FutureProvider<List<UserCategory>>(
 final dictionarySearchQueryProvider =
     NotifierProvider<DictionarySearchQuery, String>(DictionarySearchQuery.new);
 
+/// Выбранный уровень фильтра словаря (Phase 39a).
+final dictionaryLevelFilterProvider =
+    NotifierProvider<DictionaryLevelFilter, CefrLevel?>(
+      DictionaryLevelFilter.new,
+    );
+
+/// Выбранная категория фильтра словаря (Phase 39a).
+final dictionaryCategoryFilterProvider =
+    NotifierProvider<DictionaryCategoryFilter, WordCategory>(
+      DictionaryCategoryFilter.new,
+    );
+
 /// Словарь с прогрессом по каждому слову.
 ///
 /// Поиск идёт через контракт `WordRepository.search`, а не локальным фильтром:
-/// правило сравнения живёт в data-слое.
+/// правило сравнения живёт в data-слое. Уровень и категория (Phase 39a)
+/// складываются по AND и применяются здесь, чтобы список всегда соответствовал
+/// обоим фильтрам, независимо от вкладки статуса.
 final dictionaryEntriesProvider = FutureProvider<List<DictionaryEntry>>((
   ref,
 ) async {
   final query = ref.watch(dictionarySearchQueryProvider);
+  final level = ref.watch(dictionaryLevelFilterProvider);
+  final category = ref.watch(dictionaryCategoryFilterProvider);
   final wordsRepo = ref.watch(wordRepositoryProvider);
   final words = query.isEmpty
       ? await wordsRepo.getAll()
@@ -857,7 +896,12 @@ final dictionaryEntriesProvider = FutureProvider<List<DictionaryEntry>>((
   final statusById = {for (final item in progress) item.wordId: item.status};
   return [
     for (final word in words)
-      DictionaryEntry(word: word, status: statusById[word.id]),
+      if ((level == null || word.level == level) &&
+          category.matches(
+            category: word.category,
+            partOfSpeech: word.partOfSpeech,
+          ))
+        DictionaryEntry(word: word, status: statusById[word.id]),
   ];
 });
 

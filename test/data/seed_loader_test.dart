@@ -33,14 +33,14 @@ final class JsonAssetBundle extends AssetBundle {
       ByteData.sublistView(Uint8List.fromList(utf8.encode(json)));
 }
 
-/// Слитый словарь, который читает приложение (2700+ слов до дедупликации).
-const _mergedSeedPath = 'assets/seed/words_v2.json';
+/// Финальный словарь, который читает приложение (Phase 38f).
+const _mergedSeedPath = 'assets/seed/words_v3.json';
 
-/// Сколько слов осталось после дедупликации по `term`.
+/// Сколько слов в финальном словаре: 2071 базовых + 5345 новых.
 ///
 /// Файл лежит в репозитории, поэтому число стабильно: точное значение ловит
 /// случайную потерю контента при пересборке словаря.
-const _mergedSeedWords = 2071;
+const _mergedSeedWords = 7416;
 
 Map<String, Object?> seedJson(List<Object?> words, {int version = 1}) => {
   'schemaVersion': version,
@@ -146,15 +146,17 @@ void main() {
 
     final levels = {for (final word in await words.getAll()) word.level};
 
-    // A0 и C2 пока не размечены контентом (BL-65) — их в файле нет.
+    // Words v3 размечен полностью: все семь уровней A0–C2 (Phase 38f).
     expect(
       levels,
       containsAll(<CefrLevel>[
+        CefrLevel.a0,
         CefrLevel.a1,
         CefrLevel.a2,
         CefrLevel.b1,
         CefrLevel.b2,
         CefrLevel.c1,
+        CefrLevel.c2,
       ]),
     );
   });

@@ -12,9 +12,9 @@ abstract interface class SeedLoader {
   Future<int> loadIfEmpty();
 }
 
-/// Читает `assets/seed/words_v2.json` при первом запуске (2071 слово по
-/// уровням A1–C1, слитых из words_v1 и words_*level*.json через
-/// `tools/merge_seeds.dart`).
+/// Читает `assets/seed/words_v3.json` при первом запуске (7416 слов по
+/// уровням A0–C2: базовые 2071 из words_v2 плюс 5345 новых из
+/// LingvoBerry/CEFR-J/Octanove, обогащённых через `tools/enrich_seed.dart`).
 ///
 /// Не перезаписывает существующие данные: если в `words` есть хотя бы одна
 /// строка, возвращает 0. Валидация JSON минимальная (`schemaVersion`);
@@ -27,7 +27,7 @@ final class JsonSeedLoader implements SeedLoader {
   }) : _words = words,
        _bundle = bundle;
 
-  static const _assetPath = 'assets/seed/words_v2.json';
+  static const _assetPath = 'assets/seed/words_v3.json';
 
   final WordRepository _words;
   final AssetBundle _bundle;

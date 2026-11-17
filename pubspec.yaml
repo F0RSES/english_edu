@@ -42,8 +42,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/google_fonts/
-    # Только слитый словарь: words_v1/words_<level>.json — входные файлы
-    # tools/merge_seeds.dart, в APK им делать нечего (~1 МБ).
-    - assets/seed/words_v2.json
+    # Только финальный словарь: words_v1/words_<level>/words_v2.json — входные
+    # файлы tools/merge_seeds.dart и tools/enrich_seed.dart, в APK им делать
+    # нечего.
+    - assets/seed/words_v3.json
     - assets/seed/phrases_v1.json
     - assets/seed/stories_v1.json

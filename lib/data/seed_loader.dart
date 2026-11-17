@@ -12,8 +12,8 @@ abstract interface class SeedLoader {
   Future<int> loadIfEmpty();
 }
 
-/// Читает `assets/seed/words_v3.json` при первом запуске (7416 слов по
-/// уровням A0–C2: базовые 2071 из words_v2 плюс 5345 новых из
+/// Читает `assets/seed/words_v3.json` при первом запуске (7415 слов по
+/// уровням A0–C2: базовые 2071 из words_v2 плюс 5344 новых из
 /// LingvoBerry/CEFR-J/Octanove, обогащённых через `tools/enrich_seed.dart`).
 ///
 /// Не перезаписывает существующие данные: если в `words` есть хотя бы одна

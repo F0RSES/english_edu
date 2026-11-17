@@ -36,11 +36,11 @@ final class JsonAssetBundle extends AssetBundle {
 /// Финальный словарь, который читает приложение (Phase 38f).
 const _mergedSeedPath = 'assets/seed/words_v3.json';
 
-/// Сколько слов в финальном словаре: 2071 базовых + 5345 новых.
+/// Сколько слов в финальном словаре: 2071 базовых + 5344 новых.
 ///
 /// Файл лежит в репозитории, поэтому число стабильно: точное значение ловит
 /// случайную потерю контента при пересборке словаря.
-const _mergedSeedWords = 7416;
+const _mergedSeedWords = 7415;
 
 Map<String, Object?> seedJson(List<Object?> words, {int version = 1}) => {
   'schemaVersion': version,

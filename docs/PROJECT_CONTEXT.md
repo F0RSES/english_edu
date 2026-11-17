@@ -73,7 +73,7 @@
 
 ## Environment
 - Flutter 3.47.9 (stable), Dart 3.13.7, linux_x64.
-- Словарь: 7416 слов (A0: 67, A1: 747, A2: 1933, B1: 1822, B2: 1504, C1: 831, C2: 492); seed — `assets/seed/words_v3.json` (+20 базовых слов без level читаются как A1).
+- Словарь: 7415 слов (A0: 67, A1: 747, A2: 1933, B1: 1821, B2: 1504, C1: 832, C2: 491); seed — `assets/seed/words_v3.json` (+20 базовых слов без level читаются как A1).
 - Схема БД v21 (17 таблиц); 1042 теста (131 файл), analyze=0.
 - very_good_analysis 11.0.0; тулинг — `flutter analyze` / `flutter test`.
 - Версии пакетов: ADR-007; pubspec.lock коммитится.

@@ -1,7 +1,7 @@
 name: english_edu
 description: Offline-first English learning app
 publish_to: none
-version: 1.16.0+16
+version: 1.34.0+34
 
 environment:
   sdk: ">=3.13.0 <4.0.0"

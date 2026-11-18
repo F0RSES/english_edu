@@ -181,10 +181,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Гомонимы видны оба, а часть речи отличает их друг от друга (ADR-031).
+    // Гомонимы видны оба; часть речи в среднем ряду отличает их (ADR-031).
     expect(find.text('apple'), findsNWidgets(2));
-    expect(find.text('яблоко (noun)'), findsOneWidget);
-    expect(find.text('компания (noun)'), findsOneWidget);
+    expect(find.text('яблоко'), findsOneWidget);
+    expect(find.text('компания'), findsOneWidget);
+    expect(find.text('noun'), findsNWidgets(2));
   });
 
   testWidgets('shows every word on the all tab', (tester) async {

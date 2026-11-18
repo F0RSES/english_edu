@@ -807,6 +807,28 @@ final class S {
   static String explainFailed(AppLanguage l) => _t('helper.failed', l);
 
   // --- AI Word Helper (Phase 28b) ---
+  /// Tooltip ИИ-иконки в словаре (Phase 39d).
+  static String askAi(AppLanguage l) => _t('ai.askAi', l);
+
+  /// Запрос к ИИ о слове из словаря (Phase 39d).
+  ///
+  /// [partOfSpeech] null или пустая — блок «часть речи» опускается.
+  static String aiWordPrompt(
+    String term,
+    String translation,
+    String? partOfSpeech,
+    AppLanguage l,
+  ) {
+    final pos = (partOfSpeech ?? '').trim();
+    final posBlock = pos.isEmpty
+        ? ''
+        : _t('ai.wordPromptPos', l).replaceFirst('{pos}', pos);
+    return _t('ai.wordPrompt', l)
+        .replaceFirst('{term}', term)
+        .replaceFirst('{translation}', translation)
+        .replaceFirst('{posBlock}', posBlock);
+  }
+
   /// Заголовок листа перевода слова.
   static String aiHelperTitle(AppLanguage l) => _t('aiHelper.title', l);
 
@@ -1767,6 +1789,21 @@ final class S {
       'en': 'Failed to get the explanation',
     },
     // AI Word Helper (Phase 28b).
+    'ai.askAi': {'ru': 'Спросить ИИ', 'en': 'Ask AI'},
+    'ai.wordPrompt': {
+      'ru':
+          "Расскажи подробнее про слово '{term}' "
+          '(перевод: {translation}{posBlock}). Какие у него формы, '
+          'примеры использования и типичные ошибки?',
+      'en':
+          "Tell me more about the word '{term}' "
+          '(translation: {translation}{posBlock}). What are its forms, '
+          'usage examples and common mistakes?',
+    },
+    'ai.wordPromptPos': {
+      'ru': ', часть речи: {pos}',
+      'en': ', part of speech: {pos}',
+    },
     'aiHelper.title': {'ru': 'Помощник по слову', 'en': 'Word helper'},
     'aiHelper.add': {'ru': 'Добавить в словарь', 'en': 'Add to dictionary'},
     'aiHelper.remove': {

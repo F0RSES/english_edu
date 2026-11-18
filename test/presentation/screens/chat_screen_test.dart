@@ -32,6 +32,7 @@ Widget host({
   required FakeChatRepository chat,
   required http.Client httpClient,
   UserSettings? settings,
+  String? initialContext,
 }) => ProviderScope(
   overrides: [
     chatRepositoryProvider.overrideWithValue(chat),
@@ -41,7 +42,7 @@ Widget host({
     ),
     clockProvider.overrideWithValue(() => _now),
   ],
-  child: const MaterialApp(home: ChatScreen()),
+  child: MaterialApp(home: ChatScreen(initialContext: initialContext)),
 );
 
 void main() {
@@ -54,6 +55,29 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text(_greeting), findsOneWidget);
+  });
+
+  testWidgets('initialContext prefills the input without sending', (
+    tester,
+  ) async {
+    const prompt =
+        "Расскажи подробнее про слово 'could' (перевод: мог, "
+        'часть речи: verb). Какие у него формы, примеры использования '
+        'и типичные ошибки?';
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) async => okResponse()),
+        initialContext: prompt,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.controller!.text, prompt);
+    // Контекст не отправляется автоматически: приветствие ещё на месте
+    // (после отправки оно исчезает — см. тест отправки выше).
     expect(find.text(_greeting), findsOneWidget);
   });
 

@@ -19,8 +19,12 @@ const _maxBubbleWidthFactor = 0.8;
 /// История хранится локально; сеть используется только по явной отправке
 /// сообщения. Приветствие — заглушка UI, в БД не сохраняется.
 class ChatScreen extends ConsumerStatefulWidget {
-  /// Создаёт экран чата.
-  const ChatScreen({super.key});
+  /// Создаёт экран чата; [initialContext] предзаполняет поле ввода.
+  const ChatScreen({this.initialContext, super.key});
+
+  /// Начальный запрос от карточки слова (Phase 39d): пользователь сразу
+  /// отправляет его или редактирует. null — пустое поле ввода.
+  final String? initialContext;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -35,6 +39,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    final initial = widget.initialContext;
+    if (initial != null && initial.isNotEmpty) {
+      _controller.text = initial;
+    }
     unawaited(_loadHistory());
   }
 

@@ -81,8 +81,14 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(
         path: '/chat',
-        pageBuilder: (context, state) =>
-            _slideUpPage(state, const ChatScreen()),
+        pageBuilder: (context, state) {
+          // Контекст слова из словаря (Phase 39d): extra — строка-промт.
+          final extra = state.extra;
+          return _slideUpPage(
+            state,
+            ChatScreen(initialContext: extra is String ? extra : null),
+          );
+        },
       ),
       GoRoute(
         path: '/typing-speed',

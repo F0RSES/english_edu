@@ -150,6 +150,11 @@ void main() {
   });
 
   testWidgets('AI icon opens the chat with the word context', (tester) async {
+    // Аватар в чате анимируется вечно: запрещаем анимации для pumpAndSettle.
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
     await tester.pumpWidget(routerHost(entry(partOfSpeech: 'interjection')));
     await tester.pumpAndSettle();
 

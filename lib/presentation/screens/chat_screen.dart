@@ -5,6 +5,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/chat_message.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,9 @@ const _clearAction = 'clear';
 
 /// Доля ширины экрана, которую занимает пузырь сообщения.
 const _maxBubbleWidthFactor = 0.8;
+
+/// Размер аватара в AppBar чата (Phase 40).
+const _appBarAvatarSize = 32.0;
 
 /// Чат с AI-помощником (Phase 25a, ADR-041).
 ///
@@ -147,7 +151,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(S.assistant(lang)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AiAvatar(size: _appBarAvatarSize, isTalking: _isSending),
+            const SizedBox(width: 8),
+            Text(S.assistant(lang)),
+          ],
+        ),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {

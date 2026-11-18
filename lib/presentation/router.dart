@@ -84,7 +84,10 @@ final routerProvider = Provider<GoRouter>(
         pageBuilder: (context, state) {
           // Контекст слова из словаря (Phase 39d): extra — строка-промт.
           final extra = state.extra;
-          return _slideUpPage(
+          // Fade+Scale «вылупление» из центра (Phase 40). Hero не используем:
+          // иконка ✨ повторяется в каждой карточке словаря — одинаковые
+          // теги на одном экране конфликтуют.
+          return _fadeScalePage(
             state,
             ChatScreen(initialContext: extra is String ? extra : null),
           );

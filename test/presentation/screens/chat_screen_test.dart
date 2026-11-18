@@ -8,6 +8,7 @@ import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:english_edu/presentation/screens/chat_screen.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,6 +47,22 @@ Widget host({
 );
 
 void main() {
+  // Аватар повторяет анимацию вечно: без запрета анимаций pumpAndSettle
+  // не завершится. Запрет уважается и роутами (меню/диалоги открываются
+  // мгновенно), в отличие от TickerMode, который морозит и их.
+  setUp(() {
+    TestWidgetsFlutterBinding
+        .instance
+        .platformDispatcher
+        .accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(
+      disableAnimations: true,
+    );
+  });
+  tearDown(() {
+    TestWidgetsFlutterBinding.instance.platformDispatcher
+        .clearAccessibilityFeaturesTestValue();
+  });
+
   testWidgets('renders empty state with greeting', (tester) async {
     await tester.pumpWidget(
       host(
@@ -79,6 +96,41 @@ void main() {
     // Контекст не отправляется автоматически: приветствие ещё на месте
     // (после отправки оно исчезает — см. тест отправки выше).
     expect(find.text(_greeting), findsOneWidget);
+  });
+
+  testWidgets('renders the AI avatar idle when not sending', (tester) async {
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) async => okResponse()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AiAvatar), findsOneWidget);
+    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isFalse);
+  });
+
+  testWidgets('avatar talks while the reply is generating', (tester) async {
+    final reply = Completer<http.Response>();
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) => reply.future),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Привет');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pump();
+
+    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isTrue);
+
+    reply.complete(okResponse());
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isFalse);
   });
 
   testWidgets('typing message and sending adds to list', (tester) async {

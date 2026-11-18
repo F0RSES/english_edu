@@ -42,6 +42,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/google_fonts/
+    # Маскот ИИ-помощника (Phase 40).
+    - assets/images/
     # Только финальный словарь: words_v1/words_<level>/words_v2.json — входные
     # файлы tools/merge_seeds.dart и tools/enrich_seed.dart, в APK им делать
     # нечего.

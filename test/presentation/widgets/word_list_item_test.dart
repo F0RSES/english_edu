@@ -31,8 +31,13 @@ DictionaryEntry entry({
   status: status,
 );
 
-Widget host(DictionaryEntry item) => MaterialApp(
-  home: Scaffold(body: WordListItem(entry: item)),
+Widget host(
+  DictionaryEntry item, {
+  void Function(WordStatus)? onStatusChanged,
+}) => MaterialApp(
+  home: Scaffold(
+    body: WordListItem(entry: item, onStatusChanged: onStatusChanged),
+  ),
 );
 
 /// Роутер-харнесс для проверки навигации к ИИ-чату (Phase 39d).
@@ -159,5 +164,76 @@ void main() {
       'часть речи: interjection). Какие у него формы, примеры использования '
       'и типичные ошибки?',
     );
+  });
+
+  testWidgets('hides the status action without a callback', (tester) async {
+    await tester.pumpWidget(host(entry()));
+
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsNothing);
+  });
+
+  testWidgets('shows bookmark action for a new word', (tester) async {
+    await tester.pumpWidget(host(entry(), onStatusChanged: (_) {}));
+
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsOneWidget);
+  });
+
+  testWidgets('shows check action for a learning word', (tester) async {
+    await tester.pumpWidget(
+      host(entry(status: WordStatus.learning), onStatusChanged: (_) {}),
+    );
+
+    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+  });
+
+  testWidgets('shows delete action for a mastered word', (tester) async {
+    await tester.pumpWidget(
+      host(entry(status: WordStatus.mastered), onStatusChanged: (_) {}),
+    );
+
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+  });
+
+  testWidgets('status action requests learning for a new word', (tester) async {
+    WordStatus? requested;
+    await tester.pumpWidget(
+      host(entry(), onStatusChanged: (target) => requested = target),
+    );
+
+    await tester.tap(find.byIcon(Icons.bookmark_add_outlined));
+
+    expect(requested, WordStatus.learning);
+  });
+
+  testWidgets('status action requests mastered for a learning word', (
+    tester,
+  ) async {
+    WordStatus? requested;
+    await tester.pumpWidget(
+      host(
+        entry(status: WordStatus.learning),
+        onStatusChanged: (target) => requested = target,
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.check_circle_outline));
+
+    expect(requested, WordStatus.mastered);
+  });
+
+  testWidgets('status action requests reset for a mastered word', (
+    tester,
+  ) async {
+    WordStatus? requested;
+    await tester.pumpWidget(
+      host(
+        entry(status: WordStatus.mastered),
+        onStatusChanged: (target) => requested = target,
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+
+    expect(requested, WordStatus.newWord);
   });
 }

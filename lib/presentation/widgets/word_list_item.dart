@@ -23,6 +23,7 @@ class WordListItem extends StatelessWidget {
   const WordListItem({
     required this.entry,
     this.lang = AppLanguage.ru,
+    this.onStatusChanged,
     super.key,
   });
 
@@ -31,6 +32,12 @@ class WordListItem extends StatelessWidget {
 
   /// Язык интерфейса; ru по умолчанию (Phase 27b).
   final AppLanguage lang;
+
+  /// Коллбэк ручного действия со статусом (Phase 39e): new → learning,
+  /// learning → mastered, mastered → newWord (сброс/удаление).
+  ///
+  /// null — кнопка действия не рендерится.
+  final void Function(WordStatus target)? onStatusChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +86,16 @@ class WordListItem extends StatelessWidget {
                     const SizedBox(width: 6),
                   ],
                   CefrBadge(level: word.level),
+                  if (onStatusChanged != null)
+                    IconButton(
+                      icon: Icon(
+                        _statusIcon(entry.status),
+                        color: _statusIconColor(entry.status),
+                      ),
+                      tooltip: _statusTooltip(entry.status, lang),
+                      onPressed: () =>
+                          onStatusChanged!(_statusTarget(entry.status)),
+                    ),
                   IconButton(
                     icon: const Icon(Icons.auto_awesome),
                     tooltip: S.askAi(lang),
@@ -94,18 +111,38 @@ class WordListItem extends StatelessWidget {
                   ),
                 ],
               ),
-              if (meta != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    meta,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-              const SizedBox(height: 4),
-              Text(word.translation, style: theme.textTheme.bodyMedium),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (meta != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          meta,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
+                        ),
+                      ),
+                    Text(word.translation, style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -118,6 +155,35 @@ class WordListItem extends StatelessWidget {
     WordStatus.learning => Colors.amber,
     WordStatus.mastered => Colors.green,
     _ => null,
+  };
+
+  /// Иконка действия со статусом (Phase 39e).
+  IconData _statusIcon(WordStatus? status) => switch (status) {
+    WordStatus.learning => Icons.check_circle_outline,
+    WordStatus.mastered => Icons.delete_outline,
+    _ => Icons.bookmark_add_outlined,
+  };
+
+  /// Цвет иконки действия: green — выучить, redAccent — сбросить.
+  Color? _statusIconColor(WordStatus? status) => switch (status) {
+    WordStatus.learning => Colors.green,
+    WordStatus.mastered => Colors.redAccent,
+    _ => null,
+  };
+
+  /// Тултип кнопки действия со статусом (Phase 39e).
+  String _statusTooltip(WordStatus? status, AppLanguage lang) =>
+      switch (status) {
+        WordStatus.learning => S.markMastered(lang),
+        WordStatus.mastered => S.resetWord(lang),
+        _ => S.addToLearning(lang),
+      };
+
+  /// Целевой статус действия: new → learning → mastered → сброс.
+  WordStatus _statusTarget(WordStatus? status) => switch (status) {
+    WordStatus.learning => WordStatus.mastered,
+    WordStatus.mastered => WordStatus.newWord,
+    _ => WordStatus.learning,
   };
 
   /// Средний ряд: «/IPA/ • partOfSpeech»; отсутствующее поле опускается.

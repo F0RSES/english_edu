@@ -25,6 +25,11 @@ abstract interface class ProgressRepository {
   /// Inserts [progress] or replaces the record for the same word.
   Future<void> upsert(WordProgress progress);
 
+  /// Удаляет запись прогресса слова [wordId]; отсутствие записи — не ошибка.
+  ///
+  /// Слово снова становится «новым» (Phase 39e): ручной сброс из словаря.
+  Future<void> deleteByWordId(WordId wordId);
+
   /// Атомарно заменяет все записи прогресса.
   ///
   /// Для импорта и восстановления.

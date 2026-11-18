@@ -59,6 +59,13 @@ final class DriftProgressRepository implements ProgressRepository {
   }
 
   @override
+  Future<void> deleteByWordId(WordId wordId) async {
+    await (_db.delete(
+      _db.wordProgresses,
+    )..where((t) => t.wordId.equals(wordId.value))).go();
+  }
+
+  @override
   Future<void> replaceAll(Iterable<WordProgress> items) async {
     await _db.transaction(() async {
       await _db.delete(_db.wordProgresses).go();

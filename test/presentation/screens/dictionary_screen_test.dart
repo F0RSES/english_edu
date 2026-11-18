@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/repositories/app_meta_repository.dart';
 import 'package:english_edu/domain/repositories/progress_repository.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/usecases/fakes/fake_app_meta_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
@@ -60,6 +62,9 @@ final class _ThrowingProgress implements ProgressRepository {
   Future<void> upsert(WordProgress progress) async {}
 
   @override
+  Future<void> deleteByWordId(WordId wordId) async {}
+
+  @override
   Future<void> replaceAll(Iterable<WordProgress> items) async {}
 }
 
@@ -76,6 +81,9 @@ Widget host({
     ),
     settingsRepositoryProvider.overrideWithValue(
       FakeSettingsRepository(settings),
+    ),
+    appMetaRepositoryProvider.overrideWithValue(
+      FakeAppMetaRepository({AppMetaRepository.seedMaxIdKey: '7415'}),
     ),
   ],
   child: const MaterialApp(home: DictionaryScreen()),
@@ -449,6 +457,31 @@ void main() {
     expect(find.widgetWithText(ChoiceChip, 'All'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Animals'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Food'), findsOneWidget);
+  });
+
+  testWidgets('status action updates the word and refreshes the list', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        words: [word(1, 'apple')],
+        progress: [progress(1, WordStatus.learning)],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // learning: галочка «Отметить выученным».
+    expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.check_circle_outline));
+    await tester.pumpAndSettle();
+
+    // Список перечитан: слово стало mastered — зелёная точка.
+    final dot = tester.widget<Container>(
+      find.byKey(const Key('word-status-dot')),
+    );
+    expect(dot.decoration, isA<BoxDecoration>());
+    expect((dot.decoration! as BoxDecoration).color, Colors.green);
   });
 
   testWidgets('back button returns to the home screen', (tester) async {

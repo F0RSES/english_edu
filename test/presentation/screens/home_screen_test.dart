@@ -89,6 +89,9 @@ final class _ThrowingProgress implements ProgressRepository {
   Future<void> upsert(WordProgress progress) async {}
 
   @override
+  Future<void> deleteByWordId(WordId wordId) async {}
+
+  @override
   Future<void> replaceAll(Iterable<WordProgress> items) async {}
 }
 

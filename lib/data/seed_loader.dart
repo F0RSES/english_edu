@@ -72,6 +72,15 @@ final class JsonSeedLoader implements SeedLoader {
       await _words.upsertMany(batch);
     }
     await _meta.setValue(_seedVersionKey, _seedVersion);
+    // Максимальный seed-id отличает seed-слова от кастомных при сбросе
+    // прогресса (Phase 39e, UpdateWordStatus).
+    var maxId = 0;
+    for (final word in batch) {
+      if (word.id.value > maxId) {
+        maxId = word.id.value;
+      }
+    }
+    await _meta.setValue(AppMetaRepository.seedMaxIdKey, '$maxId');
     return batch.length;
   }
 

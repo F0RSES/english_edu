@@ -490,6 +490,16 @@ final class S {
   /// Кнопка сброса фильтров словаря (Phase 39c).
   static String resetFilters(AppLanguage l) => _t('dictionary.resetFilters', l);
 
+  /// Кнопка «Добавить в изучение» в карточке слова (Phase 39e).
+  static String addToLearning(AppLanguage l) =>
+      _t('dictionary.addToLearning', l);
+
+  /// Кнопка «Отметить выученным» в карточке слова (Phase 39e).
+  static String markMastered(AppLanguage l) => _t('dictionary.markMastered', l);
+
+  /// Кнопка «Удалить/Сбросить прогресс» в карточке слова (Phase 39e).
+  static String resetWord(AppLanguage l) => _t('dictionary.resetWord', l);
+
   /// Категория «Животные» (Phase 39a).
   static String categoryAnimals(AppLanguage l) =>
       _t('dictionary.category.animals', l);
@@ -1599,6 +1609,18 @@ final class S {
     'dictionary.resetFilters': {
       'ru': 'Сбросить фильтры',
       'en': 'Reset filters',
+    },
+    'dictionary.addToLearning': {
+      'ru': 'Добавить в изучение',
+      'en': 'Add to learning',
+    },
+    'dictionary.markMastered': {
+      'ru': 'Отметить выученным',
+      'en': 'Mark as learned',
+    },
+    'dictionary.resetWord': {
+      'ru': 'Удалить/Сбросить прогресс',
+      'en': 'Delete/Reset progress',
     },
     'dictionary.category.animals': {'ru': 'Животные', 'en': 'Animals'},
     'dictionary.category.nature': {'ru': 'Природа', 'en': 'Nature'},

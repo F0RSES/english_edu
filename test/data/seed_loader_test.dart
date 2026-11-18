@@ -9,6 +9,7 @@ import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
 import 'package:english_edu/domain/entities/word.dart' as domain;
 import 'package:english_edu/domain/entities/word_progress.dart' as domain;
+import 'package:english_edu/domain/repositories/app_meta_repository.dart';
 import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_category.dart';
@@ -292,5 +293,12 @@ void main() {
     await words.upsert(original!.copyWith(translation: 'правка'));
     expect(await loader.syncSeed(), 0);
     expect((await words.getById(const WordId(1)))!.translation, 'правка');
+  });
+
+  test('records seed_max_id for custom-word detection (Phase 39e)', () async {
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
+
+    final meta = DriftAppMetaRepository(db);
+    expect(await meta.getValue(AppMetaRepository.seedMaxIdKey), '7415');
   });
 }

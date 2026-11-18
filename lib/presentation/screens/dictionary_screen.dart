@@ -4,6 +4,7 @@ import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_category.dart';
+import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
@@ -242,9 +243,26 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     }
     return ListView.builder(
       itemCount: filtered.length,
-      itemBuilder: (context, index) =>
-          WordListItem(entry: filtered[index], lang: lang),
+      itemBuilder: (context, index) => WordListItem(
+        entry: filtered[index],
+        lang: lang,
+        onStatusChanged: (target) =>
+            _changeStatus(filtered[index].word.id, target),
+      ),
     );
+  }
+
+  /// Ручная смена статуса слова и обновление списка (Phase 39e).
+  Future<void> _changeStatus(WordId id, WordStatus target) async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    try {
+      await ref.read(updateWordStatusProvider)(id, target);
+      ref.invalidate(dictionaryEntriesProvider);
+    } on Object catch (_) {
+      if (mounted) {
+        _showMessage(S.saveFailed(lang));
+      }
+    }
   }
 
   /// Разные сообщения: пустой словарь, пустой поиск, пустая вкладка.

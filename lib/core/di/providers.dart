@@ -100,6 +100,7 @@ import 'package:english_edu/domain/usecases/translate_word.dart';
 import 'package:english_edu/domain/usecases/undo_last_review.dart';
 import 'package:english_edu/domain/usecases/update_challenge_progress.dart';
 import 'package:english_edu/domain/usecases/update_challenge_streak.dart';
+import 'package:english_edu/domain/usecases/update_word_status.dart';
 import 'package:english_edu/domain/value_objects/achievement.dart';
 import 'package:english_edu/domain/value_objects/achievement_type.dart';
 import 'package:english_edu/domain/value_objects/analytics.dart';
@@ -656,6 +657,16 @@ final resetProgressProvider = Provider<ResetProgress>(
     reviewLog: ref.watch(reviewLogRepositoryProvider),
     stats: ref.watch(statsRepositoryProvider),
     frozen: ref.watch(frozenDaysRepositoryProvider),
+  ),
+);
+
+/// Ручное управление статусом слова из словаря (Phase 39e).
+final updateWordStatusProvider = Provider<UpdateWordStatus>(
+  (ref) => UpdateWordStatus(
+    words: ref.watch(wordRepositoryProvider),
+    progress: ref.watch(progressRepositoryProvider),
+    meta: ref.watch(appMetaRepositoryProvider),
+    clock: ref.watch(clockProvider),
   ),
 );
 

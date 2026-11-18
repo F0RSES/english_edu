@@ -35,6 +35,11 @@ final class FakeProgressRepository implements ProgressRepository {
   }
 
   @override
+  Future<void> deleteByWordId(WordId wordId) async {
+    _byWordId.remove(wordId);
+  }
+
+  @override
   Future<void> replaceAll(Iterable<WordProgress> items) async {
     _byWordId
       ..clear()

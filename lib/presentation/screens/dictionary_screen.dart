@@ -26,7 +26,8 @@ enum DictionaryTab {
 /// Словарь: список, поиск, двойной фильтр (CEFR + категория), добавление слова.
 ///
 /// Уровень и категория фильтруются в `dictionaryEntriesProvider` (Phase 39a)
-/// и складываются по AND; вкладка статуса применяется локально.
+/// и складываются по AND; вкладка статуса применяется локально. Категория
+/// выбирается в bottom sheet (Phase 39c), а не рядом чипов.
 /// «Все» — все слова. «Изучаю» — `status.learning`. «Выучено» —
 /// `status.mastered`. Слова без прогресса (`status == null`) видны только во
 /// вкладке «Все» и помечены как новые.
@@ -37,9 +38,6 @@ class DictionaryScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<DictionaryScreen> createState() => _DictionaryScreenState();
 }
-
-/// Высота ряда чипов категорий: ChoiceChip плюс вертикальные отступы.
-const _categoryRowHeight = 48.0;
 
 class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
   final _search = TextEditingController();
@@ -152,38 +150,24 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(S.filterCategories(lang)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: _categoryRowHeight,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        for (final category in WordCategory.values)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: ChoiceChip(
-                              label: Text(_categoryLabel(category, lang)),
-                              selected: selectedCategory == category,
-                              onSelected: (_) => ref
-                                  .read(
-                                    dictionaryCategoryFilterProvider.notifier,
-                                  )
-                                  .update(category),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: () => _openCategorySheet(lang),
+                icon: const Icon(Icons.tune, size: 18),
+                label: Text(
+                  '${S.filterCategories(lang)}: '
+                  '${_categoryLabel(selectedCategory, lang)}',
                 ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 8),
           SegmentedButton<DictionaryTab>(
+            style: SegmentedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              textStyle: Theme.of(context).textTheme.bodySmall,
+            ),
             segments: [
               ButtonSegment(
                 value: DictionaryTab.all,
@@ -223,15 +207,36 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     // вкладка применяется локально и сужает список по AND.
     final filtered = _applyTab(entries);
     if (filtered.isEmpty) {
+      final colors = Theme.of(context).colorScheme;
       return Center(
         child: Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            color: colors.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(_emptyMessage(lang)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.filter_alt_off_outlined,
+                size: 32,
+                color: colors.outline,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _emptyMessage(lang),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonal(
+                onPressed: _resetFilters,
+                child: Text(S.resetFilters(lang)),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -259,6 +264,79 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
       return S.emptyTab(lang);
     }
     return S.emptyDictionary(lang);
+  }
+
+  /// Сбрасывает категорию и уровень на «Все» (Phase 39c).
+  void _resetFilters() {
+    ref
+        .read(dictionaryCategoryFilterProvider.notifier)
+        .update(WordCategory.all);
+    ref.read(dictionaryLevelFilterProvider.notifier).update(null);
+  }
+
+  /// Лист категорий (Phase 39c): Wrap всех 23 значений в
+  /// DraggableScrollableSheet — удобно листать на малых экранах; активный
+  /// чип подсвечен primary. Выбор закрывает лист и обновляет кнопку.
+  Future<void> _openCategorySheet(AppLanguage lang) async {
+    final selected = ref.read(dictionaryCategoryFilterProvider);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) {
+          final colors = Theme.of(context).colorScheme;
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  S.filterCategories(lang),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                Flexible(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final category in WordCategory.values)
+                          ChoiceChip(
+                            label: Text(_categoryLabel(category, lang)),
+                            selected: selected == category,
+                            selectedColor: colors.primary,
+                            checkmarkColor: colors.onPrimary,
+                            labelStyle: TextStyle(
+                              color: selected == category
+                                  ? colors.onPrimary
+                                  : colors.onSurface,
+                            ),
+                            onSelected: (_) {
+                              ref
+                                  .read(
+                                    dictionaryCategoryFilterProvider.notifier,
+                                  )
+                                  .update(category);
+                              Navigator.of(sheetContext).pop();
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   /// Метка категории через S: доменный enum не хранит UI-строки (ADR-043).

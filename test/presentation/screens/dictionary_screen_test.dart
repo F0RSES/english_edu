@@ -81,10 +81,10 @@ Widget host({
   child: const MaterialApp(home: DictionaryScreen()),
 );
 
-/// Список — вертикальный ListView; ряд категорий — горизонтальный (Phase 39a).
+/// Список — вертикальный ListView.
 ///
-/// Две строки фильтров (уровни и категории) сжимают область списка, поэтому
-/// последние слова в ленивом `ListView` могут быть ещё не построены.
+/// Ряд фильтров сжимает область списка, поэтому последние слова в ленивом
+/// `ListView` могут быть ещё не построены.
 final Finder _listScrollable = find
     .descendant(
       of: find.byWidgetPredicate(
@@ -95,16 +95,20 @@ final Finder _listScrollable = find
     )
     .first;
 
-/// Горизонтальный ряд чипов категорий: дальние чипы требуют скролла.
-final Finder _categoryScrollable = find
-    .descendant(
-      of: find.byWidgetPredicate(
-        (widget) =>
-            widget is ListView && widget.scrollDirection == Axis.horizontal,
-      ),
-      matching: find.byType(Scrollable),
-    )
-    .first;
+/// Открывает лист категорий кнопкой (Phase 39c).
+Future<void> openCategorySheet(WidgetTester tester, String buttonLabel) async {
+  await tester.tap(find.widgetWithText(OutlinedButton, buttonLabel));
+  await tester.pumpAndSettle();
+}
+
+/// Тапает чип в листе категорий, доскролливая до него при необходимости.
+Future<void> tapCategoryChip(WidgetTester tester, String label) async {
+  final chip = find.widgetWithText(ChoiceChip, label);
+  await tester.ensureVisible(chip);
+  await tester.pumpAndSettle();
+  await tester.tap(chip);
+  await tester.pumpAndSettle();
+}
 
 Future<void> scrollToWord(WidgetTester tester, String term) => tester
     .scrollUntilVisible(find.text(term), 120, scrollable: _listScrollable);
@@ -300,16 +304,16 @@ void main() {
     await tester.pumpWidget(host(words: categorizedWords()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Еда'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Все');
+    await tapCategoryChip(tester, 'Еда');
 
     expect(find.text('apple'), findsOneWidget);
     expect(find.text('cat'), findsNothing);
     expect(find.text('run'), findsNothing);
 
     // «Все» возвращает весь список.
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Все'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Еда');
+    await tapCategoryChip(tester, 'Все');
 
     expect(find.text('apple'), findsOneWidget);
     expect(find.text('cat'), findsOneWidget);
@@ -335,28 +339,33 @@ void main() {
 
     await tester.tap(find.widgetWithText(ChoiceChip, 'A1'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Еда'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Все');
+    await tapCategoryChip(tester, 'Еда');
 
     expect(find.text('apple'), findsOneWidget);
     expect(find.text('banana'), findsNothing);
     expect(find.text('cat'), findsNothing);
   });
 
-  testWidgets('renders level row above category row', (tester) async {
+  testWidgets('renders CEFR row and compact category button', (tester) async {
     await tester.pumpWidget(host(words: sampleWords()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Категории'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Все уровни'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'Все'), findsOneWidget);
-    expect(find.widgetWithText(ChoiceChip, 'Животные'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Категории: Все'),
+      findsOneWidget,
+    );
+    // Ряда чипов категорий больше нет: они живут в bottom sheet (Phase 39c).
+    expect(find.widgetWithText(ChoiceChip, 'Животные'), findsNothing);
 
     final levelRowY = tester
         .getTopLeft(find.widgetWithText(ChoiceChip, 'Все уровни'))
         .dy;
-    final categoryLabelY = tester.getTopLeft(find.text('Категории')).dy;
-    expect(levelRowY, lessThan(categoryLabelY));
+    final buttonY = tester
+        .getTopLeft(find.widgetWithText(OutlinedButton, 'Категории: Все'))
+        .dy;
+    expect(levelRowY, lessThan(buttonY));
   });
 
   testWidgets('filters verbs adverbs adjectives by part of speech', (
@@ -365,48 +374,62 @@ void main() {
     await tester.pumpWidget(host(words: posWords()));
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(ChoiceChip, 'Глаголы'),
-      120,
-      scrollable: _categoryScrollable,
-    );
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Глаголы'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Все');
+    await tapCategoryChip(tester, 'Глаголы');
     expect(find.text('run'), findsOneWidget);
     expect(find.text('quick'), findsNothing);
     expect(find.text('table'), findsNothing);
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(ChoiceChip, 'Наречия'),
-      120,
-      scrollable: _categoryScrollable,
-    );
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Наречия'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Глаголы');
+    await tapCategoryChip(tester, 'Наречия');
     expect(find.text('slowly'), findsOneWidget);
     expect(find.text('run'), findsNothing);
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(ChoiceChip, 'Прилагательные'),
-      120,
-      scrollable: _categoryScrollable,
-    );
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Прилагательные'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Наречия');
+    await tapCategoryChip(tester, 'Прилагательные');
     expect(find.text('quick'), findsOneWidget);
     expect(find.text('slowly'), findsNothing);
   });
 
-  testWidgets('shows empty category message when nothing matches', (
-    tester,
-  ) async {
+  testWidgets('empty category state offers filter reset', (tester) async {
     await tester.pumpWidget(host(words: sampleWords()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.widgetWithText(ChoiceChip, 'Еда'));
-    await tester.pumpAndSettle();
+    await openCategorySheet(tester, 'Категории: Все');
+    await tapCategoryChip(tester, 'Еда');
 
     expect(find.text('В этой категории пока пусто'), findsOneWidget);
+    expect(find.byIcon(Icons.filter_alt_off_outlined), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Сбросить фильтры'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('apple'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Категории: Все'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('category sheet highlights selection and updates button', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(words: categorizedWords()));
+    await tester.pumpAndSettle();
+
+    await openCategorySheet(tester, 'Категории: Все');
+    await tapCategoryChip(tester, 'Еда');
+
+    expect(
+      find.widgetWithText(OutlinedButton, 'Категории: Еда'),
+      findsOneWidget,
+    );
+
+    await openCategorySheet(tester, 'Категории: Еда');
+    final chip = tester.widget<ChoiceChip>(
+      find.widgetWithText(ChoiceChip, 'Еда'),
+    );
+    expect(chip.selected, isTrue);
   });
 
   testWidgets('switches to EN labels when lang=en', (tester) async {
@@ -415,8 +438,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Categories'), findsOneWidget);
+    expect(
+      find.widgetWithText(OutlinedButton, 'Categories: All'),
+      findsOneWidget,
+    );
     expect(find.widgetWithText(ChoiceChip, 'All levels'), findsOneWidget);
+
+    await openCategorySheet(tester, 'Categories: All');
     expect(find.widgetWithText(ChoiceChip, 'All'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Animals'), findsOneWidget);
     expect(find.widgetWithText(ChoiceChip, 'Food'), findsOneWidget);

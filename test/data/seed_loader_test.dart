@@ -3,9 +3,17 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/data/repositories/drift_app_meta_repository.dart';
+import 'package:english_edu/data/repositories/drift_progress_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
 import 'package:english_edu/data/seed_loader.dart';
+import 'package:english_edu/domain/entities/word.dart' as domain;
+import 'package:english_edu/domain/entities/word_progress.dart' as domain;
+import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
+import 'package:english_edu/domain/value_objects/word_category.dart';
+import 'package:english_edu/domain/value_objects/word_id.dart';
+import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:flutter/services.dart';
 import 'package:test/test.dart';
 
@@ -64,13 +72,16 @@ void main() {
   });
   tearDown(() => db.close());
 
-  JsonSeedLoader loaderFor(AssetBundle bundle) =>
-      JsonSeedLoader(words: words, bundle: bundle);
+  JsonSeedLoader loaderFor(AssetBundle bundle) => JsonSeedLoader(
+    words: words,
+    bundle: bundle,
+    meta: DriftAppMetaRepository(db),
+  );
 
   test('loads the whole merged seed into an empty database', () async {
     final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
 
-    expect(await loader.loadIfEmpty(), _mergedSeedWords);
+    expect(await loader.syncSeed(), _mergedSeedWords);
     expect(await words.getAll(), hasLength(_mergedSeedWords));
     expect(_mergedSeedWords, greaterThan(2000));
   });
@@ -90,7 +101,7 @@ void main() {
       ),
     );
 
-    expect(await loader.loadIfEmpty(), 2);
+    expect(await loader.syncSeed(), 2);
     final all = await words.getAll();
     expect(all.firstWhere((w) => w.term == 'meal').synonyms, [
       'food',
@@ -102,19 +113,20 @@ void main() {
   test('does not duplicate on a second call', () async {
     final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
 
-    expect(await loader.loadIfEmpty(), _mergedSeedWords);
-    expect(await loader.loadIfEmpty(), 0);
+    expect(await loader.syncSeed(), _mergedSeedWords);
+    expect(await loader.syncSeed(), 0);
     expect(await words.getAll(), hasLength(_mergedSeedWords));
   });
 
   test('returns 0 when the table already has rows', () async {
-    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
 
     final second = JsonSeedLoader(
       words: words,
       bundle: JsonAssetBundle(jsonEncode(seedJson(const [], version: 2))),
+      meta: DriftAppMetaRepository(db),
     );
-    expect(await second.loadIfEmpty(), 0);
+    expect(await second.syncSeed(), 0);
   });
 
   test('rolls the whole batch back when an insert fails', () async {
@@ -123,10 +135,7 @@ void main() {
       jsonEncode(seedJson([seedWord(1, 'one'), seedWord(1, 'uno')])),
     );
 
-    await expectLater(
-      loaderFor(bundle).loadIfEmpty(),
-      throwsA(isA<Exception>()),
-    );
+    await expectLater(loaderFor(bundle).syncSeed(), throwsA(isA<Exception>()));
     expect(await words.getAll(), isEmpty);
   });
 
@@ -135,14 +144,11 @@ void main() {
       jsonEncode(seedJson([seedWord(1, 'one')], version: 2)),
     );
 
-    await expectLater(
-      loaderFor(bundle).loadIfEmpty(),
-      throwsA(isA<StateError>()),
-    );
+    await expectLater(loaderFor(bundle).syncSeed(), throwsA(isA<StateError>()));
   });
 
   test('loads words of every graded level from the merged seed', () async {
-    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
 
     final levels = {for (final word in await words.getAll()) word.level};
 
@@ -162,7 +168,7 @@ void main() {
   });
 
   test('maps seed fields into columns', () async {
-    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
 
     final stored = await words.getAll();
     final first = stored.firstWhere((word) => word.id.value == 1);
@@ -174,7 +180,7 @@ void main() {
   });
 
   test('seed words carry thematic categories (Phase 39b)', () async {
-    await loaderFor(FileAssetBundle(_mergedSeedPath)).loadIfEmpty();
+    await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
 
     final all = await words.getAll();
     final categorized = all.where((word) => word.category != null).length;
@@ -186,7 +192,7 @@ void main() {
   test('defaults a missing level to a1', () async {
     final bundle = JsonAssetBundle(jsonEncode(seedJson([seedWord(1, 'book')])));
 
-    await loaderFor(bundle).loadIfEmpty();
+    await loaderFor(bundle).syncSeed();
 
     // seed v1 уровня не содержит: слово должно остаться доступным новичку.
     expect((await db.select(db.words).get()).single.level, 'a1');
@@ -196,7 +202,7 @@ void main() {
     final entry = seedWord(1, 'ubiquitous')..['level'] = 'C1';
     final bundle = JsonAssetBundle(jsonEncode(seedJson([entry])));
 
-    await loaderFor(bundle).loadIfEmpty();
+    await loaderFor(bundle).syncSeed();
 
     // В БД метка канонизируется в нижний регистр маппером.
     expect((await db.select(db.words).get()).single.level, 'c1');
@@ -206,6 +212,85 @@ void main() {
     final entry = seedWord(1, 'book')..['level'] = 'D1';
     final bundle = JsonAssetBundle(jsonEncode(seedJson([entry])));
 
-    expect(loaderFor(bundle).loadIfEmpty(), throwsStateError);
+    expect(loaderFor(bundle).syncSeed(), throwsStateError);
+  });
+
+  test('maps raw JSON category through the filter (Phase 39c)', () async {
+    final bundle = JsonAssetBundle(
+      jsonEncode(
+        seedJson([
+          {...seedWord(1, 'apple'), 'category': 'food'},
+          {...seedWord(2, 'banana'), 'category': 'Food'},
+        ]),
+      ),
+    );
+
+    await loaderFor(bundle).syncSeed();
+
+    final all = await words.getAll();
+    final apple = all.firstWhere((w) => w.term == 'apple');
+    expect(apple.category, 'food');
+    expect(
+      WordCategory.food.matches(
+        category: apple.category,
+        partOfSpeech: apple.partOfSpeech,
+      ),
+      isTrue,
+    );
+    // Регистр не важен: matches нормализует строку.
+    final banana = all.firstWhere((w) => w.term == 'banana');
+    expect(WordCategory.food.matches(category: banana.category), isTrue);
+  });
+
+  test('reseed preserves user words and SRS progress (Phase 39c)', () async {
+    final now = DateTime.utc(2024, 5, 15, 12);
+    final progressRepo = DriftProgressRepository(db);
+    // Устаревшая БД: apple без категории, пользовательское слово, прогресс.
+    await words.insertMany([
+      const domain.Word(id: WordId(29), term: 'apple', translation: 'яблоко'),
+      const domain.Word(
+        id: WordId(9000),
+        term: 'myword',
+        translation: 'моё слово',
+      ),
+    ]);
+    await progressRepo.upsert(
+      domain.WordProgress(
+        wordId: const WordId(29),
+        cardState: CardState(
+          easePermille: 2500,
+          intervalDays: 1,
+          repetitions: 3,
+          lapses: 0,
+          dueAt: now,
+        ),
+        status: WordStatus.learning,
+        firstSeenAt: now,
+      ),
+    );
+
+    final loaded = await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed();
+
+    expect(loaded, _mergedSeedWords);
+    // Категория seed-слова обновилась из JSON.
+    expect((await words.getById(const WordId(29)))!.category, 'food');
+    // Пользовательское слово (id вне seed) на месте.
+    expect((await words.getById(const WordId(9000)))!.term, 'myword');
+    // Прогресс SRS не обнулился.
+    final stored = await progressRepo.getByWordId(const WordId(29));
+    expect(stored!.cardState.repetitions, 3);
+    expect(stored.status, WordStatus.learning);
+    // Повторный запуск — no-op: версия в app_meta совпадает.
+    expect(await loaderFor(FileAssetBundle(_mergedSeedPath)).syncSeed(), 0);
+  });
+
+  test('does not touch words when seed version is current', () async {
+    final loader = loaderFor(FileAssetBundle(_mergedSeedPath));
+    await loader.syncSeed();
+
+    final original = await words.getById(const WordId(1));
+    await words.upsert(original!.copyWith(translation: 'правка'));
+    expect(await loader.syncSeed(), 0);
+    expect((await words.getById(const WordId(1)))!.translation, 'правка');
   });
 }

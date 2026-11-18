@@ -112,6 +112,13 @@ final class FakeWordRepository implements WordRepository {
   }
 
   @override
+  Future<void> upsertMany(Iterable<Word> words) async {
+    for (final word in words) {
+      _byId[word.id] = word;
+    }
+  }
+
+  @override
   Future<void> delete(WordId id) async {
     _byId.remove(id);
   }

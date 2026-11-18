@@ -18,6 +18,7 @@ part 'app_database.g.dart';
 /// v19 — очистка `cloze_tasks` (Phase 32: обновлён AI-промпт),
 /// v20 — `word_translations` (Phase 33, BL-96),
 /// v21 — `words.synonyms` (Phase 36a).
+/// v22 — `app_meta` (Phase 39c).
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -39,6 +40,7 @@ part 'app_database.g.dart';
     Stories,
     ChatMessages,
     WordTranslations,
+    AppMeta,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -49,12 +51,15 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
+      if (from < 22) {
+        await m.createTable(appMeta);
+      }
       if (from < 2) {
         await m.createTable(frozenDays);
       }

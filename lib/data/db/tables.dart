@@ -575,3 +575,21 @@ class WordTranslations extends Table {
   @override
   Set<Column> get primaryKey => {term};
 }
+
+/// Служебные метаданные приложения (Phase 39c): версия seed-контента.
+///
+/// Внутреннее состояние устройства: не экспортируется и не синхронизируется,
+/// в отличие от пользовательских данных.
+class AppMeta extends Table {
+  @override
+  String get tableName => 'app_meta';
+
+  /// Ключ метаданных (например, `seed_version`).
+  TextColumn get key => text()();
+
+  /// Значение метаданных.
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}

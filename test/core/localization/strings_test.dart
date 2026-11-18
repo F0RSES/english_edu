@@ -181,6 +181,7 @@ void main() {
         S.tabMastered,
         S.allCategories,
         S.allLevels,
+        S.resetFilters,
         S.emptySearch,
         S.emptyCategory,
         S.emptyLevel,

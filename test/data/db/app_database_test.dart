@@ -573,6 +573,26 @@ void main() {
     expect(row.term, 'meal');
   });
 
+  test('migration v21 to v22 creates the app_meta table', () async {
+    final dir = Directory.systemTemp.createTempSync(
+      'english_edu_migration_v22',
+    );
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/app.sqlite');
+
+    // v21 = текущая схема без таблицы app_meta.
+    final v21 = AppDatabase.forTesting(NativeDatabase(file));
+    await v21.customStatement('DROP TABLE app_meta');
+    await v21.customStatement('PRAGMA user_version = 21');
+    await v21.close();
+
+    final v22 = AppDatabase.forTesting(NativeDatabase(file));
+    addTearDown(v22.close);
+
+    // Таблица создана миграцией: запрос не падает и возвращает пусто.
+    expect(await v22.select(v22.appMeta).get(), isEmpty);
+  });
+
   test('creates all seventeen tables on open', () async {
     expect(await db.select(db.words).get(), isEmpty);
     expect(await db.select(db.wordProgresses).get(), isEmpty);

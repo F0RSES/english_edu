@@ -7,6 +7,7 @@ import 'package:english_edu/core/crash_reporter.dart';
 import 'package:english_edu/core/logger.dart';
 import 'package:english_edu/core/notifications/notification_service.dart';
 import 'package:english_edu/data/db/app_database.dart';
+import 'package:english_edu/data/repositories/drift_app_meta_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
 import 'package:english_edu/data/repositories/drift_review_log_repository.dart';
 import 'package:english_edu/data/repositories/drift_word_repository.dart';
@@ -130,7 +131,7 @@ void main() {
     expect(result.idGenerator.next().value, 1);
   });
 
-  test('bootstrap skips seeding when the database is not empty', () async {
+  test('bootstrap reseeds a stale database on upgrade (Phase 39c)', () async {
     await words.upsert(
       const domain.Word(id: WordId(1), term: 'one', translation: 'один'),
     );
@@ -142,7 +143,27 @@ void main() {
       sentryDsn: null,
     );
 
+    // Версии seed в app_meta нет → upsert всего батча: старая строка id 1
+    // заменена seed-статьёй, остальные добавлены.
+    expect(await words.count(), 20);
+    expect((await words.getById(const WordId(1)))!.term, 'the');
+  });
+
+  test('bootstrap skips seeding when the seed version is current', () async {
+    await words.upsert(
+      const domain.Word(id: WordId(1), term: 'one', translation: 'один'),
+    );
+    await DriftAppMetaRepository(db).setValue('seed_version', '2');
+
+    await bootstrapApp(
+      db: db,
+      logger: const DebugLogger(),
+      bundle: FileAssetBundle('assets/seed/words_v1.json'),
+      sentryDsn: null,
+    );
+
     expect(await words.count(), 1);
+    expect((await words.getById(const WordId(1)))!.term, 'one');
   });
 
   test('bootstrap without a DSN selects the no-op reporter', () async {

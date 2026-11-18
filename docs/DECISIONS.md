@@ -807,6 +807,23 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +2 зависимости: `image_picker`, `path_provider` (для appDocuments). +2 колонки `user_settings`. Файлы аватаров не попадают в бэкап: после импорта путь может указывать на несуществующий файл — UI показывает иконку.
 - **Open questions:** облачная синхронизация аватара (BL-97).
 
+### ADR-045: Seed content versioning and reseed on upgrade
+- **Status:** Proposed
+- **Date:** 2026-11-18
+- **Context:** Seed загружался только в пустую БД (`loadIfEmpty`): на устройствах с уже засеянной базой новый APK с обновлённым контентом (категории Phase 39b, новые слова) не доезжал до таблицы `words` — фильтры категорий в словаре были пусты. Нужен механизм доставки seed-обновлений существующим установкам без потери пользовательских слов и прогресса SRS.
+- **Decision:**
+  - Таблица `app_meta` (key/value, **schema v22**) — внутренние метаданные устройства; не экспортируется и не синхронизируется.
+  - `JsonSeedLoader.syncSeed()` (переименован из `loadIfEmpty`): быстрый путь — БД не пуста и `seed_version` в `app_meta` совпадает с текущей (`_seedVersion = '2'`) → 0, JSON не читается. Пустая БД → `insertMany`; устаревшая → `upsertMany` по id в одной транзакции. Версия пишется только после успеха: падение повторяется при следующем старте (best-effort bootstrap).
+  - Reseed трогает только seed-статьи: батч содержит id из JSON, пользовательские слова (id вне батча) и `word_progress` не изменяются; id стабильны → FK и история SRS сохраняются. Слова, удалённые из seed, остаются в БД (защита прогресса).
+  - `WordRepository.upsertMany` — батч `insertOnConflictUpdate`; `AppMetaRepository` — доменный контракт + Drift-реализация.
+  - При изменении seed-файла `_seedVersion` поднимается вручную.
+- **Alternatives considered:**
+  - (A) Reseed при каждом старте — отклонено: воскрешает удалённые пользователем seed-слова, лишняя работа.
+  - (B) Эвристика «в БД нет категорий → reseed» — отклонено: неявно и не работает для будущих обновлений.
+  - (C) shared_preferences для версии — отклонено: новая зависимость, метаданные место в БД.
+- **Consequences:** +1 таблица (v22, миграция протестирована), разовый upsert 7415 слов при первом старте после обновления (~0.5–2 с в bootstrap). Пользовательское слово с тем же term, что и новое seed-слово, станет гомонимом (ADR-031 это допускает).
+- **Open questions:** нет.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -854,3 +871,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-042 | Error Helper | Accepted |
 | ADR-043 | Localization strategy | Accepted |
 | ADR-044 | User profile customization | Accepted |
+| ADR-045 | Seed content versioning and reseed | Proposed |

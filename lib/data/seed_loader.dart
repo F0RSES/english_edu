@@ -1,49 +1,82 @@
 import 'dart:convert';
 
 import 'package:english_edu/domain/entities/word.dart' as domain;
+import 'package:english_edu/domain/repositories/app_meta_repository.dart';
 import 'package:english_edu/domain/repositories/word_repository.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:flutter/services.dart';
 
-/// Заполняет пустую базу словами из seed-файла.
+/// Загружает seed-контент в пустую базу и обновляет устаревший (Phase 39c).
 abstract interface class SeedLoader {
-  /// Вставляет слова, если база пуста, и возвращает число вставленных.
-  Future<int> loadIfEmpty();
+  /// Вставляет слова в пустую БД или обновляет устаревший seed.
+  ///
+  /// Возвращает число вставленных/обновлённых слов; 0 — всё актуально.
+  Future<int> syncSeed();
 }
 
-/// Читает `assets/seed/words_v3.json` при первом запуске (7415 слов по
-/// уровням A0–C2: базовые 2071 из words_v2 плюс 5344 новых из
-/// LingvoBerry/CEFR-J/Octanove, обогащённых через `tools/enrich_seed.dart`).
+/// Читает `assets/seed/words_v3.json` (7415 слов по уровням A0–C2,
+/// тегированных категориями через `tools/tag_categories.dart`).
 ///
-/// Не перезаписывает существующие данные: если в `words` есть хотя бы одна
-/// строка, возвращает 0. Валидация JSON минимальная (`schemaVersion`);
-/// структурная проверка — `tools/validate_seed.dart` (Phase 1.2a).
+/// Пустая база заполняется целиком; непустая с устаревшей версией seed
+/// обновляется upsert'ом по id (Phase 39c): категории/переводы приходят из
+/// JSON, новые id добавляются, пользовательские слова (id вне seed-батча)
+/// и прогресс SRS не трогаются. Версия хранится в `app_meta`, поэтому
+/// обновление APK с новым seed доезжает до существующих установок.
+/// Валидация JSON минимальная (`schemaVersion`); структурная проверка —
+/// `tools/validate_seed.dart` (Phase 1.2a).
 final class JsonSeedLoader implements SeedLoader {
-  /// Создаёт загрузчик поверх репозитория слов и бандла ассетов.
+  /// Создаёт загрузчик поверх репозиториев слов, метаданных и бандла ассетов.
   const JsonSeedLoader({
     required WordRepository words,
     required AssetBundle bundle,
+    required AppMetaRepository meta,
   }) : _words = words,
-       _bundle = bundle;
+       _bundle = bundle,
+       _meta = meta;
 
   static const _assetPath = 'assets/seed/words_v3.json';
 
+  /// Ключ версии seed-контента в `app_meta`.
+  static const _seedVersionKey = 'seed_version';
+
+  /// Версия контента: 1 — seed без категорий, 2 — тегированный v3 (Phase 39b).
+  ///
+  /// Поднимать при каждом изменении seed-файла, которое должно доехать
+  /// до существующих установок.
+  static const _seedVersion = '2';
+
   final WordRepository _words;
   final AssetBundle _bundle;
+  final AppMetaRepository _meta;
 
-  /// Атомарно вставляет слова, если таблица пуста.
+  /// Загружает seed в пустую базу или обновляет устаревший (Phase 39c).
   ///
-  /// Вставка идёт через `WordRepository.insertMany` в одной транзакции:
-  /// падение откатывает всё, и повторный запуск попробует снова. Если слова
-  /// уже есть, возвращает 0 и ничего не трогает.
+  /// Быстрый путь: база не пуста и версия в `app_meta` совпадает — 0,
+  /// JSON не читается. Иначе батч вставляется (пустая база) или upsert'ится
+  /// по id (устаревшая) в одной транзакции; версия пишется только после
+  /// успеха, поэтому падение повторяется при следующем старте.
   @override
-  Future<int> loadIfEmpty() async {
+  Future<int> syncSeed() async {
     final existing = await _words.count();
-    if (existing > 0) {
+    if (existing > 0 && await _meta.getValue(_seedVersionKey) == _seedVersion) {
       return 0;
     }
 
+    final batch = await _readSeed();
+    if (existing == 0) {
+      await _words.insertMany(batch);
+    } else {
+      // Батч содержит только id из seed-файла: пользовательские слова
+      // (id вне батча) и прогресс SRS остаются нетронутыми.
+      await _words.upsertMany(batch);
+    }
+    await _meta.setValue(_seedVersionKey, _seedVersion);
+    return batch.length;
+  }
+
+  /// Читает и валидирует seed-файл, возвращая доменные слова.
+  Future<List<domain.Word>> _readSeed() async {
     final raw = await _bundle.loadString(_assetPath);
     final decoded = jsonDecode(raw);
     if (decoded is! Map<String, Object?>) {
@@ -58,15 +91,13 @@ final class JsonSeedLoader implements SeedLoader {
       throw StateError('Seed "words" must be an array');
     }
 
-    final batch = [
+    return [
       for (final item in words)
         if (item is Map<String, Object?>)
           _toDomain(item)
         else
           throw StateError('Seed word entry must be a JSON object'),
     ];
-    await _words.insertMany(batch);
-    return batch.length;
   }
 
   domain.Word _toDomain(Map<String, Object?> item) {
@@ -83,7 +114,7 @@ final class JsonSeedLoader implements SeedLoader {
       transcription: item['transcription'] as String?,
       partOfSpeech: item['partOfSpeech'] as String?,
       exampleSentence: item['exampleSentence'] as String?,
-      // Поле необязательное: seed v1 его не содержит (20 слов без категорий).
+      // Ключ есть у всех статей v3; null — слово вне тем (Phase 39b).
       category: item['category'] as String?,
       level: _level(item),
       synonyms: _synonyms(item),

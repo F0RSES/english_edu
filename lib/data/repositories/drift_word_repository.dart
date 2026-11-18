@@ -151,6 +151,17 @@ final class DriftWordRepository implements WordRepository {
   }
 
   @override
+  Future<void> upsertMany(Iterable<domain.Word> words) async {
+    await _db.transaction(() async {
+      for (final word in words) {
+        await _db
+            .into(_db.words)
+            .insertOnConflictUpdate(WordMapper.toCompanion(word));
+      }
+    });
+  }
+
+  @override
   Future<void> delete(WordId id) async {
     await (_db.delete(_db.words)..where((t) => t.id.equals(id.value))).go();
   }

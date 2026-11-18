@@ -487,6 +487,9 @@ final class S {
   static String filterCategories(AppLanguage l) =>
       _t('dictionary.filterCategories', l);
 
+  /// Кнопка сброса фильтров словаря (Phase 39c).
+  static String resetFilters(AppLanguage l) => _t('dictionary.resetFilters', l);
+
   /// Категория «Животные» (Phase 39a).
   static String categoryAnimals(AppLanguage l) =>
       _t('dictionary.category.animals', l);
@@ -1571,6 +1574,10 @@ final class S {
     'dictionary.allLevels': {'ru': 'Все уровни', 'en': 'All levels'},
     'dictionary.filterAll': {'ru': 'Все', 'en': 'All'},
     'dictionary.filterCategories': {'ru': 'Категории', 'en': 'Categories'},
+    'dictionary.resetFilters': {
+      'ru': 'Сбросить фильтры',
+      'en': 'Reset filters',
+    },
     'dictionary.category.animals': {'ru': 'Животные', 'en': 'Animals'},
     'dictionary.category.nature': {'ru': 'Природа', 'en': 'Nature'},
     'dictionary.category.food': {'ru': 'Еда', 'en': 'Food'},

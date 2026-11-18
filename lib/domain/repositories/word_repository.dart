@@ -75,6 +75,13 @@ abstract interface class WordRepository {
   /// исключение, а не происходит silent skip.
   Future<void> insertMany(Iterable<Word> words);
 
+  /// Атомарно вставляет или обновляет слова по id (Phase 39c).
+  ///
+  /// Используется reseed: seed-статьи обновляются (category, translation,
+  /// level), новые id добавляются. Строки с id вне батча не трогаются —
+  /// пользовательские слова и их прогресс SRS сохраняются.
+  Future<void> upsertMany(Iterable<Word> words);
+
   /// Removes the word with [id]; does nothing when it is absent.
   Future<void> delete(WordId id);
 

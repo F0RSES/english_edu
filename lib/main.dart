@@ -102,9 +102,9 @@ Future<BootstrapResult> bootstrapApp({
   }
 }
 
-/// Загружает seed в пустую базу.
+/// Загружает seed в пустую базу или обновляет устаревший (Phase 39c).
 ///
-/// Падение загрузчика не блокирует запуск: база остаётся пустой, seed
+/// Падение загрузчика не блокирует запуск: база остаётся как есть, seed
 /// повторится при следующем старте.
 Future<void> _seed(
   ProviderContainer container,
@@ -112,7 +112,7 @@ Future<void> _seed(
   CrashReporter crashReporter,
 ) async {
   try {
-    await container.read(seedLoaderProvider).loadIfEmpty();
+    await container.read(seedLoaderProvider).syncSeed();
   } on Object catch (error, stack) {
     logger.warn(
       'Seed loader failed, starting with an empty database',

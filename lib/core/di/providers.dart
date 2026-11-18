@@ -11,6 +11,7 @@ import 'package:english_edu/data/db/phrase_seed_loader.dart';
 import 'package:english_edu/data/db/story_seed_loader.dart';
 import 'package:english_edu/data/export_payload_codec.dart';
 import 'package:english_edu/data/repositories/drift_achievement_repository.dart';
+import 'package:english_edu/data/repositories/drift_app_meta_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
 import 'package:english_edu/data/repositories/drift_chat_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
@@ -37,6 +38,7 @@ import 'package:english_edu/domain/entities/phrase.dart';
 import 'package:english_edu/domain/entities/story.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/repositories/achievement_repository.dart';
+import 'package:english_edu/domain/repositories/app_meta_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
 import 'package:english_edu/domain/repositories/chat_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
@@ -344,11 +346,17 @@ final markMissedDayProvider = Provider<MarkMissedDay>(
   (ref) => MarkMissedDay(frozen: ref.watch(frozenDaysRepositoryProvider)),
 );
 
+/// Служебные метаданные приложения (Phase 39c).
+final appMetaRepositoryProvider = Provider<AppMetaRepository>(
+  (ref) => DriftAppMetaRepository(ref.watch(appDatabaseProvider)),
+);
+
 /// Загрузчик seed-контента.
 final seedLoaderProvider = Provider<SeedLoader>(
   (ref) => JsonSeedLoader(
     words: ref.watch(wordRepositoryProvider),
     bundle: ref.watch(assetBundleProvider),
+    meta: ref.watch(appMetaRepositoryProvider),
   ),
 );
 

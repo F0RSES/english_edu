@@ -3,7 +3,7 @@
 Шаблон состояния проекта. Обновляется в конце каждой задачи. Плейсхолдеры `<...>` заполняются по факту.
 
 ## Phase
-46 закрыта (Принудительный Markdown от ИИ + отступы Drawer). Схема v23, 19 таблиц; 1181 тест, 47 ADR (ADR-046/047 Proposed). Следующая: по плану владельца.
+47 закрыта (Полировка цветов Markdown + выравнивание Drawer). Схема v23, 19 таблиц; 1182 теста, 47 ADR (ADR-046/047 Proposed). Следующая: по плану владельца.
 
 ## Done
 - Phase 0 — Bootstrap: 11 файлов управления проектом (`.clinerules/` + `docs/`).
@@ -64,6 +64,7 @@
 - Phase 44 — Фиксы UI истории чатов и ребрендинг (ADR-046): SafeArea снаружи Drawer (панель целиком ниже статус-бара), явный вход в multi-select (checklist в хедере, пустой набор), AppBar без аватара бота; бот — «Маффин»/«Muffin» (ключи assistant/explain/helper.ask/aiHelper.title/chat.greeting, приветствие представляется). BL-100 Done.
 - Phase 45 — Markdown-рендеринг ответов ИИ (ADR-047 Proposed): `flutter_markdown_plus ^1.0.12` (+markdown 7.3.1), виджет `AssistantMarkdown` (тема: onSurface, код surfaceContainerHighest + radius 12, списки, GFM-таблицы), user-сообщения остаются Text; длинные строки кода — горизонтальный скролл без Overflow. BL-101 Done.
 - Phase 46 — Принудительный Markdown от ИИ (ADR-047): системный промт первым сообщением каждого запроса чата (константа в AiClient, транспорт); contentPadding плитки drawer 16/4 в обоих режимах. BL-102 Done.
+- Phase 47 — Полировка цветов Markdown и выравнивание Drawer (ADR-046/047): strong — primary/w600, код — surfaceContainerLow + рамка; меню плитки прижато к правому краю (contentPadding right 4, VisualDensity.compact, SizedBox.square(40) для иконки выбора). BL-103 Done.
 
 ## In progress
 - Подготовка к Google Play (Phase 37b: QA и релиз).

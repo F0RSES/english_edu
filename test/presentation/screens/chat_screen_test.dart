@@ -79,12 +79,12 @@ Widget host({
 );
 
 /// Рекурсивный поиск жирного span с [text] в дереве RichText
-/// (Markdown-рендер ответа ассистента, Phase 45).
+/// (Markdown-рендер ответа ассистента, Phase 45; w600 — Phase 47).
 bool _spanHasBold(InlineSpan span, String text) {
   if (span is! TextSpan) {
     return false;
   }
-  if (span.style?.fontWeight == FontWeight.bold &&
+  if (span.style?.fontWeight == FontWeight.w600 &&
       (span.text?.contains(text) ?? false)) {
     return true;
   }

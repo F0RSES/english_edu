@@ -17,11 +17,12 @@ const _blockSpacing = 8.0;
 ///
 /// Формат ответов модели — Markdown (жирный, списки, код, таблицы);
 /// пользовательские сообщения остаются обычным Text. Стили наследуют
-/// тему: текст onSurface, блоки кода — surfaceContainerHighest со
-/// скруглением и тонкой рамкой (пузырь того же цвета — рамка отделяет
-/// блок). Длинные строки кода скроллятся горизонтально внутри блока
-/// (SingleChildScrollView пакета), без переполнения пузыря. Ссылки
-/// инертны: onTapLink не задан, пакет не открывает URL сам.
+/// тему: текст onSurface, ключевые слова — primary/w600 (Phase 47),
+/// блоки кода — surfaceContainerLow со скруглением и тонкой рамкой
+/// (фон отличим от пузыря surfaceContainerHighest). Длинные строки кода
+/// скроллятся горизонтально внутри блока (SingleChildScrollView пакета),
+/// без переполнения пузыря. Ссылки инертны: onTapLink не задан, пакет
+/// не открывает URL сам.
 class AssistantMarkdown extends StatelessWidget {
   /// Создаёт рендер для [data] — Markdown-текста ответа ассистента.
   const AssistantMarkdown({required this.data, super.key});
@@ -38,13 +39,21 @@ class AssistantMarkdown extends StatelessWidget {
       data: data,
       styleSheet: MarkdownStyleSheet(
         p: textStyle,
-        strong: textStyle?.copyWith(fontWeight: FontWeight.bold),
+        // Phase 47: мягкий брендовый акцент вместо «токсичного» bold.
+        strong: textStyle?.copyWith(
+          color: scheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
         em: textStyle?.copyWith(fontStyle: FontStyle.italic),
         a: textStyle?.copyWith(color: scheme.primary),
-        code: textStyle?.copyWith(fontFamily: 'monospace'),
+        code: textStyle?.copyWith(
+          fontFamily: 'monospace',
+          backgroundColor: scheme.surfaceContainerLow,
+        ),
         codeblockPadding: _codeBlockPadding,
         codeblockDecoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
+          // Phase 47: фон отличим от пузыря (surfaceContainerHighest).
+          color: scheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(_codeBlockRadius),
           border: Border.all(color: scheme.outlineVariant),
         ),

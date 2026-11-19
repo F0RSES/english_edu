@@ -15,9 +15,18 @@ const _maxTitleLength = 60;
 /// Радиус скругления плитки сессии (Phase 43).
 const _tileBorderRadius = 12.0;
 
-/// Отступы контента плитки сессии (Phase 46): меню аккуратно внутри
-/// скруглённой карточки, текст не прилипает к краям.
-const _tileContentPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+/// Отступы контента плитки сессии (Phase 47): справа минимум — меню
+/// прижато к правому краю скруглённой карточки.
+const _tileContentPadding = EdgeInsets.only(
+  left: 16,
+  top: 4,
+  right: 4,
+  bottom: 4,
+);
+
+/// Размер бокса trailing-иконки: compact IconButton и иконка режима
+/// выбора занимают одинаковое место (Phase 47).
+const _trailingBoxSize = 40.0;
 
 /// Drawer истории чатов (Phase 42, ADR-046; Phase 43 — multi-select).
 ///
@@ -342,12 +351,22 @@ class _SessionTile extends ConsumerWidget {
             ? Icon(Icons.push_pin, size: 18, color: scheme.primary)
             : null,
         trailing: isSelectionMode
-            ? Icon(
-                isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
+            ? SizedBox.square(
+                dimension: _trailingBoxSize,
+                child: Center(
+                  child: Icon(
+                    isSelected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: isSelected
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
+                  ),
+                ),
               )
             : IconButton(
                 key: Key('chat-session-menu-${session.id}'),
+                visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.more_vert),
                 onPressed: () => unawaited(_openActions(context, ref)),
               ),

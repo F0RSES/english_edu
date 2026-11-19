@@ -342,10 +342,14 @@ void main() {
     await tester.pumpWidget(host(sessions: sessions));
     await tester.pumpAndSettle();
 
-    // Phase 46: явные отступы контента плитки — меню внутри скругления.
-    const expected = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+    // Phase 47: справа минимум — меню прижато к краю скругления.
+    const expected = EdgeInsets.only(left: 16, top: 4, right: 4, bottom: 4);
     var tile = tester.widget<ListTile>(find.byKey(const Key('chat-session-1')));
     expect(tile.contentPadding, expected);
+    final menu = tester.widget<IconButton>(
+      find.byKey(const Key('chat-session-menu-1')),
+    );
+    expect(menu.visualDensity, VisualDensity.compact);
 
     await tester.longPress(find.byKey(const Key('chat-session-1')));
     await tester.pumpAndSettle();

@@ -18,21 +18,37 @@ Widget host(String data) => MaterialApp(
 
 /// Рекурсивный поиск жирного span с [text] (без зависимости от
 /// семантики visitChildren).
-bool _spanHasBold(InlineSpan span, String text) {
+bool _spanHasBold(InlineSpan span, String text, {Color? color}) {
   if (span is! TextSpan) {
     return false;
   }
-  if (span.style?.fontWeight == FontWeight.bold &&
+  if (span.style?.fontWeight == FontWeight.w600 &&
+      (span.text?.contains(text) ?? false) &&
+      (color == null || span.style?.color == color)) {
+    return true;
+  }
+  final children = span.children;
+  return children != null &&
+      children.any((child) => _spanHasBold(child, text, color: color));
+}
+
+bool _hasBoldSpan(WidgetTester tester, String text, {Color? color}) => tester
+    .widgetList<RichText>(find.byType(RichText))
+    .any((rich) => _spanHasBold(rich.text, text, color: color));
+
+/// Рекурсивный поиск span с [text] и фоном [background] (inline-код).
+bool _spanHasBackground(InlineSpan span, String text, Color background) {
+  if (span is! TextSpan) {
+    return false;
+  }
+  if (span.style?.backgroundColor == background &&
       (span.text?.contains(text) ?? false)) {
     return true;
   }
   final children = span.children;
-  return children != null && children.any((child) => _spanHasBold(child, text));
+  return children != null &&
+      children.any((child) => _spanHasBackground(child, text, background));
 }
-
-bool _hasBoldSpan(WidgetTester tester, String text) => tester
-    .widgetList<RichText>(find.byType(RichText))
-    .any((rich) => _spanHasBold(rich.text, text));
 
 void main() {
   testWidgets('should_render_bold_without_raw_asterisks', (tester) async {
@@ -42,6 +58,8 @@ void main() {
     expect(find.text('**hello**'), findsNothing);
     expect(find.text('hello'), findsOneWidget);
     expect(_hasBoldSpan(tester, 'hello'), isTrue);
+    // Phase 47: акцент — брендовый primary, не «токсичный» bold.
+    expect(_hasBoldSpan(tester, 'hello', color: _scheme.primary), isTrue);
   });
 
   testWidgets('should_render_list_items_without_raw_markers', (tester) async {
@@ -62,12 +80,31 @@ void main() {
       containers.any((c) {
         final decoration = c.decoration;
         return decoration is BoxDecoration &&
-            decoration.color == _scheme.surfaceContainerHighest &&
+            decoration.color == _scheme.surfaceContainerLow &&
             decoration.borderRadius == BorderRadius.circular(12);
       }),
       isTrue,
     );
     expect(find.textContaining('apple — яблоко'), findsOneWidget);
+  });
+
+  testWidgets('should_style_inline_code_with_contrast_background', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host('Слово `apple` — пример'));
+    await tester.pumpAndSettle();
+
+    // Phase 47: фон inline-кода отличим от пузыря, текст читаем.
+    final hasCodeBackground = tester
+        .widgetList<RichText>(find.byType(RichText))
+        .any(
+          (rich) => _spanHasBackground(
+            rich.text,
+            'apple',
+            _scheme.surfaceContainerLow,
+          ),
+        );
+    expect(hasCodeBackground, isTrue);
   });
 
   testWidgets('should_scroll_long_code_line_without_overflow', (tester) async {

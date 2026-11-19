@@ -687,6 +687,147 @@ void main() {
     expect(row.term, 'book');
   });
 
+  test(
+    'migration v22 to v23 attaches old messages to a default session',
+    () async {
+      final dir = Directory.systemTemp.createTempSync(
+        'english_edu_migration_v23',
+      );
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/app.sqlite');
+
+      // v22 = текущая схема без сессий: chat_messages пересоздаётся без
+      // session_id (FK-колонку нельзя DROP COLUMN), chat_sessions удаляется.
+      final v22 = AppDatabase.forTesting(NativeDatabase(file));
+      await v22.customStatement('DROP TABLE chat_messages');
+      await v22.customStatement('DROP TABLE chat_sessions');
+      await v22.customStatement(
+        'CREATE TABLE chat_messages ( '
+        'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, '
+        'role TEXT NOT NULL, content TEXT NOT NULL, '
+        'created_at_utc INTEGER NOT NULL)',
+      );
+      await v22.customStatement(
+        'CREATE INDEX idx_chat_messages_created '
+        'ON chat_messages (created_at_utc)',
+      );
+      const firstMessage = 'Hello world, this is the first user message';
+      await v22.customStatement(
+        'INSERT INTO chat_messages (role, content, created_at_utc) '
+        'VALUES (?, ?, ?)',
+        ['user', firstMessage, _nowMs],
+      );
+      await v22.customStatement(
+        'INSERT INTO chat_messages (role, content, created_at_utc) '
+        'VALUES (?, ?, ?)',
+        ['assistant', 'Hi!', _nowMs + 60000],
+      );
+      await v22.customStatement('PRAGMA user_version = 22');
+      await v22.close();
+
+      final v23 = AppDatabase.forTesting(NativeDatabase(file));
+      addTearDown(v23.close);
+
+      // Дефолтная сессия создана: заголовок из первого user-сообщения (30
+      // символов), время — min/max сообщений.
+      final sessions = await v23.select(v23.chatSessions).get();
+      expect(sessions, hasLength(1));
+      final session = sessions.single;
+      expect(session.title, firstMessage.substring(0, 30));
+      expect(session.isPinned, isFalse);
+      expect(session.createdAtUtc, _nowMs);
+      expect(session.updatedAtUtc, _nowMs + 60000);
+
+      // Старые сообщения не потеряны и привязаны к дефолтной сессии.
+      final messages = await v23.select(v23.chatMessages).get();
+      expect(messages, hasLength(2));
+      expect(messages.every((m) => m.sessionId == session.id), isTrue);
+    },
+  );
+
+  test(
+    'migration v22 to v23 with empty chat creates no default session',
+    () async {
+      final dir = Directory.systemTemp.createTempSync(
+        'english_edu_migration_v23_empty',
+      );
+      addTearDown(() => dir.deleteSync(recursive: true));
+      final file = File('${dir.path}/app.sqlite');
+
+      final v22 = AppDatabase.forTesting(NativeDatabase(file));
+      await v22.customStatement('DROP TABLE chat_messages');
+      await v22.customStatement('DROP TABLE chat_sessions');
+      await v22.customStatement(
+        'CREATE TABLE chat_messages ( '
+        'id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, '
+        'role TEXT NOT NULL, content TEXT NOT NULL, '
+        'created_at_utc INTEGER NOT NULL)',
+      );
+      await v22.customStatement('PRAGMA user_version = 22');
+      await v22.close();
+
+      final v23 = AppDatabase.forTesting(NativeDatabase(file));
+      addTearDown(v23.close);
+
+      expect(await v23.select(v23.chatSessions).get(), isEmpty);
+      expect(await v23.select(v23.chatMessages).get(), isEmpty);
+      // Колонка на месте: новая сессия и сообщение сохраняются после апгрейда.
+      final sessionId = await v23
+          .into(v23.chatSessions)
+          .insert(
+            ChatSessionsCompanion.insert(
+              title: 'Новый',
+              createdAtUtc: _nowMs,
+              updatedAtUtc: _nowMs,
+            ),
+          );
+      await v23
+          .into(v23.chatMessages)
+          .insert(
+            ChatMessagesCompanion.insert(
+              sessionId: sessionId,
+              role: 'user',
+              content: 'Привет',
+              createdAtUtc: _nowMs,
+            ),
+          );
+      expect(
+        (await v23.select(v23.chatMessages).get()).single.sessionId,
+        sessionId,
+      );
+    },
+  );
+
+  test('deletes chat messages together with their session (cascade)', () async {
+    final sessionId = await db
+        .into(db.chatSessions)
+        .insert(
+          ChatSessionsCompanion.insert(
+            title: 'Чат',
+            createdAtUtc: _nowMs,
+            updatedAtUtc: _nowMs,
+          ),
+        );
+    await db
+        .into(db.chatMessages)
+        .insert(
+          ChatMessagesCompanion.insert(
+            sessionId: sessionId,
+            role: 'user',
+            content: 'Привет',
+            createdAtUtc: _nowMs,
+          ),
+        );
+    expect(await db.select(db.chatMessages).get(), hasLength(1));
+
+    await (db.delete(
+      db.chatSessions,
+    )..where((t) => t.id.equals(sessionId))).go();
+
+    expect(await db.select(db.chatSessions).get(), isEmpty);
+    expect(await db.select(db.chatMessages).get(), isEmpty);
+  });
+
   test('inserts and reads a word with every column', () async {
     await db
         .into(db.words)

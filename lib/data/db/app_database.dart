@@ -2,10 +2,11 @@ import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'package:english_edu/data/db/tables.dart';
+import 'package:english_edu/domain/entities/chat_session.dart';
 
 part 'app_database.g.dart';
 
-/// Schema v21: синонимы слов words.synonyms (Phase 36a).
+/// Schema v23: сессии чата chat_sessions + chat_messages.session_id (Phase 42).
 ///
 /// История: v2 — `frozen_days` (ADR-015), v3 — `words.category`,
 /// v4 — `word_hints`, v5 — `user_settings.has_seen_onboarding` (BL-61),
@@ -19,6 +20,7 @@ part 'app_database.g.dart';
 /// v20 — `word_translations` (Phase 33, BL-96),
 /// v21 — `words.synonyms` (Phase 36a).
 /// v22 — `app_meta` (Phase 39c).
+/// v23 — `chat_sessions` и `chat_messages.session_id` (Phase 42, ADR-046).
 /// `onCreate` создаёт всё сразу, `onUpgrade` только докатывает недостающее:
 /// существующие таблицы и данные не пересоздаются.
 @DriftDatabase(
@@ -38,6 +40,7 @@ part 'app_database.g.dart';
     TypingRecords,
     Phrases,
     Stories,
+    ChatSessions,
     ChatMessages,
     WordTranslations,
     AppMeta,
@@ -51,12 +54,67 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
+      if (from < 23) {
+        await m.createTable(chatSessions);
+        // chat_messages может ещё не существовать (from < 15): ниже она
+        // создаётся сразу с текущей схемой. SQLite запрещает ADD COLUMN
+        // NOT NULL без DEFAULT на непустой таблице, поэтому session_id
+        // добавляется raw-ALTER как nullable и заполняется backfill'ом;
+        // все insert'ы репозитория передают sessionId, NULL не появляется.
+        // PRAGMA-guard — паттерн v16–v18 (addColumn не идемпотентен).
+        final info = await customSelect("PRAGMA table_info('chat_messages')")
+            .get();
+        final hasSessionId = info.any(
+          (row) => row.read<String>('name') == 'session_id',
+        );
+        if (info.isNotEmpty && !hasSessionId) {
+          int? defaultSessionId;
+          final stats = await customSelect(
+            'SELECT COUNT(*) AS c, MIN(created_at_utc) AS min_ts, '
+            'MAX(created_at_utc) AS max_ts FROM chat_messages',
+          ).getSingle();
+          if (stats.read<int>('c') > 0) {
+            // Старые сообщения не должны потеряться: заводим дефолтную
+            // сессию с заголовком из первого пользовательского сообщения.
+            final firstUser = await customSelect(
+              "SELECT content FROM chat_messages WHERE role = 'user' "
+              'ORDER BY created_at_utc, id LIMIT 1',
+            ).get();
+            final content = firstUser.isNotEmpty
+                ? firstUser.first.read<String>('content')
+                : (await customSelect(
+                    'SELECT content FROM chat_messages '
+                    'ORDER BY created_at_utc, id LIMIT 1',
+                  ).getSingle()).read<String>('content');
+            defaultSessionId = await into(chatSessions).insert(
+              ChatSessionsCompanion.insert(
+                title: ChatSession.titleFromMessage(content),
+                createdAtUtc: stats.read<int>('min_ts'),
+                updatedAtUtc: stats.read<int>('max_ts'),
+              ),
+            );
+          }
+          await customStatement(
+            'ALTER TABLE chat_messages ADD COLUMN session_id INTEGER '
+            'REFERENCES chat_sessions (id) ON DELETE CASCADE',
+          );
+          if (defaultSessionId != null) {
+            await customStatement('UPDATE chat_messages SET session_id = ?', [
+              defaultSessionId,
+            ]);
+          }
+          await customStatement(
+            'CREATE INDEX IF NOT EXISTS idx_chat_messages_session '
+            'ON chat_messages (session_id)',
+          );
+        }
+      }
       if (from < 22) {
         await m.createTable(appMeta);
       }

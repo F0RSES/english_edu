@@ -6,11 +6,13 @@ final _utc = DateTime.utc(2026, 11, 13, 12);
 
 ChatMessage message({
   int id = 1,
+  int sessionId = 1,
   ChatRole role = ChatRole.user,
   String content = 'Привет',
   DateTime? createdAtUtc,
 }) => ChatMessage(
   id: id,
+  sessionId: sessionId,
   role: role,
   content: content,
   createdAtUtc: createdAtUtc ?? _utc,
@@ -24,6 +26,7 @@ void main() {
 
   test('should_differ_when_any_field_differs', () {
     expect(message(), isNot(message(id: 2)));
+    expect(message(), isNot(message(sessionId: 2)));
     expect(message(), isNot(message(role: ChatRole.assistant)));
     expect(message(), isNot(message(content: 'Другое')));
     expect(

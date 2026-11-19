@@ -96,6 +96,7 @@
 | BL-95 | P3 | Phase 27e — синхронизация доков (12 расхождений из onboarding-отчёта) | PROJECT_CONTEXT/README/ARCHITECTURE/QA_CHECKLIST соответствуют коду; статусы BL приведены в порядок | Done |
 | BL-96 | P3 | Phase 28d — кэш translate_word в таблице word_translations | table word_translations, AiClient.translate проверяет кэш перед запросом | Done |
 | BL-97 | P3 | Phase 29 — синхронизация аватара в Supabase Storage (если user opted-in) | аватар загружается в Storage при включённом облаке, путь/URL синхронизируется, локальный файл остаётся источником для офлайна | Todo |
+| BL-98 | P2 | Phase 42 — история чатов DeepSeek-style + фикс аватара пользователя | схема v23 (chat_sessions, session_id FK cascade, миграция с backfill под тестами); drawer: группы по времени, закрепление, переименование, удаление с подтверждением; автосоздание сессии (title 30 символов); UserAvatar вместо Icons.person; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

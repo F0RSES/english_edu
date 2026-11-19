@@ -14,6 +14,7 @@ import 'package:english_edu/data/repositories/drift_achievement_repository.dart'
 import 'package:english_edu/data/repositories/drift_app_meta_repository.dart';
 import 'package:english_edu/data/repositories/drift_challenge_streak_repository.dart';
 import 'package:english_edu/data/repositories/drift_chat_repository.dart';
+import 'package:english_edu/data/repositories/drift_chat_session_repository.dart';
 import 'package:english_edu/data/repositories/drift_cloze_task_repository.dart';
 import 'package:english_edu/data/repositories/drift_daily_challenge_repository.dart';
 import 'package:english_edu/data/repositories/drift_frozen_days_repository.dart';
@@ -33,6 +34,7 @@ import 'package:english_edu/data/sync/supabase_cloud_auth_service.dart';
 import 'package:english_edu/data/sync/supabase_cloud_sync_service.dart';
 import 'package:english_edu/data/sync/supabase_remote_progress_store.dart';
 import 'package:english_edu/domain/entities/chat_message.dart';
+import 'package:english_edu/domain/entities/chat_session.dart';
 import 'package:english_edu/domain/entities/daily_stats.dart';
 import 'package:english_edu/domain/entities/phrase.dart';
 import 'package:english_edu/domain/entities/story.dart';
@@ -41,6 +43,7 @@ import 'package:english_edu/domain/repositories/achievement_repository.dart';
 import 'package:english_edu/domain/repositories/app_meta_repository.dart';
 import 'package:english_edu/domain/repositories/challenge_streak_repository.dart';
 import 'package:english_edu/domain/repositories/chat_repository.dart';
+import 'package:english_edu/domain/repositories/chat_session_repository.dart';
 import 'package:english_edu/domain/repositories/cloze_task_repository.dart';
 import 'package:english_edu/domain/repositories/daily_challenge_repository.dart';
 import 'package:english_edu/domain/repositories/frozen_days_repository.dart';
@@ -938,20 +941,35 @@ final chatRepositoryProvider = Provider<ChatRepository>(
   (ref) => DriftChatRepository(ref.watch(appDatabaseProvider)),
 );
 
-/// Отправка сообщения помощнику: последние 10 сообщений в контекст (ADR-041).
+/// Сессии чата (Phase 42, ADR-046, schema v23).
+final chatSessionRepositoryProvider = Provider<ChatSessionRepository>(
+  (ref) => DriftChatSessionRepository(ref.watch(appDatabaseProvider)),
+);
+
+/// Список сессий для drawer истории; инвалидируется после создания,
+/// переименования, закрепления, удаления и отправки сообщения.
+final chatSessionsProvider = FutureProvider<List<ChatSession>>(
+  (ref) => ref.watch(chatSessionRepositoryProvider).getAll(),
+);
+
+/// Отправка сообщения помощнику: последние 10 сообщений сессии в контекст
+/// (ADR-041); без sessionId создаётся новая сессия (ADR-046).
 final sendChatMessageProvider = Provider<SendChatMessage>(
   (ref) => SendChatMessage(
     chat: ref.watch(chatRepositoryProvider),
+    sessions: ref.watch(chatSessionRepositoryProvider),
     ai: ref.watch(chatGeneratorProvider),
     settings: ref.watch(settingsRepositoryProvider),
     clock: ref.watch(clockProvider),
   ),
 );
 
-/// История чата для экрана; инвалидируется после отправки и очистки.
-final chatHistoryProvider = FutureProvider<List<ChatMessage>>(
-  (ref) => ref.watch(chatRepositoryProvider).getAll(),
-);
+/// История сессии для экрана; инвалидируется после отправки и очистки.
+final FutureProviderFamily<List<ChatMessage>, int> chatHistoryProvider =
+    FutureProvider.family<List<ChatMessage>, int>(
+      (ref, sessionId) =>
+          ref.watch(chatRepositoryProvider).getBySession(sessionId),
+    );
 
 /// Объяснение ошибки с уровнем пользователя для тона (ADR-042).
 final explainErrorProvider = Provider<ExplainError>(

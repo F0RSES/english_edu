@@ -824,6 +824,27 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +1 таблица (v22, миграция протестирована), разовый upsert 7415 слов при первом старте после обновления (~0.5–2 с в bootstrap). Пользовательское слово с тем же term, что и новое seed-слово, станет гомонимом (ADR-031 это допускает).
 - **Open questions:** нет.
 
+### ADR-046: Chat sessions (history drawer)
+- **Status:** Proposed
+- **Date:** 2026-11-19
+- **Context:** Единая история чата (ADR-041) не масштабируется: все сообщения в одной куче, нельзя начать новый диалог не теряя старый, нельзя вернуться к прошлому разговору. Запрос владельца — история чатов в стиле DeepSeek: группировка по времени, закрепление, переименование, удаление. Заодно фикс аватара пользователя в пузырях (была заглушка `Icons.person`).
+- **Decision:**
+  - Таблица `chat_sessions` (**schema v22 → v23**): `id` autoIncrement, `title`, `is_pinned` (DEFAULT 0), `created_at_utc`, `updated_at_utc` (INTEGER ms UTC — конвенция проекта). В `chat_messages` — `session_id` (FK → `chat_sessions.id`, ON DELETE CASCADE) + индекс `idx_chat_messages_session`.
+  - Миграция v23: `m.createTable(chatSessions)` (идемпотентен, `CREATE TABLE IF NOT EXISTS`); если `chat_messages` существует без `session_id` — raw `ALTER TABLE ADD COLUMN session_id INTEGER REFERENCES …` (nullable: SQLite запрещает NOT NULL без DEFAULT на непустой таблице) + backfill. При непустой истории создаётся дефолтная сессия: title — первые 30 символов первого user-сообщения (`ChatSession.titleFromMessage`), createdAt/updatedAt — min/max времени сообщений. Пустая история — дефолтная сессия не создаётся. PRAGMA-guard по паттерну v16–v18.
+  - `ChatSession` (domain, @immutable, ручная equality, runtime UTC-валидация), `ChatSessionRepository`: `getAll` (закреплённые первые, затем updatedAt по убыванию), `getMostRecent`, `create`, `delete`, `rename`, `togglePin`, `touch`. Rename и pin не меняют updatedAt — список не пересортировывается.
+  - `ChatMessage.sessionId` — обязательное поле (ломающее изменение контракта). `ChatRepository`: +`getBySession`, `getLastN(n, sessionId:)`, `clear(sessionId)`; `getAll()` остаётся глобальным — `CheckAchievements` считает сообщения всех сессий (chat_10/50/100).
+  - `SendChatMessage.call(text, {sessionId})`: null — автосоздание сессии с автозаголовком (30 символов); `touch` после каждого сохранённого сообщения; контекст AI — последние 10 сообщений только активной сессии. Ответ несёт `sessionId` диалога экрану.
+  - UI: `ChatHistoryDrawer` в `ChatScreen` (гамбургер AppBar): «Новый чат», группы Закреплённые/Сегодня/Вчера/Последние 7 дней/Старые (локальная TZ, `ChatSessionGroup` + `LocalDate`), long-press и «три точки» → bottom sheet (Переименовать/Закрепить/Удалить с подтверждением). При открытии экрана восстанавливается последняя сессия (`getMostRecent`); `initialContext` от карточки слова начинает новый чат. Удаление активной сессии сбрасывает экран в новый чат. «Новый чат» — пустое состояние: сессия создаётся при первой отправке, пустые сессии в БД не хранятся. Меню «Очистить историю» чистит только активную сессию.
+  - Аватар пользователя: `UserAvatar` — файл профиля (`settingsProvider` + `AvatarStorage`, ADR-044), иначе инициалы никнейма (первые буквы до 2 слов), иначе `Icons.person`.
+  - При ошибке AI в новом чате экран подхватывает созданную сессию через `getMostRecent`: следующая отправка не создаёт дубль диалога.
+  - Сессии и сообщения не синхронизируются в облако и не входят в export-снимок (приватность, ADR-041).
+- **Alternatives considered:**
+  - (A) NOT NULL колонка через пересоздание таблицы (12-step procedure) — отклонено: избыточно для аддитивной миграции, риск для данных.
+  - (B) Пустая сессия в БД по кнопке «Новый чат» — отклонено: засоряет список пустыми диалогами.
+  - (C) Всегда открывать пустой чат — отклонено владельцем: восстановление последнего диалога (DeepSeek-style).
+- **Consequences:** +1 таблица, +1 колонка, +1 индекс. На мигрированной БД `session_id` формально nullable (ограничение SQLite ALTER), но NULL невозможен: backfill всех строк + все insert передают sessionId. Роутер не меняется: выбор сессии — состояние экрана.
+- **Open questions:** персистентность активной сессии между навигациями (сейчас — последняя по updatedAt).
+
 ## Реестр
 
 | ID | Название | Status |
@@ -872,3 +893,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-043 | Localization strategy | Accepted |
 | ADR-044 | User profile customization | Accepted |
 | ADR-045 | Seed content versioning and reseed | Proposed |
+| ADR-046 | Chat sessions (history drawer) | Proposed |

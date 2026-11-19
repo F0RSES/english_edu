@@ -6,6 +6,8 @@ import 'package:english_edu/domain/entities/chat_message.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/chat_history_drawer.dart';
+import 'package:english_edu/presentation/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,6 +45,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   List<ChatMessage> _messages = [];
   bool _isSending = false;
 
+  /// Активная сессия (ADR-046); null — новый пустой чат, сессия создастся
+  /// при первой отправке.
+  int? _activeSessionId;
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +56,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (initial != null && initial.isNotEmpty) {
       _controller.text = initial;
     }
-    unawaited(_loadHistory());
+    unawaited(_restoreSession());
   }
 
   @override
@@ -60,9 +66,41 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-  Future<void> _loadHistory() async {
+  /// Открывает последний активный диалог (DeepSeek-style, ADR-046).
+  /// initialContext от карточки слова начинает новый чат: вопрос про
+  /// конкретное слово не должен продолжать старый диалог.
+  Future<void> _restoreSession() async {
+    final initial = widget.initialContext;
+    if (initial != null && initial.isNotEmpty) {
+      return;
+    }
     try {
-      final messages = await ref.read(chatHistoryProvider.future);
+      final recent = await ref
+          .read(chatSessionRepositoryProvider)
+          .getMostRecent();
+      if (!mounted || recent == null) {
+        return;
+      }
+      setState(() => _activeSessionId = recent.id);
+      await _loadHistory();
+    } on Object catch (_) {
+      if (!mounted) {
+        return;
+      }
+      final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.chatHistoryLoadFailed(lang))));
+    }
+  }
+
+  Future<void> _loadHistory() async {
+    final sessionId = _activeSessionId;
+    if (sessionId == null) {
+      setState(() => _messages = []);
+      return;
+    }
+    try {
+      final messages = await ref.read(chatHistoryProvider(sessionId).future);
       if (!mounted) {
         return;
       }
@@ -78,6 +116,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  /// Выбор из drawer: закрывает панель и загружает диалог (null — новый чат).
+  void _onSessionSelected(int? sessionId) {
+    Navigator.of(context).pop();
+    setState(() {
+      _activeSessionId = sessionId;
+      _messages = [];
+    });
+    unawaited(_loadHistory());
+  }
+
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (_isSending || text.isEmpty) {
@@ -85,8 +133,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
     setState(() => _isSending = true);
     try {
-      await ref.read(sendChatMessageProvider)(text);
+      final reply = await ref.read(sendChatMessageProvider)(
+        text,
+        sessionId: _activeSessionId,
+      );
       _controller.clear();
+      if (mounted) {
+        setState(() => _activeSessionId = reply.sessionId);
+      }
     } on Object catch (_) {
       if (mounted) {
         final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
@@ -95,8 +149,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     } finally {
       if (mounted) {
+        // При ошибке AI новая сессия уже создана и сообщение пользователя
+        // сохранено: подхватываем её, чтобы следующая отправка не создала
+        // дубль диалога.
+        if (_activeSessionId == null) {
+          final recent = await ref
+              .read(chatSessionRepositoryProvider)
+              .getMostRecent();
+          if (mounted && recent != null) {
+            setState(() => _activeSessionId = recent.id);
+          }
+        }
+        final sessionId = _activeSessionId;
         // Перезагружаем и при ошибке: сообщение пользователя уже сохранено.
-        ref.invalidate(chatHistoryProvider);
+        if (sessionId != null) {
+          ref.invalidate(chatHistoryProvider(sessionId));
+        }
+        ref.invalidate(chatSessionsProvider);
         await _loadHistory();
         setState(() => _isSending = false);
         _scrollToBottom();
@@ -126,8 +195,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (confirmed != true || !mounted) {
       return;
     }
-    await ref.read(chatRepositoryProvider).clear();
-    ref.invalidate(chatHistoryProvider);
+    final sessionId = _activeSessionId;
+    if (sessionId == null) {
+      return;
+    }
+    await ref.read(chatRepositoryProvider).clear(sessionId);
+    ref.invalidate(chatHistoryProvider(sessionId));
     await _loadHistory();
   }
 
@@ -153,6 +226,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final itemCount = _messages.length + greetingOffset + (_isSending ? 1 : 0);
 
     return Scaffold(
+      drawer: ChatHistoryDrawer(
+        activeSessionId: _activeSessionId,
+        onSelected: _onSessionSelected,
+      ),
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -282,15 +359,8 @@ class _MessageBubble extends StatelessWidget {
           Flexible(child: bubble),
           if (isUser) ...[
             const SizedBox(width: 8),
-            CircleAvatar(
-              radius: _bubbleAvatarSize / 2,
-              backgroundColor: scheme.secondaryContainer,
-              child: Icon(
-                Icons.person,
-                size: _bubbleAvatarSize * 0.6,
-                color: scheme.onSecondaryContainer,
-              ),
-            ),
+            // Реальный аватар профиля (Phase 42): файл, инициалы или иконка.
+            const UserAvatar(size: _bubbleAvatarSize),
           ],
         ],
       ),

@@ -522,18 +522,51 @@ class Stories extends Table {
   IntColumn get createdAtUtc => integer()();
 }
 
+/// Сессии чата с AI-помощником (Phase 42, ADR-046).
+///
+/// История группируется по диалогам: список сессий показывается в drawer,
+/// сообщения привязаны через `ChatMessages.sessionId`. Удаление сессии
+/// каскадно удаляет её сообщения.
+@DataClassName('ChatSessionRow')
+class ChatSessions extends Table {
+  @override
+  String get tableName => 'chat_sessions';
+
+  /// Автоинкремент: id назначает БД при создании сессии.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Заголовок: первые 30 символов первого сообщения или ручное имя.
+  TextColumn get title => text()();
+
+  /// Закреплённые сессии показываются выше остальных независимо от даты.
+  BoolColumn get isPinned => boolean().withDefault(const Constant(false))();
+
+  /// Момент создания, миллисекунды UTC.
+  IntColumn get createdAtUtc => integer()();
+
+  /// Момент последнего сообщения, миллисекунды UTC; по нему сортируется
+  /// список. Переименование и закрепление его не меняют — список не прыгает.
+  IntColumn get updatedAtUtc => integer()();
+}
+
 /// Сообщения чата с AI-помощником (Phase 25a, ADR-041).
 ///
 /// История хранится только локально и не синхронизируется в облако:
 /// содержимое переписки — приватные данные пользователя.
 @DataClassName('ChatMessageRow')
 @TableIndex(name: 'idx_chat_messages_created', columns: {#createdAtUtc})
+@TableIndex(name: 'idx_chat_messages_session', columns: {#sessionId})
 class ChatMessages extends Table {
   @override
   String get tableName => 'chat_messages';
 
   /// Автоинкремент: сообщения только добавляются.
   IntColumn get id => integer().autoIncrement()();
+
+  /// Сессия, к которой относится сообщение (schema v23, ADR-046).
+  /// Удаление сессии каскадно удаляет её сообщения.
+  IntColumn get sessionId =>
+      integer().references(ChatSessions, #id, onDelete: KeyAction.cascade)();
 
   /// Роль отправителя: имя значения `ChatRole` ('user' | 'assistant').
   TextColumn get role => text()();

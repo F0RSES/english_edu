@@ -8,10 +8,11 @@ DateTime _requireUtc(DateTime value, String name) {
   return value;
 }
 
-/// Одно сообщение чата с AI-помощником (ADR-041).
+/// Одно сообщение чата с AI-помощником (ADR-041, ADR-046).
 ///
-/// История хранится только на устройстве; очистка — через
-/// `ChatRepository.clear`, отдельных правок сообщений нет.
+/// История хранится только на устройстве; сообщение принадлежит сессии
+/// ([sessionId]), очистка — через `ChatRepository.clear(sessionId)`,
+/// отдельных правок сообщений нет.
 @immutable
 final class ChatMessage {
   /// Создаёт сообщение; [createdAtUtc] должен быть в UTC.
@@ -20,6 +21,7 @@ final class ChatMessage {
   /// в release-сборке (паттерн `ReviewLog`).
   ChatMessage({
     required this.id,
+    required this.sessionId,
     required this.role,
     required this.content,
     required DateTime createdAtUtc,
@@ -28,6 +30,9 @@ final class ChatMessage {
   /// Идентификатор записи в БД; 0 — сообщение ещё не сохранено
   /// (реальный id назначает autoIncrement).
   final int id;
+
+  /// Сессия, к которой относится сообщение (ADR-046).
+  final int sessionId;
 
   /// Кто отправил сообщение.
   final ChatRole role;
@@ -43,15 +48,17 @@ final class ChatMessage {
       identical(this, other) ||
       other is ChatMessage &&
           id == other.id &&
+          sessionId == other.sessionId &&
           role == other.role &&
           content == other.content &&
           createdAtUtc == other.createdAtUtc;
 
   @override
-  int get hashCode => Object.hash(id, role, content, createdAtUtc);
+  int get hashCode => Object.hash(id, sessionId, role, content, createdAtUtc);
 
   // Содержимое не попадает в toString: логи не должны содержать переписку.
   @override
   String toString() =>
-      'ChatMessage($id, ${role.name}, ${createdAtUtc.toIso8601String()})';
+      'ChatMessage($id, session: $sessionId, ${role.name}, '
+      '${createdAtUtc.toIso8601String()})';
 }

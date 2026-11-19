@@ -1112,6 +1112,59 @@ final class S {
   /// Приветствие помощника.
   static String chatGreeting(AppLanguage l) => _t('chat.greeting', l);
 
+  /// Кнопка «Новый чат» в drawer истории (Phase 42).
+  static String chatNewChat(AppLanguage l) => _t('chat.newChat', l);
+
+  /// Заголовок drawer истории чатов.
+  static String chatHistoryTitle(AppLanguage l) => _t('chat.historyTitle', l);
+
+  /// Группа списка «Закрепленные».
+  static String chatGroupPinned(AppLanguage l) => _t('chat.group.pinned', l);
+
+  /// Группа списка «Сегодня».
+  static String chatGroupToday(AppLanguage l) => _t('chat.group.today', l);
+
+  /// Группа списка «Вчера».
+  static String chatGroupYesterday(AppLanguage l) =>
+      _t('chat.group.yesterday', l);
+
+  /// Группа списка «Последние 7 дней».
+  static String chatGroupLastSevenDays(AppLanguage l) =>
+      _t('chat.group.lastSevenDays', l);
+
+  /// Группа списка «Старые».
+  static String chatGroupOlder(AppLanguage l) => _t('chat.group.older', l);
+
+  /// Действие «Переименовать» в листе действий сессии.
+  static String chatRename(AppLanguage l) => _t('chat.rename', l);
+
+  /// Заголовок диалога переименования сессии.
+  static String chatRenameTitle(AppLanguage l) => _t('chat.renameTitle', l);
+
+  /// Подсказка поля ввода в диалоге переименования.
+  static String chatRenameHint(AppLanguage l) => _t('chat.renameHint', l);
+
+  /// Кнопка сохранения в диалогах (переименование сессии).
+  static String save(AppLanguage l) => _t('save', l);
+
+  /// Действие «Закрепить» в листе действий сессии.
+  static String chatPin(AppLanguage l) => _t('chat.pin', l);
+
+  /// Действие «Открепить» в листе действий сессии.
+  static String chatUnpin(AppLanguage l) => _t('chat.unpin', l);
+
+  /// Действие «Удалить» в листе действий сессии.
+  static String chatDelete(AppLanguage l) => _t('chat.delete', l);
+
+  /// Заголовок подтверждения удаления сессии.
+  static String chatDeleteTitle(AppLanguage l) => _t('chat.deleteTitle', l);
+
+  /// Текст подтверждения удаления сессии.
+  static String chatDeleteBody(AppLanguage l) => _t('chat.deleteBody', l);
+
+  /// Заглушка пустого списка в drawer истории.
+  static String chatHistoryEmpty(AppLanguage l) => _t('chat.historyEmpty', l);
+
   // --- Onboarding ---
   /// Заголовок первого слайда.
   static String onboardingSlide1Title(AppLanguage l) =>
@@ -1194,6 +1247,7 @@ final class S {
     'correct': {'ru': 'Верно!', 'en': 'Correct!'},
     'explain': {'ru': 'Помощник объясняет', 'en': 'Assistant explains'},
     'cancel': {'ru': 'Отмена', 'en': 'Cancel'},
+    'save': {'ru': 'Сохранить', 'en': 'Save'},
     'retry': {'ru': 'Повторить', 'en': 'Retry'},
     'loading': {'ru': 'Загрузка…', 'en': 'Loading…'},
     'saveFailed': {
@@ -2029,6 +2083,31 @@ final class S {
     'chat.greeting': {
       'ru': 'Привет! Я помогу разобраться с английским. Спроси что-нибудь.',
       'en': 'Hi! I can help you with English. Ask me anything.',
+    },
+    'chat.newChat': {'ru': 'Новый чат', 'en': 'New chat'},
+    'chat.historyTitle': {'ru': 'История чатов', 'en': 'Chat history'},
+    'chat.group.pinned': {'ru': 'Закрепленные', 'en': 'Pinned'},
+    'chat.group.today': {'ru': 'Сегодня', 'en': 'Today'},
+    'chat.group.yesterday': {'ru': 'Вчера', 'en': 'Yesterday'},
+    'chat.group.lastSevenDays': {
+      'ru': 'Последние 7 дней',
+      'en': 'Previous 7 days',
+    },
+    'chat.group.older': {'ru': 'Старые', 'en': 'Older'},
+    'chat.rename': {'ru': 'Переименовать', 'en': 'Rename'},
+    'chat.renameTitle': {'ru': 'Переименовать чат', 'en': 'Rename chat'},
+    'chat.renameHint': {'ru': 'Название чата', 'en': 'Chat name'},
+    'chat.pin': {'ru': 'Закрепить', 'en': 'Pin'},
+    'chat.unpin': {'ru': 'Открепить', 'en': 'Unpin'},
+    'chat.delete': {'ru': 'Удалить', 'en': 'Delete'},
+    'chat.deleteTitle': {'ru': 'Удалить чат?', 'en': 'Delete chat?'},
+    'chat.deleteBody': {
+      'ru': 'Все сообщения этого чата будут удалены.',
+      'en': 'All messages in this chat will be deleted.',
+    },
+    'chat.historyEmpty': {
+      'ru': 'Пока нет чатов. Начни новый!',
+      'en': 'No chats yet. Start a new one!',
     },
     // Onboarding.
     'onboarding.slide1Title': {

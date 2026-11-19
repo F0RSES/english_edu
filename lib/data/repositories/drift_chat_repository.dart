@@ -4,7 +4,7 @@ import 'package:english_edu/domain/entities/chat_message.dart';
 import 'package:english_edu/domain/repositories/chat_repository.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 
-/// `ChatRepository` поверх Drift (ADR-041).
+/// `ChatRepository` поверх Drift (ADR-041, ADR-046).
 ///
 /// Время создания приходит из домена (`ChatMessage.createdAtUtc`), репозиторий
 /// его только проверяет: системное время в data-слое не читается.
@@ -26,12 +26,26 @@ final class DriftChatRepository implements ChatRepository {
   }
 
   @override
-  Future<List<ChatMessage>> getLastN(int n) async {
+  Future<List<ChatMessage>> getBySession(int sessionId) async {
+    final rows =
+        await (_db.select(_db.chatMessages)
+              ..where((t) => t.sessionId.equals(sessionId))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.createdAtUtc),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_fromRow).toList();
+  }
+
+  @override
+  Future<List<ChatMessage>> getLastN(int n, {required int sessionId}) async {
     if (n <= 0) {
       throw ArgumentError.value(n, 'n', 'must be positive');
     }
     final rows =
         await (_db.select(_db.chatMessages)
+              ..where((t) => t.sessionId.equals(sessionId))
               ..orderBy([
                 (t) => OrderingTerm.desc(t.createdAtUtc),
                 (t) => OrderingTerm.desc(t.id),
@@ -58,6 +72,7 @@ final class DriftChatRepository implements ChatRepository {
         .into(_db.chatMessages)
         .insert(
           ChatMessagesCompanion.insert(
+            sessionId: message.sessionId,
             role: message.role.name,
             content: message.content,
             createdAtUtc: message.createdAtUtc.millisecondsSinceEpoch,
@@ -66,12 +81,15 @@ final class DriftChatRepository implements ChatRepository {
   }
 
   @override
-  Future<void> clear() async {
-    await _db.delete(_db.chatMessages).go();
+  Future<void> clear(int sessionId) async {
+    await (_db.delete(
+      _db.chatMessages,
+    )..where((t) => t.sessionId.equals(sessionId))).go();
   }
 
   ChatMessage _fromRow(ChatMessageRow row) => ChatMessage(
     id: row.id,
+    sessionId: row.sessionId,
     role: ChatRole.values.byName(row.role),
     content: row.content,
     createdAtUtc: DateTime.fromMillisecondsSinceEpoch(

@@ -205,7 +205,7 @@ Dart-код в документе не приводится: сигнатуры 
 
 ## Data
 
-Схема v21 — семнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041), v15→v16 добавляет `cloze_tasks.options` (ADR-025), v16→v17 добавляет `user_settings.language` (ADR-043), v17→v18 добавляет `user_settings.nickname` и `avatar_path` (ADR-044), v18→v19 очищает `cloze_tasks` (Phase 32), v19→v20 создаёт `word_translations` (BL-96), v20→v21 добавляет `words.synonyms` (Phase 36a) — существующие таблицы и данные не пересоздаются.
+Схема v23 — девятнадцать таблиц Drift (`lib/data/db/tables.dart`). Все временные метки — целые миллисекунды UTC. `onCreate` создаёт все таблицы, `onUpgrade` докатывает недостающее: v1→v2 создаёт `frozen_days`, v2→v3 добавляет `words.category` (`m.addColumn`), v3→v4 создаёт `word_hints`, v4→v5 добавляет `user_settings.has_seen_onboarding`, v5→v6 добавляет `words.level` и `user_settings.preferred_level` (ADR-023), v6→v7 создаёт `cloze_tasks` (ADR-025), v7→v8 создаёт `daily_challenges` (ADR-030), v8→v9 создаёт `challenge_streaks` (ADR-032), v9→v10 создаёт `user_categories` и вставляет 4 базовые категории (ADR-034), v10→v11 создаёт `achievements` (ADR-035), v11→v12 создаёт `typing_records` (ADR-037), v12→v13 создаёт `phrases` (ADR-038), v13→v14 создаёт `stories` (ADR-039), v14→v15 создаёт `chat_messages` (ADR-041), v15→v16 добавляет `cloze_tasks.options` (ADR-025), v16→v17 добавляет `user_settings.language` (ADR-043), v17→v18 добавляет `user_settings.nickname` и `avatar_path` (ADR-044), v18→v19 очищает `cloze_tasks` (Phase 32), v19→v20 создаёт `word_translations` (BL-96), v20→v21 добавляет `words.synonyms` (Phase 36a), v21→v22 создаёт `app_meta` (ADR-045), v22→v23 создаёт `chat_sessions` и добавляет `chat_messages.session_id` с backfill старых сообщений в дефолтную сессию (ADR-046) — существующие таблицы и данные не пересоздаются.
 
 | Таблица | Data-класс | Первичный ключ | Индексы |
 |---|---|---|---|
@@ -224,8 +224,10 @@ Dart-код в документе не приводится: сигнатуры 
 | `typing_records` | `TypingRecordRow` | `id` (autoIncrement); колонки `wordsCount`, `correctCount`, `durationSeconds`, `wpm`, `accuracyPercent`, `score`, `createdAtUtc`; схема v12 | нет |
 | `phrases` | `PhraseRow` | `id` (autoIncrement); колонки `phrase`, `translation`, `category`, `level`, `createdAtUtc`; схема v13 | нет |
 | `stories` | `StoryRow` | `id` (autoIncrement); колонки `title`, `text` (getter `content`), `translation`, `level`, `createdAtUtc`; схема v14 | нет |
-| `chat_messages` | `ChatMessageRow` | `id` (autoIncrement); колонки `role` ('user'/'assistant'), `content`, `createdAtUtc`; схема v15 | `idx_chat_messages_created` |
+| `chat_sessions` | `ChatSessionRow` | `id` (autoIncrement); колонки `title`, `isPinned` (default false), `createdAtUtc`, `updatedAtUtc`; схема v23 (ADR-046) | нет |
+| `chat_messages` | `ChatMessageRow` | `id` (autoIncrement); колонки `sessionId` → `chat_sessions.id` ON DELETE CASCADE (v23, ADR-046), `role` ('user'/'assistant'), `content`, `createdAtUtc`; схема v15 | `idx_chat_messages_created`, `idx_chat_messages_session` |
 | `word_translations` | `WordTranslationRow` | `term` (TEXT PK); колонки `translation`, `partOfSpeech`/`transcription`/`example` nullable, `createdAtUtc`; схема v20 (BL-96); без FK на `words` — кэш переживает удаление слова | нет |
+| `app_meta` | `AppMetaData` | `key` (TEXT PK); колонка `value`; схема v22 (ADR-045); служебные метаданные устройства (версия seed), не экспортируется | нет |
 
 **Mapping domain↔data.** `CardState` раскладывается на колонки `easePermille`, `intervalDays`, `repetitions`, `lapses`, `dueAtUtc` в двух местах: в `word_progresses` (текущее состояние) и в `review_logs` (два снимка — `prev*` и `new*`). Обратное свёртывание — задача маппера 2a.2.
 
@@ -335,15 +337,15 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 - `lib/main.dart` — точка входа: `bootstrapApp` (crash reporting → seed → покрытие пропущенного дня → настройки → напоминания), `ProviderScope`, `MaterialApp.router`
 - `lib/core/` — `logger.dart`, `crash_reporter.dart` (`SentryCrashReporter` / `NoOpCrashReporter`, ADR-016), `tts/`, `notifications/`, `avatar/`, `localization/`, `text/plural.dart`
 - `lib/core/di/providers.dart` — Riverpod-провайдеры (100), без codegen (BL-26)
-- `lib/domain/entities/` — 8 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`, `chat_message`
-- `lib/domain/value_objects/` — 35 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`, `app_language`, `word_translation`, `sentence_puzzle`
-- `lib/domain/repositories/` — 17 контрактов репозиториев
+- `lib/domain/entities/` — 9 сущностей: `word`, `word_progress`, `review_log`, `user_settings`, `daily_stats`, `phrase`, `story`, `chat_message`, `chat_session`
+- `lib/domain/value_objects/` — 36 VO: `card_state`, `local_date`, `cefr_level`, `streak_info`, `streak_rule`, `today_queue`, `export_payload`, `word_hint`, `cloze_task`, `scramble_puzzle`, `error_hunter_task`, `analytics`, `daily_goal`, `dictionary_entry`, `daily_challenge`, `daily_challenge_type`, `challenge_streak`, `smart_review_item`, `review_grade`, `review_outcome`, `review_log_id`, `word_id`, `word_status`, `xp_rules`, `user_category`, `achievement`, `achievement_type`, `memory_card`, `memory_game`, `typing_record`, `typing_session`, `chat_role`, `app_language`, `word_translation`, `sentence_puzzle`, `chat_session_group`
+- `lib/domain/repositories/` — 18 контрактов репозиториев
 - `lib/domain/services/` — 9 контрактов: `hint_generator`, `cloze_generator`, `error_task_generator`, `chat_generator`, `error_explainer`, `word_translator`, `sentence_generator`, `cloud_auth_service`, `cloud_sync_service`
 - `lib/domain/srs/` — `srs_calculator.dart`, `sm2_srs_calculator.dart`
 - `lib/domain/usecases/` — 34 use case
-- `lib/data/db/` — Drift: 17 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v21, `app_database.g.dart` коммитится (ADR-008)
+- `lib/data/db/` — Drift: 19 таблиц (`tables.dart`), `AppDatabase`, миграции v1→v23, `app_database.g.dart` коммитится (ADR-008)
 - `lib/data/mappers/` — 6 мапперов domain↔data
-- `lib/data/repositories/` — 17 Drift-реализаций контрактов
+- `lib/data/repositories/` — 18 Drift-реализаций контрактов
 - `lib/data/ai/ai_client.dart` — клиент прокси DeepSeek (ADR-019)
 - `lib/data/sync/` — Supabase: `CloudAuthService`, `CloudSyncService`, `RemoteProgressStore` (ADR-022)
 - `lib/data/seed_loader.dart`, `lib/data/export_payload_codec.dart` — seed и JSON-снимок
@@ -397,3 +399,5 @@ Android: в `AndroidManifest.xml` добавлен `<queries>` с `android.inten
 | v19 | Очистка `cloze_tasks` (обновлён AI-промпт) | Phase 32 |
 | v20 | `word_translations` (кэш переводов) | BL-96 (Phase 33) |
 | v21 | `words.synonyms` (JSON-массив, синонимы для Typing Speed) | Phase 36a |
+| v22 | `app_meta` (метаданные устройства, версия seed) | ADR-045 (Phase 39c) |
+| v23 | `chat_sessions`, `chat_messages.session_id` (FK cascade) + backfill старых сообщений в дефолтную сессию | ADR-046 (Phase 42) |

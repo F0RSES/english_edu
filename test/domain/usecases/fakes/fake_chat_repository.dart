@@ -18,12 +18,19 @@ final class FakeChatRepository implements ChatRepository {
   Future<List<ChatMessage>> getAll() async => List.of(_messages);
 
   @override
-  Future<List<ChatMessage>> getLastN(int n) async {
+  Future<List<ChatMessage>> getBySession(int sessionId) async =>
+      _messages.where((m) => m.sessionId == sessionId).toList();
+
+  @override
+  Future<List<ChatMessage>> getLastN(int n, {required int sessionId}) async {
     if (n <= 0) {
       throw ArgumentError.value(n, 'n', 'must be positive');
     }
-    final start = _messages.length > n ? _messages.length - n : 0;
-    return _messages.sublist(start);
+    final sessionMessages = _messages
+        .where((m) => m.sessionId == sessionId)
+        .toList();
+    final start = sessionMessages.length > n ? sessionMessages.length - n : 0;
+    return sessionMessages.sublist(start);
   }
 
   @override
@@ -32,6 +39,7 @@ final class FakeChatRepository implements ChatRepository {
     _messages.add(
       ChatMessage(
         id: _nextId++,
+        sessionId: message.sessionId,
         role: message.role,
         content: message.content,
         createdAtUtc: message.createdAtUtc,
@@ -40,7 +48,7 @@ final class FakeChatRepository implements ChatRepository {
   }
 
   @override
-  Future<void> clear() async {
-    _messages.clear();
+  Future<void> clear(int sessionId) async {
+    _messages.removeWhere((m) => m.sessionId == sessionId);
   }
 }

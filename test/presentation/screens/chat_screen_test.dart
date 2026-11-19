@@ -46,6 +46,12 @@ Widget host({
   child: MaterialApp(home: ChatScreen(initialContext: initialContext)),
 );
 
+/// Аватар AppBar (внутри Hero) — отличаем от аватарок пузырей.
+final Finder _appBarAvatar = find.descendant(
+  of: find.byWidgetPredicate((w) => w is Hero && w.tag == 'main_chat_hero'),
+  matching: find.byType(AiAvatar),
+);
+
 void main() {
   // Аватар повторяет анимацию вечно: без запрета анимаций pumpAndSettle
   // не завершится. Запрет уважается и роутами (меню/диалоги открываются
@@ -107,8 +113,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(AiAvatar), findsOneWidget);
-    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isFalse);
+    // AppBar + аватар приветствия.
+    expect(find.byType(AiAvatar), findsNWidgets(2));
+    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isFalse);
   });
 
   testWidgets('avatar talks while the reply is generating', (tester) async {
@@ -125,12 +132,36 @@ void main() {
     await tester.tap(find.byKey(const Key('chat-send-button')));
     await tester.pump();
 
-    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isTrue);
+    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isTrue);
 
     reply.complete(okResponse());
     await tester.pumpAndSettle();
 
-    expect(tester.widget<AiAvatar>(find.byType(AiAvatar)).isTalking, isFalse);
+    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isFalse);
+  });
+
+  testWidgets('messages show messenger-style avatars', (tester) async {
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) async => okResponse()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // До отправки: только AppBar-аватар и аватар приветствия.
+    expect(find.byType(AiAvatar), findsNWidgets(2));
+    expect(find.byIcon(Icons.person), findsNothing);
+
+    await tester.enterText(find.byType(TextField), 'Привет');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pumpAndSettle();
+
+    // После отправки: AppBar + пузырь ассистента; у пузыря юзера — person.
+    expect(find.byType(AiAvatar), findsNWidgets(2));
+    expect(find.byIcon(Icons.person), findsOneWidget);
+    expect(find.text('Привет'), findsOneWidget);
+    expect(find.text('Ответ бота'), findsOneWidget);
   });
 
   testWidgets('typing message and sending adds to list', (tester) async {

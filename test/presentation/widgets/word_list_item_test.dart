@@ -143,10 +143,10 @@ void main() {
     expect((dot.decoration! as BoxDecoration).color, Colors.green);
   });
 
-  testWidgets('renders the AI icon', (tester) async {
+  testWidgets('renders the AI avatar', (tester) async {
     await tester.pumpWidget(host(entry()));
 
-    expect(find.byIcon(Icons.auto_awesome), findsOneWidget);
+    expect(find.byKey(const Key('word-ai-avatar')), findsOneWidget);
   });
 
   testWidgets('AI icon opens the chat with the word context', (tester) async {
@@ -158,7 +158,7 @@ void main() {
     await tester.pumpWidget(routerHost(entry(partOfSpeech: 'interjection')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.auto_awesome));
+    await tester.tap(find.byKey(const Key('word-ai-avatar')));
     await tester.pumpAndSettle();
 
     expect(find.byType(ChatScreen), findsOneWidget);

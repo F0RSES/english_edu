@@ -18,6 +18,9 @@ const _maxBubbleWidthFactor = 0.8;
 /// Размер аватара в AppBar чата (Phase 40).
 const _appBarAvatarSize = 32.0;
 
+/// Размер аватарки у пузыря сообщения (Phase 41).
+const _bubbleAvatarSize = 32.0;
+
 /// Чат с AI-помощником (Phase 25a, ADR-041).
 ///
 /// История хранится локально; сеть используется только по явной отправке
@@ -154,7 +157,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AiAvatar(size: _appBarAvatarSize, isTalking: _isSending),
+            Hero(
+              tag: 'main_chat_hero',
+              child: AiAvatar(
+                size: _appBarAvatarSize,
+                isTalking: _isSending,
+                winkOnStart: true,
+              ),
+            ),
             const SizedBox(width: 8),
             Text(S.assistant(lang)),
           ],
@@ -240,22 +250,49 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isUser = message.role == ChatRole.user;
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * _maxBubbleWidthFactor,
-        ),
-        decoration: BoxDecoration(
-          color: isUser ? scheme.primary : scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          message.content,
-          style: TextStyle(color: isUser ? scheme.onPrimary : scheme.onSurface),
-        ),
+    final bubble = Container(
+      padding: const EdgeInsets.all(16),
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.sizeOf(context).width * _maxBubbleWidthFactor,
+      ),
+      decoration: BoxDecoration(
+        color: isUser ? scheme.primary : scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        message.content,
+        style: TextStyle(color: isUser ? scheme.onPrimary : scheme.onSurface),
+      ),
+    );
+    // Аватарки как в мессенджере (Phase 41): ассистент слева, пользователь
+    // справа. Аватарки пузырей статичны (animated: false) — без тикера
+    // на каждое сообщение.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isUser) ...[
+            const AiAvatar(size: _bubbleAvatarSize, animated: false),
+            const SizedBox(width: 8),
+          ],
+          Flexible(child: bubble),
+          if (isUser) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: _bubbleAvatarSize / 2,
+              backgroundColor: scheme.secondaryContainer,
+              child: Icon(
+                Icons.person,
+                size: _bubbleAvatarSize * 0.6,
+                color: scheme.onSecondaryContainer,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -270,22 +307,31 @@ class _GreetingBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * _maxBubbleWidthFactor,
-        ),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          S.chatGreeting(lang),
-          style: TextStyle(color: scheme.onSurface),
-        ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          const AiAvatar(size: _bubbleAvatarSize, animated: false),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              constraints: BoxConstraints(
+                maxWidth:
+                    MediaQuery.sizeOf(context).width * _maxBubbleWidthFactor,
+              ),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                S.chatGreeting(lang),
+                style: TextStyle(color: scheme.onSurface),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

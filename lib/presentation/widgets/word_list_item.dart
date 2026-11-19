@@ -2,6 +2,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -97,7 +98,11 @@ class WordListItem extends StatelessWidget {
                           onStatusChanged!(_statusTarget(entry.status)),
                     ),
                   IconButton(
-                    icon: const Icon(Icons.auto_awesome),
+                    icon: const CircleAvatar(
+                      key: Key('word-ai-avatar'),
+                      radius: 14,
+                      backgroundImage: AssetImage(aiAvatarAsset),
+                    ),
                     tooltip: S.askAi(lang),
                     onPressed: () => context.push(
                       '/chat',

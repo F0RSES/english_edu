@@ -8,6 +8,7 @@ import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:english_edu/presentation/widgets/daily_challenge_card.dart';
 import 'package:english_edu/presentation/widgets/daily_goal_card.dart';
 import 'package:english_edu/presentation/widgets/streak_card.dart';
@@ -220,7 +221,17 @@ class HomeScreen extends ConsumerWidget {
         onPressed: () => context.push('/chat'),
         tooltip: S.assistant(lang),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: const Icon(Icons.smart_toy),
+        // FAB по умолчанию оборачивается во внутренний Hero — отключаем,
+        // чтобы наш Hero с маскотом не оказался вложенным (Phase 41).
+        heroTag: null,
+        // Hero-полёт маскота в чат (Phase 41): тег совпадает с AppBar чата.
+        child: const Hero(
+          tag: 'main_chat_hero',
+          child: CircleAvatar(
+            radius: 16,
+            backgroundImage: AssetImage(aiAvatarAsset),
+          ),
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (index) => _openSection(context, index),

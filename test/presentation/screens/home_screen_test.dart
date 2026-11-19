@@ -414,12 +414,25 @@ void main() {
     expect(find.text('экран умного повторения'), findsOneWidget);
   });
 
-  testWidgets('assistant FAB is icon-only', (tester) async {
+  testWidgets('assistant FAB shows the mascot avatar with Hero', (
+    tester,
+  ) async {
     await tester.pumpWidget(app(words: [word(1)]));
     await tester.pumpAndSettle();
 
     expect(find.byType(FloatingActionButton), findsOneWidget);
-    expect(find.byIcon(Icons.smart_toy), findsOneWidget);
+    expect(find.byIcon(Icons.smart_toy), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(FloatingActionButton),
+        matching: find.byType(CircleAvatar),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate((w) => w is Hero && w.tag == 'main_chat_hero'),
+      findsOneWidget,
+    );
     expect(find.text('Помощник'), findsNothing);
     expect(find.byTooltip('Помощник'), findsOneWidget);
   });

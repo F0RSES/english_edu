@@ -1,3 +1,4 @@
+import 'package:english_edu/presentation/widgets/animated_ai_face.dart';
 import 'package:flutter/material.dart';
 
 /// Длительность idle-цикла: плавное парение (Phase 40).
@@ -16,23 +17,37 @@ const _idleScaleMax = 1.02;
 const _talkingScaleMin = 0.95;
 const _talkingScaleMax = 1.05;
 
-/// Ассет маскота ИИ-помощника.
-const _assetPath = 'assets/images/ai_avatar.png';
+/// Ассет маскота ИИ-помощника (Phase 40).
+const aiAvatarAsset = 'assets/images/ai_avatar.png';
 
-/// Маскот ИИ-помощника с анимацией (Phase 40).
+/// Маскот ИИ-помощника с анимацией (Phase 40, мимика — Phase 41).
 ///
 /// Idle: плавное парение (±4 px по Y) и дыхание (scale 0.98–1.02), цикл 2 с.
 /// [isTalking] (генерация ответа): быстрый bounce — цикл 0.4 с,
-/// scale 0.95–1.05, ±2 px. Контроллер освобождается в dispose.
+/// scale 0.95–1.05, ±2 px, плюс анимированный рот. [animated] false —
+/// статичная картинка без тикера (пузыри чата). [winkOnStart] — одноразовое
+/// подмигивание при появлении. Контроллер освобождается в dispose.
 class AiAvatar extends StatefulWidget {
   /// Создаёт аватар; [size] — сторона квадратной картинки.
-  const AiAvatar({this.size = 48, this.isTalking = false, super.key});
+  const AiAvatar({
+    this.size = 48,
+    this.isTalking = false,
+    this.animated = true,
+    this.winkOnStart = false,
+    super.key,
+  });
 
   /// Сторона аватара в логических пикселях.
   final double size;
 
   /// true — помощник «говорит/думает»: быстрый bounce вместо парения.
   final bool isTalking;
+
+  /// false — статичный аватар без анимации движения (пузыри чата).
+  final bool animated;
+
+  /// true — одноразовое подмигивание при появлении (открытие чата).
+  final bool winkOnStart;
 
   @override
   State<AiAvatar> createState() => _AiAvatarState();
@@ -64,6 +79,9 @@ class _AiAvatarState extends State<AiAvatar>
       _configure();
       // Сброс фазы, чтобы новый режим стартовал с начала цикла.
       _controller.reset();
+    }
+    if (oldWidget.isTalking != widget.isTalking ||
+        oldWidget.animated != widget.animated) {
       _updateTicker();
     }
   }
@@ -76,7 +94,7 @@ class _AiAvatarState extends State<AiAvatar>
 
   /// Уважает системный запрет анимаций (accessibility): контроллер стоит.
   void _updateTicker() {
-    if (MediaQuery.disableAnimationsOf(context)) {
+    if (!widget.animated || MediaQuery.disableAnimationsOf(context)) {
       _controller.stop();
     } else if (!_controller.isAnimating) {
       _controller.repeat(reverse: true);
@@ -114,7 +132,11 @@ class _AiAvatarState extends State<AiAvatar>
           child: child,
         ),
       ),
-      child: Image.asset(_assetPath, width: widget.size, height: widget.size),
+      child: AnimatedAiFace(
+        size: widget.size,
+        isTalking: widget.isTalking,
+        winkOnStart: widget.winkOnStart,
+      ),
     );
   }
 }

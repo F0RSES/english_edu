@@ -44,7 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('facility'), findsOneWidget);
-    expect(find.byIcon(Icons.smart_toy), findsOneWidget);
+    expect(find.byKey(const Key('ai-word-avatar')), findsOneWidget);
   });
 
   testWidgets('renders dont know button when revealWord=false', (tester) async {

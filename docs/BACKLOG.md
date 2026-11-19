@@ -102,6 +102,7 @@
 | BL-101 | P2 | Phase 45 — Markdown-рендеринг ответов ИИ | flutter_markdown_plus ^1.0.12 (ADR-047); AssistantMarkdown: жирный/списки/код/таблицы из темы; user — Text; код-блоки surfaceContainerHighest + radius 12; длинные строки без Overflow; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-102 | P2 | Phase 46 — принудительный Markdown от ИИ + отступы Drawer | системный промт (role system) первым сообщением каждого запроса чата, константа в AiClient; contentPadding плитки 16/4 в обоих режимах; тесты промта и отступов; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-103 | P3 | Phase 47 — полировка цветов Markdown + выравнивание Drawer | strong primary/w600; код surfaceContainerLow + рамка (отличим от пузыря); меню плитки у правого края (right 4, compact, SizedBox.square(40)); тесты цветов/отступов обновлены; analyze=0, ci.sh зелёный, release APK | Done |
+| BL-104 | P3 | Phase 48 — фиолетовый Markdown + приветствие 🍏 + унификация AI-иконок | strong по теме (dark 0xFFD0BCFF / light 0xFF6750A4, w600); краткое приветствие RU/EN; 6 Icons.smart_toy → CircleAvatar(radius 12, маскот) с ключами; auto_awesome не-AI оставлены; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

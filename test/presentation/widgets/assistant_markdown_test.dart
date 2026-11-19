@@ -4,17 +4,23 @@ import 'package:flutter_test/flutter_test.dart';
 
 final _scheme = ColorScheme.fromSeed(seedColor: Colors.green);
 
-Widget host(String data) => MaterialApp(
-  theme: ThemeData(colorScheme: _scheme),
-  home: Scaffold(
-    body: SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: AssistantMarkdown(data: data),
+Widget host(String data, {Brightness brightness = Brightness.light}) =>
+    MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.green,
+          brightness: brightness,
+        ),
       ),
-    ),
-  ),
-);
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: AssistantMarkdown(data: data),
+          ),
+        ),
+      ),
+    );
 
 /// Рекурсивный поиск жирного span с [text] (без зависимости от
 /// семантики visitChildren).
@@ -58,8 +64,24 @@ void main() {
     expect(find.text('**hello**'), findsNothing);
     expect(find.text('hello'), findsOneWidget);
     expect(_hasBoldSpan(tester, 'hello'), isTrue);
-    // Phase 47: акцент — брендовый primary, не «токсичный» bold.
-    expect(_hasBoldSpan(tester, 'hello', color: _scheme.primary), isTrue);
+    // Phase 48: мягкий фиолетовый светлой темы.
+    expect(
+      _hasBoldSpan(tester, 'hello', color: const Color(0xFF6750A4)),
+      isTrue,
+    );
+  });
+
+  testWidgets('should_use_light_purple_for_strong_in_dark_theme', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host('**hello**', brightness: Brightness.dark));
+    await tester.pumpAndSettle();
+
+    // Phase 48: в тёмной теме — светлый фиолетовый, читаемый на пузыре.
+    expect(
+      _hasBoldSpan(tester, 'hello', color: const Color(0xFFD0BCFF)),
+      isTrue,
+    );
   });
 
   testWidgets('should_render_list_items_without_raw_markers', (tester) async {

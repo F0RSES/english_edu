@@ -1,6 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -67,9 +68,10 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        Icons.smart_toy,
-                        color: Theme.of(sheetContext).colorScheme.primary,
+                      const CircleAvatar(
+                        key: Key('error-helper-sheet-avatar'),
+                        radius: 12,
+                        backgroundImage: AssetImage(aiAvatarAsset),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -128,7 +130,11 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
               height: 20,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.smart_toy),
+          : const CircleAvatar(
+              key: Key('error-helper-avatar'),
+              radius: 12,
+              backgroundImage: AssetImage(aiAvatarAsset),
+            ),
     );
   }
 }

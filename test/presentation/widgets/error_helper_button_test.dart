@@ -24,7 +24,7 @@ void main() {
     await tester.pumpWidget(host(FakeErrorExplainer()));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.smart_toy), findsOneWidget);
+    expect(find.byKey(const Key('error-helper-avatar')), findsOneWidget);
     expect(find.byTooltip('Спросить у Маффина'), findsOneWidget);
   });
 
@@ -35,7 +35,7 @@ void main() {
     await tester.pumpWidget(host(explainer));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.smart_toy));
+    await tester.tap(find.byKey(const Key('error-helper-avatar')));
     await tester.pumpAndSettle();
 
     expect(explainer.calls, 1);
@@ -54,7 +54,7 @@ void main() {
     await tester.pumpWidget(host(explainer));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.smart_toy));
+    await tester.tap(find.byKey(const Key('error-helper-avatar')));
     await tester.pumpAndSettle();
 
     expect(find.text('Не удалось получить объяснение'), findsOneWidget);

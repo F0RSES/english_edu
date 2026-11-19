@@ -3,7 +3,7 @@
 Шаблон состояния проекта. Обновляется в конце каждой задачи. Плейсхолдеры `<...>` заполняются по факту.
 
 ## Phase
-47 закрыта (Полировка цветов Markdown + выравнивание Drawer). Схема v23, 19 таблиц; 1182 теста, 47 ADR (ADR-046/047 Proposed). Следующая: по плану владельца.
+48 закрыта (Фиолетовый Markdown + приветствие 🍏 + унификация AI-иконок). Схема v23, 19 таблиц; 1183 теста, 47 ADR (ADR-046/047 Proposed). Следующая: по плану владельца.
 
 ## Done
 - Phase 0 — Bootstrap: 11 файлов управления проектом (`.clinerules/` + `docs/`).
@@ -65,6 +65,7 @@
 - Phase 45 — Markdown-рендеринг ответов ИИ (ADR-047 Proposed): `flutter_markdown_plus ^1.0.12` (+markdown 7.3.1), виджет `AssistantMarkdown` (тема: onSurface, код surfaceContainerHighest + radius 12, списки, GFM-таблицы), user-сообщения остаются Text; длинные строки кода — горизонтальный скролл без Overflow. BL-101 Done.
 - Phase 46 — Принудительный Markdown от ИИ (ADR-047): системный промт первым сообщением каждого запроса чата (константа в AiClient, транспорт); contentPadding плитки drawer 16/4 в обоих режимах. BL-102 Done.
 - Phase 47 — Полировка цветов Markdown и выравнивание Drawer (ADR-046/047): strong — primary/w600, код — surfaceContainerLow + рамка; меню плитки прижато к правому краю (contentPadding right 4, VisualDensity.compact, SizedBox.square(40) для иконки выбора). BL-103 Done.
+- Phase 48 — Фиолетовый Markdown, приветствие 🍏, унификация AI-иконок (ADR-047): strong по теме (dark 0xFFD0BCFF / light 0xFF6750A4, w600); новое краткое приветствие RU/EN; 6 Icons.smart_toy → мини-аватары Маскота (radius 12) с ключами; auto_awesome челленджа/Smart Review не тронуты. BL-104 Done.
 
 ## In progress
 - Подготовка к Google Play (Phase 37b: QA и релиз).

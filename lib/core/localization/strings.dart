@@ -2106,9 +2106,11 @@ final class S {
     },
     'chat.greeting': {
       'ru':
-          'Привет! Я Маффин — помогу разобраться с английским. '
-          'Спроси что-нибудь.',
-      'en': "Hi! I'm Muffin — I can help you with English. Ask me anything.",
+          'Привет! Я Маффин 🍏. Твой личный помощник в английском. '
+          'Задай любой вопрос или попроси объяснить слово!',
+      'en':
+          "Hi! I'm Muffin 🍏. Your personal English assistant. "
+          'Ask me anything or ask to explain a word!',
     },
     'chat.newChat': {'ru': 'Новый чат', 'en': 'New chat'},
     'chat.historyTitle': {'ru': 'История чатов', 'en': 'Chat history'},

@@ -13,15 +13,24 @@ const _codeBlockPadding = EdgeInsets.all(12);
 /// Вертикальный отступ между блоками Markdown.
 const _blockSpacing = 8.0;
 
+/// Мягкий фиолетовый для strong в тёмной теме (Phase 48): читается
+/// на тёмном пузыре.
+const _strongColorDark = Color(0xFFD0BCFF);
+
+/// Более глубокий фиолетовый для светлой темы (Phase 48): контраст
+/// на светлом пузыре.
+const _strongColorLight = Color(0xFF6750A4);
+
 /// Markdown-рендер ответа ассистента (Phase 45, ADR-047).
 ///
 /// Формат ответов модели — Markdown (жирный, списки, код, таблицы);
 /// пользовательские сообщения остаются обычным Text. Стили наследуют
-/// тему: текст onSurface, ключевые слова — primary/w600 (Phase 47),
-/// блоки кода — surfaceContainerLow со скруглением и тонкой рамкой
-/// (фон отличим от пузыря surfaceContainerHighest). Длинные строки кода
-/// скроллятся горизонтально внутри блока (SingleChildScrollView пакета),
-/// без переполнения пузыря. Ссылки инертны: onTapLink не задан, пакет
+/// тему: текст onSurface, ключевые слова — мягкий фиолетовый/w600
+/// (Phase 48, по brightness темы), блоки кода — surfaceContainerLow со
+/// скруглением и тонкой рамкой (фон отличим от пузыря
+/// surfaceContainerHighest). Длинные строки кода скроллятся
+/// горизонтально внутри блока (SingleChildScrollView пакета), без
+/// переполнения пузыря. Ссылки инертны: onTapLink не задан, пакет
 /// не открывает URL сам.
 class AssistantMarkdown extends StatelessWidget {
   /// Создаёт рендер для [data] — Markdown-текста ответа ассистента.
@@ -35,13 +44,16 @@ class AssistantMarkdown extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final base = Theme.of(context).textTheme.bodyMedium;
     final textStyle = base?.copyWith(color: scheme.onSurface);
+    final strongColor = Theme.of(context).brightness == Brightness.dark
+        ? _strongColorDark
+        : _strongColorLight;
     return MarkdownBody(
       data: data,
       styleSheet: MarkdownStyleSheet(
         p: textStyle,
-        // Phase 47: мягкий брендовый акцент вместо «токсичного» bold.
+        // Phase 48: мягкий фиолетовый акцент, читаемый в обеих темах.
         strong: textStyle?.copyWith(
-          color: scheme.primary,
+          color: strongColor,
           fontWeight: FontWeight.w600,
         ),
         em: textStyle?.copyWith(fontStyle: FontStyle.italic),

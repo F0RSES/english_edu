@@ -9,6 +9,7 @@ import 'package:english_edu/domain/value_objects/analytics.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
+import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,7 +45,11 @@ class ProfileScreen extends ConsumerWidget {
             Card(
               margin: EdgeInsets.zero,
               child: ListTile(
-                leading: const Icon(Icons.smart_toy),
+                leading: const CircleAvatar(
+                  key: Key('profile-chat-avatar'),
+                  radius: 12,
+                  backgroundImage: AssetImage(aiAvatarAsset),
+                ),
                 title: Text(S.assistant(lang)),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push('/chat'),

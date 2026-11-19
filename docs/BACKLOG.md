@@ -99,6 +99,7 @@
 | BL-98 | P2 | Phase 42 — история чатов DeepSeek-style + фикс аватара пользователя | схема v23 (chat_sessions, session_id FK cascade, миграция с backfill под тестами); drawer: группы по времени, закрепление, переименование, удаление с подтверждением; автосоздание сессии (title 30 символов); UserAvatar вместо Icons.person; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-99 | P2 | Phase 43 — полировка истории чатов: скругление плиток + multi-select | radius 12 через ListTile.shape (InkWell.customBorder); long-press → режим выбора, хедер «Выбрано: N», bulk-удаление с подтверждением и плюрализацией; BottomSheet только по «трём точкам»; тесты drawer'а; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-100 | P2 | Phase 44 — фиксы UI истории чатов + ребрендинг «Маффин» | SafeArea снаружи Drawer (панель ниже статус-бара); явный вход в multi-select (checklist в хедере); AppBar без аватара; бот «Маффин»/«Muffin» во всех строках через S; тесты; analyze=0, ci.sh зелёный, release APK | Done |
+| BL-101 | P2 | Phase 45 — Markdown-рендеринг ответов ИИ | flutter_markdown_plus ^1.0.12 (ADR-047); AssistantMarkdown: жирный/списки/код/таблицы из темы; user — Text; код-блоки surfaceContainerHighest + radius 12; длинные строки без Overflow; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

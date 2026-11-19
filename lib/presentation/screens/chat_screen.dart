@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/chat_message.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_role.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/assistant_markdown.dart';
 import 'package:english_edu/presentation/widgets/chat_history_drawer.dart';
 import 'package:english_edu/presentation/widgets/user_avatar.dart';
 import 'package:flutter/material.dart';
@@ -321,10 +322,11 @@ class _MessageBubble extends StatelessWidget {
         color: isUser ? scheme.primary : scheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(
-        message.content,
-        style: TextStyle(color: isUser ? scheme.onPrimary : scheme.onSurface),
-      ),
+      child: isUser
+          ? Text(message.content, style: TextStyle(color: scheme.onPrimary))
+          // Ответы модели — Markdown (Phase 45, ADR-047); пользовательский
+          // ввод остаётся обычным текстом.
+          : AssistantMarkdown(data: message.content),
     );
     // Аватарки как в мессенджере (Phase 41): ассистент слева, пользователь
     // справа. Аватарки пузырей статичны (animated: false) — без тикера

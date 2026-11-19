@@ -847,6 +847,23 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +1 таблица, +1 колонка, +1 индекс. На мигрированной БД `session_id` формально nullable (ограничение SQLite ALTER), но NULL невозможен: backfill всех строк + все insert передают sessionId. Роутер не меняется: выбор сессии — состояние экрана.
 - **Open questions:** персистентность активной сессии между навигациями (сейчас — последняя по updatedAt).
 
+### ADR-047: Markdown rendering of assistant responses
+- **Status:** Proposed
+- **Date:** 2026-11-19
+- **Context:** Ответы ассистента приходят от DeepSeek в Markdown (жирный, списки, блоки кода, таблицы), но выводились сплошным `Text` — сырые звёзды и бэктики. Нужен рендеринг как в DeepSeek.
+- **Decision:**
+  - Пакет `flutter_markdown_plus ^1.0.12` (поддерживаемый форк flutter_markdown; проверено по pub.dev API: sdk ^3.4.0, flutter >=3.27.1 — совместим с Flutter 3.47.9 / Dart 3.13.7). Лёгкое дерево: +только `markdown 7.3.1` (meta/path уже в проекте).
+  - `AssistantMarkdown` (presentation/widgets): `MarkdownBody` + `MarkdownStyleSheet` из темы — текст `onSurface`, блоки кода `surfaceContainerHighest` + radius 12 + рамка `outlineVariant` (пузырь того же цвета — рамка отделяет блок), `listIndent` 24, `blockSpacing` 8, таблицы с рамкой `outlineVariant`, inline-код monospace.
+  - `_MessageBubble`: user — обычный `Text` (`onPrimary`), assistant — `AssistantMarkdown`. Приветствие-заглушка не меняется (это не ответ ИИ).
+  - Длинные строки кода: горизонтальный `SingleChildScrollView` внутри блока (builder пакета) — без переполнения пузыря (под тестом).
+  - Ссылки инертны: `onTapLink` не задан — пакет не открывает URL сам (url_launcher не подключён); открытие ссылок потребовало бы новой зависимости и вне scope задачи.
+  - GitHub Flavored Markdown (дефолтный extensionSet пакета): таблицы, зачёркивание, task-листы.
+- **Alternatives considered:**
+  - (A) `gpt_markdown 1.4.1` — первая рекомендация владельца, совместим (sdk >=3.12, flutter >=3.44), но тянет flutter_svg/LaTeX/highlight/material_ui — избыточный вес для базового Markdown; владелец выбрал лёгкий вариант.
+  - (B) Рендеринг в domain/data — отклонено: отображение — ответственность presentation.
+- **Consequences:** +2 зависимости (flutter_markdown_plus, markdown), небольшой рост APK. Markdown в пользовательских сообщениях не рендерится (осознанно). Листы Error Hunter и word helper остаются обычным Text (вне scope).
+- **Open questions:** открытие ссылок (url_launcher) — отдельная задача при необходимости.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -896,3 +913,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-044 | User profile customization | Accepted |
 | ADR-045 | Seed content versioning and reseed | Proposed |
 | ADR-046 | Chat sessions (history drawer) | Proposed |
+| ADR-047 | Markdown rendering of assistant responses | Proposed |

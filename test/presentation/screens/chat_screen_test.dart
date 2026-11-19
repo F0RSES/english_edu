@@ -78,6 +78,24 @@ Widget host({
   child: MaterialApp(home: ChatScreen(initialContext: initialContext)),
 );
 
+/// Рекурсивный поиск жирного span с [text] в дереве RichText
+/// (Markdown-рендер ответа ассистента, Phase 45).
+bool _spanHasBold(InlineSpan span, String text) {
+  if (span is! TextSpan) {
+    return false;
+  }
+  if (span.style?.fontWeight == FontWeight.bold &&
+      (span.text?.contains(text) ?? false)) {
+    return true;
+  }
+  final children = span.children;
+  return children != null && children.any((child) => _spanHasBold(child, text));
+}
+
+bool _hasBoldSpan(WidgetTester tester, String text) => tester
+    .widgetList<RichText>(find.byType(RichText))
+    .any((rich) => _spanHasBold(rich.text, text));
+
 void main() {
   // Аватар повторяет анимацию вечно: без запрета анимаций pumpAndSettle
   // не завершится. Запрет уважается и роутами (меню/диалоги открываются
@@ -674,5 +692,82 @@ void main() {
       chat.messages.every((m) => m.sessionId == sessions.sessions.single.id),
       isTrue,
     );
+  });
+
+  testWidgets('assistant markdown renders bold without raw asterisks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient(
+          (_) async => http.Response(
+            jsonEncode({'message': '**hello**'}),
+            200,
+            headers: const {'content-type': 'application/json; charset=utf-8'},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Привет');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pumpAndSettle();
+
+    // Сырых звёзд нет, жирный span отрендерен (Phase 45).
+    expect(find.text('**hello**'), findsNothing);
+    expect(_hasBoldSpan(tester, 'hello'), isTrue);
+  });
+
+  testWidgets('user message keeps raw markdown text', (tester) async {
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((_) async => okResponse()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '**hello**');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pumpAndSettle();
+
+    // Пользовательский пузырь — обычный Text: звёзды видны как есть.
+    expect(find.text('**hello**'), findsOneWidget);
+  });
+
+  testWidgets('long markdown answer with code block does not overflow', (
+    tester,
+  ) async {
+    final longLine = 'x' * 300;
+    final answer =
+        'Вот примеры:\n\n'
+        '- First example sentence\n'
+        '- Second example sentence\n\n'
+        '```\n$longLine\n```\n\n'
+        'И очень длинное слово: ${'y' * 200}.';
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient(
+          (_) async => http.Response(
+            jsonEncode({'message': answer}),
+            200,
+            headers: const {'content-type': 'application/json; charset=utf-8'},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Примеры');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pumpAndSettle();
+
+    // Переполнения ловятся тестовым фреймворком; здесь — явная проверка.
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('First example sentence'), findsOneWidget);
+    expect(find.textContaining('Second example sentence'), findsOneWidget);
   });
 }

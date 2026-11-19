@@ -46,6 +46,8 @@ void main() {
       (l) => S.listeningWrongAnswer('I eat an apple.', l),
       (l) => S.aiWordPrompt('could', 'мог', 'verb', l),
       (l) => S.aiWordPrompt('could', 'мог', null, l),
+      (l) => S.chatSelectedCount(2, l),
+      (l) => S.chatDeleteBulkTitle(2, l),
     ];
 
     test('parameterized strings leave no placeholders in either language', () {

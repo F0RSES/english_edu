@@ -12,12 +12,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Максимальная длина ручного названия сессии в диалоге переименования.
 const _maxTitleLength = 60;
 
-/// Drawer истории чатов (Phase 42, ADR-046).
+/// Радиус скругления плитки сессии (Phase 43).
+const _tileBorderRadius = 12.0;
+
+/// Drawer истории чатов (Phase 42, ADR-046; Phase 43 — multi-select).
 ///
 /// Список сессий с группировкой по времени: закреплённые сверху, затем
 /// Сегодня / Вчера / Последние 7 дней / Старые (локальная TZ). Действия
-/// над сессией — по долгому нажатию или кнопке «три точки».
-class ChatHistoryDrawer extends ConsumerWidget {
+/// над сессией — по кнопке «три точки»; long-press включает режим
+/// множественного выбора с массовым удалением (DeepSeek-style).
+class ChatHistoryDrawer extends ConsumerStatefulWidget {
   /// Создаёт drawer; [onSelected] вызывается при выборе сессии
   /// (id — загрузить диалог, null — новый чат).
   const ChatHistoryDrawer({
@@ -33,7 +37,81 @@ class ChatHistoryDrawer extends ConsumerWidget {
   final void Function(int? sessionId) onSelected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatHistoryDrawer> createState() => _ChatHistoryDrawerState();
+}
+
+class _ChatHistoryDrawerState extends ConsumerState<ChatHistoryDrawer> {
+  /// Режим множественного выбора (Phase 43).
+  bool _isSelectionMode = false;
+
+  /// Id сессий, выбранных в режиме multi-select.
+  final Set<int> _selectedSessions = {};
+
+  void _startSelection(int sessionId) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedSessions.add(sessionId);
+    });
+  }
+
+  void _toggleSelection(int sessionId) {
+    setState(() {
+      if (!_selectedSessions.remove(sessionId)) {
+        _selectedSessions.add(sessionId);
+      }
+    });
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedSessions.clear();
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    final count = _selectedSessions.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(S.chatDeleteBulkTitle(count, lang)),
+        content: Text(S.chatDeleteBulkBody(lang)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.cancel(lang)),
+          ),
+          TextButton(
+            key: const Key('chat-bulk-delete-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(S.chatDelete(lang)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    final ids = Set<int>.of(_selectedSessions);
+    final repo = ref.read(chatSessionRepositoryProvider);
+    for (final id in ids) {
+      await repo.delete(id);
+    }
+    ref.invalidate(chatSessionsProvider);
+    final activeDeleted = ids.contains(widget.activeSessionId);
+    setState(() {
+      _isSelectionMode = false;
+      _selectedSessions.clear();
+    });
+    // Удаление активной сессии сбрасывает экран в новый чат (ADR-046).
+    if (activeDeleted) {
+      widget.onSelected(null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final sessionsAsync = ref.watch(chatSessionsProvider);
     return Drawer(
@@ -43,20 +121,45 @@ class ChatHistoryDrawer extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                S.chatHistoryTitle(lang),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              child: _isSelectionMode
+                  ? Row(
+                      children: [
+                        IconButton(
+                          key: const Key('chat-selection-cancel'),
+                          tooltip: S.cancel(lang),
+                          icon: const Icon(Icons.close),
+                          onPressed: _cancelSelection,
+                        ),
+                        Expanded(
+                          child: Text(
+                            S.chatSelectedCount(_selectedSessions.length, lang),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        if (_selectedSessions.isNotEmpty)
+                          IconButton(
+                            key: const Key('chat-selection-delete'),
+                            tooltip: S.chatDelete(lang),
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () => unawaited(_deleteSelected()),
+                          ),
+                      ],
+                    )
+                  : Text(
+                      S.chatHistoryTitle(lang),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: FilledButton.icon(
-                key: const Key('chat-new-chat-button'),
-                onPressed: () => onSelected(null),
-                icon: const Icon(Icons.add),
-                label: Text(S.chatNewChat(lang)),
+            if (!_isSelectionMode)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: FilledButton.icon(
+                  key: const Key('chat-new-chat-button'),
+                  onPressed: () => widget.onSelected(null),
+                  icon: const Icon(Icons.add),
+                  label: Text(S.chatNewChat(lang)),
+                ),
               ),
-            ),
             const SizedBox(height: 8),
             Expanded(
               child: sessionsAsync.when(
@@ -65,8 +168,12 @@ class ChatHistoryDrawer extends ConsumerWidget {
                     Center(child: Text(S.chatHistoryLoadFailed(lang))),
                 data: (sessions) => _SessionList(
                   sessions: sessions,
-                  activeSessionId: activeSessionId,
-                  onSelected: onSelected,
+                  activeSessionId: widget.activeSessionId,
+                  isSelectionMode: _isSelectionMode,
+                  selectedIds: _selectedSessions,
+                  onSelected: widget.onSelected,
+                  onToggleSelect: _toggleSelection,
+                  onStartSelection: _startSelection,
                   lang: lang,
                 ),
               ),
@@ -83,13 +190,21 @@ class _SessionList extends ConsumerWidget {
   const _SessionList({
     required this.sessions,
     required this.activeSessionId,
+    required this.isSelectionMode,
+    required this.selectedIds,
     required this.onSelected,
+    required this.onToggleSelect,
+    required this.onStartSelection,
     required this.lang,
   });
 
   final List<ChatSession> sessions;
   final int? activeSessionId;
+  final bool isSelectionMode;
+  final Set<int> selectedIds;
   final void Function(int? sessionId) onSelected;
+  final void Function(int sessionId) onToggleSelect;
+  final void Function(int sessionId) onStartSelection;
   final AppLanguage lang;
 
   @override
@@ -131,7 +246,11 @@ class _SessionList extends ConsumerWidget {
           _SessionTile(
             session: session,
             isActive: session.id == activeSessionId,
+            isSelectionMode: isSelectionMode,
+            isSelected: selectedIds.contains(session.id),
             onSelected: onSelected,
+            onToggleSelect: onToggleSelect,
+            onStartSelection: onStartSelection,
             lang: lang,
           ),
         );
@@ -150,38 +269,69 @@ class _SessionList extends ConsumerWidget {
       };
 }
 
-/// Одна сессия в списке: тап — выбор, long-press и «три точки» — действия.
+/// Одна сессия в списке. Обычный режим: тап — выбор, «три точки» — действия.
+/// Режим выбора (Phase 43): тап и long-press переключают выделение.
 class _SessionTile extends ConsumerWidget {
   const _SessionTile({
     required this.session,
     required this.isActive,
+    required this.isSelectionMode,
+    required this.isSelected,
     required this.onSelected,
+    required this.onToggleSelect,
+    required this.onStartSelection,
     required this.lang,
   });
 
   final ChatSession session;
   final bool isActive;
+  final bool isSelectionMode;
+  final bool isSelected;
   final void Function(int? sessionId) onSelected;
+  final void Function(int sessionId) onToggleSelect;
+  final void Function(int sessionId) onStartSelection;
   final AppLanguage lang;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      key: Key('chat-session-${session.id}'),
-      title: Text(session.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      selected: isActive,
-      selectedTileColor: scheme.secondaryContainer,
-      leading: session.isPinned
-          ? Icon(Icons.push_pin, size: 18, color: scheme.primary)
-          : null,
-      trailing: IconButton(
-        key: Key('chat-session-menu-${session.id}'),
-        icon: const Icon(Icons.more_vert),
-        onPressed: () => unawaited(_openActions(context, ref)),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: ListTile(
+        key: Key('chat-session-${session.id}'),
+        // Скругление (Phase 43): shape задаёт InkWell.customBorder
+        // (list_tile.dart SDK), поэтому selectedTileColor клиппится по
+        // форме и не перекрывает углы; отдельный clipBehavior у ListTile нет.
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_tileBorderRadius),
+        ),
+        title: Text(
+          session.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        selected: isSelectionMode ? isSelected : isActive,
+        selectedTileColor: scheme.secondaryContainer,
+        leading: session.isPinned
+            ? Icon(Icons.push_pin, size: 18, color: scheme.primary)
+            : null,
+        trailing: isSelectionMode
+            ? Icon(
+                isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
+              )
+            : IconButton(
+                key: Key('chat-session-menu-${session.id}'),
+                icon: const Icon(Icons.more_vert),
+                onPressed: () => unawaited(_openActions(context, ref)),
+              ),
+        onTap: () => isSelectionMode
+            ? onToggleSelect(session.id)
+            : onSelected(session.id),
+        onLongPress: () => isSelectionMode
+            ? onToggleSelect(session.id)
+            : onStartSelection(session.id),
       ),
-      onTap: () => onSelected(session.id),
-      onLongPress: () => unawaited(_openActions(context, ref)),
     );
   }
 

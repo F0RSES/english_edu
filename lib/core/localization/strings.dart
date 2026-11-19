@@ -1165,6 +1165,20 @@ final class S {
   /// Заглушка пустого списка в drawer истории.
   static String chatHistoryEmpty(AppLanguage l) => _t('chat.historyEmpty', l);
 
+  /// Счётчик выбранных сессий в хедере drawer (Phase 43).
+  static String chatSelectedCount(int n, AppLanguage l) =>
+      _t('chat.selectedCount', l).replaceFirst('{n}', '$n');
+
+  /// Заголовок подтверждения массового удаления сессий (Phase 43).
+  static String chatDeleteBulkTitle(int n, AppLanguage l) => _t(
+    'chat.deleteBulkTitle',
+    l,
+  ).replaceFirst('{n}', '$n').replaceFirst('{form}', _chatForm(n, l));
+
+  /// Текст подтверждения массового удаления сессий (Phase 43).
+  static String chatDeleteBulkBody(AppLanguage l) =>
+      _t('chat.deleteBulkBody', l);
+
   // --- Onboarding ---
   /// Заголовок первого слайда.
   static String onboardingSlide1Title(AppLanguage l) =>
@@ -1228,6 +1242,13 @@ final class S {
     one: _t('lapse.one', l),
     few: _t('lapse.few', l),
     many: _t('lapse.many', l),
+  );
+
+  static String _chatForm(int count, AppLanguage l) => pluralize(
+    count,
+    one: _t('chat.one', l),
+    few: _t('chat.few', l),
+    many: _t('chat.many', l),
   );
 
   static const _data = <String, Map<String, String>>{
@@ -2109,6 +2130,18 @@ final class S {
       'ru': 'Пока нет чатов. Начни новый!',
       'en': 'No chats yet. Start a new one!',
     },
+    'chat.selectedCount': {'ru': 'Выбрано: {n}', 'en': 'Selected: {n}'},
+    'chat.deleteBulkTitle': {
+      'ru': 'Удалить {n} {form}?',
+      'en': 'Delete {n} {form}?',
+    },
+    'chat.deleteBulkBody': {
+      'ru': 'Все сообщения выбранных чатов будут удалены.',
+      'en': 'All messages in the selected chats will be deleted.',
+    },
+    'chat.one': {'ru': 'чат', 'en': 'chat'},
+    'chat.few': {'ru': 'чата', 'en': 'chats'},
+    'chat.many': {'ru': 'чатов', 'en': 'chats'},
     // Onboarding.
     'onboarding.slide1Title': {
       'ru': 'Учи слова легко',

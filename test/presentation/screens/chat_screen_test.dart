@@ -554,7 +554,9 @@ void main() {
     expect(find.text('Закрепленные'), findsOneWidget);
   });
 
-  testWidgets('long press opens the actions sheet', (tester) async {
+  testWidgets('long press enters selection mode instead of the sheet', (
+    tester,
+  ) async {
     final sessions = FakeChatSessionRepository([session(id: 1, title: 'Чат')]);
     await tester.pumpWidget(
       host(
@@ -570,9 +572,9 @@ void main() {
     await tester.longPress(find.byKey(const Key('chat-session-1')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Переименовать'), findsOneWidget);
-    expect(find.text('Закрепить'), findsOneWidget);
-    expect(find.text('Удалить'), findsOneWidget);
+    expect(find.text('Выбрано: 1'), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    expect(find.text('Переименовать'), findsNothing);
   });
 
   testWidgets('deletes active session with confirmation and resets to new', (

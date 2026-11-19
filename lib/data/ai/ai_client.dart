@@ -39,6 +39,16 @@ const _chatType = 'chat';
 /// Таймаут чата: ответ по контексту длиннее, чем подсказка к одному слову.
 const _chatTimeout = Duration(seconds: 30);
 
+/// Системный промт чата (Phase 46): модель обязана отвечать в Markdown,
+/// иначе рендеру ответов (ADR-047) нечего показывать. Передаётся первым
+/// сообщением в каждом запросе; в БД не сохраняется и в лимит контекста
+/// не входит.
+const _chatSystemPrompt =
+    'Всегда форматируй свои ответы с помощью Markdown. Используй жирный '
+    'шрифт для важных слов, списки (- или 1.) для перечислений и блоки кода '
+    '(```) для примеров предложений или кода. Ответ должен быть '
+    'структурированным и легко читаемым.';
+
 /// Значение поля `type` для объяснения ошибки в игре (ADR-042).
 const _explainType = 'explain_error';
 
@@ -232,6 +242,8 @@ final class AiClient
           body: jsonEncode({
             'type': _chatType,
             'messages': [
+              // Системная инструкция — в каждом запросе (Phase 46).
+              {'role': 'system', 'content': _chatSystemPrompt},
               for (final message in messages)
                 {'role': message.role, 'content': message.content},
             ],

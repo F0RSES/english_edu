@@ -153,12 +153,55 @@ void main() {
     expect(capturedBody, {
       'type': 'chat',
       'messages': [
+        {'role': 'system', 'content': contains('Markdown')},
         {'role': 'user', 'content': 'Привет'},
         {'role': 'assistant', 'content': 'Здравствуйте!'},
       ],
       'word': 'A2',
     });
   });
+
+  test(
+    'sendChat prepends the Markdown system prompt to every request',
+    () async {
+      final bodies = <Object?>[];
+      final client = AiClient(
+        MockClient((request) async {
+          bodies.add(jsonDecode(request.body));
+          return jsonResponse({'message': 'ok'}, 200);
+        }),
+      );
+
+      await client.sendChat(
+        messages: const [(role: 'user', content: 'Первый')],
+        level: 'A1',
+      );
+      await client.sendChat(
+        messages: const [(role: 'user', content: 'Второй')],
+        level: 'B1',
+      );
+
+      // Инструкция уходит в каждом запросе, первым сообщением.
+      for (final body in bodies) {
+        expect(body, {
+          'type': 'chat',
+          'messages': [
+            {
+              'role': 'system',
+              'content': allOf(
+                contains('Markdown'),
+                contains('жирный'),
+                contains('списки'),
+                contains('блоки кода'),
+              ),
+            },
+            containsPair('role', 'user'),
+          ],
+          'word': anyOf('A1', 'B1'),
+        });
+      }
+    },
+  );
 
   test('sendChat throws AiException when the payload has no message', () async {
     final client = AiClient(

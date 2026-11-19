@@ -15,6 +15,10 @@ const _maxTitleLength = 60;
 /// Радиус скругления плитки сессии (Phase 43).
 const _tileBorderRadius = 12.0;
 
+/// Отступы контента плитки сессии (Phase 46): меню аккуратно внутри
+/// скруглённой карточки, текст не прилипает к краям.
+const _tileContentPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+
 /// Drawer истории чатов (Phase 42, ADR-046; Phase 43 — multi-select).
 ///
 /// Список сессий с группировкой по времени: закреплённые сверху, затем
@@ -326,6 +330,7 @@ class _SessionTile extends ConsumerWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(_tileBorderRadius),
         ),
+        contentPadding: _tileContentPadding,
         title: Text(
           session.title,
           maxLines: 1,

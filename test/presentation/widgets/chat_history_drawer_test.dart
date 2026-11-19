@@ -334,4 +334,22 @@ void main() {
     );
     expect(tester.getTopLeft(find.byType(Drawer)).dy, greaterThanOrEqualTo(40));
   });
+
+  testWidgets('should_pad_tile_content_in_both_modes', (tester) async {
+    final sessions = FakeChatSessionRepository([
+      session(id: 1, title: 'Первый'),
+    ]);
+    await tester.pumpWidget(host(sessions: sessions));
+    await tester.pumpAndSettle();
+
+    // Phase 46: явные отступы контента плитки — меню внутри скругления.
+    const expected = EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+    var tile = tester.widget<ListTile>(find.byKey(const Key('chat-session-1')));
+    expect(tile.contentPadding, expected);
+
+    await tester.longPress(find.byKey(const Key('chat-session-1')));
+    await tester.pumpAndSettle();
+    tile = tester.widget<ListTile>(find.byKey(const Key('chat-session-1')));
+    expect(tile.contentPadding, expected);
+  });
 }

@@ -50,6 +50,7 @@ void main() {
     expect(capturedBody, {
       'type': 'chat',
       'messages': [
+        {'role': 'system', 'content': contains('Markdown')},
         {'role': 'user', 'content': 'Привет'},
       ],
       'word': 'A1',
@@ -174,10 +175,12 @@ void main() {
     await useCase('new question', sessionId: 1);
 
     // 12 старых + 1 новое = 13; в контекст уходят последние 10:
-    // msg 4…12 плюс новое; чужая сессия исключена.
+    // msg 4…12 плюс новое; чужая сессия исключена. Системный промт
+    // добавляется транспортом (Phase 46) и в лимит не входит.
     expect(capturedBody, {
       'type': 'chat',
       'messages': [
+        {'role': 'system', 'content': contains('Markdown')},
         for (var i = 4; i <= 12; i++)
           {'role': i.isEven ? 'assistant' : 'user', 'content': 'msg $i'},
         {'role': 'user', 'content': 'new question'},

@@ -770,4 +770,42 @@ void main() {
     expect(find.textContaining('First example sentence'), findsOneWidget);
     expect(find.textContaining('Second example sentence'), findsOneWidget);
   });
+
+  testWidgets('send passes the Markdown system prompt to the proxy', (
+    tester,
+  ) async {
+    Object? capturedBody;
+    await tester.pumpWidget(
+      host(
+        chat: FakeChatRepository(),
+        httpClient: MockClient((request) async {
+          capturedBody = jsonDecode(request.body);
+          return okResponse();
+        }),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Привет');
+    await tester.tap(find.byKey(const Key('chat-send-button')));
+    await tester.pumpAndSettle();
+
+    // Инструкция про Markdown уходит первым сообщением (Phase 46).
+    expect(capturedBody, {
+      'type': 'chat',
+      'messages': [
+        {
+          'role': 'system',
+          'content': allOf(
+            contains('Markdown'),
+            contains('жирный'),
+            contains('списки'),
+            contains('блоки кода'),
+          ),
+        },
+        {'role': 'user', 'content': 'Привет'},
+      ],
+      'word': 'A1',
+    });
+  });
 }

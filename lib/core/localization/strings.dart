@@ -1118,6 +1118,9 @@ final class S {
   /// Заголовок drawer истории чатов.
   static String chatHistoryTitle(AppLanguage l) => _t('chat.historyTitle', l);
 
+  /// Tooltip кнопки входа в режим выбора сессий (Phase 44).
+  static String chatSelectChats(AppLanguage l) => _t('chat.select', l);
+
   /// Группа списка «Закрепленные».
   static String chatGroupPinned(AppLanguage l) => _t('chat.group.pinned', l);
 
@@ -1266,7 +1269,7 @@ final class S {
     'next': {'ru': 'Далее', 'en': 'Next'},
     'incorrect': {'ru': 'Неверно', 'en': 'Wrong'},
     'correct': {'ru': 'Верно!', 'en': 'Correct!'},
-    'explain': {'ru': 'Помощник объясняет', 'en': 'Assistant explains'},
+    'explain': {'ru': 'Маффин объясняет', 'en': 'Muffin explains'},
     'cancel': {'ru': 'Отмена', 'en': 'Cancel'},
     'save': {'ru': 'Сохранить', 'en': 'Save'},
     'retry': {'ru': 'Повторить', 'en': 'Retry'},
@@ -1277,7 +1280,7 @@ final class S {
     },
     'language': {'ru': 'Язык', 'en': 'Language'},
     'levelTooltip': {'ru': 'Уровень английского', 'en': 'English level'},
-    'assistant': {'ru': 'Помощник', 'en': 'Assistant'},
+    'assistant': {'ru': 'Маффин', 'en': 'Muffin'},
     // Главная.
     'weakWords': {'ru': 'Сложные ({n})', 'en': 'Weak ({n})'},
     'smartReview': {'ru': 'Smart ({n})', 'en': 'Smart ({n})'},
@@ -1879,7 +1882,7 @@ final class S {
       'ru': 'Не удалось загрузить подсказку',
       'en': 'Failed to load the hint',
     },
-    'helper.ask': {'ru': 'Спросить у помощника', 'en': 'Ask the assistant'},
+    'helper.ask': {'ru': 'Спросить у Маффина', 'en': 'Ask Muffin'},
     'helper.gotIt': {'ru': 'Понятно', 'en': 'Got it'},
     'helper.failed': {
       'ru': 'Не удалось получить объяснение',
@@ -1901,7 +1904,7 @@ final class S {
       'ru': ', часть речи: {pos}',
       'en': ', part of speech: {pos}',
     },
-    'aiHelper.title': {'ru': 'Помощник по слову', 'en': 'Word helper'},
+    'aiHelper.title': {'ru': 'Маффин о слове', 'en': 'Muffin: word helper'},
     'aiHelper.add': {'ru': 'Добавить в словарь', 'en': 'Add to dictionary'},
     'aiHelper.remove': {
       'ru': 'Удалить из словаря',
@@ -2102,11 +2105,14 @@ final class S {
       'en': 'Ask about English...',
     },
     'chat.greeting': {
-      'ru': 'Привет! Я помогу разобраться с английским. Спроси что-нибудь.',
-      'en': 'Hi! I can help you with English. Ask me anything.',
+      'ru':
+          'Привет! Я Маффин — помогу разобраться с английским. '
+          'Спроси что-нибудь.',
+      'en': "Hi! I'm Muffin — I can help you with English. Ask me anything.",
     },
     'chat.newChat': {'ru': 'Новый чат', 'en': 'New chat'},
     'chat.historyTitle': {'ru': 'История чатов', 'en': 'Chat history'},
+    'chat.select': {'ru': 'Выбрать чаты', 'en': 'Select chats'},
     'chat.group.pinned': {'ru': 'Закрепленные', 'en': 'Pinned'},
     'chat.group.today': {'ru': 'Сегодня', 'en': 'Today'},
     'chat.group.yesterday': {'ru': 'Вчера', 'en': 'Yesterday'},

@@ -54,6 +54,12 @@ class _ChatHistoryDrawerState extends ConsumerState<ChatHistoryDrawer> {
     });
   }
 
+  /// Явный вход в режим выбора из хедера (Phase 44): пустой набор,
+  /// корзина появится после первого выделения.
+  void _enterSelectionMode() {
+    setState(() => _isSelectionMode = true);
+  }
+
   void _toggleSelection(int sessionId) {
     setState(() {
       if (!_selectedSessions.remove(sessionId)) {
@@ -114,8 +120,11 @@ class _ChatHistoryDrawerState extends ConsumerState<ChatHistoryDrawer> {
   Widget build(BuildContext context) {
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final sessionsAsync = ref.watch(chatSessionsProvider);
-    return Drawer(
-      child: SafeArea(
+    // SafeArea снаружи Drawer (Phase 44): вся панель, включая поверхность,
+    // начинается ниже системного статус-бара. Внутренний SafeArea не нужен:
+    // внешний снимает применённый padding с MediaQuery потомка.
+    return SafeArea(
+      child: Drawer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -145,9 +154,21 @@ class _ChatHistoryDrawerState extends ConsumerState<ChatHistoryDrawer> {
                           ),
                       ],
                     )
-                  : Text(
-                      S.chatHistoryTitle(lang),
-                      style: Theme.of(context).textTheme.titleMedium,
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            S.chatHistoryTitle(lang),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        IconButton(
+                          key: const Key('chat-selection-enter'),
+                          tooltip: S.chatSelectChats(lang),
+                          icon: const Icon(Icons.checklist),
+                          onPressed: _enterSelectionMode,
+                        ),
+                      ],
                     ),
             ),
             if (!_isSelectionMode)

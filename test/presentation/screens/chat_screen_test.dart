@@ -23,7 +23,7 @@ import '../../domain/usecases/fakes/fake_settings_repository.dart';
 final _now = DateTime.utc(2026, 11, 13, 12);
 
 const _greeting =
-    'Привет! Я помогу разобраться с английским. Спроси что-нибудь.';
+    'Привет! Я Маффин — помогу разобраться с английским. Спроси что-нибудь.';
 
 http.Response okResponse() => http.Response(
   jsonEncode({'message': 'Ответ бота'}),
@@ -78,12 +78,6 @@ Widget host({
   child: MaterialApp(home: ChatScreen(initialContext: initialContext)),
 );
 
-/// Аватар AppBar (внутри Hero) — отличаем от аватарок пузырей.
-final Finder _appBarAvatar = find.descendant(
-  of: find.byWidgetPredicate((w) => w is Hero && w.tag == 'main_chat_hero'),
-  matching: find.byType(AiAvatar),
-);
-
 void main() {
   // Аватар повторяет анимацию вечно: без запрета анимаций pumpAndSettle
   // не завершится. Запрет уважается и роутами (меню/диалоги открываются
@@ -136,7 +130,7 @@ void main() {
     expect(find.text(_greeting), findsOneWidget);
   });
 
-  testWidgets('renders the AI avatar idle when not sending', (tester) async {
+  testWidgets('app bar shows Muffin title without avatar', (tester) async {
     await tester.pumpWidget(
       host(
         chat: FakeChatRepository(),
@@ -145,31 +139,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // AppBar + аватар приветствия.
-    expect(find.byType(AiAvatar), findsNWidgets(2));
-    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isFalse);
-  });
-
-  testWidgets('avatar talks while the reply is generating', (tester) async {
-    final reply = Completer<http.Response>();
-    await tester.pumpWidget(
-      host(
-        chat: FakeChatRepository(),
-        httpClient: MockClient((_) => reply.future),
-      ),
+    // Phase 44: в AppBar только текст; аватар — лишь в приветствии.
+    expect(find.text('Маффин'), findsOneWidget);
+    expect(find.byType(AiAvatar), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((w) => w is Hero && w.tag == 'main_chat_hero'),
+      findsNothing,
     );
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byType(TextField), 'Привет');
-    await tester.tap(find.byKey(const Key('chat-send-button')));
-    await tester.pump();
-
-    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isTrue);
-
-    reply.complete(okResponse());
-    await tester.pumpAndSettle();
-
-    expect(tester.widget<AiAvatar>(_appBarAvatar).isTalking, isFalse);
   });
 
   testWidgets('messages show messenger-style avatars', (tester) async {
@@ -181,16 +157,16 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // До отправки: только AppBar-аватар и аватар приветствия.
-    expect(find.byType(AiAvatar), findsNWidgets(2));
+    // До отправки: только аватар приветствия (AppBar без аватара, Phase 44).
+    expect(find.byType(AiAvatar), findsOneWidget);
     expect(find.byIcon(Icons.person), findsNothing);
 
     await tester.enterText(find.byType(TextField), 'Привет');
     await tester.tap(find.byKey(const Key('chat-send-button')));
     await tester.pumpAndSettle();
 
-    // После отправки: AppBar + пузырь ассистента; у пузыря юзера — person.
-    expect(find.byType(AiAvatar), findsNWidgets(2));
+    // После отправки: пузырь ассистента; у пузыря юзера — person.
+    expect(find.byType(AiAvatar), findsOneWidget);
     expect(find.byIcon(Icons.person), findsOneWidget);
     expect(find.text('Привет'), findsOneWidget);
     expect(find.text('Ответ бота'), findsOneWidget);
@@ -304,9 +280,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Assistant'), findsOneWidget);
+    expect(find.text('Muffin'), findsOneWidget);
     expect(
-      find.text('Hi! I can help you with English. Ask me anything.'),
+      find.text(
+        "Hi! I'm Muffin — I can help you with English. Ask me anything.",
+      ),
       findsOneWidget,
     );
     final field = tester.widget<TextField>(find.byType(TextField));

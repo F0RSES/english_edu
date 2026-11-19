@@ -343,7 +343,7 @@ void main() {
     test('word helper strings are localized (Phase 28b)', () {
       expect(S.dontKnowWord(AppLanguage.ru), 'Не знаю слово');
       expect(S.dontKnowWord(AppLanguage.en), "I don't know this word");
-      expect(S.aiHelperTitle(AppLanguage.en), 'Word helper');
+      expect(S.aiHelperTitle(AppLanguage.en), 'Muffin: word helper');
       expect(S.wordRemoved(AppLanguage.ru), 'Слово удалено');
       expect(S.removeConfirmBody('apple', AppLanguage.ru), contains('apple'));
       expect(S.removeConfirmBody('apple', AppLanguage.en), contains('apple'));

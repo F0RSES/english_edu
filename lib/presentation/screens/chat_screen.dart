@@ -17,9 +17,6 @@ const _clearAction = 'clear';
 /// Доля ширины экрана, которую занимает пузырь сообщения.
 const _maxBubbleWidthFactor = 0.8;
 
-/// Размер аватара в AppBar чата (Phase 40).
-const _appBarAvatarSize = 32.0;
-
 /// Размер аватарки у пузыря сообщения (Phase 41).
 const _bubbleAvatarSize = 32.0;
 
@@ -231,21 +228,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         onSelected: _onSessionSelected,
       ),
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Hero(
-              tag: 'main_chat_hero',
-              child: AiAvatar(
-                size: _appBarAvatarSize,
-                isTalking: _isSending,
-                winkOnStart: true,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(S.assistant(lang)),
-          ],
-        ),
+        // Phase 44: только заголовок «Маффин»; аватар убран из AppBar,
+        // маскот остаётся в пузырях сообщений и приветствии.
+        title: Text(S.assistant(lang)),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {

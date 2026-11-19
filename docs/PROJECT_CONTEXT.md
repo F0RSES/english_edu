@@ -3,7 +3,7 @@
 Шаблон состояния проекта. Обновляется в конце каждой задачи. Плейсхолдеры `<...>` заполняются по факту.
 
 ## Phase
-43 закрыта (Полировка истории чатов: скругление плиток + multi-select). Схема v23, 19 таблиц; 1168 тестов, 46 ADR (ADR-046 Proposed). Следующая: по плану владельца.
+44 закрыта (Фиксы UI истории чатов + ребрендинг «Маффин»). Схема v23, 19 таблиц; 1170 тестов, 46 ADR (ADR-046 Proposed). Следующая: по плану владельца.
 
 ## Done
 - Phase 0 — Bootstrap: 11 файлов управления проектом (`.clinerules/` + `docs/`).
@@ -61,6 +61,7 @@
 - Phase 38f — SeedLoader переведён на `assets/seed/words_v3.json`: 7416 слов (A0–C2), 5 источников; v2 остаётся в репозитории базой для tools, из APK убран. ci.sh зелёный (1042 теста), apk --debug собран.
 - Phase 42 — История чатов DeepSeek-style (ADR-046 Proposed): схема v23 (`chat_sessions` + `chat_messages.session_id` FK cascade, миграция с backfill старых сообщений в дефолтную сессию), `ChatSession`/`ChatSessionRepository`/`ChatSessionGroup`, drawer с группами Сегодня/Вчера/Последние 7 дней/Старые + Закреплённые, переименование/закрепление/удаление через bottom sheet, автосоздание сессии при первой отправке (title — 30 символов), восстановление последнего диалога при открытии; аватар пользователя в пузырях (`UserAvatar`: файл профиля → инициалы → иконка). BL-98 Done.
 - Phase 43 — Полировка истории чатов (ADR-046): скругление плиток radius 12 (`ListTile.shape` → `InkWell.customBorder`), multi-select по long-press (хедер «Выбрано: N», bulk-удаление с подтверждением и плюрализацией, check_circle/radio_button_unchecked, «Новый чат» скрыт в режиме выбора); BottomSheet только по «трём точкам». BL-99 Done.
+- Phase 44 — Фиксы UI истории чатов и ребрендинг (ADR-046): SafeArea снаружи Drawer (панель целиком ниже статус-бара), явный вход в multi-select (checklist в хедере, пустой набор), AppBar без аватара бота; бот — «Маффин»/«Muffin» (ключи assistant/explain/helper.ask/aiHelper.title/chat.greeting, приветствие представляется). BL-100 Done.
 
 ## In progress
 - Подготовка к Google Play (Phase 37b: QA и релиз).

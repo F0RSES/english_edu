@@ -22,6 +22,7 @@ Widget host({
   required FakeChatSessionRepository sessions,
   int? activeSessionId,
   void Function(int? sessionId)? onSelected,
+  EdgeInsets padding = EdgeInsets.zero,
 }) => ProviderScope(
   overrides: [
     chatSessionRepositoryProvider.overrideWithValue(sessions),
@@ -29,6 +30,10 @@ Widget host({
     clockProvider.overrideWithValue(() => _now),
   ],
   child: MaterialApp(
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(padding: padding),
+      child: child!,
+    ),
     home: ChatHistoryDrawer(
       activeSessionId: activeSessionId,
       onSelected: onSelected ?? (_) {},
@@ -268,5 +273,65 @@ void main() {
     expect(find.text('Переименовать'), findsOneWidget);
     expect(find.text('Закрепить'), findsOneWidget);
     expect(find.text('Удалить'), findsOneWidget);
+  });
+
+  testWidgets('should_enter_selection_mode_from_header_icon', (tester) async {
+    final sessions = FakeChatSessionRepository([
+      session(id: 1, title: 'Первый'),
+      session(id: 2, title: 'Второй'),
+    ]);
+    await tester.pumpWidget(host(sessions: sessions));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('chat-selection-enter')));
+    await tester.pumpAndSettle();
+
+    // Пустой набор: счётчик 0, корзина скрыта до первого выделения.
+    expect(find.text('Выбрано: 0'), findsOneWidget);
+    expect(find.byKey(const Key('chat-selection-cancel')), findsOneWidget);
+    expect(find.byKey(const Key('chat-selection-delete')), findsNothing);
+    expect(find.byKey(const Key('chat-new-chat-button')), findsNothing);
+    expect(find.byIcon(Icons.radio_button_unchecked), findsNWidgets(2));
+
+    await tester.tap(find.byKey(const Key('chat-session-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Выбрано: 1'), findsOneWidget);
+    expect(find.byKey(const Key('chat-selection-delete')), findsOneWidget);
+  });
+
+  testWidgets('should_restore_header_after_cancel_from_icon_entry', (
+    tester,
+  ) async {
+    final sessions = FakeChatSessionRepository([
+      session(id: 1, title: 'Первый'),
+    ]);
+    await tester.pumpWidget(host(sessions: sessions));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('chat-selection-enter')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('chat-selection-cancel')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('История чатов'), findsOneWidget);
+    expect(find.byKey(const Key('chat-selection-enter')), findsOneWidget);
+    expect(find.byKey(const Key('chat-new-chat-button')), findsOneWidget);
+  });
+
+  testWidgets('should_inset_drawer_below_status_bar', (tester) async {
+    final sessions = FakeChatSessionRepository([
+      session(id: 1, title: 'Первый'),
+    ]);
+    await tester.pumpWidget(
+      host(sessions: sessions, padding: const EdgeInsets.only(top: 40)),
+    );
+    await tester.pumpAndSettle();
+
+    // SafeArea снаружи Drawer: панель целиком ниже статус-бара.
+    expect(
+      find.byWidgetPredicate((w) => w is SafeArea && w.child is Drawer),
+      findsOneWidget,
+    );
+    expect(tester.getTopLeft(find.byType(Drawer)).dy, greaterThanOrEqualTo(40));
   });
 }

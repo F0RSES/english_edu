@@ -25,7 +25,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.smart_toy), findsOneWidget);
-    expect(find.byTooltip('Спросить у помощника'), findsOneWidget);
+    expect(find.byTooltip('Спросить у Маффина'), findsOneWidget);
   });
 
   testWidgets('tap calls explain and shows bottom sheet', (tester) async {
@@ -40,13 +40,13 @@ void main() {
 
     expect(explainer.calls, 1);
     expect(explainer.lastGameType, 'cloze_test');
-    expect(find.text('Помощник объясняет'), findsOneWidget);
+    expect(find.text('Маффин объясняет'), findsOneWidget);
     expect(find.text('Глагол go в Past Simple — went.'), findsOneWidget);
 
     await tester.tap(find.text('Понятно'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Помощник объясняет'), findsNothing);
+    expect(find.text('Маффин объясняет'), findsNothing);
   });
 
   testWidgets('error shows snackbar', (tester) async {
@@ -58,6 +58,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Не удалось получить объяснение'), findsOneWidget);
-    expect(find.text('Помощник объясняет'), findsNothing);
+    expect(find.text('Маффин объясняет'), findsNothing);
   });
 }

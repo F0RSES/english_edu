@@ -433,8 +433,8 @@ void main() {
       find.byWidgetPredicate((w) => w is Hero && w.tag == 'main_chat_hero'),
       findsOneWidget,
     );
-    expect(find.text('Помощник'), findsNothing);
-    expect(find.byTooltip('Помощник'), findsOneWidget);
+    expect(find.text('Маффин'), findsNothing);
+    expect(find.byTooltip('Маффин'), findsOneWidget);
   });
 
   testWidgets('level selector shows the preferred level', (tester) async {

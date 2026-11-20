@@ -108,6 +108,7 @@
 | BL-107 | P2 | Phase 51 — системный фикс UX разбора слов | одна шторка (вторая удалена), одна статус-кнопка FAB.extended (не learning → «+», learning → корзина = сброс прогресса); иерархия блоков; пример EN/RU (exampleRu, Worker-промпт у владельца); PartOfSpeechChip + глоссарий core/grammar в шторке и WordListItem; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-108 | P1 | Phase 52 — UI-фиксы: транскрипция без слэшей (52a); Cloze bulk-лист по статусу, без иллюзии авто-добавления (52b) | IpaText во всех 4 местах рендера; bulk-лист: корзина только при learning, «+» → UpdateWordStatus(learning), корзина → deleteByWordId (слово остаётся); seed-слово без learning → «+»; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-109 | P3 | Phase 52b — убрать неиспользуемые ключи S.bulkAddToDictionary/S.removeFromDictionary (strings.dart + strings_test) | grep не находит потребителей в lib; analyze=0, ci.sh зелёный | Todo |
+| BL-110 | P2 | Phase 52c — Scramble: удаление букв тапом по клетке + пружинная анимация появления | тап по поставленной букве возвращает её в пул (повторы корректны); проверка только на полном ответе не ломается; AnimatedSwitcher+ScaleTransition easeOutBack; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

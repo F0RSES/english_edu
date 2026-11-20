@@ -18,7 +18,8 @@ const _feedbackDelay = Duration(milliseconds: 800);
 
 /// Мини-игра «Собери слово» (ADR-027).
 ///
-/// Показывает перевод и перемешанные буквы; слово собирается тапом по буквам.
+/// Показывает перевод и перемешанные буквы; слово собирается тапом по буквам,
+/// а тап по поставленной букве возвращает её в пул (Phase 52c).
 /// Работает полностью офлайн — задания строятся из локального словаря, AI и
 /// сеть не участвуют.
 ///
@@ -140,6 +141,36 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
     if (_userAnswer.length == puzzle.solution.length) {
       unawaited(_check(puzzle));
     }
+  }
+
+  /// Убирает букву из клетки [position] и возвращает её в пул (Phase 52c).
+  ///
+  /// Ответ сдвигается влево; автопроверка срабатывает только на полном
+  /// ответе, поэтому удаление буквы не запускает проверку.
+  void _removeLetter(int position) {
+    final puzzle = _puzzle;
+    if (puzzle == null || _waiting || position >= _userAnswer.length) {
+      return;
+    }
+    unawaited(HapticFeedback.selectionClick());
+    final letter = _userAnswer[position];
+    // Буквы повторяются: освобождаем первую использованную кнопку пула
+    // с этой буквой — иначе баланс букв сломается (например, две «p»).
+    var poolIndex = -1;
+    for (var i = 0; i < puzzle.scrambled.length; i++) {
+      if (_used[i] && puzzle.scrambled[i] == letter) {
+        poolIndex = i;
+        break;
+      }
+    }
+    if (poolIndex < 0) {
+      return;
+    }
+    setState(() {
+      _userAnswer = [..._userAnswer]..removeAt(position);
+      _used = [..._used]..[poolIndex] = false;
+      _hasError = false;
+    });
   }
 
   /// Сверяет собранное слово с решением и показывает реакцию.
@@ -309,6 +340,7 @@ class _WordScrambleScreenState extends ConsumerState<WordScrambleScreen> {
                 correctCount: _correctCount,
                 lang: lang,
                 onTapLetter: _selectLetter,
+                onRemoveLetter: _removeLetter,
                 onClear: _clear,
               ),
       ),
@@ -328,6 +360,7 @@ class _PuzzleView extends StatelessWidget {
     required this.correctCount,
     required this.lang,
     required this.onTapLetter,
+    required this.onRemoveLetter,
     required this.onClear,
   });
 
@@ -340,6 +373,10 @@ class _PuzzleView extends StatelessWidget {
   final int correctCount;
   final AppLanguage lang;
   final ValueChanged<int> onTapLetter;
+
+  /// Тап по поставленной букве: возврат в пул (Phase 52c).
+  final ValueChanged<int> onRemoveLetter;
+
   final VoidCallback onClear;
 
   @override
@@ -445,10 +482,12 @@ class _PuzzleView extends StatelessWidget {
       children: [
         for (var i = 0; i < length; i++)
           _AnswerSquare(
+            key: ValueKey('answer-square-$i'),
             letter: i < answer.length ? answer[i] : null,
             isNext: i == answer.length && !hasError,
             hasError: hasError,
             theme: theme,
+            onTap: i < answer.length ? () => onRemoveLetter(i) : null,
           ),
       ],
     );
@@ -472,46 +511,84 @@ class _PuzzleView extends StatelessWidget {
 }
 
 /// Один квадрат поля ответа: буква, пунктир или подсветка следующего.
+///
+/// Тап по поставленной букве возвращает её в пул (Phase 52c). Буква
+/// появляется в клетке пружинным масштабом (easeOutBack), а не телепортом.
 class _AnswerSquare extends StatelessWidget {
   const _AnswerSquare({
     required this.letter,
     required this.isNext,
     required this.hasError,
     required this.theme,
+    required this.onTap,
+    super.key,
   });
+
+  static const _squareWidth = 44.0;
+  static const _squareHeight = 56.0;
+
+  /// Длительность пружинного появления/исчезновения буквы.
+  static const _popDuration = Duration(milliseconds: 250);
 
   final String? letter;
   final bool isNext;
   final bool hasError;
   final ThemeData theme;
 
+  /// Тап по поставленной букве; null — клетка пуста.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final colors = theme.colorScheme;
-    if (letter != null) {
-      return Container(
-        width: 44,
-        height: 56,
+    final letter = this.letter;
+    final filled = letter != null;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _squareWidth,
+        height: _squareHeight,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: hasError
-              ? colors.errorContainer
-              : colors.surfaceContainerHighest,
+          color: filled
+              ? hasError
+                    ? colors.errorContainer
+                    : colors.surfaceContainerHighest
+              : null,
           borderRadius: BorderRadius.circular(8),
-          border: hasError ? Border.all(color: colors.error, width: 2) : null,
+          border: filled && hasError
+              ? Border.all(color: colors.error, width: 2)
+              : null,
         ),
-        child: Text(
-          letter!,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-      );
-    }
-    return SizedBox(
-      width: 44,
-      height: 56,
-      child: CustomPaint(
-        painter: _DashedBorderPainter(
-          color: isNext ? colors.primary : colors.outlineVariant,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (!filled)
+              CustomPaint(
+                size: const Size(_squareWidth, _squareHeight),
+                painter: _DashedBorderPainter(
+                  color: isNext ? colors.primary : colors.outlineVariant,
+                ),
+              ),
+            AnimatedSwitcher(
+              duration: _popDuration,
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeIn,
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
+              child: filled
+                  ? Text(
+                      letter,
+                      key: ValueKey(letter),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('empty')),
+            ),
+          ],
         ),
       ),
     );

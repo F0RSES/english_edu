@@ -204,7 +204,8 @@ void main() {
 
     await tapLetters(tester, 'a');
     await tester.tap(find.text('Очистить'));
-    await tester.pump();
+    // Анимация исчезновения буквы (Phase 52c): ждём полного очищения клетки.
+    await tester.pumpAndSettle();
 
     // Плашка ответа пуста: единственная «a» на экране — кнопка буквы.
     expect(find.text('a'), findsOneWidget);
@@ -321,5 +322,91 @@ void main() {
       find.text('Translate and assemble the word letter by letter'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('should_remove_letter_and_return_to_pool_when_cell_tapped', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(words: [word(1, 'apple', 'яблоко')]));
+    await tester.pumpAndSettle();
+
+    await tapLetters(tester, 'ap');
+    await tester.pumpAndSettle();
+
+    // «a» поставлена: кнопка пула заблокирована.
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'a'))
+          .onPressed,
+      isNull,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('answer-square-0')));
+    await tester.pumpAndSettle();
+
+    // «a» вернулась в пул, ответ сдвинулся: клетка 0 — «p»,
+    // клетка 1 пуста.
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'a'))
+          .onPressed,
+      isNotNull,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('answer-square-0')),
+        matching: find.text('p'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('answer-square-1')),
+        matching: find.text('p'),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('should_check_answer_after_letter_removed_and_replaced', (
+    tester,
+  ) async {
+    final harness = _Harness(words: [word(1, 'apple', 'яблоко')]);
+    await tester.pumpWidget(harness.app());
+    await tester.pumpAndSettle();
+
+    await tapLetters(tester, 'ap');
+    await tester.pumpAndSettle();
+    // Убираем «p» из клетки 1 и собираем слово заново, правильно.
+    await tester.tap(find.byKey(const ValueKey('answer-square-1')));
+    await tester.pumpAndSettle();
+    await tapLetters(tester, 'pple');
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+
+    // Проверка сработала на полном ответе: SRS good и итоги сессии.
+    final log = (await harness.logs.getAll()).single;
+    expect(log.grade, ReviewGrade.good);
+    expect(find.text('Сессия завершена'), findsOneWidget);
+  });
+
+  testWidgets('should_do_nothing_when_empty_cell_tapped', (tester) async {
+    await tester.pumpWidget(host(words: [word(1, 'apple', 'яблоко')]));
+    await tester.pumpAndSettle();
+
+    await tapLetters(tester, 'a');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('answer-square-4')));
+    await tester.pumpAndSettle();
+
+    // Ответ не изменился: клетка 0 по-прежнему «a», проверка не запускалась.
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('answer-square-0')),
+        matching: find.text('a'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('1/1'), findsOneWidget);
   });
 }

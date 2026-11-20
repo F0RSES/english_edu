@@ -868,6 +868,22 @@ Architecture Decision Records: один ADR — одно решение.
 - **Consequences:** +2 зависимости (flutter_markdown_plus, markdown), небольшой рост APK. Markdown в пользовательских сообщениях не рендерится (осознанно). Листы Error Hunter и word helper остаются обычным Text (вне scope).
 - **Open questions:** открытие ссылок (url_launcher) — отдельная задача при необходимости.
 
+### ADR-048: Confirmed word add with learning status
+- **Status:** Proposed
+- **Date:** 2026-11-20
+- **Context:** Слова из игр и ИИ-помощника добавлялись в словарь мгновенно по одному тапу и без прогресса — попадали в раздел «Новое», засоряя словарь (фидбек пользователя). Нужен шаг подтверждения и правильный начальный статус.
+- **Decision:**
+  - Кнопка AI-потока переименована: «Разобрать слово»/«Parse word» (ключ `aiHelper.add`). Массовое добавление сохраняет «Добавить в словарь»/«Add to dictionary» через отдельный ключ `bulk.addToDictionary` (cloze bulk-кнопка, `bulk_dictionary_sheet`) — другая семантика, общий ключ разделён.
+  - Тап «+» в листе перевода открывает шторку подтверждения `_ConfirmAddWordSheet` (ai_word_helper.dart): слово крупно, транскрипция, часть речи (chip), перевод, AI-пример в блоке; FAB «+» (`confirm-add-word`, tooltip `aiHelper.confirmAdd`) и «Отмена» (`confirm-add-cancel`) / свайп. До подтверждения записи в БД нет.
+  - Подтверждение: `WordRepository.upsert` + `UpdateWordStatus(WordId, learning)` (ADR-004: статус в WordProgress, use case Phase 39e) — слово не попадает в «Новое». Лист перевода остаётся открытым, кнопка обновляется через `findByTerm` и становится «удалить», SnackBar «Слово добавлено в «Изучаю»» / 'Word added to "Learning"' (`dictionary.addedToLearning`).
+  - Ошибка сохранения: logger.warn + SnackBar `wordSaveFailed`, шторка остаётся открытой (можно повторить).
+  - Ручной `AddWordDialog` (FAB словаря) и массовое добавление не меняются; `error_helper_button` слова не добавляет — не тронут.
+- **Alternatives considered:**
+  - (A) Мгновенное добавление + SnackBar с «Отменить» — отклонено: пользователь хочет явный шаг подтверждения с разбором слова.
+  - (B) Статус newWord при добавлении — отклонено: слово из игры/ИИ уже изучается, «Новое» — для непросмотренных.
+- **Consequences:** +1 тап до добавления (осознанность вместо мусора), без изменений схемы БД и зависимостей. Две шторки: confirmation поверх листа перевода.
+- **Open questions:** нет.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -918,3 +934,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-045 | Seed content versioning and reseed | Proposed |
 | ADR-046 | Chat sessions (history drawer) | Proposed |
 | ADR-047 | Markdown rendering of assistant responses | Proposed |
+| ADR-048 | Confirmed word add with learning status | Proposed |

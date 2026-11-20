@@ -235,7 +235,7 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
             IconButton(
               tooltip: _existing != null
                   ? S.removeFromDictionary(lang)
-                  : S.addToDictionary(lang),
+                  : S.bulkAddToDictionary(lang),
               color: _existing != null
                   ? theme.colorScheme.error
                   : theme.colorScheme.primary,

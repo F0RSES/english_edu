@@ -270,7 +270,7 @@ class _TaskView extends StatelessWidget {
           child: FilledButton.tonalIcon(
             onPressed: () => unawaited(_openBulkSheet(context)),
             icon: const Icon(Icons.menu_book),
-            label: Text(S.addToDictionary(lang)),
+            label: Text(S.bulkAddToDictionary(lang)),
           ),
         ),
         if (solved)

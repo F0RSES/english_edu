@@ -269,14 +269,14 @@ void main() {
     expect(log.grade, ReviewGrade.again);
   });
 
-  testWidgets('add-to-dictionary button opens word sheet', (tester) async {
+  testWidgets('parse-word button opens word sheet', (tester) async {
     await tester.pumpWidget(host(words: [word(1, 'apple', 'яблоко')]));
     await tester.pumpAndSettle();
 
     // Кнопка видна всегда, под облаком букв (Phase 30c).
-    expect(find.text('Добавить в словарь'), findsOneWidget);
+    expect(find.text('Разобрать слово'), findsOneWidget);
 
-    await tester.tap(find.text('Добавить в словарь'));
+    await tester.tap(find.text('Разобрать слово'));
     await tester.pumpAndSettle();
 
     // Модалка перевода загаданного слова с add/remove.

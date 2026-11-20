@@ -259,15 +259,15 @@ void main() {
     expect(find.text('Верно: 1 из 1'), findsOneWidget);
   });
 
-  testWidgets('add-to-dictionary button opens word sheet', (tester) async {
+  testWidgets('parse-word button opens word sheet', (tester) async {
     final harness = Harness();
     await tester.pumpWidget(harness.app());
     await tester.pumpAndSettle();
 
     // Кнопка видна всегда, под полем ввода (Phase 30c).
-    expect(find.text('Добавить в словарь'), findsOneWidget);
+    expect(find.text('Разобрать слово'), findsOneWidget);
 
-    await tester.tap(find.text('Добавить в словарь'));
+    await tester.tap(find.text('Разобрать слово'));
     await tester.pumpAndSettle();
 
     expect(find.text('apple'), findsOneWidget);

@@ -464,6 +464,10 @@ final class S {
   /// SnackBar добавления.
   static String wordAdded(AppLanguage l) => _t('dictionary.added', l);
 
+  /// SnackBar добавления со статусом «Изучаю» (Phase 49).
+  static String wordAddedToLearning(AppLanguage l) =>
+      _t('dictionary.addedToLearning', l);
+
   /// Вкладка «Все».
   static String tabAll(AppLanguage l) => _t('dictionary.all', l);
 
@@ -842,8 +846,16 @@ final class S {
   /// Заголовок листа перевода слова.
   static String aiHelperTitle(AppLanguage l) => _t('aiHelper.title', l);
 
-  /// Tooltip добавления слова в словарь.
+  /// Кнопка разбора слова через ИИ (Phase 49): открывает лист перевода.
   static String addToDictionary(AppLanguage l) => _t('aiHelper.add', l);
+
+  /// Tooltip подтверждения добавления в шторке разбора (Phase 49).
+  static String confirmAddToDictionary(AppLanguage l) =>
+      _t('aiHelper.confirmAdd', l);
+
+  /// Label массового добавления слов (Phase 49: отдельный ключ от AI).
+  static String bulkAddToDictionary(AppLanguage l) =>
+      _t('bulk.addToDictionary', l);
 
   /// Tooltip удаления слова из словаря.
   static String removeFromDictionary(AppLanguage l) => _t('aiHelper.remove', l);
@@ -1677,6 +1689,10 @@ final class S {
     'dictionary.search': {'ru': 'Поиск...', 'en': 'Search...'},
     'dictionary.add': {'ru': 'Добавить слово', 'en': 'Add word'},
     'dictionary.added': {'ru': 'Добавлено', 'en': 'Added'},
+    'dictionary.addedToLearning': {
+      'ru': 'Слово добавлено в «Изучаю»',
+      'en': 'Word added to "Learning"',
+    },
     'dictionary.all': {'ru': 'Все', 'en': 'All'},
     'dictionary.learning': {'ru': 'Изучаю', 'en': 'Learning'},
     'dictionary.mastered': {'ru': 'Выучено', 'en': 'Mastered'},
@@ -1905,7 +1921,15 @@ final class S {
       'en': ', part of speech: {pos}',
     },
     'aiHelper.title': {'ru': 'Маффин о слове', 'en': 'Muffin: word helper'},
-    'aiHelper.add': {'ru': 'Добавить в словарь', 'en': 'Add to dictionary'},
+    'aiHelper.add': {'ru': 'Разобрать слово', 'en': 'Parse word'},
+    'aiHelper.confirmAdd': {
+      'ru': 'Добавить в словарь',
+      'en': 'Add to dictionary',
+    },
+    'bulk.addToDictionary': {
+      'ru': 'Добавить в словарь',
+      'en': 'Add to dictionary',
+    },
     'aiHelper.remove': {
       'ru': 'Удалить из словаря',
       'en': 'Remove from dictionary',

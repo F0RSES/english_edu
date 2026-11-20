@@ -4,6 +4,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
@@ -427,6 +428,14 @@ class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
       return;
     }
     setState(() => _existing = found);
+    // Phase 50: сбрасываем фильтры словаря — добавленное слово должно
+    // быть видно во вкладке «Изучаю» при любом прошлом поиске/уровне/
+    // категории (иначе оно отфильтровывается до попадания во вкладку).
+    ref.read(dictionarySearchQueryProvider.notifier).update('');
+    ref.read(dictionaryLevelFilterProvider.notifier).update(null);
+    ref
+        .read(dictionaryCategoryFilterProvider.notifier)
+        .update(WordCategory.all);
     // Словарь на соседней вкладке не должен показывать устаревший список.
     ref.invalidate(dictionaryEntriesProvider);
     _showMessage(S.wordAddedToLearning(lang));
@@ -490,21 +499,38 @@ class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
     final scheme = Theme.of(context).colorScheme;
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final exists = _existing != null;
-    return IconButton(
-      tooltip: exists ? S.removeFromDictionary(lang) : S.addToDictionary(lang),
-      color: exists ? scheme.error : scheme.primary,
-      onPressed: _busy
-          ? null
-          : exists
-          ? () => unawaited(_remove())
-          : () => unawaited(_add()),
-      icon: _busy
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Icon(exists ? Icons.delete_outline : Icons.add_circle_outline),
+    if (_busy) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+    // Phase 50: у существующего слова оба действия — «+» переводит
+    // в «Изучаю» (обновление статуса), корзина удаляет. Слова игр —
+    // чаще всего seed и уже есть в словаре: раньше для них показывалась
+    // только корзина, и добавить их в «Изучаю» было нельзя.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          key: const Key('word-add-button'),
+          tooltip: exists
+              ? S.addToLearning(lang)
+              : S.confirmAddToDictionary(lang),
+          color: scheme.primary,
+          onPressed: () => unawaited(_add()),
+          icon: const Icon(Icons.add_circle_outline),
+        ),
+        if (exists)
+          IconButton(
+            key: const Key('word-remove-button'),
+            tooltip: S.removeFromDictionary(lang),
+            color: scheme.error,
+            onPressed: () => unawaited(_remove()),
+            icon: const Icon(Icons.delete_outline),
+          ),
+      ],
     );
   }
 }
@@ -537,20 +563,30 @@ class _ConfirmAddWordSheetState extends ConsumerState<_ConfirmAddWordSheet> {
     setState(() => _busy = true);
     try {
       final words = ref.read(wordRepositoryProvider);
-      final settings = await ref.read(settingsRepositoryProvider).get();
-      final id = await words.nextId();
-      final word = Word(
-        id: id,
-        term: widget.word.trim().toLowerCase(),
-        translation: widget.translation.text,
-        transcription: widget.translation.transcription,
-        partOfSpeech: widget.translation.partOfSpeech,
-        exampleSentence: widget.translation.example,
-        level: settings.preferredLevel,
-      );
-      await words.upsert(word);
-      // Сразу «Изучаю»: добавленное из игр/ИИ слово не лежит в «Новом».
-      await ref.read(updateWordStatusProvider)(id, WordStatus.learning);
+      final existing = await words.findByTerm(widget.word);
+      if (existing != null) {
+        // Phase 50: слово уже в словаре (чаще всего seed) — обновляем
+        // только статус; AI-перевод не перезаписывает данные словаря.
+        await ref.read(updateWordStatusProvider)(
+          existing.id,
+          WordStatus.learning,
+        );
+      } else {
+        final settings = await ref.read(settingsRepositoryProvider).get();
+        final id = await words.nextId();
+        final word = Word(
+          id: id,
+          term: widget.word.trim().toLowerCase(),
+          translation: widget.translation.text,
+          transcription: widget.translation.transcription,
+          partOfSpeech: widget.translation.partOfSpeech,
+          exampleSentence: widget.translation.example,
+          level: settings.preferredLevel,
+        );
+        await words.upsert(word);
+        // Сразу «Изучаю»: добавленное из игр/ИИ слово не лежит в «Новом».
+        await ref.read(updateWordStatusProvider)(id, WordStatus.learning);
+      }
       if (!mounted) {
         return;
       }

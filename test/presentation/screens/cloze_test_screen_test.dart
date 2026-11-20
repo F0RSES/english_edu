@@ -162,12 +162,12 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    expect(find.text('Добавить в словарь'), findsOneWidget);
+    expect(find.text('Разобрать слово'), findsOneWidget);
 
     await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Добавить в словарь'), findsOneWidget);
+    expect(find.text('Разобрать слово'), findsOneWidget);
   });
 
   testWidgets('shows helper after answer', (tester) async {
@@ -219,7 +219,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gap fill'), findsOneWidget);
-    expect(find.text('Add to dictionary'), findsOneWidget);
+    expect(find.text('Parse word'), findsOneWidget);
 
     await tester.tap(find.text('eat'));
     await tester.pumpAndSettle();
@@ -291,7 +291,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Добавить в словарь'));
+    await tester.tap(find.text('Разобрать слово'));
     await tester.pumpAndSettle();
 
     expect(find.byType(BulkDictionarySheet), findsOneWidget);

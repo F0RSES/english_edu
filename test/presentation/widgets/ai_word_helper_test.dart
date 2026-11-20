@@ -140,6 +140,48 @@ void main() {
     expect(find.byKey(const Key('confirm-add-word')), findsNothing);
   });
 
+  testWidgets('existing word shows both add and remove buttons', (
+    tester,
+  ) async {
+    final words = FakeWordRepository([
+      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
+    ]);
+    await tester.pumpWidget(host(words: words));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('facility'));
+    await tester.pumpAndSettle();
+
+    // Phase 50: seed-слово уже в словаре — доступны оба действия.
+    expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
+    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+  });
+
+  testWidgets('plus on existing word sets learning without duplicate', (
+    tester,
+  ) async {
+    final words = FakeWordRepository([
+      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
+    ]);
+    final progress = FakeProgressRepository();
+    await tester.pumpWidget(host(words: words, progress: progress));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('facility'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add_circle_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('confirm-add-word')));
+    await tester.pumpAndSettle();
+
+    // Дубликата нет: тот же id; статус переведён в learning.
+    final found = await words.findByTerm('facility');
+    expect(found!.id, const WordId(1));
+    final card = await progress.getByWordId(const WordId(1));
+    expect(card!.status, WordStatus.learning);
+    expect(find.text('Слово добавлено в «Изучаю»'), findsOneWidget);
+  });
+
   testWidgets('delete button with confirm removes word', (tester) async {
     final words = FakeWordRepository([
       const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),

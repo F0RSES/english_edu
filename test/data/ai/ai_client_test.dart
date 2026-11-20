@@ -277,6 +277,7 @@ void main() {
           'partOfSpeech': 'noun',
           'transcription': '/fəˈsɪləti/',
           'example': 'The facility is new.',
+          'exampleRu': 'Учреждение новое.',
         }, 200);
       }),
     );
@@ -288,6 +289,7 @@ void main() {
     expect(result.partOfSpeech, 'noun');
     expect(result.transcription, '/fəˈsɪləti/');
     expect(result.example, 'The facility is new.');
+    expect(result.exampleRu, 'Учреждение новое.');
   });
 
   test('translate treats absent optional fields as null', () async {
@@ -301,6 +303,7 @@ void main() {
     expect(result.partOfSpeech, isNull);
     expect(result.transcription, isNull);
     expect(result.example, isNull);
+    expect(result.exampleRu, isNull);
   });
 
   test('translate throws AiException on 500', () async {

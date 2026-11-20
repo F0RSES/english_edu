@@ -5,6 +5,7 @@ import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/screens/chat_screen.dart';
+import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,9 +35,15 @@ DictionaryEntry entry({
 Widget host(
   DictionaryEntry item, {
   void Function(WordStatus)? onStatusChanged,
-}) => MaterialApp(
-  home: Scaffold(
-    body: WordListItem(entry: item, onStatusChanged: onStatusChanged),
+}) => ProviderScope(
+  overrides: [
+    // PartOfSpeechChip (Phase 51) читает язык через languageProvider.
+    settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+  ],
+  child: MaterialApp(
+    home: Scaffold(
+      body: WordListItem(entry: item, onStatusChanged: onStatusChanged),
+    ),
   ),
 );
 
@@ -72,14 +79,17 @@ Widget routerHost(DictionaryEntry item) {
 }
 
 void main() {
-  testWidgets('renders term, translation and IPA • part of speech', (
+  testWidgets('renders term, translation, IPA and part of speech chip', (
     tester,
   ) async {
     await tester.pumpWidget(host(entry(partOfSpeech: 'noun')));
 
     expect(find.text('hello'), findsOneWidget);
     expect(find.text('привет'), findsOneWidget);
-    expect(find.text('/həˈləʊ/ • noun'), findsOneWidget);
+    expect(find.text('/həˈləʊ/'), findsOneWidget);
+    // Phase 51: часть речи — чип с пояснением, не текст в meta-строке.
+    expect(find.byType(PartOfSpeechChip), findsOneWidget);
+    expect(find.text('noun'), findsOneWidget);
   });
 
   testWidgets('shows only the part of speech when IPA is missing', (

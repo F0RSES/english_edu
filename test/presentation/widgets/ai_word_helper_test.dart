@@ -1,5 +1,7 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/entities/word_progress.dart';
+import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
@@ -19,6 +21,7 @@ const _translation = WordTranslation(
   partOfSpeech: 'noun',
   transcription: '/fəˈsɪləti/',
   example: 'The facility is new.',
+  exampleRu: 'Учреждение новое.',
 );
 
 /// Виджет в изоляции: словарь, прогресс, настройки и переводчик — фейки.
@@ -76,28 +79,13 @@ void main() {
     expect(find.text('учреждение'), findsOneWidget);
     expect(find.text('/fəˈsɪləti/'), findsOneWidget);
     expect(find.text('noun'), findsOneWidget);
-    expect(find.text('«The facility is new.»'), findsOneWidget);
+    expect(find.text('EN: The facility is new.'), findsOneWidget);
+    expect(find.text('RU: Учреждение новое.'), findsOneWidget);
   });
 
-  testWidgets('add button opens confirm sheet without inserting', (
+  testWidgets('action button adds word with learning and switches to remove', (
     tester,
   ) async {
-    final words = FakeWordRepository();
-    await tester.pumpWidget(host(words: words));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('facility'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
-    await tester.pumpAndSettle();
-
-    // Phase 49: шторка подтверждения открыта, записи ещё нет.
-    expect(find.byKey(const Key('confirm-add-word')), findsOneWidget);
-    expect(find.text('учреждение'), findsNWidgets(2));
-    expect(await words.findByTerm('facility'), isNull);
-  });
-
-  testWidgets('confirm plus inserts word with learning status', (tester) async {
     final words = FakeWordRepository();
     final progress = FakeProgressRepository();
     await tester.pumpWidget(host(words: words, progress: progress));
@@ -105,73 +93,74 @@ void main() {
 
     await tester.tap(find.text('facility'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('confirm-add-word')));
+
+    // Phase 51: одна шторка, одна кнопка действия; второй шторки нет.
+    expect(find.byKey(const Key('word-action-button')), findsOneWidget);
+    expect(find.text('Добавить в изучение'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('word-action-button')));
     await tester.pumpAndSettle();
 
     final added = await words.findByTerm('facility');
     expect(added, isNotNull);
     expect(added!.translation, 'учреждение');
-    expect(added.partOfSpeech, 'noun');
-    // Главное: статус сразу «Изучаю», слово не попадает в «Новое».
     final card = await progress.getByWordId(added.id);
-    expect(card, isNotNull);
     expect(card!.status, WordStatus.learning);
     expect(find.text('Слово добавлено в «Изучаю»'), findsOneWidget);
-    // Шторка закрыта, лист перевода остался, кнопка стала «удалить».
-    expect(find.byKey(const Key('confirm-add-word')), findsNothing);
-    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    // Кнопка сменилась на корзину, шторка осталась одна.
+    expect(find.text('Удалить из изучения'), findsOneWidget);
+    expect(find.byKey(const Key('word-action-button')), findsOneWidget);
   });
 
-  testWidgets('cancel closes confirm sheet without inserting', (tester) async {
+  testWidgets('second tap removes progress but keeps the word', (tester) async {
     final words = FakeWordRepository();
-    await tester.pumpWidget(host(words: words));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('facility'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('confirm-add-cancel')));
-    await tester.pumpAndSettle();
-
-    expect(await words.findByTerm('facility'), isNull);
-    expect(find.byKey(const Key('confirm-add-word')), findsNothing);
-  });
-
-  testWidgets('existing word shows both add and remove buttons', (
-    tester,
-  ) async {
-    final words = FakeWordRepository([
-      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
-    ]);
-    await tester.pumpWidget(host(words: words));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('facility'));
-    await tester.pumpAndSettle();
-
-    // Phase 50: seed-слово уже в словаре — доступны оба действия.
-    expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
-    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
-  });
-
-  testWidgets('plus on existing word sets learning without duplicate', (
-    tester,
-  ) async {
-    final words = FakeWordRepository([
-      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
-    ]);
     final progress = FakeProgressRepository();
     await tester.pumpWidget(host(words: words, progress: progress));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('facility'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
+    await tester.tap(find.byKey(const Key('word-action-button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('confirm-add-word')));
+    // SnackBar перекрывает низ шторки — ждём автозакрытия перед вторым тапом.
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('word-action-button')));
+    await tester.pumpAndSettle();
+
+    // Прогресс удалён, слово осталось в словаре («Новое»).
+    final word = await words.findByTerm('facility');
+    expect(word, isNotNull);
+    expect(await progress.getByWordId(word!.id), isNull);
+    expect(find.text('Слово убрано из «Изучаю»'), findsOneWidget);
+    expect(find.text('Добавить в изучение'), findsOneWidget);
+  });
+
+  testWidgets('existing mastered word shows add button and sets learning', (
+    tester,
+  ) async {
+    final words = FakeWordRepository([
+      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
+    ]);
+    final progress = FakeProgressRepository([
+      WordProgress(
+        wordId: const WordId(1),
+        cardState: CardState.initial(DateTime.utc(2026, 11, 20, 12)),
+        status: WordStatus.mastered,
+        firstSeenAt: DateTime.utc(2026, 11, 20, 12),
+      ),
+    ]);
+    await tester.pumpWidget(host(words: words, progress: progress));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('facility'));
+    await tester.pumpAndSettle();
+
+    // mastered ≠ learning → кнопка «+», одна (без корзины).
+    expect(find.text('Добавить в изучение'), findsOneWidget);
+    expect(find.text('Удалить из изучения'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('word-action-button')));
     await tester.pumpAndSettle();
 
     // Дубликата нет: тот же id; статус переведён в learning.
@@ -179,26 +168,6 @@ void main() {
     expect(found!.id, const WordId(1));
     final card = await progress.getByWordId(const WordId(1));
     expect(card!.status, WordStatus.learning);
-    expect(find.text('Слово добавлено в «Изучаю»'), findsOneWidget);
-  });
-
-  testWidgets('delete button with confirm removes word', (tester) async {
-    final words = FakeWordRepository([
-      const Word(id: WordId(1), term: 'facility', translation: 'учреждение'),
-    ]);
-    await tester.pumpWidget(host(words: words));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('facility'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Удалить слово?'), findsOneWidget);
-    await tester.tap(find.text('Удалить из словаря'));
-    await tester.pumpAndSettle();
-
-    expect(await words.findByTerm('facility'), isNull);
-    expect(find.text('Слово удалено'), findsOneWidget);
+    expect(find.text('Удалить из изучения'), findsOneWidget);
   });
 }

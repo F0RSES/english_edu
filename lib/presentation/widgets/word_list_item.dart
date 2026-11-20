@@ -4,6 +4,7 @@ import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
+import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,7 +45,9 @@ class WordListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final word = entry.word;
-    final meta = _metaLine(word.transcription, word.partOfSpeech);
+    final ipa = (word.transcription ?? '').trim();
+    final pos = (word.partOfSpeech ?? '').trim();
+    final hasMeta = ipa.isNotEmpty || pos.isNotEmpty;
     final statusColor = _statusColor(entry.status);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -53,7 +56,10 @@ class WordListItem extends StatelessWidget {
           final example = word.exampleSentence;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(example ?? S.noExample(lang)),
+              // Phase 51: пример в формате EN/RU; у seed RU-перевода нет.
+              content: Text(
+                example != null ? 'EN: $example' : S.noExample(lang),
+              ),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -132,16 +138,25 @@ class WordListItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (meta != null)
+                    if (hasMeta)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          meta,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withValues(
-                              alpha: 0.6,
-                            ),
-                          ),
+                        child: Row(
+                          children: [
+                            if (ipa.isNotEmpty)
+                              Text(
+                                ipa,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                ),
+                              ),
+                            if (ipa.isNotEmpty && pos.isNotEmpty)
+                              const SizedBox(width: 8),
+                            if (pos.isNotEmpty)
+                              PartOfSpeechChip(partOfSpeech: pos),
+                          ],
                         ),
                       ),
                     Text(word.translation, style: theme.textTheme.bodyMedium),
@@ -190,20 +205,4 @@ class WordListItem extends StatelessWidget {
     WordStatus.mastered => WordStatus.newWord,
     _ => WordStatus.learning,
   };
-
-  /// Средний ряд: «/IPA/ • partOfSpeech»; отсутствующее поле опускается.
-  String? _metaLine(String? transcription, String? partOfSpeech) {
-    final ipa = (transcription ?? '').trim();
-    final pos = (partOfSpeech ?? '').trim();
-    if (ipa.isEmpty && pos.isEmpty) {
-      return null;
-    }
-    if (ipa.isEmpty) {
-      return pos;
-    }
-    if (pos.isEmpty) {
-      return ipa;
-    }
-    return '$ipa • $pos';
-  }
 }

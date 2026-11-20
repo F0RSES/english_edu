@@ -8,8 +8,13 @@ import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Префиксы строк примера (Phase 51): маркеры языка, не локализуются.
+const _exampleEnPrefix = 'EN: ';
+const _exampleRuPrefix = 'RU: ';
 
 /// AI-помощник по слову (Phase 28b): словарный перевод через прокси и
 /// добавление/удаление слова из словаря.
@@ -50,7 +55,6 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
     if (_loading) {
       return;
     }
-    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _loading = true);
     final translation = await fetchWordTranslation(context, ref, widget.word);
     if (!mounted) {
@@ -66,7 +70,6 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
       context,
       widget.word,
       translation,
-      lang,
       revealWord: widget.revealWord,
     );
   }
@@ -128,24 +131,28 @@ class _AiWordHelperState extends ConsumerState<AiWordHelper> {
   }
 }
 
-/// Содержимое листа перевода: слово, перевод, транскрипция, часть речи,
-/// пример и кнопки add/remove (Phase 30c: общий для AiWordHelper и игр).
+/// Единая шторка разбора слова (Phase 51, ADR-049).
+///
+/// Вся информация в одном окне: слово крупно, транскрипция, часть речи
+/// (чип с пояснением), перевод отдельным блоком, пример EN/RU. Внизу —
+/// ровно одна кнопка действия по статусу прогресса; второй шторки нет.
 class _WordTranslationSheet extends StatelessWidget {
   const _WordTranslationSheet({
     required this.word,
     required this.translation,
-    required this.lang,
     this.revealWord = true,
   });
 
   final String word;
   final WordTranslation translation;
-  final AppLanguage lang;
   final bool revealWord;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final example = translation.example;
+    final exampleRu = translation.exampleRu;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -154,72 +161,76 @@ class _WordTranslationSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const CircleAvatar(
-                    key: Key('ai-word-sheet-avatar'),
-                    radius: 12,
-                    backgroundImage: AssetImage(aiAvatarAsset),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    S.aiHelperTitle(lang),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               if (revealWord) ...[
                 Text(
                   word,
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 30,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
               ],
-              Text(translation.text, style: const TextStyle(fontSize: 20)),
-              if (translation.transcription != null) ...[
-                const SizedBox(height: 8),
+              if (translation.transcription != null)
                 Text(
                   translation.transcription!,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
-              ],
               if (translation.partOfSpeech != null) ...[
                 const SizedBox(height: 8),
-                Chip(label: Text(translation.partOfSpeech!)),
+                PartOfSpeechChip(partOfSpeech: translation.partOfSpeech!),
               ],
-              if (translation.example != null) ...[
+              const SizedBox(height: 16),
+              // Перевод — отдельный блок, не сливается с фоном шторки.
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  translation.text,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: scheme.onSurface,
+                  ),
+                ),
+              ),
+              if (example != null) ...[
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    '«${translation.example!}»',
-                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$_exampleEnPrefix$example',
+                        style: textTheme.bodyMedium,
+                      ),
+                      if (exampleRu != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '$_exampleRuPrefix$exampleRu',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  _AddRemoveWordButton(word: word, translation: translation),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(S.close(lang)),
-                  ),
-                ],
-              ),
+              _WordActionButton(word: word, translation: translation),
             ],
           ),
         ),
@@ -264,12 +275,10 @@ Future<void> showWordTranslationSheet(
   if (translation == null || !context.mounted) {
     return;
   }
-  final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
   await _openTranslationModal(
     context,
     word,
     translation,
-    lang,
     revealWord: revealWord,
   );
 }
@@ -277,8 +286,7 @@ Future<void> showWordTranslationSheet(
 Future<void> _openTranslationModal(
   BuildContext context,
   String word,
-  WordTranslation translation,
-  AppLanguage lang, {
+  WordTranslation translation, {
   bool revealWord = true,
 }) => showModalBottomSheet<void>(
   context: context,
@@ -289,7 +297,6 @@ Future<void> _openTranslationModal(
   builder: (_) => _WordTranslationSheet(
     word: word,
     translation: translation,
-    lang: lang,
     revealWord: revealWord,
   ),
 );
@@ -327,8 +334,7 @@ class _AddToDictionaryButtonState extends ConsumerState<AddToDictionaryButton> {
     if (translation == null) {
       return;
     }
-    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
-    await _openTranslationModal(context, widget.word, translation, lang);
+    await _openTranslationModal(context, widget.word, translation);
   }
 
   @override
@@ -348,23 +354,24 @@ class _AddToDictionaryButtonState extends ConsumerState<AddToDictionaryButton> {
   }
 }
 
-/// Кнопка добавления/удаления слова внутри листа помощника (Phase 28b).
+/// Единственная кнопка действия в шторке разбора (Phase 51, ADR-049).
 ///
-/// Состояние берётся из словаря (`findByTerm`), а не из факта запроса:
-/// слово могло быть добавлено раньше или удалено в словаре.
-class _AddRemoveWordButton extends ConsumerStatefulWidget {
-  const _AddRemoveWordButton({required this.word, required this.translation});
+/// Состояние — по статусу прогресса (ADR-004): learning → корзина
+/// («Удалить из изучения», сброс прогресса), иначе «+» («Добавить
+/// в изучение»). Двух кнопок одновременно не бывает; второй шторки нет.
+class _WordActionButton extends ConsumerStatefulWidget {
+  const _WordActionButton({required this.word, required this.translation});
 
   final String word;
   final WordTranslation translation;
 
   @override
-  ConsumerState<_AddRemoveWordButton> createState() =>
-      _AddRemoveWordButtonState();
+  ConsumerState<_WordActionButton> createState() => _WordActionButtonState();
 }
 
-class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
-  Word? _existing;
+class _WordActionButtonState extends ConsumerState<_WordActionButton> {
+  Word? _word;
+  WordStatus? _status;
   bool _checking = true;
   bool _checkFailed = false;
   bool _busy = false;
@@ -375,17 +382,25 @@ class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
     unawaited(_check());
   }
 
+  /// Состояние берётся из словаря и прогресса, а не из факта запроса:
+  /// слово могло быть добавлено раньше или изменено в словаре.
   Future<void> _check() async {
     try {
       final found = await ref
           .read(wordRepositoryProvider)
           .findByTerm(widget.word);
+      final status = found == null
+          ? null
+          : (await ref.read(progressRepositoryProvider).getByWordId(found.id))
+                ?.status;
       if (!mounted) {
         return;
       }
       setState(() {
-        _existing = found;
+        _word = found;
+        _status = status;
         _checking = false;
+        _busy = false;
       });
     } on Object catch (error, stack) {
       ref.read(loggerProvider).warn('Word lookup failed', error, stack);
@@ -400,87 +415,74 @@ class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
     }
   }
 
-  /// Открывает шторку подтверждения (Phase 49, ADR-048): слово не
-  /// добавляется мгновенно — пользователь видит разбор и жмёт «+».
-  Future<void> _add() async {
+  bool get _isLearning => _status == WordStatus.learning;
+
+  Future<void> _addToLearning() async {
     if (_busy) {
       return;
     }
     final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
-    final added = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => _ConfirmAddWordSheet(
-        word: widget.word,
-        translation: widget.translation,
-      ),
-    );
-    if (added != true || !mounted) {
-      return;
-    }
-    final found = await ref
-        .read(wordRepositoryProvider)
-        .findByTerm(widget.word);
-    if (!mounted) {
-      return;
-    }
-    setState(() => _existing = found);
-    // Phase 50: сбрасываем фильтры словаря — добавленное слово должно
-    // быть видно во вкладке «Изучаю» при любом прошлом поиске/уровне/
-    // категории (иначе оно отфильтровывается до попадания во вкладку).
-    ref.read(dictionarySearchQueryProvider.notifier).update('');
-    ref.read(dictionaryLevelFilterProvider.notifier).update(null);
-    ref
-        .read(dictionaryCategoryFilterProvider.notifier)
-        .update(WordCategory.all);
-    // Словарь на соседней вкладке не должен показывать устаревший список.
-    ref.invalidate(dictionaryEntriesProvider);
-    _showMessage(S.wordAddedToLearning(lang));
-  }
-
-  Future<void> _remove() async {
-    final existing = _existing;
-    if (_busy || existing == null) {
-      return;
-    }
-    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(S.removeConfirmTitle(lang)),
-        content: Text(S.removeConfirmBody(existing.term, lang)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(S.cancel(lang)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(S.removeFromDictionary(lang)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) {
-      return;
-    }
     setState(() => _busy = true);
     try {
-      await ref.read(wordRepositoryProvider).delete(existing.id);
+      final words = ref.read(wordRepositoryProvider);
+      var word = _word;
+      if (word == null) {
+        final settings = await ref.read(settingsRepositoryProvider).get();
+        final id = await words.nextId();
+        word = Word(
+          id: id,
+          term: widget.word.trim().toLowerCase(),
+          translation: widget.translation.text,
+          transcription: widget.translation.transcription,
+          partOfSpeech: widget.translation.partOfSpeech,
+          exampleSentence: widget.translation.example,
+          level: settings.preferredLevel,
+        );
+        await words.upsert(word);
+      }
+      // Сразу «Изучаю»: добавленное из игр/ИИ слово не лежит в «Новом».
+      await ref.read(updateWordStatusProvider)(word.id, WordStatus.learning);
       if (!mounted) {
         return;
       }
-      setState(() {
-        _existing = null;
-        _busy = false;
-      });
+      // Сброс фильтров словаря: слово должно быть видно в «Изучаю»
+      // при любом прошлом поиске/уровне/категории (Phase 50).
+      ref.read(dictionarySearchQueryProvider.notifier).update('');
+      ref.read(dictionaryLevelFilterProvider.notifier).update(null);
+      ref
+          .read(dictionaryCategoryFilterProvider.notifier)
+          .update(WordCategory.all);
       ref.invalidate(dictionaryEntriesProvider);
-      _showMessage(S.wordRemoved(lang));
+      _showMessage(S.wordAddedToLearning(lang));
+      await _check();
     } on Object catch (error, stack) {
-      ref.read(loggerProvider).warn('Word remove failed', error, stack);
+      ref.read(loggerProvider).warn('Word add failed', error, stack);
+      if (mounted) {
+        setState(() => _busy = false);
+        _showMessage(S.wordSaveFailed(lang));
+      }
+    }
+  }
+
+  Future<void> _removeFromLearning() async {
+    final word = _word;
+    if (_busy || word == null) {
+      return;
+    }
+    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
+    setState(() => _busy = true);
+    try {
+      // Убираем из изучения: прогресс удаляется, слово остаётся в словаре
+      // как «Новое» (Phase 51); кастомные слова не удаляются.
+      await ref.read(progressRepositoryProvider).deleteByWordId(word.id);
+      if (!mounted) {
+        return;
+      }
+      ref.invalidate(dictionaryEntriesProvider);
+      _showMessage(S.wordRemovedFromLearning(lang));
+      await _check();
+    } on Object catch (error, stack) {
+      ref.read(loggerProvider).warn('Word status reset failed', error, stack);
       if (mounted) {
         setState(() => _busy = false);
         _showMessage(S.wordSaveFailed(lang));
@@ -496,184 +498,25 @@ class _AddRemoveWordButtonState extends ConsumerState<_AddRemoveWordButton> {
     if (_checking || _checkFailed) {
       return const SizedBox.shrink();
     }
-    final scheme = Theme.of(context).colorScheme;
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
-    final exists = _existing != null;
     if (_busy) {
-      return const SizedBox(
-        width: 20,
-        height: 20,
-        child: CircularProgressIndicator(strokeWidth: 2),
+      return const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       );
     }
-    // Phase 50: у существующего слова оба действия — «+» переводит
-    // в «Изучаю» (обновление статуса), корзина удаляет. Слова игр —
-    // чаще всего seed и уже есть в словаре: раньше для них показывалась
-    // только корзина, и добавить их в «Изучаю» было нельзя.
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          key: const Key('word-add-button'),
-          tooltip: exists
-              ? S.addToLearning(lang)
-              : S.confirmAddToDictionary(lang),
-          color: scheme.primary,
-          onPressed: () => unawaited(_add()),
-          icon: const Icon(Icons.add_circle_outline),
-        ),
-        if (exists)
-          IconButton(
-            key: const Key('word-remove-button'),
-            tooltip: S.removeFromDictionary(lang),
-            color: scheme.error,
-            onPressed: () => unawaited(_remove()),
-            icon: const Icon(Icons.delete_outline),
-          ),
-      ],
-    );
-  }
-}
-
-/// Шторка подтверждения добавления слова (Phase 49, ADR-048).
-///
-/// Слово показывается крупно с разбором (транскрипция, часть речи,
-/// перевод, AI-пример); «+» сохраняет слово и сразу ставит статус
-/// «Изучаю» через UpdateWordStatus (ADR-004), чтобы оно не попало
-/// в раздел «Новое». Отмена/свайп закрывают шторку без записи.
-class _ConfirmAddWordSheet extends ConsumerStatefulWidget {
-  const _ConfirmAddWordSheet({required this.word, required this.translation});
-
-  final String word;
-  final WordTranslation translation;
-
-  @override
-  ConsumerState<_ConfirmAddWordSheet> createState() =>
-      _ConfirmAddWordSheetState();
-}
-
-class _ConfirmAddWordSheetState extends ConsumerState<_ConfirmAddWordSheet> {
-  bool _busy = false;
-
-  Future<void> _confirm() async {
-    if (_busy) {
-      return;
-    }
-    final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
-    setState(() => _busy = true);
-    try {
-      final words = ref.read(wordRepositoryProvider);
-      final existing = await words.findByTerm(widget.word);
-      if (existing != null) {
-        // Phase 50: слово уже в словаре (чаще всего seed) — обновляем
-        // только статус; AI-перевод не перезаписывает данные словаря.
-        await ref.read(updateWordStatusProvider)(
-          existing.id,
-          WordStatus.learning,
-        );
-      } else {
-        final settings = await ref.read(settingsRepositoryProvider).get();
-        final id = await words.nextId();
-        final word = Word(
-          id: id,
-          term: widget.word.trim().toLowerCase(),
-          translation: widget.translation.text,
-          transcription: widget.translation.transcription,
-          partOfSpeech: widget.translation.partOfSpeech,
-          exampleSentence: widget.translation.example,
-          level: settings.preferredLevel,
-        );
-        await words.upsert(word);
-        // Сразу «Изучаю»: добавленное из игр/ИИ слово не лежит в «Новом».
-        await ref.read(updateWordStatusProvider)(id, WordStatus.learning);
-      }
-      if (!mounted) {
-        return;
-      }
-      Navigator.of(context).pop(true);
-    } on Object catch (error, stack) {
-      ref.read(loggerProvider).warn('Word add failed', error, stack);
-      if (mounted) {
-        setState(() => _busy = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(S.wordSaveFailed(lang))));
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
-    final translation = widget.translation;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.word,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (translation.transcription != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  translation.transcription!,
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ],
-              if (translation.partOfSpeech != null) ...[
-                const SizedBox(height: 8),
-                Chip(label: Text(translation.partOfSpeech!)),
-              ],
-              const SizedBox(height: 12),
-              Text(translation.text, style: const TextStyle(fontSize: 20)),
-              if (translation.example != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '«${translation.example!}»',
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  FloatingActionButton(
-                    key: const Key('confirm-add-word'),
-                    tooltip: S.confirmAddToDictionary(lang),
-                    onPressed: _busy ? null : () => unawaited(_confirm()),
-                    child: _busy
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.add),
-                  ),
-                  const SizedBox(width: 16),
-                  TextButton(
-                    key: const Key('confirm-add-cancel'),
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(S.cancel(lang)),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return SizedBox(
+      width: double.infinity,
+      child: FloatingActionButton.extended(
+        key: const Key('word-action-button'),
+        onPressed: () =>
+            unawaited(_isLearning ? _removeFromLearning() : _addToLearning()),
+        icon: Icon(_isLearning ? Icons.delete_outline : Icons.add),
+        label: Text(
+          _isLearning ? S.removeFromLearning(lang) : S.addToLearning(lang),
         ),
       ),
     );

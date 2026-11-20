@@ -890,6 +890,24 @@ Architecture Decision Records: один ADR — одно решение.
   - Интеграционный тест `test/integration/word_add_flow_test.dart`: реальная in-memory БД + реальные Drift-репозитории + реальный UpdateWordStatus + реальный dictionaryEntriesProvider (фейк только переводчик): новое слово с активными фильтрами → «+» → вкладка «Изучаю»; seed-слово mastered → обе кнопки → «+» → learning без дубликата → вкладка «Изучаю».
   - Наблюдение (вне scope): bulk-лист массового добавления имеет ту же проблему «только корзина для существующих» — не менялся.
 
+### ADR-049: Word parse UX — single sheet, status-driven action, POS glossary
+- **Status:** Proposed
+- **Date:** 2026-11-20
+- **Context:** После Phase 49/50 разбор слова открывал две шторки (перевод + подтверждение), у существующих слов показывались две кнопки; пример приходил на одном языке, часть речи была простым текстом без пояснения. Фидбек: один вход, одна кнопка, визуальная иерархия, пример EN/RU, пояснения частей речи глобально.
+- **Decision:**
+  - Единая шторка разбора `_WordTranslationSheet`: слово 30px bold → транскрипция bodySmall серым → `PartOfSpeechChip` → перевод отдельным блоком (surfaceContainerHighest, w600) → пример блоком surfaceContainerLow («EN: …» bodyMedium + «RU: …» bodySmall серым при наличии) → ровно одна кнопка действия внизу (`FloatingActionButton.extended`). `_ConfirmAddWordSheet` удалён — второй шторки нет.
+  - Кнопка `_WordActionButton` — по статусу прогресса (ADR-004): не learning → «+» («Добавить в изучение»): upsert если новое + `UpdateWordStatus(learning)` + сброс фильтров словаря (Phase 50) + SnackBar «Слово добавлено в «Изучаю»»; learning → корзина («Удалить из изучения»): `progress.deleteByWordId` (слово остаётся в словаре как «Новое», кастомные не удаляются) + SnackBar «Слово убрано из «Изучаю»». Двух кнопок одновременно не бывает; состояние перечитывается после каждого действия.
+  - `WordTranslation.exampleRu` (nullable): `AiClient.translate` парсит поле `exampleRu` ответа прокси; `example` — EN-пример. Не кэшируется в `word_translations` (без миграции схемы): при cache-hit RU-пример отсутствует. Промпт Worker («Всегда возвращай пример на английском и его перевод на русский») обновляется на стороне владельца.
+  - Seed: `exampleSentence` только EN (SEED_FORMAT), RU-перевода нет — WordListItem показывает «EN: …» в SnackBar по тапу; RU-строка только при наличии данных. Персист RU-примера (схема v24 + export) отложен отдельной задачей.
+  - `PartOfSpeechChip` + `PartOfSpeechGlossary` (`lib/core/grammar/`, чистый Dart): 10 частей речи (noun…numeral), EN/RU названия, определения (1–2 предложения), примеры слов; тап → bottom sheet с пояснением на языке приложения; неизвестная POS → обычный Chip без тапа. Заменяет текст части речи в `_WordTranslationSheet` и WordListItem (meta-строка → Row: IPA + чип с отступами).
+  - Reading: шторки разбора слова нет (inline-перевод рассказа) — правила не применялись.
+- **Alternatives considered:**
+  - (A) Сохранить шторку подтверждения — отклонено: два окна путают пользователя (фидбек).
+  - (B) Персист RU-примера (схема v24 + export-изменения) — отложено: отдельная задача.
+  - (C) Пояснения POS через ключи S — отклонено: глоссарий — данные (core/grammar), не UI-строки.
+- **Consequences:** одна шторка, одна кнопка; SnackBar временно перекрывает низ шторки (стандартное поведение Material, автозакрытие 4 с). Без изменений схемы БД и зависимостей.
+- **Open questions:** персист RU-примера (схема v24) — отдельная задача.
+
 ## Реестр
 
 | ID | Название | Status |
@@ -941,3 +959,4 @@ Architecture Decision Records: один ADR — одно решение.
 | ADR-046 | Chat sessions (history drawer) | Proposed |
 | ADR-047 | Markdown rendering of assistant responses | Proposed |
 | ADR-048 | Confirmed word add with learning status | Proposed |
+| ADR-049 | Word parse UX: single sheet, status action, POS glossary | Proposed |

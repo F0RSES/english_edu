@@ -364,6 +364,9 @@ final class AiClient
       partOfSpeech: _optionalText(decoded['partOfSpeech']),
       transcription: _optionalText(decoded['transcription']),
       example: _optionalText(decoded['example']),
+      // Phase 51: RU-перевод примера; Worker возвращает его после
+      // обновления промпта (на стороне владельца).
+      exampleRu: _optionalText(decoded['exampleRu']),
     );
   }
 

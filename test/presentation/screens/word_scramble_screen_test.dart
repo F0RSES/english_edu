@@ -55,6 +55,7 @@ final class _Harness {
 
   Widget app() => ProviderScope(
     overrides: [
+      progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
       wordRepositoryProvider.overrideWithValue(wordRepo),
       settingsRepositoryProvider.overrideWithValue(settingsRepo),
       translationGeneratorProvider.overrideWithValue(
@@ -279,11 +280,12 @@ void main() {
     await tester.tap(find.text('Разобрать слово'));
     await tester.pumpAndSettle();
 
-    // Модалка перевода загаданного слова с add/remove.
+    // Модалка перевода загаданного слова с одной кнопкой действия.
     expect(find.text('apple'), findsOneWidget);
     expect(find.text('учреждение'), findsOneWidget);
-    // Слово уже в словаре хоста: кнопка показывает корзину, а не плюс.
-    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    // Phase 51: слово в словаре, но без прогресса → кнопка «+», не корзина.
+    expect(find.text('Добавить в изучение'), findsOneWidget);
+    expect(find.text('Удалить из изучения'), findsNothing);
   });
 
   testWidgets('long word answer field wraps without overflow', (tester) async {

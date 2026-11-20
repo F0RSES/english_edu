@@ -494,9 +494,21 @@ final class S {
   /// Кнопка сброса фильтров словаря (Phase 39c).
   static String resetFilters(AppLanguage l) => _t('dictionary.resetFilters', l);
 
-  /// Кнопка «Добавить в изучение» в карточке слова (Phase 39e).
+  /// Кнопка «Добавить в изучение»: карточка слова (Phase 39e) и шторка
+  /// разбора (Phase 51).
   static String addToLearning(AppLanguage l) =>
       _t('dictionary.addToLearning', l);
+
+  /// Кнопка удаления слова из изучения в шторке разбора (Phase 51).
+  static String removeFromLearning(AppLanguage l) =>
+      _t('aiHelper.removeFromLearning', l);
+
+  /// SnackBar удаления из изучения (Phase 51).
+  static String wordRemovedFromLearning(AppLanguage l) =>
+      _t('dictionary.removedFromLearning', l);
+
+  /// Префикс примера в пояснении части речи (Phase 51).
+  static String posExample(AppLanguage l) => _t('grammar.example', l);
 
   /// Кнопка «Отметить выученным» в карточке слова (Phase 39e).
   static String markMastered(AppLanguage l) => _t('dictionary.markMastered', l);
@@ -1693,6 +1705,10 @@ final class S {
       'ru': 'Слово добавлено в «Изучаю»',
       'en': 'Word added to "Learning"',
     },
+    'dictionary.removedFromLearning': {
+      'ru': 'Слово убрано из «Изучаю»',
+      'en': 'Word removed from "Learning"',
+    },
     'dictionary.all': {'ru': 'Все', 'en': 'All'},
     'dictionary.learning': {'ru': 'Изучаю', 'en': 'Learning'},
     'dictionary.mastered': {'ru': 'Выучено', 'en': 'Mastered'},
@@ -1926,6 +1942,11 @@ final class S {
       'ru': 'Добавить в словарь',
       'en': 'Add to dictionary',
     },
+    'aiHelper.removeFromLearning': {
+      'ru': 'Удалить из изучения',
+      'en': 'Remove from learning',
+    },
+    'grammar.example': {'ru': 'Пример:', 'en': 'Example:'},
     'bulk.addToDictionary': {
       'ru': 'Добавить в словарь',
       'en': 'Add to dictionary',
@@ -2130,10 +2151,10 @@ final class S {
     },
     'chat.greeting': {
       'ru':
-          'Привет! Я Маффин 🍏. Твой личный помощник в английском. '
+          'Привет! Я Маффин 🧁. Твой личный помощник в английском. '
           'Задай любой вопрос или попроси объяснить слово!',
       'en':
-          "Hi! I'm Muffin 🍏. Your personal English assistant. "
+          "Hi! I'm Muffin 🧁. Your personal English assistant. "
           'Ask me anything or ask to explain a word!',
     },
     'chat.newChat': {'ru': 'Новый чат', 'en': 'New chat'},

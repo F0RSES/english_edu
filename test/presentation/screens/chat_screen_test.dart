@@ -23,7 +23,7 @@ import '../../domain/usecases/fakes/fake_settings_repository.dart';
 final _now = DateTime.utc(2026, 11, 13, 12);
 
 const _greeting =
-    'Привет! Я Маффин 🍏. Твой личный помощник в английском. '
+    'Привет! Я Маффин 🧁. Твой личный помощник в английском. '
     'Задай любой вопрос или попроси объяснить слово!';
 
 http.Response okResponse() => http.Response(
@@ -302,7 +302,7 @@ void main() {
     expect(find.text('Muffin'), findsOneWidget);
     expect(
       find.text(
-        "Hi! I'm Muffin 🍏. Your personal English assistant. "
+        "Hi! I'm Muffin 🧁. Your personal English assistant. "
         'Ask me anything or ask to explain a word!',
       ),
       findsOneWidget,

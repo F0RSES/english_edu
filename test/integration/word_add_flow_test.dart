@@ -43,10 +43,8 @@ void main() {
     child: MaterialApp(home: child),
   );
 
-  Future<void> confirmViaSheet(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.add_circle_outline));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('confirm-add-word')));
+  Future<void> tapActionButton(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('word-action-button')));
     await tester.pumpAndSettle();
   }
 
@@ -79,7 +77,7 @@ void main() {
 
     await tester.tap(find.text('facility'));
     await tester.pumpAndSettle();
-    await confirmViaSheet(tester);
+    await tapActionButton(tester);
 
     // БД: слово создано, прогресс сразу learning.
     final words = await db.select(db.words).get();
@@ -126,11 +124,11 @@ void main() {
 
     await tester.tap(find.text('facility'));
     await tester.pumpAndSettle();
-    // Существующему слову доступны оба действия: «+» и корзина.
-    expect(find.byIcon(Icons.add_circle_outline), findsOneWidget);
-    expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    // Phase 51: одна кнопка действия; mastered ≠ learning → «+».
+    expect(find.text('Добавить в изучение'), findsOneWidget);
+    expect(find.text('Удалить из изучения'), findsNothing);
 
-    await confirmViaSheet(tester);
+    await tapActionButton(tester);
 
     // Дубликата нет, seed-перевод сохранён, статус переведён в learning.
     final words = await db.select(db.words).get();
@@ -141,5 +139,50 @@ void main() {
 
     await openLearningTab(tester);
     expect(find.text('facility'), findsOneWidget);
+  });
+
+  testWidgets('remove from learning keeps word in dictionary', (tester) async {
+    await db
+        .into(db.words)
+        .insert(
+          WordsCompanion.insert(
+            id: const Value(1),
+            term: 'facility',
+            translation: 'учреждение',
+          ),
+        );
+    await db
+        .into(db.wordProgresses)
+        .insert(
+          WordProgressesCompanion.insert(
+            wordId: const Value(1),
+            easePermille: 2500,
+            intervalDays: 1,
+            repetitions: 1,
+            lapses: 0,
+            dueAtUtc: _now.millisecondsSinceEpoch,
+            status: 'learning',
+            firstSeenAtUtc: _now.millisecondsSinceEpoch,
+          ),
+        );
+
+    await tester.pumpWidget(
+      scope(const Scaffold(body: AiWordHelper(word: 'facility'))),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('facility'));
+    await tester.pumpAndSettle();
+    expect(find.text('Удалить из изучения'), findsOneWidget);
+
+    await tapActionButton(tester);
+
+    // Слово осталось в словаре, прогресс удалён («Новое»).
+    final words = await db.select(db.words).get();
+    expect(words, hasLength(1));
+    final progress = await db.select(db.wordProgresses).get();
+    expect(progress, isEmpty);
+    expect(find.text('Слово убрано из «Изучаю»'), findsOneWidget);
+    expect(find.text('Добавить в изучение'), findsOneWidget);
   });
 }

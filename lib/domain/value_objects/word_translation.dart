@@ -12,6 +12,7 @@ final class WordTranslation {
     this.partOfSpeech,
     this.transcription,
     this.example,
+    this.exampleRu,
   }) : assert(text.length > 0, 'text must not be empty');
 
   /// Русский перевод слова.
@@ -23,8 +24,12 @@ final class WordTranslation {
   /// Транскрипция, если прокси её вернул.
   final String? transcription;
 
-  /// Пример употребления, если прокси его вернул.
+  /// Пример употребления на английском, если прокси его вернул.
   final String? example;
+
+  /// Русский перевод примера (Phase 51): прокси возвращает его в поле
+  /// `exampleRu`; не кэшируется в `word_translations` (без миграции схемы).
+  final String? exampleRu;
 
   /// Returns a copy with the given fields replaced.
   WordTranslation copyWith({
@@ -32,11 +37,13 @@ final class WordTranslation {
     String? partOfSpeech,
     String? transcription,
     String? example,
+    String? exampleRu,
   }) => WordTranslation(
     text: text ?? this.text,
     partOfSpeech: partOfSpeech ?? this.partOfSpeech,
     transcription: transcription ?? this.transcription,
     example: example ?? this.example,
+    exampleRu: exampleRu ?? this.exampleRu,
   );
 
   @override
@@ -46,10 +53,12 @@ final class WordTranslation {
           text == other.text &&
           partOfSpeech == other.partOfSpeech &&
           transcription == other.transcription &&
-          example == other.example;
+          example == other.example &&
+          exampleRu == other.exampleRu;
 
   @override
-  int get hashCode => Object.hash(text, partOfSpeech, transcription, example);
+  int get hashCode =>
+      Object.hash(text, partOfSpeech, transcription, example, exampleRu);
 
   @override
   String toString() => 'WordTranslation("$text")';

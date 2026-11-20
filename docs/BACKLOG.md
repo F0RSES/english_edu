@@ -105,6 +105,7 @@
 | BL-104 | P3 | Phase 48 — фиолетовый Markdown + приветствие 🍏 + унификация AI-иконок | strong по теме (dark 0xFFD0BCFF / light 0xFF6750A4, w600); краткое приветствие RU/EN; 6 Icons.smart_toy → CircleAvatar(radius 12, маскот) с ключами; auto_awesome не-AI оставлены; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-105 | P2 | Phase 49 — подтверждение добавления в словарь + авто-статус «Изучаю» | кнопка «Разобрать слово» (AI-поток), bulk-ключ отделён; шторка подтверждения (слово/транскрипция/POS/перевод/пример, FAB «+», отмена); upsert + UpdateWordStatus(learning); SnackBar «Слово добавлено в «Изучаю»»; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-106 | P1 | Phase 50 — фиксы критических багов добавления слов (UI и БД) | cloze bulk-кнопка «Разобрать слово»; существующему слову обе кнопки («+» → learning без дубликата, корзина); сброс фильтров словаря после добавления; интеграционный тест на реальной in-memory БД (новое слово + seed mastered → вкладка «Изучаю»); analyze=0, ci.sh зелёный, release APK | Done |
+| BL-107 | P2 | Phase 51 — системный фикс UX разбора слов | одна шторка (вторая удалена), одна статус-кнопка FAB.extended (не learning → «+», learning → корзина = сброс прогресса); иерархия блоков; пример EN/RU (exampleRu, Worker-промпт у владельца); PartOfSpeechChip + глоссарий core/grammar в шторке и WordListItem; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

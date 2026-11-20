@@ -16,6 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../domain/usecases/fakes/fake_cloze_generator.dart';
 import '../../domain/usecases/fakes/fake_cloze_task_repository.dart';
+import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_translation_generator.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
@@ -39,6 +40,7 @@ Widget host({
   final settingsRepository = FakeSettingsRepository(settings);
   return ProviderScope(
     overrides: [
+      progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
       wordRepositoryProvider.overrideWithValue(
         FakeWordRepository(
           words.isEmpty

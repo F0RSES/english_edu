@@ -73,6 +73,7 @@ final class Harness {
 
   Widget app() => ProviderScope(
     overrides: [
+      progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
       wordRepositoryProvider.overrideWithValue(wordRepo),
       generateDictationQueueProvider.overrideWithValue(queue),
       ttsProvider.overrideWithValue(tts),

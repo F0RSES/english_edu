@@ -3,6 +3,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
+import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,7 +130,7 @@ class _WordCardState extends ConsumerState<WordCard> {
                       ),
                       if (word.transcription case final transcription?)
                         Flexible(
-                          child: Text(
+                          child: IpaText(
                             transcription,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontSize: 20,

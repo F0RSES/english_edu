@@ -176,7 +176,8 @@ void main() {
     // Карточка «Неверно» удалена; у раскрытого слова — бот (Phase 30c).
     expect(find.text('Неверно'), findsNothing);
     expect(find.text('apple'), findsWidgets);
-    expect(find.text('/ˈæpl/'), findsOneWidget);
+    // Phase 52a: транскрипция без обрамляющих слэшей.
+    expect(find.text('ˈæpl'), findsOneWidget);
     expect(find.text('Следующее слово'), findsOneWidget);
     expect(find.byType(AiWordHelper), findsOneWidget);
 

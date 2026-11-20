@@ -53,7 +53,8 @@ void main() {
     await tester.pumpWidget(host(revealed: false));
 
     expect(find.text('hello'), findsOneWidget);
-    expect(find.text('/həˈləʊ/'), findsOneWidget);
+    // Phase 52a: слэши убираются на отображении, фикстура хранит их.
+    expect(find.text('həˈləʊ'), findsOneWidget);
   });
 
   testWidgets('hides the translation by default', (tester) async {

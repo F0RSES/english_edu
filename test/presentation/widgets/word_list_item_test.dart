@@ -86,7 +86,8 @@ void main() {
 
     expect(find.text('hello'), findsOneWidget);
     expect(find.text('привет'), findsOneWidget);
-    expect(find.text('/həˈləʊ/'), findsOneWidget);
+    // Phase 52a: на экране IPA без обрамляющих слэшей.
+    expect(find.text('həˈləʊ'), findsOneWidget);
     // Phase 51: часть речи — чип с пояснением, не текст в meta-строке.
     expect(find.byType(PartOfSpeechChip), findsOneWidget);
     expect(find.text('noun'), findsOneWidget);
@@ -107,7 +108,7 @@ void main() {
   ) async {
     await tester.pumpWidget(host(entry()));
 
-    expect(find.text('/həˈləʊ/'), findsOneWidget);
+    expect(find.text('həˈləʊ'), findsOneWidget);
   });
 
   testWidgets('hides the meta line when IPA and part of speech are missing', (

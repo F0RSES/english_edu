@@ -8,6 +8,7 @@ import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -172,7 +173,7 @@ class _WordTranslationSheet extends StatelessWidget {
                 const SizedBox(height: 4),
               ],
               if (translation.transcription != null)
-                Text(
+                IpaText(
                   translation.transcription!,
                   style: textTheme.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,

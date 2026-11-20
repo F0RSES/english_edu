@@ -7,6 +7,7 @@ import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
+import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -482,7 +483,7 @@ class _RevealedAnswer extends StatelessWidget {
                 ),
               ),
               if (word.transcription case final transcription?)
-                Text(
+                IpaText(
                   transcription,
                   style: TextStyle(
                     fontStyle: FontStyle.italic,

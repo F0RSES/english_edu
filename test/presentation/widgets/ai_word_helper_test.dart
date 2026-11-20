@@ -77,7 +77,8 @@ void main() {
 
     expect(generator.words, ['facility']);
     expect(find.text('учреждение'), findsOneWidget);
-    expect(find.text('/fəˈsɪləti/'), findsOneWidget);
+    // Phase 52a: транскрипция без обрамляющих слэшей.
+    expect(find.text('fəˈsɪləti'), findsOneWidget);
     expect(find.text('noun'), findsOneWidget);
     expect(find.text('EN: The facility is new.'), findsOneWidget);
     expect(find.text('RU: Учреждение новое.'), findsOneWidget);

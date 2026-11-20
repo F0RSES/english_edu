@@ -4,6 +4,7 @@ import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
+import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,7 @@ class WordListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final word = entry.word;
-    final ipa = (word.transcription ?? '').trim();
+    final ipa = IpaText.stripSlashes(word.transcription ?? '');
     final pos = (word.partOfSpeech ?? '').trim();
     final hasMeta = ipa.isNotEmpty || pos.isNotEmpty;
     final statusColor = _statusColor(entry.status);
@@ -144,7 +145,7 @@ class WordListItem extends StatelessWidget {
                         child: Row(
                           children: [
                             if (ipa.isNotEmpty)
-                              Text(
+                              IpaText(
                                 ipa,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurface.withValues(

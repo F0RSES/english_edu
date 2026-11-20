@@ -4,6 +4,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,8 +12,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// Лист массового добавления слов из задания в словарь (Phase 30b).
 ///
 /// Переводы грузятся параллельно: на каждое слово — свой лоадер, ошибка
-/// одного слова не блокирует остальные. Удаление — без подтверждения:
-/// массовый инструмент, слово можно вернуть (в AiWordHelper — с confirm).
+/// одного слова не блокирует остальные. Иконка действия — по статусу
+/// прогресса (Phase 52b, ADR-004): «+» добавляет в «Изучаю», корзина
+/// убирает из «Изучаю» без удаления слова. Наличие слова в БД само по
+/// себе корзину не показывает: seed-слова не считаются добавленными.
 class BulkDictionarySheet extends ConsumerWidget {
   /// Создаёт лист для слов [words].
   const BulkDictionarySheet({required this.words, super.key});
@@ -59,10 +62,10 @@ class BulkDictionarySheet extends ConsumerWidget {
   }
 }
 
-/// Строка слова: перевод + кнопка добавления/удаления (Phase 30b).
+/// Строка слова: перевод + кнопка действия по статусу (Phase 30b, 52b).
 ///
-/// Перевод и наличие в словаре грузятся параллельно (record `.wait`),
-/// у строки свой лоадер и свой retry при ошибке.
+/// Перевод и слово из БД грузятся параллельно (record `.wait`), статус —
+/// из прогресса; у строки свой лоадер и свой retry при ошибке.
 class _BulkWordRow extends ConsumerStatefulWidget {
   const _BulkWordRow({required this.word});
 
@@ -76,8 +79,13 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
   WordTranslation? _translation;
   Object? _error;
   Word? _existing;
+  WordStatus? _status;
   bool _loading = true;
   bool _busy = false;
+
+  /// Корзина только для «Изучаю»: наличие слова в БД не считается
+  /// добавлением (Phase 52b, ADR-004).
+  bool get _isLearning => _status == WordStatus.learning;
 
   @override
   void initState() {
@@ -95,12 +103,20 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
         ref.read(translationGeneratorProvider).translate(widget.word),
         ref.read(wordRepositoryProvider).findByTerm(widget.word),
       ).wait;
+      WordStatus? status;
+      if (existing != null) {
+        final progress = await ref
+            .read(progressRepositoryProvider)
+            .getByWordId(existing.id);
+        status = progress?.status;
+      }
       if (!mounted) {
         return;
       }
       setState(() {
         _translation = translation;
         _existing = existing;
+        _status = status;
         _loading = false;
       });
     } on Object catch (error, stack) {
@@ -114,7 +130,7 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
     }
   }
 
-  Future<void> _add() async {
+  Future<void> _addToLearning() async {
     final translation = _translation;
     if (_busy || translation == null) {
       return;
@@ -123,26 +139,35 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
     setState(() => _busy = true);
     try {
       final words = ref.read(wordRepositoryProvider);
-      final settings = await ref.read(settingsRepositoryProvider).get();
-      final id = await words.nextId();
-      final word = Word(
-        id: id,
-        term: widget.word.trim().toLowerCase(),
-        translation: translation.text,
-        transcription: translation.transcription,
-        partOfSpeech: translation.partOfSpeech,
-        exampleSentence: translation.example,
-        level: settings.preferredLevel,
-      );
-      await words.upsert(word);
+      var word = _existing;
+      if (word == null) {
+        final settings = await ref.read(settingsRepositoryProvider).get();
+        final id = await words.nextId();
+        word = Word(
+          id: id,
+          term: widget.word.trim().toLowerCase(),
+          translation: translation.text,
+          transcription: translation.transcription,
+          partOfSpeech: translation.partOfSpeech,
+          exampleSentence: translation.example,
+          level: settings.preferredLevel,
+        );
+        await words.upsert(word);
+      }
+      // Сразу «Изучаю»: добавленное из игр слово не лежит в «Новом»
+      // (паттерн Phase 51, ADR-004).
+      await ref.read(updateWordStatusProvider)(word.id, WordStatus.learning);
       if (!mounted) {
         return;
       }
       setState(() {
         _existing = word;
+        _status = WordStatus.learning;
         _busy = false;
       });
       ref.invalidate(dictionaryEntriesProvider);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(S.wordAddedToLearning(lang))));
     } on Object catch (error, stack) {
       ref.read(loggerProvider).warn('Bulk add failed', error, stack);
       if (mounted) {
@@ -153,7 +178,7 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
     }
   }
 
-  Future<void> _remove() async {
+  Future<void> _removeFromLearning() async {
     final existing = _existing;
     if (_busy || existing == null) {
       return;
@@ -161,15 +186,20 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
     final lang = ref.read(languageProvider).value ?? AppLanguage.ru;
     setState(() => _busy = true);
     try {
-      await ref.read(wordRepositoryProvider).delete(existing.id);
+      // Убираем из изучения: прогресс удаляется, слово остаётся в словаре
+      // как «Новое» (Phase 52b); seed-слова не удаляются.
+      await ref.read(progressRepositoryProvider).deleteByWordId(existing.id);
       if (!mounted) {
         return;
       }
       setState(() {
-        _existing = null;
+        _status = null;
         _busy = false;
       });
       ref.invalidate(dictionaryEntriesProvider);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.wordRemovedFromLearning(lang))));
     } on Object catch (error, stack) {
       ref.read(loggerProvider).warn('Bulk remove failed', error, stack);
       if (mounted) {
@@ -233,17 +263,17 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
             )
           else
             IconButton(
-              tooltip: _existing != null
-                  ? S.removeFromDictionary(lang)
-                  : S.bulkAddToDictionary(lang),
-              color: _existing != null
+              tooltip: _isLearning
+                  ? S.removeFromLearning(lang)
+                  : S.addToLearning(lang),
+              color: _isLearning
                   ? theme.colorScheme.error
                   : theme.colorScheme.primary,
               onPressed: _busy
                   ? null
-                  : _existing != null
-                  ? () => unawaited(_remove())
-                  : () => unawaited(_add()),
+                  : _isLearning
+                  ? () => unawaited(_removeFromLearning())
+                  : () => unawaited(_addToLearning()),
               icon: _busy
                   ? const SizedBox(
                       width: 20,
@@ -251,7 +281,7 @@ class _BulkWordRowState extends ConsumerState<_BulkWordRow> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Icon(
-                      _existing != null
+                      _isLearning
                           ? Icons.delete_outline
                           : Icons.add_circle_outline,
                     ),

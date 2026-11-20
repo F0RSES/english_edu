@@ -106,6 +106,8 @@
 | BL-105 | P2 | Phase 49 — подтверждение добавления в словарь + авто-статус «Изучаю» | кнопка «Разобрать слово» (AI-поток), bulk-ключ отделён; шторка подтверждения (слово/транскрипция/POS/перевод/пример, FAB «+», отмена); upsert + UpdateWordStatus(learning); SnackBar «Слово добавлено в «Изучаю»»; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-106 | P1 | Phase 50 — фиксы критических багов добавления слов (UI и БД) | cloze bulk-кнопка «Разобрать слово»; существующему слову обе кнопки («+» → learning без дубликата, корзина); сброс фильтров словаря после добавления; интеграционный тест на реальной in-memory БД (новое слово + seed mastered → вкладка «Изучаю»); analyze=0, ci.sh зелёный, release APK | Done |
 | BL-107 | P2 | Phase 51 — системный фикс UX разбора слов | одна шторка (вторая удалена), одна статус-кнопка FAB.extended (не learning → «+», learning → корзина = сброс прогресса); иерархия блоков; пример EN/RU (exampleRu, Worker-промпт у владельца); PartOfSpeechChip + глоссарий core/grammar в шторке и WordListItem; тесты; analyze=0, ci.sh зелёный, release APK | Done |
+| BL-108 | P1 | Phase 52 — UI-фиксы: транскрипция без слэшей (52a); Cloze bulk-лист по статусу, без иллюзии авто-добавления (52b) | IpaText во всех 4 местах рендера; bulk-лист: корзина только при learning, «+» → UpdateWordStatus(learning), корзина → deleteByWordId (слово остаётся); seed-слово без learning → «+»; тесты; analyze=0, ci.sh зелёный, release APK | Done |
+| BL-109 | P3 | Phase 52b — убрать неиспользуемые ключи S.bulkAddToDictionary/S.removeFromDictionary (strings.dart + strings_test) | grep не находит потребителей в lib; analyze=0, ci.sh зелёный | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

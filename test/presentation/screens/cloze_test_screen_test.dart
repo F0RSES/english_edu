@@ -1,11 +1,14 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
+import 'package:english_edu/domain/entities/word_progress.dart';
 import 'package:english_edu/domain/usecases/get_cloze_task.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/domain/value_objects/card_state.dart';
 import 'package:english_edu/domain/value_objects/cefr_level.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
+import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
@@ -14,6 +17,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../domain/usecases/fakes/fake_app_meta_repository.dart';
 import '../../domain/usecases/fakes/fake_cloze_generator.dart';
 import '../../domain/usecases/fakes/fake_cloze_task_repository.dart';
 import '../../domain/usecases/fakes/fake_progress_repository.dart';
@@ -36,11 +40,16 @@ Widget host({
   List<Word> words = const [],
   UserSettings? settings,
   Widget? home,
+  FakeProgressRepository? progress,
 }) {
   final settingsRepository = FakeSettingsRepository(settings);
   return ProviderScope(
     overrides: [
-      progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
+      progressRepositoryProvider.overrideWithValue(
+        progress ?? FakeProgressRepository(),
+      ),
+      appMetaRepositoryProvider.overrideWithValue(FakeAppMetaRepository()),
+      clockProvider.overrideWithValue(() => now),
       wordRepositoryProvider.overrideWithValue(
         FakeWordRepository(
           words.isEmpty
@@ -307,5 +316,87 @@ void main() {
         findsOneWidget,
       );
     }
+  });
+
+  testWidgets('should_show_plus_for_seed_word_in_bulk_sheet', (tester) async {
+    // 'eat' — seed-слово в БД без прогресса: в листе «+», не корзина
+    // (Phase 52b: наличие в БД не значит «Изучаю»).
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Разобрать слово'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(BulkDictionarySheet),
+        matching: find.byIcon(Icons.add_circle_outline),
+      ),
+      findsNWidgets(5),
+    );
+    expect(
+      find.descendant(
+        of: find.byType(BulkDictionarySheet),
+        matching: find.byIcon(Icons.delete_outline),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('should_show_trash_for_learning_word_in_bulk_sheet', (
+    tester,
+  ) async {
+    final progress = FakeProgressRepository([
+      WordProgress(
+        wordId: const WordId(1),
+        cardState: CardState.initial(now),
+        status: WordStatus.learning,
+        firstSeenAt: now,
+      ),
+    ]);
+    await tester.pumpWidget(host(progress: progress));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Разобрать слово'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(BulkDictionarySheet),
+        matching: find.byIcon(Icons.delete_outline),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byType(BulkDictionarySheet),
+        matching: find.byIcon(Icons.add_circle_outline),
+      ),
+      findsNWidgets(4),
+    );
+  });
+
+  testWidgets('should_add_to_learning_from_bulk_sheet', (tester) async {
+    final progress = FakeProgressRepository();
+    await tester.pumpWidget(host(progress: progress));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Разобрать слово'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(BulkDictionarySheet),
+            matching: find.byIcon(Icons.add_circle_outline),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      (await progress.getByWordId(const WordId(1)))?.status,
+      WordStatus.learning,
+    );
+    expect(find.text('Слово добавлено в «Изучаю»'), findsOneWidget);
   });
 }

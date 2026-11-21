@@ -34,10 +34,25 @@ final class _FakeRecords implements TypingRecordRepository {
   }
 }
 
+const _twoWords = [
+  Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
+  Word(id: WordId(2), term: 'book', translation: 'книга'),
+];
+
+/// Цвет рамки поля ввода (AnimatedContainer) для проверки фидбека.
+Color fieldBorderColor(WidgetTester tester) {
+  final container = tester.widget<AnimatedContainer>(
+    find.byType(AnimatedContainer),
+  );
+  final decoration = container.decoration! as BoxDecoration;
+  return decoration.border!.top.color;
+}
+
 Widget host(
   TypingRecordRepository records, {
   UserSettings? settings,
   List<Word>? words,
+  int wordsCount = 1,
 }) => ProviderScope(
   overrides: [
     settingsRepositoryProvider.overrideWithValue(
@@ -51,7 +66,7 @@ Widget host(
         ),
         settings: FakeSettingsRepository(),
         random: Random(1),
-        wordsCount: 1,
+        wordsCount: wordsCount,
       ),
     ),
     saveTypingRecordProvider.overrideWithValue(
@@ -96,50 +111,27 @@ void main() {
     expect(records.saved.single.correctCount, 1);
   });
 
-  testWidgets('robot icon appears after a wrong answer', (tester) async {
-    // Два слова: после неверного ответа заезд продолжается и карточка
-    // остаётся на экране (с одним словом заезд завершился бы и карточка
-    // исчезла вместе с полем ввода).
+  testWidgets('should_not_show_helper_or_incorrect_plate_during_game', (
+    tester,
+  ) async {
+    // Два слова: после неверного ответа заезд продолжается, поле на экране.
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          settingsRepositoryProvider.overrideWithValue(
-            FakeSettingsRepository(),
-          ),
-          generateTypingSessionProvider.overrideWithValue(
-            GenerateTypingSession(
-              words: FakeWordRepository([
-                const Word(id: WordId(1), term: 'apple', translation: 'яблоко'),
-                const Word(id: WordId(2), term: 'book', translation: 'книга'),
-              ]),
-              settings: FakeSettingsRepository(),
-              random: Random(1),
-              wordsCount: 2,
-            ),
-          ),
-          saveTypingRecordProvider.overrideWithValue(
-            SaveTypingRecord(
-              records: _FakeRecords(),
-              clock: () => DateTime.utc(2024, 5, 15, 12),
-            ),
-          ),
-          bestTypingRecordProvider.overrideWith((ref) async => null),
-        ],
-        child: const MaterialApp(home: TypingSpeedScreen()),
-      ),
+      host(_FakeRecords(), wordsCount: 2, words: _twoWords),
     );
     await settleFrames(tester);
 
     expect(find.byType(ErrorHelperButton), findsNothing);
 
-    await tester.enterText(find.byType(TextField), 'aple');
+    await tester.enterText(find.byType(TextField), 'zzz');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await settleFrames(tester);
 
-    expect(find.byType(ErrorHelperButton), findsOneWidget);
+    // Блиц: помощник и плашка «Неверно» не появляются во время ввода.
+    expect(find.byType(ErrorHelperButton), findsNothing);
+    expect(find.text('Неверно'), findsNothing);
   });
 
-  testWidgets('renders without progress bar, best label and hint', (
+  testWidgets('renders without progress bar, best label, hint and WPM', (
     tester,
   ) async {
     await tester.pumpWidget(host(_FakeRecords()));
@@ -149,8 +141,8 @@ void main() {
     expect(find.textContaining('Best:'), findsNothing);
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.decoration?.hintText, isNull);
-    // Живой WPM остаётся (ADR-037).
-    expect(find.textContaining('WPM'), findsOneWidget);
+    // Блиц: WPM-счётчик убран из верхней панели (Phase 55a).
+    expect(find.textContaining('WPM'), findsNothing);
   });
 
   testWidgets('app bar title is Russian by default', (tester) async {
@@ -191,12 +183,13 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
-  testWidgets('shows letter count and first letter hint', (tester) async {
+  testWidgets('should_not_show_letter_hint', (tester) async {
     await tester.pumpWidget(host(_FakeRecords()));
     await settleFrames(tester);
 
-    // apple: 5 букв, первая «a» — подсказка отсекает синонимы.
-    expect(find.text('5 букв, a...'), findsOneWidget);
+    // Блиц: подсказка длины/первой буквы убрана (Phase 55a).
+    expect(find.text('5 букв, a...'), findsNothing);
+    expect(find.textContaining('букв'), findsNothing);
   });
 
   testWidgets('accepts a synonym as the correct answer', (tester) async {
@@ -216,13 +209,48 @@ void main() {
     );
     await settleFrames(tester);
 
-    expect(find.text('4 буквы, m...'), findsOneWidget);
-
     await tester.enterText(find.byType(TextField), 'food');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await settleFrames(tester);
 
     expect(find.text('Заезд завершён'), findsOneWidget);
     expect(records.saved.single.correctCount, 1);
+  });
+
+  testWidgets('should_show_timer_and_progress_chips', (tester) async {
+    await tester.pumpWidget(host(_FakeRecords()));
+    await settleFrames(tester);
+
+    expect(find.byIcon(Icons.timer_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.format_list_numbered), findsOneWidget);
+    expect(find.textContaining('WPM'), findsNothing);
+  });
+
+  testWidgets('should_color_border_green_on_correct_answer', (tester) async {
+    await tester.pumpWidget(
+      host(_FakeRecords(), wordsCount: 2, words: _twoWords),
+    );
+    await settleFrames(tester);
+
+    final isApple = find.text('яблоко').evaluate().isNotEmpty;
+    await tester.enterText(find.byType(TextField), isApple ? 'apple' : 'book');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(fieldBorderColor(tester), Colors.green);
+  });
+
+  testWidgets('should_color_border_red_on_wrong_answer', (tester) async {
+    await tester.pumpWidget(
+      host(_FakeRecords(), wordsCount: 2, words: _twoWords),
+    );
+    await settleFrames(tester);
+
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(fieldBorderColor(tester), Colors.redAccent);
+    expect(find.text('Неверно'), findsNothing);
   });
 }

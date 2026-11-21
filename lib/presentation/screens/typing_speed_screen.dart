@@ -2,16 +2,12 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
-import 'package:english_edu/core/theme/app_colors.dart';
-import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
-import 'package:english_edu/presentation/widgets/error_helper_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,16 +26,13 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
   final _watch = Stopwatch();
   TypingSession? _session;
   Timer? _ticker;
-  int _wpm = 0;
   bool _finishing = false;
 
-  /// Последнее ошибочное слово: карточка помощника живёт до следующего
-  /// ответа и не ставит заезд на паузу (ADR-042).
-  Word? _lastWrongWord;
-  String _lastWrongInput = '';
+  /// Прошедшее время заезда в секундах — таймер M:SS (Phase 55a).
+  int _elapsedSeconds = 0;
 
-  /// Ключ зелёной вспышки поля ввода после верного ответа (Phase 29b).
-  int _flashKey = 0;
+  /// Цвет рамки поля после проверки: зелёный/красный, null — нейтральная.
+  Color? _feedbackBorder;
 
   ScaffoldMessengerState? _messenger;
 
@@ -79,21 +72,19 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     setState(() {
       _session = session;
       _finishing = false;
-      _wpm = 0;
-      _lastWrongWord = null;
-      _lastWrongInput = '';
+      _elapsedSeconds = 0;
+      _feedbackBorder = null;
     });
     _focus.requestFocus();
   }
 
-  /// WPM в реальном времени: верные слова в минуту от начала заезда.
+  /// Таймер заезда: обновляет прошедшее время раз в секунду (Phase 55a).
   void _tick() {
-    final session = _session;
-    if (!mounted || session == null || _watch.elapsed.inSeconds < 1) {
+    if (!mounted || _session == null) {
       return;
     }
     setState(() {
-      _wpm = (session.correct * 60 / _watch.elapsed.inSeconds).round();
+      _elapsedSeconds = _watch.elapsed.inSeconds;
     });
   }
 
@@ -107,14 +98,10 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     // Правильность считает домен: экран и сессия не должны расходиться.
     final wasCorrect = SubmitTypingAnswer.matches(word, value);
 
-    if (wasCorrect) {
-      _lastWrongWord = null;
-      _lastWrongInput = '';
-      _flashKey++;
-    } else {
-      _lastWrongWord = word;
-      _lastWrongInput = value.trim();
-    }
+    // Блиц: только цвет рамки, без плашек и шторки помощника (Phase 55a).
+    setState(() {
+      _feedbackBorder = wasCorrect ? Colors.green : Colors.redAccent;
+    });
 
     // Отклик не ожидается: на его Future нельзя завязывать переход к слову.
     unawaited(
@@ -215,9 +202,19 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    '${session.index}/${session.length} · $_wpm WPM',
-                    style: theme.textTheme.labelMedium,
+                  // Блиц-панель: таймер слева, прогресс справа (Phase 55a).
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _statChip(
+                        icon: Icons.timer_outlined,
+                        text: _formatElapsed(_elapsedSeconds),
+                      ),
+                      _statChip(
+                        icon: Icons.format_list_numbered,
+                        text: '${session.index} / ${session.length}',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -227,82 +224,74 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  // Подсказка отсекает синонимы: «еда» — meal, а не food.
-                  Text(
-                    S.typingLetterHint(
-                      current.term.length,
-                      current.term.substring(0, 1),
-                      lang,
+                  const SizedBox(height: 24),
+                  // Рамка плавно меняет цвет на верный/неверный ответ.
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color:
+                            _feedbackBorder ?? theme.colorScheme.outlineVariant,
+                        width: 2,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    child: TextField(
+                      controller: _input,
+                      focusNode: _focus,
+                      autofocus: true,
+                      textAlign: TextAlign.center,
+                      textInputAction: TextInputAction.done,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      style: const TextStyle(fontSize: 24),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                      onChanged: (_) => setState(() => _feedbackBorder = null),
+                      onSubmitted: (value) => unawaited(_submit(value)),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  TextField(
-                        controller: _input,
-                        focusNode: _focus,
-                        autofocus: true,
-                        textAlign: TextAlign.center,
-                        textInputAction: TextInputAction.done,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        style: const TextStyle(fontSize: 24),
-                        onSubmitted: (value) => unawaited(_submit(value)),
-                      )
-                      .animate(
-                        key: ValueKey('flash-$_flashKey'),
-                        autoPlay: _flashKey > 0,
-                      )
-                      .tint(
-                        color: AppColors.accentPurple(context),
-                        begin: 0.3,
-                        end: 0,
-                        duration: 700.ms,
-                      ),
-                  if (_lastWrongWord != null) ...[
-                    const SizedBox(height: 16),
-                    _errorCard(context, _lastWrongWord!, _lastWrongInput, lang),
-                  ],
                 ],
               ),
             ),
     );
   }
 
-  /// Карточка ошибки с кнопкой помощника (ADR-042).
-  Widget _errorCard(
-    BuildContext context,
-    Word word,
-    String input,
-    AppLanguage lang,
-  ) {
-    final colors = Theme.of(context).colorScheme;
+  /// Контейнер статистики блиц-панели: иконка + текст (Phase 55a).
+  Widget _statChip({required IconData icon, required String text}) {
+    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colors.errorContainer,
+        color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Text(
-              S.incorrect(lang),
-              style: TextStyle(color: colors.onErrorContainer),
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-          ),
-          ErrorHelperButton(
-            gameType: 'typing',
-            context:
-                'Слово: "${word.term}". '
-                'Перевод: "${word.translation}". '
-                'Пользователь ввёл: "$input".',
           ),
         ],
       ),
     );
+  }
+
+  /// Прошедшее время в формате M:SS (например, 0:45).
+  String _formatElapsed(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 }

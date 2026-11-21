@@ -5,6 +5,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/user_category.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/create_category_dialog.dart';
 import 'package:english_edu/presentation/widgets/export_dialog.dart';
 import 'package:english_edu/presentation/widgets/import_dialog.dart';
@@ -90,10 +91,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// `RadioGroup` — современный API Flutter 3.47: `groupValue`/`onChanged`
   /// у самих RadioListTile deprecated.
   Future<void> _pickVoice(UserSettings settings) async {
-    final voice = await showModalBottomSheet<String>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: RadioGroup<String>(
+    final voice = await AppBottomSheet.show<String>(
+      context,
+      Builder(
+        builder: (sheetContext) => RadioGroup<String>(
           groupValue: settings.ttsVoice,
           onChanged: (value) => Navigator.of(sheetContext).pop(value),
           child: Column(

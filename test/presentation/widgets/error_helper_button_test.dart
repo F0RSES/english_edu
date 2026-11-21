@@ -42,6 +42,7 @@ void main() {
     expect(explainer.lastGameType, 'cloze_test');
     expect(find.text('Маффин объясняет'), findsOneWidget);
     expect(find.text('Глагол go в Past Simple — went.'), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
 
     await tester.tap(find.text('Понятно'));
     await tester.pumpAndSettle();

@@ -273,6 +273,7 @@ void main() {
     expect(find.text('Переименовать'), findsOneWidget);
     expect(find.text('Закрепить'), findsOneWidget);
     expect(find.text('Удалить'), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
   });
 
   testWidgets('should_enter_selection_mode_from_header_icon', (tester) async {

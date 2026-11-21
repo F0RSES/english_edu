@@ -74,6 +74,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Как правильно?'), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
     expect(find.text('had'), findsOneWidget);
   });
 

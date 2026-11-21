@@ -123,6 +123,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Персонализация'));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
     await tester.tap(find.text('Сменить никнейм'));
     await tester.pumpAndSettle();
 

@@ -6,6 +6,7 @@ import 'package:english_edu/domain/entities/chat_session.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/chat_session_group.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -381,10 +382,10 @@ class _SessionTile extends ConsumerWidget {
   }
 
   Future<void> _openActions(BuildContext context, WidgetRef ref) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
+    await AppBottomSheet.show<void>(
+      context,
+      Builder(
+        builder: (sheetContext) => Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(

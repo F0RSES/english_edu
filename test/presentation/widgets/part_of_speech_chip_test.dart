@@ -31,6 +31,7 @@ void main() {
     expect(find.textContaining('называет человека'), findsOneWidget);
     expect(find.textContaining('book, teacher, London'), findsOneWidget);
     expect(find.text('Понятно'), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
   });
 
   testWidgets('tap opens explanation sheet in English', (tester) async {

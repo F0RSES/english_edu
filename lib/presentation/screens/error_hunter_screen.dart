@@ -6,6 +6,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -100,9 +101,9 @@ class _ErrorHunterScreenState extends ConsumerState<ErrorHunterScreen> {
     if (_solved || _normalizeWord(chunk) != _normalizeWord(task.wrongWord)) {
       return;
     }
-    final solved = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (sheetContext) => _OptionsSheet(
+    final solved = await AppBottomSheet.show<bool>(
+      context,
+      _OptionsSheet(
         task: task,
         lang: ref.read(languageProvider).value ?? AppLanguage.ru,
       ),
@@ -314,36 +315,29 @@ class _OptionsSheetState extends State<_OptionsSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(S.errorHunterHowCorrect(widget.lang)),
-          ),
-          for (final option in widget.task.options)
-            ListTile(
-                  key: ValueKey('option-$option'),
-                  title: Text(option),
-                  selected: option == _correctOption,
-                  selectedTileColor: Colors.green.withValues(alpha: 0.15),
-                  textColor: option == _correctOption
-                      ? Colors.green.shade800
-                      : theme.colorScheme.onSurface,
-                  onTap: () => _choose(option),
-                )
-                .animate(
-                  key: ValueKey(
-                    'option-$option-$_shakeCount-${option == _wrongOption}',
-                  ),
-                )
-                .shakeX(
-                  amount: option == _wrongOption ? 6 : 0,
-                  duration: 300.ms,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(S.errorHunterHowCorrect(widget.lang)),
+        const SizedBox(height: 8),
+        for (final option in widget.task.options)
+          ListTile(
+                key: ValueKey('option-$option'),
+                title: Text(option),
+                selected: option == _correctOption,
+                selectedTileColor: Colors.green.withValues(alpha: 0.15),
+                textColor: option == _correctOption
+                    ? Colors.green.shade800
+                    : theme.colorScheme.onSurface,
+                onTap: () => _choose(option),
+              )
+              .animate(
+                key: ValueKey(
+                  'option-$option-$_shakeCount-${option == _wrongOption}',
                 ),
-        ],
-      ),
+              )
+              .shakeX(amount: option == _wrongOption ? 6 : 0, duration: 300.ms),
+      ],
     );
   }
 }

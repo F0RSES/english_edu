@@ -45,13 +45,11 @@ void main() {
       host(const AppBottomSheet(child: SizedBox.shrink())),
     );
 
-    final box = tester.widget<DecoratedBox>(find.byKey(_sheetKey));
+    final material = tester.widget<Material>(find.byKey(_sheetKey));
+    expect(material.color, schemeOf(tester).surfaceContainerLow);
     expect(
-      box.decoration,
-      BoxDecoration(
-        color: schemeOf(tester).surfaceContainerLow,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      material.borderRadius,
+      const BorderRadius.vertical(top: Radius.circular(24)),
     );
   });
 

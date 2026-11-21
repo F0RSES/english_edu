@@ -8,6 +8,7 @@ import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:flutter/material.dart';
@@ -154,87 +155,79 @@ class _WordTranslationSheet extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final example = translation.example;
     final exampleRu = translation.exampleRu;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (revealWord) ...[
-                Text(
-                  word,
-                  style: const TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-              ],
-              if (translation.transcription != null)
-                IpaText(
-                  translation.transcription!,
-                  style: textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              if (translation.partOfSpeech != null) ...[
-                const SizedBox(height: 8),
-                PartOfSpeechChip(partOfSpeech: translation.partOfSpeech!),
-              ],
-              const SizedBox(height: 16),
-              // Перевод — отдельный блок, не сливается с фоном шторки.
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  translation.text,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.onSurface,
-                  ),
-                ),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (revealWord) ...[
+            Text(
+              word,
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+          ],
+          if (translation.transcription != null)
+            IpaText(
+              translation.transcription!,
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
-              if (example != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$_exampleEnPrefix$example',
-                        style: textTheme.bodyMedium,
-                      ),
-                      if (exampleRu != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          '$_exampleRuPrefix$exampleRu',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              _WordActionButton(word: word, translation: translation),
-            ],
+            ),
+          if (translation.partOfSpeech != null) ...[
+            const SizedBox(height: 8),
+            PartOfSpeechChip(partOfSpeech: translation.partOfSpeech!),
+          ],
+          const SizedBox(height: 16),
+          // Перевод — отдельный блок, не сливается с фоном шторки.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              translation.text,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: scheme.onSurface,
+              ),
+            ),
           ),
-        ),
+          if (example != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$_exampleEnPrefix$example',
+                    style: textTheme.bodyMedium,
+                  ),
+                  if (exampleRu != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_exampleRuPrefix$exampleRu',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          _WordActionButton(word: word, translation: translation),
+        ],
       ),
     );
   }
@@ -289,13 +282,9 @@ Future<void> _openTranslationModal(
   String word,
   WordTranslation translation, {
   bool revealWord = true,
-}) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  shape: const RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-  ),
-  builder: (_) => _WordTranslationSheet(
+}) => AppBottomSheet.show<void>(
+  context,
+  _WordTranslationSheet(
     word: word,
     translation: translation,
     revealWord: revealWord,

@@ -306,6 +306,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BulkDictionarySheet), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
     expect(find.text('Слова в задании'), findsOneWidget);
     for (final option in _task.options) {
       expect(

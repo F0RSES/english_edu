@@ -2,6 +2,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,52 +53,45 @@ class _ErrorHelperButtonState extends ConsumerState<ErrorHelperButton> {
       // Loading снимается до открытия листа: иначе спиннер под модалкой
       // анимируется бесконечно и pumpAndSettle в тестах не завершается.
       setState(() => _loading = false);
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (sheetContext) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        key: Key('error-helper-sheet-avatar'),
-                        radius: 12,
-                        backgroundImage: AssetImage(aiAvatarAsset),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        S.explain(lang),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    explanation,
-                    style: const TextStyle(fontSize: 15, height: 1.5),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () => Navigator.of(sheetContext).pop(),
-                      child: Text(S.gotIt(lang)),
+      await AppBottomSheet.show<void>(
+        context,
+        Builder(
+          builder: (sheetContext) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const CircleAvatar(
+                      key: Key('error-helper-sheet-avatar'),
+                      radius: 12,
+                      backgroundImage: AssetImage(aiAvatarAsset),
                     ),
+                    const SizedBox(width: 8),
+                    Text(
+                      S.explain(lang),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  explanation,
+                  style: const TextStyle(fontSize: 15, height: 1.5),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: Text(S.gotIt(lang)),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

@@ -103,10 +103,11 @@ final Finder _listScrollable = find
     )
     .first;
 
-/// Открывает лист категорий кнопкой (Phase 39c).
+/// Открывает лист категорий кнопкой (Phase 39c, 53c: AppBottomSheet).
 Future<void> openCategorySheet(WidgetTester tester, String buttonLabel) async {
   await tester.tap(find.widgetWithText(OutlinedButton, buttonLabel));
   await tester.pumpAndSettle();
+  expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
 }
 
 /// Тапает чип в листе категорий, доскролливая до него при необходимости.

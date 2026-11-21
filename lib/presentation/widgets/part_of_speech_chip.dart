@@ -4,6 +4,7 @@ import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/grammar/part_of_speech_glossary.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,14 +59,10 @@ class PartOfSpeechChip extends ConsumerWidget {
     AppLanguage lang,
   ) {
     final isRu = lang == AppLanguage.ru;
-    return showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+    return AppBottomSheet.show<void>(
+      context,
+      Builder(
+        builder: (sheetContext) => SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

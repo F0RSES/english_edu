@@ -49,13 +49,14 @@ class AppBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return DecoratedBox(
+    // Material, а не DecoratedBox: ListTile/RadioListTile рисуют ink на
+    // ближайшем Material — цветной DecoratedBox поверх прозрачного
+    // Material роута прячет сплэши (assert Flutter).
+    return Material(
       key: const Key('app-bottom-sheet'),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(_cornerRadius),
-        ),
+      color: scheme.surfaceContainerLow,
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(_cornerRadius),
       ),
       child: SafeArea(
         child: Padding(

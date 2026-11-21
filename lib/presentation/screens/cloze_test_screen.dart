@@ -6,6 +6,7 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -298,18 +299,11 @@ class _TaskView extends StatelessWidget {
   bool _isCorrect(String option) =>
       option.trim().toLowerCase() == task.correctWord.trim().toLowerCase();
 
-  /// Лист массового добавления: 70% экрана, слова задания (Phase 30b).
+  /// Лист слов задания в едином стиле AppBottomSheet (Phase 30b, 53c).
   Future<void> _openBulkSheet(BuildContext context) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        builder: (_) => BulkDictionarySheet(words: task.options),
+      AppBottomSheet.show<void>(
+        context,
+        BulkDictionarySheet(words: task.options),
       );
 
   /// Разбивает предложение на спаны, подчёркивая только пропуск.

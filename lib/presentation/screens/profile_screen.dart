@@ -10,6 +10,7 @@ import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -185,22 +186,17 @@ class _Identity extends ConsumerWidget {
     String? currentPath,
     String? nickname,
   ) async {
-    await showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
+    await AppBottomSheet.show<void>(
+      context,
+      Builder(
+        builder: (sheetContext) => Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                S.personalization(lang),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            Text(
+              S.personalization(lang),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: Text(S.gallery(lang)),

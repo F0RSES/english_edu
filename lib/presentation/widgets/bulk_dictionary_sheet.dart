@@ -11,11 +11,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Лист массового добавления слов из задания в словарь (Phase 30b).
 ///
-/// Переводы грузятся параллельно: на каждое слово — свой лоадер, ошибка
-/// одного слова не блокирует остальные. Иконка действия — по статусу
-/// прогресса (Phase 52b, ADR-004): «+» добавляет в «Изучаю», корзина
-/// убирает из «Изучаю» без удаления слова. Наличие слова в БД само по
-/// себе корзину не показывает: seed-слова не считаются добавленными.
+/// Контент для `AppBottomSheet.show` (Phase 53c): отступы и SafeArea
+/// даёт шторка. Переводы грузятся параллельно: на каждое слово — свой
+/// лоадер, ошибка одного слова не блокирует остальные. Иконка действия —
+/// по статусу прогресса (Phase 52b, ADR-004): «+» добавляет в «Изучаю»,
+/// корзина убирает из «Изучаю» без удаления слова. Наличие слова в БД
+/// само по себе корзину не показывает: seed-слова не считаются
+/// добавленными.
 class BulkDictionarySheet extends ConsumerWidget {
   /// Создаёт лист для слов [words].
   const BulkDictionarySheet({required this.words, super.key});
@@ -27,36 +29,30 @@ class BulkDictionarySheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final lang = ref.watch(languageProvider).value ?? AppLanguage.ru;
     final theme = Theme.of(context);
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.wordsInTask(lang),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    // Скролл снаружи (Phase 53c): строки — дети Column, без вложенного
+    // ListView, иначе жесты скролла конфликтовали бы.
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            S.wordsInTask(lang),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [for (final word in words) _BulkWordRow(word: word)],
-              ),
+          ),
+          const SizedBox(height: 16),
+          for (final word in words) _BulkWordRow(word: word),
+          const SizedBox(height: 16),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.close(lang)),
             ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(S.close(lang)),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

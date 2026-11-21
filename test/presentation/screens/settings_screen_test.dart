@@ -91,6 +91,7 @@ void main() {
     // Голос выбирается в нижнем листе с RadioListTile (Phase 28a).
     await tester.tap(find.text('Голос'));
     await tester.pumpAndSettle();
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
     await tester.tap(find.text('en-GB'));
     await tester.pumpAndSettle();
 

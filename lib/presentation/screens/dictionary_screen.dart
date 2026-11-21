@@ -7,6 +7,7 @@ import 'package:english_edu/domain/value_objects/word_category.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/add_word_dialog.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -292,62 +293,49 @@ class _DictionaryScreenState extends ConsumerState<DictionaryScreen> {
     ref.read(dictionaryLevelFilterProvider.notifier).update(null);
   }
 
-  /// Лист категорий (Phase 39c): Wrap всех 23 значений в
-  /// DraggableScrollableSheet — удобно листать на малых экранах; активный
-  /// чип подсвечен primary. Выбор закрывает лист и обновляет кнопку.
+  /// Лист категорий (Phase 39c, 53c): Wrap всех 23 значений в
+  /// SingleChildScrollView внутри AppBottomSheet; активный чип подсвечен
+  /// primary. Выбор закрывает лист и обновляет кнопку.
   Future<void> _openCategorySheet(AppLanguage lang) async {
     final selected = ref.read(dictionaryCategoryFilterProvider);
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) {
-          final colors = Theme.of(context).colorScheme;
-          return Padding(
-            padding: const EdgeInsets.all(16),
+    await AppBottomSheet.show<void>(
+      context,
+      Builder(
+        builder: (sheetContext) {
+          final colors = Theme.of(sheetContext).colorScheme;
+          return SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   S.filterCategories(lang),
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(sheetContext).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
-                Flexible(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final category in WordCategory.values)
-                          ChoiceChip(
-                            label: Text(_categoryLabel(category, lang)),
-                            selected: selected == category,
-                            selectedColor: colors.primary,
-                            checkmarkColor: colors.onPrimary,
-                            labelStyle: TextStyle(
-                              color: selected == category
-                                  ? colors.onPrimary
-                                  : colors.onSurface,
-                            ),
-                            onSelected: (_) {
-                              ref
-                                  .read(
-                                    dictionaryCategoryFilterProvider.notifier,
-                                  )
-                                  .update(category);
-                              Navigator.of(sheetContext).pop();
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final category in WordCategory.values)
+                      ChoiceChip(
+                        label: Text(_categoryLabel(category, lang)),
+                        selected: selected == category,
+                        selectedColor: colors.primary,
+                        checkmarkColor: colors.onPrimary,
+                        labelStyle: TextStyle(
+                          color: selected == category
+                              ? colors.onPrimary
+                              : colors.onSurface,
+                        ),
+                        onSelected: (_) {
+                          ref
+                              .read(dictionaryCategoryFilterProvider.notifier)
+                              .update(category);
+                          Navigator.of(sheetContext).pop();
+                        },
+                      ),
+                  ],
                 ),
               ],
             ),

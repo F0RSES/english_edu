@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
@@ -41,6 +43,7 @@ Widget host({
   UserSettings? settings,
   Widget? home,
   FakeProgressRepository? progress,
+  Random? random,
 }) {
   final settingsRepository = FakeSettingsRepository(settings);
   return ProviderScope(
@@ -70,8 +73,21 @@ Widget host({
         FakeTranslationGenerator(),
       ),
     ],
-    child: MaterialApp(home: home ?? const ClozeTestScreen()),
+    child: MaterialApp(home: home ?? ClozeTestScreen(random: random)),
   );
+}
+
+/// Порядок вариантов ответа Cloze, как они отрендерены (сверху вниз).
+List<String> renderedOptionOrder(WidgetTester tester) {
+  const options = ['eat', 'eats', 'ate', 'eating', 'eaten'];
+  final entries = [
+    for (final option in options)
+      (
+        option: option,
+        dy: tester.getTopLeft(find.byKey(ValueKey('option-$option'))).dy,
+      ),
+  ]..sort((a, b) => a.dy.compareTo(b.dy));
+  return [for (final entry in entries) entry.option];
 }
 
 void main() {
@@ -269,9 +285,7 @@ void main() {
             body: Center(
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const ClozeTestScreen(),
-                  ),
+                  MaterialPageRoute<void>(builder: (_) => ClozeTestScreen()),
                 ),
                 child: const Text('open'),
               ),
@@ -384,13 +398,19 @@ void main() {
 
     await tester.tap(find.text('Разобрать слово'));
     await tester.pumpAndSettle();
+    // Варианты перемешаны (54a): тапаем «+» именно в строке 'eat'.
+    final eatRow = find.ancestor(
+      of: find.descendant(
+        of: find.byType(BulkDictionarySheet),
+        matching: find.text('eat'),
+      ),
+      matching: find.byType(Row),
+    );
     await tester.tap(
-      find
-          .descendant(
-            of: find.byType(BulkDictionarySheet),
-            matching: find.byIcon(Icons.add_circle_outline),
-          )
-          .first,
+      find.descendant(
+        of: eatRow,
+        matching: find.byIcon(Icons.add_circle_outline),
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -399,5 +419,32 @@ void main() {
       WordStatus.learning,
     );
     expect(find.text('Слово добавлено в «Изучаю»'), findsOneWidget);
+  });
+
+  testWidgets('should_shuffle_options_when_task_loaded', (tester) async {
+    // Seed 7 детерминированно даёт [eats, eating, eat, eaten, ate]:
+    // correctWord не первый, порядок отличается от порядка прокси.
+    await tester.pumpWidget(host(random: Random(7)));
+    await tester.pumpAndSettle();
+
+    final order = renderedOptionOrder(tester);
+    expect(order, ['eats', 'eating', 'eat', 'eaten', 'ate']);
+    expect(order.first, isNot('eat'));
+  });
+
+  testWidgets('should_accept_correct_answer_at_any_position', (tester) async {
+    // correctWord последний в списке прокси: проверка по тексту, не индексу.
+    final task = ClozeTask(
+      sentence: 'I ___ apples every day.',
+      correctWord: 'eat',
+      options: const ['eats', 'ate', 'eating', 'eaten', 'eat'],
+    );
+    await tester.pumpWidget(host(generator: FakeClozeGenerator(task: task)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('eat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Следующее задание'), findsOneWidget);
   });
 }

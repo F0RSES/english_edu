@@ -135,8 +135,7 @@ final routerProvider = Provider<GoRouter>(
       ),
       GoRoute(
         path: '/cloze-test',
-        pageBuilder: (context, state) =>
-            _fadePage(state, const ClozeTestScreen()),
+        pageBuilder: (context, state) => _fadePage(state, ClozeTestScreen()),
       ),
       GoRoute(
         path: '/onboarding',

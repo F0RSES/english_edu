@@ -21,17 +21,19 @@ const _wrongResetDelay = Duration(milliseconds: 500);
 /// Задание генерирует AI-прокси по случайному слову словаря и кэширует его в
 /// БД, поэтому повторный показ того же слова не ходит в сеть. Пользователь
 /// выбирает пропущенное слово из 5 вариантов тапом — без ввода текста.
+/// Варианты перемешиваются (Phase 54a): прокси отдаёт correctWord первым.
 class ClozeTestScreen extends ConsumerStatefulWidget {
-  /// Создаёт экран.
-  const ClozeTestScreen({super.key});
+  /// Создаёт экран; [random] внедряется для детерминированных тестов.
+  ClozeTestScreen({super.key, Random? random}) : random = random ?? Random();
+
+  /// Источник случайности: выбор слова и перемешивание вариантов (54a).
+  final Random random;
 
   @override
   ConsumerState<ClozeTestScreen> createState() => _ClozeTestScreenState();
 }
 
 class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
-  final _random = Random();
-
   ClozeTask? _task;
   bool _loading = true;
   bool _solved = false;
@@ -94,13 +96,19 @@ class _ClozeTestScreenState extends ConsumerState<ClozeTestScreen> {
       if (words.isEmpty) {
         throw StateError('dictionary is empty');
       }
-      final word = words[_random.nextInt(words.length)];
+      final word = words[widget.random.nextInt(words.length)];
       final task = await ref.read(getClozeTaskProvider)(word.id, word.term);
       if (!mounted) {
         return;
       }
+      // Прокси отдаёт correctWord первым (Phase 54a): перемешиваем копию
+      // один раз на загрузку — порядок стабилен до следующего задания,
+      // кэш не мутируется (options в ClozeTask — unmodifiable).
+      final shuffled = task.copyWith(
+        options: List<String>.from(task.options)..shuffle(widget.random),
+      );
       setState(() {
-        _task = task;
+        _task = shuffled;
         _loading = false;
       });
     } on Object catch (error, stack) {

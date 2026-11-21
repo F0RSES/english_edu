@@ -115,6 +115,7 @@ import 'package:english_edu/domain/value_objects/daily_goal.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/local_date.dart';
 import 'package:english_edu/domain/value_objects/review_log_id.dart';
+import 'package:english_edu/domain/value_objects/sentence_analysis.dart';
 import 'package:english_edu/domain/value_objects/smart_review_item.dart';
 import 'package:english_edu/domain/value_objects/streak_info.dart';
 import 'package:english_edu/domain/value_objects/today_queue.dart';
@@ -229,6 +230,17 @@ final FutureProviderFamily<String, String> sentenceTranslationProvider =
       // Повтор — только вручную по кнопке (ADR-019): дефолтный авто-retry
       // Riverpod (10 попыток с backoff) молча ходил бы в сеть после ошибки.
       // null из retry-функции = не повторять (retry: null ушёл бы в дефолт).
+      retry: (_, _) => null,
+    );
+
+/// Разбор предложения (Phase 54c): in-memory кэш на сессию.
+///
+/// Ключ — текст предложения; повторное открытие шторки не ходит в сеть.
+/// Запрос уходит при открытии шторки (явное действие). Авто-retry отключён:
+/// повтор вручную кнопкой «Повторить» (invalidate).
+final FutureProviderFamily<SentenceAnalysis, String> sentenceAnalysisProvider =
+    FutureProvider.family<SentenceAnalysis, String>(
+      (ref, sentence) => ref.watch(aiClientProvider).analyzeSentence(sentence),
       retry: (_, _) => null,
     );
 

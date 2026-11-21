@@ -257,6 +257,8 @@ void main() {
         S.explainFailed,
         S.aiHelperTitle,
         S.addToDictionary,
+        S.parseSentence,
+        S.sentenceAnalysisTitle,
         S.removeFromDictionary,
         S.dontKnowWord,
         S.wordRemoved,

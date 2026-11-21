@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/theme/app_colors.dart';
+import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
@@ -15,10 +17,13 @@ import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/screens/cloze_test_screen.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
+import 'package:english_edu/presentation/widgets/sentence_analysis_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../../domain/usecases/fakes/fake_app_meta_repository.dart';
 import '../../domain/usecases/fakes/fake_cloze_generator.dart';
@@ -72,6 +77,19 @@ Widget host({
       settingsRepositoryProvider.overrideWithValue(settingsRepository),
       translationGeneratorProvider.overrideWithValue(
         FakeTranslationGenerator(),
+      ),
+      aiClientProvider.overrideWithValue(
+        AiClient(
+          MockClient(
+            (_) async => http.Response(
+              jsonEncode({'translation': 'перевод', 'tense': 'Present Simple'}),
+              200,
+              headers: const {
+                'content-type': 'application/json; charset=utf-8',
+              },
+            ),
+          ),
+        ),
       ),
     ],
     child: MaterialApp(home: home ?? ClozeTestScreen(random: random)),
@@ -192,18 +210,18 @@ void main() {
     expect(find.byType(AiWordHelper), findsOneWidget);
   });
 
-  testWidgets('shows add-to-dictionary button before and after answer', (
+  testWidgets('shows parse-sentence button before and after answer', (
     tester,
   ) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    expect(find.text('Разобрать слово'), findsOneWidget);
+    expect(find.text('Разобрать предложение'), findsOneWidget);
 
     await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Разобрать слово'), findsOneWidget);
+    expect(find.text('Разобрать предложение'), findsOneWidget);
   });
 
   testWidgets('shows helper after answer', (tester) async {
@@ -255,7 +273,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Gap fill'), findsOneWidget);
-    expect(find.text('Parse word'), findsOneWidget);
+    expect(find.text('Parse sentence'), findsOneWidget);
 
     await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
@@ -335,7 +353,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Разобрать слово'));
+    await tester.tap(find.byKey(const Key('cloze-bulk-words')));
     await tester.pumpAndSettle();
 
     expect(find.byType(BulkDictionarySheet), findsOneWidget);
@@ -358,7 +376,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Разобрать слово'));
+    await tester.tap(find.byKey(const Key('cloze-bulk-words')));
     await tester.pumpAndSettle();
 
     expect(
@@ -391,7 +409,7 @@ void main() {
     await tester.pumpWidget(host(progress: progress));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Разобрать слово'));
+    await tester.tap(find.byKey(const Key('cloze-bulk-words')));
     await tester.pumpAndSettle();
 
     expect(
@@ -415,7 +433,7 @@ void main() {
     await tester.pumpWidget(host(progress: progress));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Разобрать слово'));
+    await tester.tap(find.byKey(const Key('cloze-bulk-words')));
     await tester.pumpAndSettle();
     // Варианты перемешаны (54a): тапаем «+» именно в строке 'eat'.
     final eatRow = find.ancestor(
@@ -495,5 +513,18 @@ void main() {
 
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('should_open_sentence_analysis_when_parse_button_tapped', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Разобрать предложение'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SentenceAnalysisSheet), findsOneWidget);
+    expect(find.byKey(const Key('app-bottom-sheet-handle')), findsOneWidget);
   });
 }

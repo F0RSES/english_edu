@@ -11,6 +11,7 @@ import 'package:english_edu/domain/services/sentence_generator.dart';
 import 'package:english_edu/domain/services/word_translator.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
+import 'package:english_edu/domain/value_objects/sentence_analysis.dart';
 import 'package:english_edu/domain/value_objects/sentence_puzzle.dart';
 import 'package:english_edu/domain/value_objects/word_translation.dart';
 import 'package:http/http.dart' as http;
@@ -66,6 +67,12 @@ const _translateSentenceType = 'translate_sentence';
 
 /// Таймаут перевода предложения: как у словарного перевода.
 const _translateSentenceTimeout = Duration(seconds: 15);
+
+/// Значение поля `type` для разбора предложения (Phase 54c).
+const _analyzeSentenceType = 'analyze_sentence';
+
+/// Таймаут разбора предложения: как у перевода.
+const _analyzeSentenceTimeout = Duration(seconds: 15);
 
 /// Значение поля `type` для задания «Собери предложение» (Phase 35).
 const _sentenceType = 'sentence_builder';
@@ -417,6 +424,54 @@ final class AiClient
       throw const AiException('AI proxy returned no sentence translation');
     }
     return translation;
+  }
+
+  /// Разбирает предложение [sentence]: перевод и грамматическое время
+  /// (Phase 54c).
+  ///
+  /// Контракт: `{'type': 'analyze_sentence', 'sentence': sentence}` →
+  /// `{'translation': '...', 'tense': '...'}`. Type добавляет владелец
+  /// Worker (прецедент Phase 51/53b); до обновления шторка показывает ошибку.
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустые
+  /// поля; таймаут пробрасывается как [TimeoutException].
+  Future<SentenceAnalysis> analyzeSentence(String sentence) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'type': _analyzeSentenceType,
+            'sentence': sentence,
+          }),
+        )
+        .timeout(_analyzeSentenceTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final translation = decoded['translation'];
+    final tense = decoded['tense'];
+    if (translation is! String || translation.trim().isEmpty) {
+      throw const AiException('AI proxy returned no sentence translation');
+    }
+    if (tense is! String || tense.trim().isEmpty) {
+      throw const AiException('AI proxy returned no tense');
+    }
+    return SentenceAnalysis(translation: translation, tense: tense);
   }
 
   /// Запрашивает задание «Собери предложение» для [word] уровня [level]

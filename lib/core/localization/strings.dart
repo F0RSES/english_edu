@@ -867,6 +867,13 @@ final class S {
   /// Кнопка разбора слова через ИИ (Phase 49): открывает лист перевода.
   static String addToDictionary(AppLanguage l) => _t('aiHelper.add', l);
 
+  /// Главная кнопка Cloze: разбор предложения (Phase 54c).
+  static String parseSentence(AppLanguage l) => _t('cloze.parseSentence', l);
+
+  /// Заголовок шторки разбора предложения (Phase 54c).
+  static String sentenceAnalysisTitle(AppLanguage l) =>
+      _t('cloze.sentenceAnalysis', l);
+
   /// Tooltip подтверждения добавления в шторке разбора (Phase 49).
   static String confirmAddToDictionary(AppLanguage l) =>
       _t('aiHelper.confirmAdd', l);
@@ -1949,6 +1956,14 @@ final class S {
     },
     'aiHelper.title': {'ru': 'Маффин о слове', 'en': 'Muffin: word helper'},
     'aiHelper.add': {'ru': 'Разобрать слово', 'en': 'Parse word'},
+    'cloze.parseSentence': {
+      'ru': 'Разобрать предложение',
+      'en': 'Parse sentence',
+    },
+    'cloze.sentenceAnalysis': {
+      'ru': 'Разбор предложения',
+      'en': 'Sentence analysis',
+    },
     'aiHelper.confirmAdd': {
       'ru': 'Добавить в словарь',
       'en': 'Add to dictionary',

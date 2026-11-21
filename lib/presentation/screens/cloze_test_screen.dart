@@ -9,6 +9,7 @@ import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
 import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/bulk_dictionary_sheet.dart';
+import 'package:english_edu/presentation/widgets/sentence_analysis_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -276,14 +277,34 @@ class _TaskView extends StatelessWidget {
             ],
           ),
         ),
-        // Массовое добавление слов задания доступно до и после ответа
-        // и не уезжает за viewport списка (Phase 30b).
+        // Разбор предложения — главная кнопка (Phase 54c); слова задания
+        // (массовое добавление, Phase 52b) — отдельная иконка рядом.
         Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: FilledButton.tonalIcon(
-            onPressed: () => unawaited(_openBulkSheet(context)),
-            icon: const Icon(Icons.menu_book),
-            label: Text(S.addToDictionary(lang)),
+          child: Row(
+            children: [
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => unawaited(
+                    SentenceAnalysisSheet.show(
+                      context,
+                      sentence: task.sentence,
+                      correctWord: task.correctWord,
+                      lang: lang,
+                    ),
+                  ),
+                  icon: const Icon(Icons.menu_book),
+                  label: Text(S.parseSentence(lang)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                key: const Key('cloze-bulk-words'),
+                tooltip: S.wordsInTask(lang),
+                icon: const Icon(Icons.list_alt),
+                onPressed: () => unawaited(_openBulkSheet(context)),
+              ),
+            ],
           ),
         ),
         if (solved)

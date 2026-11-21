@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/sentence_puzzle.dart';
 import 'package:flutter/material.dart';
@@ -303,7 +304,7 @@ class _PuzzleView extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          _answerField(colors),
+          _answerField(colors, AppColors.accentPurple(context)),
           const SizedBox(height: 24),
           Wrap(
             alignment: WrapAlignment.center,
@@ -340,7 +341,7 @@ class _PuzzleView extends StatelessWidget {
   }
 
   /// Поле ответа: плашки слов; тап возвращает слово в облако.
-  Widget _answerField(ColorScheme colors) {
+  Widget _answerField(ColorScheme colors, Color accent) {
     final field = Container(
       constraints: const BoxConstraints(minHeight: 64),
       padding: const EdgeInsets.all(12),
@@ -367,10 +368,10 @@ class _PuzzleView extends StatelessWidget {
         ],
       ),
     );
-    // Зелёная вспышка на верный ответ и тряска на неверный (Phase 29b).
+    // Фиолетовая вспышка на верный ответ и тряска на неверный (29b, 54b).
     return field
         .animate(key: ValueKey('pulse-$pulseKey'), autoPlay: pulseKey > 0)
-        .tint(color: Colors.green, begin: 0.3, end: 0, duration: 800.ms)
+        .tint(color: accent, begin: 0.3, end: 0, duration: 800.ms)
         .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
         .shakeX(amount: 10, hz: 6, duration: 400.ms);
   }

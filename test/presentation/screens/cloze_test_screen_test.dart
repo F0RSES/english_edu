@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/entities/word_progress.dart';
@@ -90,6 +91,14 @@ List<String> renderedOptionOrder(WidgetTester tester) {
   return [for (final entry in entries) entry.option];
 }
 
+/// Тапает вариант ответа, доскроллировав до него: порядок перемешан (54a),
+/// и на тестовом экране пятый вариант может быть за пределами ListView.
+Future<void> tapOption(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+}
+
 void main() {
   testWidgets('renders sentence and five options', (tester) async {
     await tester.pumpWidget(host());
@@ -106,7 +115,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Следующее задание'), findsOneWidget);
@@ -117,7 +126,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eats'));
+    await tapOption(tester, find.text('eats'));
     await tester.pump();
 
     // Красная карточка варианта + раскрытое слово с ботом (Phase 30b).
@@ -137,7 +146,7 @@ void main() {
 
     // После раскрытия слова 'eat' есть и в helper, и в варианте: тапаем
     // именно карточку варианта по ключу.
-    await tester.tap(find.byKey(const ValueKey('option-eat')));
+    await tapOption(tester, find.byKey(const ValueKey('option-eat')));
     await tester.pumpAndSettle();
 
     expect(find.text('Следующее задание'), findsOneWidget);
@@ -162,7 +171,7 @@ void main() {
     await tester.pumpWidget(host(generator: generator, tasks: tasks));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Следующее задание'));
     await tester.pumpAndSettle();
@@ -177,7 +186,7 @@ void main() {
 
     expect(find.byType(AiWordHelper), findsNothing);
 
-    await tester.tap(find.text('eats'));
+    await tapOption(tester, find.text('eats'));
     await tester.pumpAndSettle();
 
     expect(find.byType(AiWordHelper), findsOneWidget);
@@ -191,7 +200,7 @@ void main() {
 
     expect(find.text('Разобрать слово'), findsOneWidget);
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Разобрать слово'), findsOneWidget);
@@ -201,7 +210,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     final helper = tester.widget<AiWordHelper>(find.byType(AiWordHelper));
@@ -248,7 +257,7 @@ void main() {
     expect(find.text('Gap fill'), findsOneWidget);
     expect(find.text('Parse word'), findsOneWidget);
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
     expect(find.text('Next task'), findsOneWidget);
   });
@@ -257,7 +266,7 @@ void main() {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(find.byType(SnackBar), findsNothing);
@@ -265,15 +274,25 @@ void main() {
   });
 
   testWidgets('pulse animation on correct option', (tester) async {
+    // Высокий экран: все варианты и кнопка «Далее» помещаются без скролла,
+    // correct-карточка не удаляется ListView после ответа (Phase 54a).
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(
-      find.ancestor(of: find.text('eat'), matching: find.byType(Animate)),
-      findsWidgets,
+      find.ancestor(
+        of: find.byKey(const ValueKey('option-eat')),
+        matching: find.byType(Animate),
+      ),
+      findsOneWidget,
     );
   });
 
@@ -442,9 +461,39 @@ void main() {
     await tester.pumpWidget(host(generator: FakeClozeGenerator(task: task)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('eat'));
+    await tapOption(tester, find.text('eat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Следующее задание'), findsOneWidget);
+  });
+
+  testWidgets('should_highlight_correct_option_purple_when_answered', (
+    tester,
+  ) async {
+    // Высокий экран: correct-карточка не удаляется ListView после ответа.
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    await tapOption(tester, find.text('eat'));
+    await tester.pump();
+
+    // Фон correct-карточки — бледно-фиолетовый акцент (Phase 54b).
+    final card = tester.widget<Material>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey('option-eat')),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(card.color, AppColors.accentPurpleLight.withValues(alpha: 0.2));
+
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
   });
 }

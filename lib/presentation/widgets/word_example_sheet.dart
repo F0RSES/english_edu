@@ -1,5 +1,6 @@
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
@@ -8,10 +9,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Префикс английского примера в данных (Phase 51) — на экране не нужен.
 const _enPrefix = 'EN:';
-
-/// Подсветка слова в примере: тускло-фиолетовый (Phase 53b).
-const _highlightLight = Color(0xFF6750A4);
-const _highlightDark = Color(0xFFD0BCFF);
 
 /// Радиус аватара Маффина на кнопке перевода.
 const _muffinRadius = 12.0;
@@ -95,9 +92,7 @@ class _WordExampleSheetState extends ConsumerState<WordExampleSheet> {
       return Text(S.noExample(widget.lang), style: theme.textTheme.bodyLarge);
     }
     final base = theme.textTheme.bodyLarge?.copyWith(color: scheme.onSurface);
-    final highlight = theme.brightness == Brightness.dark
-        ? _highlightDark
-        : _highlightLight;
+    final highlight = AppColors.accentPurple(context);
     return SizedBox(
       width: double.infinity,
       child: Column(

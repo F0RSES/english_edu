@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/cloze_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
@@ -15,6 +16,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Пауза после неверного выбора: карточка красная, затем сброс (Phase 26b).
 const _wrongResetDelay = Duration(milliseconds: 500);
+
+/// Прозрачность фона правильного варианта (Phase 54b).
+const _correctOptionBgAlpha = 0.2;
 
 /// Мини-игра «Заполни пропуск» (ADR-025, Phase 26b).
 ///
@@ -224,9 +228,9 @@ class _TaskView extends StatelessWidget {
                           task.sentence,
                           TextStyle(
                             decoration: TextDecoration.underline,
-                            decorationColor: theme.colorScheme.primary,
+                            decorationColor: AppColors.accentPurple(context),
                             decorationThickness: 2,
-                            color: theme.colorScheme.primary,
+                            color: AppColors.accentPurple(context),
                           ),
                           revealedWord: revealed || solved
                               ? task.correctWord
@@ -356,7 +360,8 @@ class _TaskView extends StatelessWidget {
 /// Состояние карточки-варианта (Phase 26b).
 enum _OptionState { idle, correct, wrong }
 
-/// Карточка варианта: тап, зелёная на успех, красная + shake на ошибке.
+/// Карточка варианта: тап, фиолетовая на успех (54b), красная + shake
+/// на ошибке.
 class _OptionCard extends StatelessWidget {
   const _OptionCard({
     required this.option,
@@ -375,14 +380,15 @@ class _OptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final accent = AppColors.accentPurple(context);
     Color background;
     Color foreground;
     Color? border;
     switch (state) {
       case _OptionState.correct:
-        background = Colors.green.shade50;
-        foreground = Colors.green.shade800;
-        border = Colors.green;
+        background = accent.withValues(alpha: _correctOptionBgAlpha);
+        foreground = accent;
+        border = accent;
       case _OptionState.wrong:
         background = colors.errorContainer;
         foreground = colors.onErrorContainer;

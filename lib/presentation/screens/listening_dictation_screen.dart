@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/review_grade.dart';
@@ -401,13 +402,13 @@ class _DictationView extends StatelessWidget {
     );
   }
 
-  /// Поле ввода: заливка без рамки, красная на ошибке, зелёная на успехе.
+  /// Поле ввода: заливка без рамки, красная на ошибке, фиолетовая на успехе.
   Widget _field(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final outline = hasError
         ? colors.error
         : pulseKey > 0
-        ? Colors.green
+        ? AppColors.accentPurple(context)
         : null;
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
@@ -445,13 +446,18 @@ class _DictationView extends StatelessWidget {
         .then()
         .scaleXY(end: 1, duration: 220.ms, curve: Curves.easeOutBack);
 
-    // Зелёная вспышка на 800 мс — синхронно с паузой перед переходом
-    // к следующему слову: успех виден без SnackBar (Phase 29b).
-    final green = pulsing
+    // Фиолетовая вспышка на 800 мс — синхронно с паузой перед переходом
+    // к следующему слову: успех виден без SnackBar (Phase 29b, 54b).
+    final tinted = pulsing
         .animate(key: ValueKey('green-$pulseKey'), autoPlay: pulseKey > 0)
-        .tint(color: Colors.green, begin: 0.3, end: 0, duration: 800.ms);
+        .tint(
+          color: AppColors.accentPurple(context),
+          begin: 0.3,
+          end: 0,
+          duration: 800.ms,
+        );
 
-    return green
+    return tinted
         .animate(key: ValueKey('shake-$shakeKey'), autoPlay: shakeKey > 0)
         .shakeX(amount: 10, hz: 6, duration: 400.ms);
   }

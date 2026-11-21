@@ -1,3 +1,4 @@
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
@@ -12,14 +13,6 @@ const _codeBlockPadding = EdgeInsets.all(12);
 
 /// Вертикальный отступ между блоками Markdown.
 const _blockSpacing = 8.0;
-
-/// Мягкий фиолетовый для strong в тёмной теме (Phase 48): читается
-/// на тёмном пузыре.
-const _strongColorDark = Color(0xFFD0BCFF);
-
-/// Более глубокий фиолетовый для светлой темы (Phase 48): контраст
-/// на светлом пузыре.
-const _strongColorLight = Color(0xFF6750A4);
 
 /// Markdown-рендер ответа ассистента (Phase 45, ADR-047).
 ///
@@ -44,9 +37,7 @@ class AssistantMarkdown extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final base = Theme.of(context).textTheme.bodyMedium;
     final textStyle = base?.copyWith(color: scheme.onSurface);
-    final strongColor = Theme.of(context).brightness == Brightness.dark
-        ? _strongColorDark
-        : _strongColorLight;
+    final strongColor = AppColors.accentPurple(context);
     return MarkdownBody(
       data: data,
       styleSheet: MarkdownStyleSheet(

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/sentence_puzzle.dart';
 import 'package:flutter/material.dart';
@@ -351,7 +352,12 @@ class _SentenceView extends StatelessWidget {
                 ),
               )
               .animate(key: ValueKey('pulse-$pulseKey'), autoPlay: pulseKey > 0)
-              .tint(color: Colors.green, begin: 0.3, end: 0, duration: 800.ms),
+              .tint(
+                color: AppColors.accentPurple(context),
+                begin: 0.3,
+                end: 0,
+                duration: 800.ms,
+              ),
           const SizedBox(height: 16),
           if (checked && !wasCorrect) ...[
             Container(

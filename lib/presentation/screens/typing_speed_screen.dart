@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
@@ -256,7 +257,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
                         autoPlay: _flashKey > 0,
                       )
                       .tint(
-                        color: Colors.green,
+                        color: AppColors.accentPurple(context),
                         begin: 0.3,
                         end: 0,
                         duration: 700.ms,

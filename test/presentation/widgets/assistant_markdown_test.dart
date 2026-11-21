@@ -1,3 +1,4 @@
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/presentation/widgets/assistant_markdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,7 +67,7 @@ void main() {
     expect(_hasBoldSpan(tester, 'hello'), isTrue);
     // Phase 48: мягкий фиолетовый светлой темы.
     expect(
-      _hasBoldSpan(tester, 'hello', color: const Color(0xFF6750A4)),
+      _hasBoldSpan(tester, 'hello', color: AppColors.accentPurpleLight),
       isTrue,
     );
   });
@@ -79,7 +80,7 @@ void main() {
 
     // Phase 48: в тёмной теме — светлый фиолетовый, читаемый на пузыре.
     expect(
-      _hasBoldSpan(tester, 'hello', color: const Color(0xFFD0BCFF)),
+      _hasBoldSpan(tester, 'hello', color: AppColors.accentPurpleDark),
       isTrue,
     );
   });

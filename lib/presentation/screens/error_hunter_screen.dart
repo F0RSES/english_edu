@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/error_hunter_task.dart';
 import 'package:english_edu/presentation/widgets/ai_word_helper.dart';
@@ -218,7 +219,7 @@ class _TaskView extends StatelessWidget {
   }
 
   /// Слово предложения: до ответа — кликабельная подсветка primary, после —
-  /// ошибочное слово заменено на правильное и выделено зелёным (Phase 28b).
+  /// ошибочное слово заменено на правильное и выделено фиолетовым (28b, 54b).
   Widget _wordChip(BuildContext context, String chunk) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
@@ -231,13 +232,13 @@ class _TaskView extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         decoration: BoxDecoration(
           color: corrected
-              ? Colors.green.withValues(alpha: 0.15)
+              ? AppColors.accentPurple(context).withValues(alpha: 0.15)
               : solved
               ? null
               : colors.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(6),
           border: corrected
-              ? Border.all(color: Colors.green)
+              ? Border.all(color: AppColors.accentPurple(context))
               : solved
               ? null
               : Border.all(color: colors.primary),
@@ -325,9 +326,10 @@ class _OptionsSheetState extends State<_OptionsSheet> {
                 key: ValueKey('option-$option'),
                 title: Text(option),
                 selected: option == _correctOption,
-                selectedTileColor: Colors.green.withValues(alpha: 0.15),
+                selectedTileColor: AppColors.accentPurple(context)
+                    .withValues(alpha: 0.15),
                 textColor: option == _correctOption
-                    ? Colors.green.shade800
+                    ? AppColors.accentPurple(context)
                     : theme.colorScheme.onSurface,
                 onTap: () => _choose(option),
               )

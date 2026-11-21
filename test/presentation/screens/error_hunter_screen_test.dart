@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
@@ -189,7 +190,7 @@ void main() {
     expect(generator.words, ['book']);
   });
 
-  testWidgets('shows green correctWord after solve', (tester) async {
+  testWidgets('shows purple correctWord after solve', (tester) async {
     await tester.pumpWidget(host(FakeErrorTaskGenerator(task())));
     await tester.pumpAndSettle();
 
@@ -199,7 +200,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('has'), findsNothing);
-    // 'have' есть и в зелёном чипе, и в helper: проверяем чип предложения.
+    // 'have' есть и в фиолетовом чипе, и в helper: проверяем чип предложения.
     final haveInSentence = find.descendant(
       of: find.byType(Wrap),
       matching: find.text('have'),
@@ -211,8 +212,16 @@ void main() {
     expect(
       container.decoration,
       isA<BoxDecoration>()
-          .having((d) => d.color, 'color', Colors.green.withValues(alpha: 0.15))
-          .having((d) => d.border, 'border', Border.all(color: Colors.green)),
+          .having(
+            (d) => d.color,
+            'color',
+            AppColors.accentPurpleLight.withValues(alpha: 0.15),
+          )
+          .having(
+            (d) => d.border,
+            'border',
+            Border.all(color: AppColors.accentPurpleLight),
+          ),
     );
   });
 

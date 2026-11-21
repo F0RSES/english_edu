@@ -114,6 +114,7 @@
 | BL-113 | P3 | Phase 53b — постоянный кэш переводов предложений (миграция схемы + ADR) | ADR на схему кэша; перевод переживает перезапуск приложения | Todo |
 | BL-114 | P2 | Phase 53c — миграция всех шторок на AppBottomSheet | 9 вызовов showModalBottomSheet заменены; единый стиль (ручка, скругления, surfaceContainerLow); дубли отступов сняты; длинный контент скроллится; тесты с ключом app-bottom-sheet-handle; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-115 | P1 | Phase 54a — перемешивание вариантов ответа Cloze Test | correctWord не всегда первый; shuffle копии options один раз на загрузку (кэш не мутируется); проверка по тексту не по индексу; Random внедрён (детерминированные тесты); analyze=0, ci.sh зелёный, release APK | Done |
+| BL-116 | P2 | Phase 54b — единый фиолетовый акцент AppColors | core/theme/app_colors.dart (light/dark + accentPurple(context)); хардкоды заменены; все подсветки правильных ответов/ключевых слов фиолетовые; статусные индикаторы не тронуты; тесты на AppColors; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

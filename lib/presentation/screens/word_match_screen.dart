@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/memory_card.dart';
 import 'package:english_edu/domain/value_objects/memory_game.dart';
@@ -169,7 +170,7 @@ class _MemoryTile extends StatelessWidget {
 
     final background = switch (card.state) {
       MemoryCardState.hidden => scheme.surfaceContainerHighest,
-      MemoryCardState.matched => Colors.green.withAlpha(77),
+      MemoryCardState.matched => AppColors.accentPurple(context).withAlpha(77),
       MemoryCardState.flipped =>
         card.isEnglish ? scheme.primaryContainer : scheme.tertiaryContainer,
     };

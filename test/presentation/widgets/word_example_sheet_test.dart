@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
@@ -65,7 +66,7 @@ void main() {
     await tester.pumpWidget(host());
 
     final highlighted = sentenceSpans(tester)
-        .where((s) => s.style?.color == const Color(0xFF6750A4))
+        .where((s) => s.style?.color == AppColors.accentPurpleLight)
         .toList();
     expect(highlighted.length, 1);
     expect(highlighted.single.text, 'cat');
@@ -83,7 +84,7 @@ void main() {
     await tester.pumpWidget(host(word: word));
 
     final highlighted = sentenceSpans(tester)
-        .where((s) => s.style?.color == const Color(0xFF6750A4))
+        .where((s) => s.style?.color == AppColors.accentPurpleLight)
         .toList();
     expect(highlighted.single.text, 'Cat');
   });
@@ -94,7 +95,7 @@ void main() {
     );
 
     final highlighted = sentenceSpans(tester)
-        .where((s) => s.style?.color == const Color(0xFFD0BCFF))
+        .where((s) => s.style?.color == AppColors.accentPurpleDark)
         .toList();
     expect(highlighted.single.text, 'cat');
   });

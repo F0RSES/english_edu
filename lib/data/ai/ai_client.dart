@@ -61,6 +61,12 @@ const _translateType = 'translate_word';
 /// Таймаут перевода: словарная статья генерируется дольше подсказки.
 const _translateTimeout = Duration(seconds: 15);
 
+/// Значение поля `type` для перевода предложения (Phase 53b).
+const _translateSentenceType = 'translate_sentence';
+
+/// Таймаут перевода предложения: как у словарного перевода.
+const _translateSentenceTimeout = Duration(seconds: 15);
+
 /// Значение поля `type` для задания «Собери предложение» (Phase 35).
 const _sentenceType = 'sentence_builder';
 
@@ -368,6 +374,49 @@ final class AiClient
       // обновления промпта (на стороне владельца).
       exampleRu: _optionalText(decoded['exampleRu']),
     );
+  }
+
+  /// Переводит предложение [sentence] на русский (Phase 53b).
+  ///
+  /// Контракт: `{'type': 'translate_sentence', 'sentence': sentence}` →
+  /// `{'translation': '...'}`. Type добавляет владелец Worker (прецедент
+  /// Phase 51); до обновления прокси перевод показывает ошибку.
+  ///
+  /// Бросает [AiException] на неуспешный статус, неверный JSON или пустой
+  /// перевод; таймаут пробрасывается как [TimeoutException].
+  Future<String> translateSentence(String sentence) async {
+    final response = await _client
+        .post(
+          Uri.parse(_proxyUrl),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'type': _translateSentenceType,
+            'sentence': sentence,
+          }),
+        )
+        .timeout(_translateSentenceTimeout);
+
+    if (response.statusCode != 200) {
+      throw AiException(
+        'AI proxy returned a non-200 status',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(response.body);
+    } on FormatException catch (error) {
+      throw AiException('AI proxy returned invalid JSON: ${error.message}');
+    }
+    if (decoded is! Map<String, Object?>) {
+      throw const AiException('AI proxy returned a non-object payload');
+    }
+    final translation = decoded['translation'];
+    if (translation is! String || translation.trim().isEmpty) {
+      throw const AiException('AI proxy returned no sentence translation');
+    }
+    return translation;
   }
 
   /// Запрашивает задание «Собери предложение» для [word] уровня [level]

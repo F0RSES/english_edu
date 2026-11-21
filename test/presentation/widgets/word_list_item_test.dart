@@ -5,6 +5,7 @@ import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/screens/chat_screen.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
 import 'package:english_edu/presentation/widgets/word_list_item.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ DictionaryEntry entry({
   WordStatus? status,
   String? partOfSpeech,
   String? transcription = '/həˈləʊ/',
+  String? exampleSentence,
 }) => DictionaryEntry(
   word: Word(
     id: const WordId(1),
@@ -28,6 +30,7 @@ DictionaryEntry entry({
     translation: 'привет',
     transcription: transcription,
     partOfSpeech: partOfSpeech,
+    exampleSentence: exampleSentence,
   ),
   status: status,
 );
@@ -186,6 +189,50 @@ void main() {
     await tester.pumpWidget(host(entry()));
 
     expect(find.byIcon(Icons.bookmark_add_outlined), findsNothing);
+  });
+
+  testWidgets('should_open_example_sheet_when_card_tapped', (tester) async {
+    await tester.pumpWidget(host(entry(exampleSentence: 'Hello, world!')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('hello'));
+    await tester.pumpAndSettle();
+
+    // Phase 53b: пример в AppBottomSheet, SnackBar больше нет.
+    expect(find.byType(AppBottomSheet), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(AppBottomSheet),
+        matching: find.text('Hello, world!', findRichText: true),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('should_show_translate_button_in_sheet_when_no_example_ru', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(entry(exampleSentence: 'Hello, world!')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('hello'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Перевести'), findsOneWidget);
+  });
+
+  testWidgets('should_show_no_example_in_sheet_when_word_has_none', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(entry()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('hello'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Пример отсутствует'), findsOneWidget);
+    expect(find.byType(SnackBar), findsNothing);
   });
 
   testWidgets('shows bookmark action for a new word', (tester) async {

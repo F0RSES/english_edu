@@ -110,6 +110,8 @@
 | BL-109 | P3 | Phase 52b — убрать неиспользуемые ключи S.bulkAddToDictionary/S.removeFromDictionary (strings.dart + strings_test) | grep не находит потребителей в lib; analyze=0, ci.sh зелёный | Todo |
 | BL-110 | P2 | Phase 52c — Scramble: удаление букв тапом по клетке + пружинная анимация появления | тап по поставленной букве возвращает её в пул (повторы корректны); проверка только на полном ответе не ломается; AnimatedSwitcher+ScaleTransition easeOutBack; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-111 | P2 | Phase 53a — базовый компонент AppBottomSheet (единый стиль шторок) | виджет + статический show<T>: скругления top-24, ручка 40×4 outlineVariant, surfaceContainerLow, SafeArea+Padding; isScrollControlled, transparent background; тесты (ручка, контент, оформление, результат pop); analyze=0, ci.sh зелёный | Done |
+| BL-112 | P1 | Phase 53b — шторка примера слова вместо SnackBar + перевод предложения | WordExampleSheet в AppBottomSheet: подсветка слова (\b, регистронезависимо), Divider, RU-перевод; кнопка «Перевести» (Маффин) → AiClient.translateSentence (type translate_sentence, Worker у владельца) → in-memory кэш FutureProvider.family без авто-retry; ошибка → повтор вручную; тесты; analyze=0, ci.sh зелёный, release APK | Done |
+| BL-113 | P3 | Phase 53b — постоянный кэш переводов предложений (миграция схемы + ADR) и миграция остальных шторок на AppBottomSheet | ADR на схему кэша; перевод переживает перезапуск приложения; остальные шторки используют AppBottomSheet.show | Todo |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

@@ -306,6 +306,46 @@ void main() {
     expect(result.exampleRu, isNull);
   });
 
+  test('translateSentence posts the sentence and parses translation', () async {
+    Object? capturedBody;
+    final client = AiClient(
+      MockClient((request) async {
+        capturedBody = jsonDecode(request.body);
+        return jsonResponse({'translation': 'Кот спит.'}, 200);
+      }),
+    );
+
+    final result = await client.translateSentence('The cat sleeps.');
+
+    expect(capturedBody, {
+      'type': 'translate_sentence',
+      'sentence': 'The cat sleeps.',
+    });
+    expect(result, 'Кот спит.');
+  });
+
+  test('translateSentence throws AiException without translation', () async {
+    final client = AiClient(
+      MockClient((_) async => jsonResponse({'other': 'поле'}, 200)),
+    );
+
+    await expectLater(
+      client.translateSentence('The cat sleeps.'),
+      throwsA(isA<AiException>()),
+    );
+  });
+
+  test('translateSentence throws on network failure', () async {
+    final client = AiClient(
+      MockClient((_) async => throw http.ClientException('offline')),
+    );
+
+    await expectLater(
+      client.translateSentence('The cat sleeps.'),
+      throwsA(isA<http.ClientException>()),
+    );
+  });
+
   test('translate throws AiException on 500', () async {
     final client = AiClient(
       MockClient((_) async => http.Response('boom', 500)),

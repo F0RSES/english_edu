@@ -636,6 +636,12 @@ final class S {
   /// Нет примера употребления.
   static String noExample(AppLanguage l) => _t('word.noExample', l);
 
+  /// Кнопка перевода примера в шторке слова (Phase 53b).
+  static String translateButton(AppLanguage l) => _t('word.translateButton', l);
+
+  /// Ошибка перевода примера в шторке слова (Phase 53b).
+  static String translateError(AppLanguage l) => _t('word.translateError', l);
+
   /// Подпись «Без категории».
   static String noCategory(AppLanguage l) => _t('noCategory', l);
 
@@ -1785,6 +1791,11 @@ final class S {
     'wordStatus.learning': {'ru': 'изучаю', 'en': 'learning'},
     'wordStatus.mastered': {'ru': 'выучено', 'en': 'mastered'},
     'word.noExample': {'ru': 'Пример отсутствует', 'en': 'No example'},
+    'word.translateButton': {'ru': 'Перевести', 'en': 'Translate'},
+    'word.translateError': {
+      'ru': 'Не удалось перевести',
+      'en': 'Translation failed',
+    },
     'noCategory': {'ru': 'Без категории', 'en': 'No category'},
     // Диалог добавления слова.
     'addWord.title': {'ru': 'Новое слово', 'en': 'New word'},

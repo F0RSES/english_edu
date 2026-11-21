@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/dictionary_entry.dart';
 import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
+import 'package:english_edu/presentation/widgets/app_bottom_sheet.dart';
 import 'package:english_edu/presentation/widgets/cefr_badge.dart';
 import 'package:english_edu/presentation/widgets/ipa_text.dart';
 import 'package:english_edu/presentation/widgets/part_of_speech_chip.dart';
+import 'package:english_edu/presentation/widgets/word_example_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,14 +58,11 @@ class WordListItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: InkWell(
         onTap: () {
-          final example = word.exampleSentence;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              // Phase 51: пример в формате EN/RU; у seed RU-перевода нет.
-              content: Text(
-                example != null ? 'EN: $example' : S.noExample(lang),
-              ),
-              duration: const Duration(seconds: 2),
+          // Phase 53b: пример — в шторке AppBottomSheet, не в SnackBar.
+          unawaited(
+            AppBottomSheet.show<void>(
+              context,
+              WordExampleSheet(word: word, lang: lang),
             ),
           );
         },

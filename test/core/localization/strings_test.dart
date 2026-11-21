@@ -199,6 +199,8 @@ void main() {
         S.statusLearning,
         S.statusMastered,
         S.noExample,
+        S.translateButton,
+        S.translateError,
         S.noCategory,
         S.addWordTitle,
         S.fieldTerm,

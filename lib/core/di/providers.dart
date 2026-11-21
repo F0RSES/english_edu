@@ -216,6 +216,22 @@ final translationGeneratorProvider = Provider<TranslationGenerator>(
   ),
 );
 
+/// Перевод предложения (Phase 53b): in-memory кэш на сессию.
+///
+/// Ключ — текст предложения; `FutureProvider.family` не autoDispose,
+/// поэтому повторное открытие шторки примера не ходит в сеть. Запрос
+/// уходит только по явному нажатию «Перевести» (ADR-019). Постоянный
+/// кэш — отдельная задача: схема БД в Phase 53b не менялась.
+final FutureProviderFamily<String, String> sentenceTranslationProvider =
+    FutureProvider.family<String, String>(
+      (ref, sentence) =>
+          ref.watch(aiClientProvider).translateSentence(sentence),
+      // Повтор — только вручную по кнопке (ADR-019): дефолтный авто-retry
+      // Riverpod (10 попыток с backoff) молча ходил бы в сеть после ошибки.
+      // null из retry-функции = не повторять (retry: null ушёл бы в дефолт).
+      retry: (_, _) => null,
+    );
+
 /// Кэш заданий «Заполни пропуск» (ADR-025, schema v7).
 final clozeTaskRepositoryProvider = Provider<ClozeTaskRepository>(
   (ref) => DriftClozeTaskRepository(ref.watch(appDatabaseProvider)),

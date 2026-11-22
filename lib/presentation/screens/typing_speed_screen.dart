@@ -5,7 +5,9 @@ import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/domain/usecases/submit_typing_answer.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
 import 'package:english_edu/domain/value_objects/typing_record.dart';
+import 'package:english_edu/domain/value_objects/typing_result.dart';
 import 'package:english_edu/domain/value_objects/typing_session.dart';
+import 'package:english_edu/presentation/widgets/typing_results_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +35,9 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
 
   /// Цвет рамки поля после проверки: зелёный/красный, null — нейтральная.
   Color? _feedbackBorder;
+
+  /// Ответы заезда для экрана результатов (Phase 55b).
+  final List<TypingResult> _results = [];
 
   ScaffoldMessengerState? _messenger;
 
@@ -69,6 +74,7 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
       ..start();
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+    _results.clear();
     setState(() {
       _session = session;
       _finishing = false;
@@ -97,6 +103,16 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
 
     // Правильность считает домен: экран и сессия не должны расходиться.
     final wasCorrect = SubmitTypingAnswer.matches(word, value);
+
+    // Снимок ответа для экрана результатов (Phase 55b).
+    _results.add(
+      TypingResult(
+        word: word,
+        userInput: value.trim(),
+        isCorrect: wasCorrect,
+        timestamp: ref.read(clockProvider)().toUtc(),
+      ),
+    );
 
     // Блиц: только цвет рамки, без плашек и шторки помощника (Phase 55a).
     setState(() {
@@ -149,30 +165,11 @@ class _TypingSpeedScreenState extends ConsumerState<TypingSpeedScreen> {
     if (!mounted) {
       return;
     }
-    final again = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(S.typingRunDone(lang)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(S.typingWpm(record.wpm, lang)),
-            Text(S.typingAccuracy(record.accuracyPercent, lang)),
-            Text(S.typingScore(record.score, lang)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(S.commonExit(lang)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(S.commonAgain(lang)),
-          ),
-        ],
-      ),
+    final again = await TypingResultsSheet.show(
+      context,
+      results: List.of(_results),
+      record: record,
+      lang: lang,
     );
     if (!mounted) {
       return;

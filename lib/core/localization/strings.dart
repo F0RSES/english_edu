@@ -1003,6 +1003,21 @@ final class S {
   static String typingWpm(int n, AppLanguage l) =>
       _t('game.typing.wpm', l).replaceFirst('{n}', '$n');
 
+  /// Заголовок экрана результатов заезда (Phase 55b).
+  static String typingResults(AppLanguage l) => _t('game.typing.results', l);
+
+  /// Фильтр результатов: по очереди ответа (Phase 55b).
+  static String typingFilterOrder(AppLanguage l) =>
+      _t('game.typing.filterOrder', l);
+
+  /// Фильтр результатов: сначала правильные (Phase 55b).
+  static String typingFilterCorrect(AppLanguage l) =>
+      _t('game.typing.filterCorrect', l);
+
+  /// Фильтр результатов: сначала неправильные (Phase 55b).
+  static String typingFilterWrong(AppLanguage l) =>
+      _t('game.typing.filterWrong', l);
+
   /// Подсказка к переводу: «4 буквы, m...» / «4 letters, m...» (Phase 36a).
   ///
   /// Метод, а не ключ _data: формы склонения собираются на месте,
@@ -2069,6 +2084,19 @@ final class S {
     'game.typing.accuracy': {'ru': 'Точность: {n}%', 'en': 'Accuracy: {n}%'},
     'game.typing.score': {'ru': 'Очки: {n}', 'en': 'Score: {n}'},
     'game.typing.wpm': {'ru': 'WPM: {n}', 'en': 'WPM: {n}'},
+    'game.typing.results': {'ru': 'Результаты', 'en': 'Results'},
+    'game.typing.filterOrder': {
+      'ru': 'По очереди ответа',
+      'en': 'Answer order',
+    },
+    'game.typing.filterCorrect': {
+      'ru': 'Сначала правильные',
+      'en': 'Correct first',
+    },
+    'game.typing.filterWrong': {
+      'ru': 'Сначала неправильные',
+      'en': 'Wrong first',
+    },
     // Memory.
     'game.memory.victory': {'ru': 'Победа!', 'en': 'Victory!'},
     'game.memory.victoryBody': {

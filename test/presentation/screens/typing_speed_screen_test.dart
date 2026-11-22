@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:english_edu/core/di/providers.dart';
+import 'package:english_edu/data/ai/ai_client.dart';
 import 'package:english_edu/domain/entities/user_settings.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/repositories/typing_record_repository.dart';
@@ -11,9 +13,12 @@ import 'package:english_edu/domain/value_objects/typing_record.dart';
 import 'package:english_edu/domain/value_objects/word_id.dart';
 import 'package:english_edu/presentation/screens/typing_speed_screen.dart';
 import 'package:english_edu/presentation/widgets/error_helper_button.dart';
+import 'package:english_edu/presentation/widgets/typing_results_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
 import '../../domain/usecases/fakes/fake_word_repository.dart';
@@ -76,6 +81,18 @@ Widget host(
       ),
     ),
     bestTypingRecordProvider.overrideWith((ref) async => null),
+    clockProvider.overrideWithValue(() => DateTime.utc(2024, 5, 15, 12)),
+    aiClientProvider.overrideWithValue(
+      AiClient(
+        MockClient(
+          (_) async => http.Response(
+            jsonEncode({'explanation': 'объяснение'}),
+            200,
+            headers: const {'content-type': 'application/json; charset=utf-8'},
+          ),
+        ),
+      ),
+    ),
   ],
   child: const MaterialApp(home: TypingSpeedScreen()),
 );
@@ -106,7 +123,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await settleFrames(tester);
 
-    expect(find.text('Заезд завершён'), findsOneWidget);
+    expect(find.byType(TypingResultsSheet), findsOneWidget);
     expect(records.saved, hasLength(1));
     expect(records.saved.single.correctCount, 1);
   });
@@ -167,9 +184,9 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await settleFrames(tester);
 
-    expect(find.text('Run complete'), findsOneWidget);
+    expect(find.text('Results'), findsOneWidget);
     expect(find.text('Again'), findsOneWidget);
-    expect(find.text('Exit'), findsOneWidget);
+    expect(find.text('Close'), findsOneWidget);
   });
 
   testWidgets('no SnackBar after correct answer', (tester) async {
@@ -213,7 +230,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await settleFrames(tester);
 
-    expect(find.text('Заезд завершён'), findsOneWidget);
+    expect(find.byType(TypingResultsSheet), findsOneWidget);
     expect(records.saved.single.correctCount, 1);
   });
 
@@ -252,5 +269,29 @@ void main() {
 
     expect(fieldBorderColor(tester), Colors.redAccent);
     expect(find.text('Неверно'), findsNothing);
+  });
+
+  testWidgets('should_open_results_sheet_with_rows_on_finish', (tester) async {
+    await tester.pumpWidget(
+      host(_FakeRecords(), wordsCount: 2, words: _twoWords),
+    );
+    await settleFrames(tester);
+
+    // Отвечаем на оба слова (одно верно, одно неверно) — заезд завершается.
+    final isApple = find.text('яблоко').evaluate().isNotEmpty;
+    await tester.enterText(find.byType(TextField), isApple ? 'apple' : 'book');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+    await tester.enterText(find.byType(TextField), 'zzz');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await settleFrames(tester);
+
+    expect(find.byType(TypingResultsSheet), findsOneWidget);
+    expect(find.text('Результаты'), findsOneWidget);
+    expect(find.byKey(const Key('results-filter')), findsOneWidget);
+    expect(find.byKey(const Key('results-again')), findsOneWidget);
+    expect(find.byKey(const Key('results-close')), findsOneWidget);
+    expect(find.byType(ErrorHelperButton), findsNWidgets(2));
+    expect(find.byIcon(Icons.bookmark_add_outlined), findsNWidgets(2));
   });
 }

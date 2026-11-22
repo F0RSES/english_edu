@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:english_edu/core/di/providers.dart';
 import 'package:english_edu/core/localization/strings.dart';
 import 'package:english_edu/core/theme/app_colors.dart';
 import 'package:english_edu/domain/entities/word.dart';
 import 'package:english_edu/domain/value_objects/app_language.dart';
+import 'package:english_edu/domain/value_objects/word_status.dart';
 import 'package:english_edu/presentation/widgets/ai_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,6 +49,9 @@ class WordExampleSheet extends ConsumerStatefulWidget {
 
 class _WordExampleSheetState extends ConsumerState<WordExampleSheet> {
   bool _translating = false;
+  WordStatus? _status;
+  bool _statusLoading = true;
+  bool _busy = false;
 
   @override
   void initState() {
@@ -59,7 +65,71 @@ class _WordExampleSheetState extends ConsumerState<WordExampleSheet> {
         _translating = true;
       }
     }
+    unawaited(_loadStatus());
   }
+
+  /// Статус изучения слова — для кнопки «Добавить/Убрать» (Phase 55b).
+  Future<void> _loadStatus() async {
+    final progress = await ref
+        .read(progressRepositoryProvider)
+        .getByWordId(widget.word.id);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _status = progress?.status;
+      _statusLoading = false;
+    });
+  }
+
+  bool get _isLearning => _status == WordStatus.learning;
+
+  /// Переключает статус изучения (UpdateWordStatus, ADR-004).
+  Future<void> _toggleStatus() async {
+    if (_busy) {
+      return;
+    }
+    final lang = widget.lang;
+    setState(() => _busy = true);
+    try {
+      if (_isLearning) {
+        await ref
+            .read(progressRepositoryProvider)
+            .deleteByWordId(widget.word.id);
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _status = null;
+          _busy = false;
+        });
+        ref.invalidate(dictionaryEntriesProvider);
+        _showMessage(S.wordRemovedFromLearning(lang));
+      } else {
+        await ref.read(updateWordStatusProvider)(
+          widget.word.id,
+          WordStatus.learning,
+        );
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _status = WordStatus.learning;
+          _busy = false;
+        });
+        ref.invalidate(dictionaryEntriesProvider);
+        _showMessage(S.wordAddedToLearning(lang));
+      }
+    } on Object {
+      if (mounted) {
+        setState(() => _busy = false);
+        _showMessage(S.wordSaveFailed(lang));
+      }
+    }
+  }
+
+  void _showMessage(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   /// Пример без префикса «EN:»; null — примера нет.
   String? get _example {
@@ -88,9 +158,6 @@ class _WordExampleSheetState extends ConsumerState<WordExampleSheet> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final example = _example;
-    if (example == null) {
-      return Text(S.noExample(widget.lang), style: theme.textTheme.bodyLarge);
-    }
     final base = theme.textTheme.bodyLarge?.copyWith(color: scheme.onSurface);
     final highlight = AppColors.accentPurple(context);
     return SizedBox(
@@ -99,21 +166,60 @@ class _WordExampleSheetState extends ConsumerState<WordExampleSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RichText(
-            key: const Key('example-sentence'),
-            textScaler: MediaQuery.textScalerOf(context),
-            text: TextSpan(
-              children: _highlightedSpans(
-                example,
-                widget.word.term,
-                base,
-                highlight,
+          if (example == null)
+            Text(S.noExample(widget.lang), style: theme.textTheme.bodyLarge)
+          else ...[
+            RichText(
+              key: const Key('example-sentence'),
+              textScaler: MediaQuery.textScalerOf(context),
+              text: TextSpan(
+                children: _highlightedSpans(
+                  example,
+                  widget.word.term,
+                  base,
+                  highlight,
+                ),
               ),
             ),
-          ),
-          Divider(thickness: 1, color: scheme.outlineVariant, height: 24),
-          _translationSection(example, theme),
+            Divider(thickness: 1, color: scheme.outlineVariant, height: 24),
+            _translationSection(example, theme),
+          ],
+          const SizedBox(height: 16),
+          _statusButton(theme),
         ],
+      ),
+    );
+  }
+
+  /// Кнопка статуса: «+» добавить в изучение / корзина убрать (Phase 55b).
+  Widget _statusButton(ThemeData theme) {
+    if (_statusLoading) {
+      return const Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+    final learning = _isLearning;
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        key: const Key('example-status-button'),
+        onPressed: _busy ? null : _toggleStatus,
+        style: learning
+            ? FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.errorContainer,
+                foregroundColor: theme.colorScheme.onErrorContainer,
+              )
+            : null,
+        icon: Icon(learning ? Icons.delete_outline : Icons.add),
+        label: Text(
+          learning
+              ? S.removeFromLearning(widget.lang)
+              : S.addToLearning(widget.lang),
+        ),
       ),
     );
   }

@@ -119,6 +119,7 @@
 | BL-118 | P3 | Phase 54c — вынести общую подсветку слова в предложении (WordExampleSheet + SentenceAnalysisSheet) в shared-виджет | один источник span-логики (\b + accentPurple); analyze=0, ci.sh зелёный | Todo |
 | BL-119 | P2 | Phase 55a — блиц-редизайн «Скорость печати» | панель таймер(M:SS elapsed)+прогресс в контейнерах; WPM/подсказка/плашки убраны; рамка TextField green/red через AnimatedContainer; mid-game помощник убран; механика по словам не менялась; тесты; analyze=0, ci.sh зелёный, release APK | Done |
 | BL-120 | P3 | Phase 55a — убрать неиспользуемый ключ S.typingLetterHint (strings.dart + strings_test) | grep не находит потребителей в lib; analyze=0, ci.sh зелёный | Todo |
+| BL-121 | P2 | Phase 55b — экран результатов «Скорость печати» (список + фильтр + действия) | TypingResultsSheet вместо AlertDialog (AppBottomSheet): сводка, фильтр порядка, ListView ответов, Маффин + словарь; TypingResult VO; WordExampleSheet кнопка статуса (унификация); тесты; analyze=0, ci.sh зелёный, release APK | Done |
 
 ## Заметки
 - Задача без критерия приёмки в бэклог не попадает.

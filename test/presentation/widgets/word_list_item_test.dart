@@ -15,8 +15,11 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import '../../domain/usecases/fakes/fake_app_meta_repository.dart';
 import '../../domain/usecases/fakes/fake_chat_repository.dart';
+import '../../domain/usecases/fakes/fake_progress_repository.dart';
 import '../../domain/usecases/fakes/fake_settings_repository.dart';
+import '../../domain/usecases/fakes/fake_word_repository.dart';
 
 DictionaryEntry entry({
   WordStatus? status,
@@ -42,6 +45,11 @@ Widget host(
   overrides: [
     // PartOfSpeechChip (Phase 51) читает язык через languageProvider.
     settingsRepositoryProvider.overrideWithValue(FakeSettingsRepository()),
+    // WordExampleSheet (Phase 55b) грузит статус изучения слова.
+    wordRepositoryProvider.overrideWithValue(FakeWordRepository([item.word])),
+    progressRepositoryProvider.overrideWithValue(FakeProgressRepository()),
+    appMetaRepositoryProvider.overrideWithValue(FakeAppMetaRepository()),
+    clockProvider.overrideWithValue(() => DateTime.utc(2026, 11, 21, 12)),
   ],
   child: MaterialApp(
     home: Scaffold(
